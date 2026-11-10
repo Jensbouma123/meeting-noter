@@ -1,15 +1,4 @@
 "use client";
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
 import { jsx as _jsx } from "react/jsx-runtime";
 import { User } from "lucide-react";
 import { useState } from "react";
@@ -30,29 +19,26 @@ const AVATAR_ICON_CLASS = {
     lg: "size-6",
 };
 function getAvatarInitials(name) {
-    var _a, _b;
     const parts = name.trim().split(/\s+/).filter(Boolean);
     if (parts.length === 0)
         return "";
     if (parts.length === 1)
         return parts[0].slice(0, 2).toUpperCase();
-    const first = (_a = parts[0][0]) !== null && _a !== void 0 ? _a : "";
-    const last = (_b = parts[parts.length - 1][0]) !== null && _b !== void 0 ? _b : "";
+    const first = parts[0][0] ?? "";
+    const last = parts[parts.length - 1][0] ?? "";
     return `${first}${last}`.toUpperCase();
 }
-export function Avatar(_a) {
-    var _b;
-    var { src, name, size = "md", fallback, className } = _a, props = __rest(_a, ["src", "name", "size", "fallback", "className"]);
+export function Avatar({ src, name, size = "md", fallback, className, ...props }) {
     const [errorSrc, setErrorSrc] = useState(undefined);
     const decorative = props["aria-hidden"] === true || props["aria-hidden"] === "true";
-    const trimmedName = (_b = name === null || name === void 0 ? void 0 : name.trim()) !== null && _b !== void 0 ? _b : "";
+    const trimmedName = name?.trim() ?? "";
     const initials = trimmedName ? getAvatarInitials(trimmedName) : "";
     const showImage = Boolean(src) && errorSrc !== src;
     if (process.env.NODE_ENV !== "production" && src && !trimmedName) {
         console.error('[a11y] <Avatar src> was given no `name`, so the image ships with an empty alt and no accessible name. Pass the person\'s name so the image is announced (WCAG 2.2 AA SC 1.1.1 Non-text Content). If the avatar is purely decorative inside an already-labelled control, pass `aria-hidden` instead.');
     }
     const labelProps = !decorative && !showImage && initials ? { role: "img", "aria-label": trimmedName } : {};
-    return (_jsx("span", Object.assign({}, labelProps, props, { className: cn("inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-elevation-2 font-medium text-muted-foreground", AVATAR_SIZE_CLASS[size], AVATAR_TEXT_CLASS[size], className), children: showImage ? (
+    return (_jsx("span", { ...labelProps, ...props, className: cn("inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-elevation-2 font-medium text-muted-foreground", AVATAR_SIZE_CLASS[size], AVATAR_TEXT_CLASS[size], className), children: showImage ? (
         // eslint-disable-next-line @next/next/no-img-element -- a dependency-free <img> keeps Avatar out of next/image; loading is lazy and the disc footprint never shifts
-        _jsx("img", { src: src, alt: decorative ? "" : trimmedName, loading: "lazy", decoding: "async", draggable: false, onError: () => setErrorSrc(src), className: "size-full object-cover" })) : initials ? (_jsx("span", { "aria-hidden": "true", children: initials })) : ((fallback !== null && fallback !== void 0 ? fallback : _jsx(User, { "aria-hidden": "true", className: AVATAR_ICON_CLASS[size] }))) })));
+        _jsx("img", { src: src, alt: decorative ? "" : trimmedName, loading: "lazy", decoding: "async", draggable: false, onError: () => setErrorSrc(src), className: "size-full object-cover" })) : initials ? (_jsx("span", { "aria-hidden": "true", children: initials })) : ((fallback ?? _jsx(User, { "aria-hidden": "true", className: AVATAR_ICON_CLASS[size] }))) }));
 }

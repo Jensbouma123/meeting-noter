@@ -1,6 +1,6 @@
-import { type RolePath, type ThemeAudit } from "./audit.js";
-import { type DualModeReason } from "./constrain.js";
-import type { ModeTokenOverrides } from "./export/resolve.js";
+import { type RolePath, type ThemeAudit } from "./audit/index.js";
+import { type DualModeReason } from "./constrain/index.js";
+import type { ModeTokenOverrides } from "./export/resolve/index.js";
 import type { HarmonyMode, Hex } from "./types.js";
 export type UnresolvableRole = {
     readonly role: RolePath;

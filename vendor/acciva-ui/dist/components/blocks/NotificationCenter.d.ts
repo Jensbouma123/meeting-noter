@@ -1,22 +1,3 @@
-import { type BadgeTone } from "../../components/ui/Badge.js";
-export type NotificationTone = BadgeTone;
-export interface NotificationItem {
-    id: string;
-    title: string;
-    body?: string;
-    time: string;
-    read?: boolean;
-    tone?: NotificationTone;
-}
-export interface NotificationCenterProps {
-    notifications: readonly NotificationItem[];
-    title?: string;
-    emptyTitle?: string;
-    emptyDescription?: string;
-    markAllLabel?: string;
-    onMarkAllRead?: () => void;
-    onDismiss?: (id: string) => void;
-    onSelect?: (id: string) => void;
-    className?: string;
-}
+import type { NotificationCenterProps } from "./NotificationCenter/NotificationCenterTypes.js";
+export type { NotificationCenterProps, NotificationItem, NotificationTone } from "./NotificationCenter/NotificationCenterTypes.js";
 export declare function NotificationCenter({ notifications, title, emptyTitle, emptyDescription, markAllLabel, onMarkAllRead, onDismiss, onSelect, className, }: NotificationCenterProps): import("react").JSX.Element;

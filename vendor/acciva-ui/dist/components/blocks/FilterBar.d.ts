@@ -1,4 +1,4 @@
-import { type SelectOption } from "../../components/ui/Select.js";
+import { type SelectOption } from "../ui/Select/index.js";
 export interface FilterBarProps {
     searchValue: string;
     onSearchChange: (value: string) => void;

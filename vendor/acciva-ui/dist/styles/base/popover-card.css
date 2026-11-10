@@ -1,0 +1,108 @@
+/* Popover card (WCAG 2.2 SC 1.4.13, 2.1.2, 1.4.10). A `popover` element (`auto` when
+   `dismissOnOutsideClick`, else `manual`) in the top layer, anchored to its
+   trigger (`anchor-name` set per instance on the trigger, `position-anchor`
+   inline on the card). `position-area` places it on `data-side`; the
+   `position-try-fallbacks` flip moves it to the opposite side on collision.
+   `justify-self`/`align-self: safe anchor-center` centres it on the trigger but
+   shifts it back inside the area when it would overflow (trigger at a screen edge);
+   `max-inline-size` keeps it inside the viewport gutter (`--overlay-gutter`, safe-area
+   aware, popovers.css). Entry uses @starting-style; exit is the `data-state="closed"`
+   state, held open by JS until its transition ends. Without anchor positioning it
+   docks to the bottom edge. The arrow follows the trigger centre along the active
+   edge, clamped off the corners. */
+.popover-card {
+  position: fixed;
+  inset: auto;
+  width: max-content;
+  margin: 0;
+  overflow: visible;
+  max-height: calc(100dvh - var(--spacing) * 6);
+  max-inline-size: calc(100dvw - var(--overlay-gutter) * 2);
+}
+
+.popover-card[data-state="closed"] {
+  opacity: 0;
+  scale: 0.95;
+}
+
+.popover-body {
+  max-height: calc(100dvh - var(--spacing) * 24);
+}
+
+@starting-style {
+  .popover-card:popover-open {
+    opacity: 0;
+    scale: 0.95;
+  }
+}
+
+@supports not (anchor-name: --a) {
+  .popover-card {
+    inset-inline: 0;
+    inset-block-end: calc(var(--spacing) * 4 + var(--safe-bottom));
+    margin-inline: auto;
+  }
+}
+
+@supports (anchor-name: --a) {
+  .popover-card {
+    inset: auto;
+    margin: calc(var(--spacing) * 2);
+    margin-inline: var(--overlay-gutter);
+    position-try-fallbacks: flip-block;
+    justify-self: safe anchor-center;
+    align-self: safe anchor-center;
+    /* Trigger centre from the card's top/left (JS, `--popover-arrow`), clamped off the corners. */
+    --popover-tip: clamp(calc(var(--spacing) * 3), var(--popover-arrow, 50%), calc(100% - var(--spacing) * 3));
+  }
+  .popover-card[data-side="top"] {
+    position-area: top;
+    transform-origin: center bottom;
+  }
+  .popover-card[data-side="bottom"] {
+    position-area: bottom;
+    transform-origin: center top;
+  }
+  .popover-card[data-side="left"] {
+    position-area: left;
+    position-try-fallbacks: flip-inline;
+    transform-origin: right center;
+  }
+  .popover-card[data-side="right"] {
+    position-area: right;
+    position-try-fallbacks: flip-inline;
+    transform-origin: left center;
+  }
+  .popover-card::after {
+    content: "";
+    position: absolute;
+    width: calc(var(--spacing) * 2);
+    height: calc(var(--spacing) * 2);
+    background: inherit;
+    border: 0 solid;
+    border-color: inherit;
+    inset: auto;
+    rotate: 45deg;
+    pointer-events: none;
+  }
+  .popover-card[data-placed="top"]::after {
+    inset-block-end: calc(var(--spacing) * -1 - 0.5px);
+    inset-inline-start: calc(var(--popover-tip) - var(--spacing));
+    border-width: 0 1px 1px 0;
+  }
+  .popover-card[data-placed="bottom"]::after {
+    inset-block-start: calc(var(--spacing) * -1 - 0.5px);
+    inset-inline-start: calc(var(--popover-tip) - var(--spacing));
+    border-width: 1px 0 0 1px;
+  }
+  .popover-card[data-placed="left"]::after {
+    inset-inline-end: calc(var(--spacing) * -1 - 0.5px);
+    inset-block-start: calc(var(--popover-tip) - var(--spacing));
+    border-width: 1px 1px 0 0;
+  }
+  .popover-card[data-placed="right"]::after {
+    inset-inline-start: calc(var(--spacing) * -1 - 0.5px);
+    inset-block-start: calc(var(--popover-tip) - var(--spacing));
+    border-width: 0 0 1px 1px;
+  }
+}

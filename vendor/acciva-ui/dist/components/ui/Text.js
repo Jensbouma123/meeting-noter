@@ -1,17 +1,6 @@
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
 import { jsx as _jsx } from "react/jsx-runtime";
 import { forwardRef } from "react";
-import { TEXT_SIZE } from "../../lib/sizing-tokens.js";
+import { TEXT_SIZE } from "../../lib/sizing-tokens/index.js";
 import { cn } from "../../lib/utils.js";
 const textSizeClasses = {
     caption: "text-xs leading-normal",
@@ -68,8 +57,7 @@ function getTruncateClass(truncate) {
         return "line-clamp-3";
     return "";
 }
-export const Text = forwardRef(function Text(_a, ref) {
-    var { as = "p", size = "md", variant = "default", weight = "normal", align = "left", font = "sans", truncate = false, className, children } = _a, props = __rest(_a, ["as", "size", "variant", "weight", "align", "font", "truncate", "className", "children"]);
+export const Text = forwardRef(function Text({ as = "p", size = "md", variant = "default", weight = "normal", align = "left", font = "sans", truncate = false, className, children, ...props }, ref) {
     const Component = as;
-    return (_jsx(Component, Object.assign({ ref: ref, className: cn(textSizeClasses[size], textVariantClasses[variant], textWeightClasses[weight], textAlignClasses[align], textFontClasses[font], getTruncateClass(truncate), className) }, props, { children: children })));
+    return (_jsx(Component, { ref: ref, className: cn(textSizeClasses[size], textVariantClasses[variant], textWeightClasses[weight], textAlignClasses[align], textFontClasses[font], getTruncateClass(truncate), className), ...props, children: children }));
 });

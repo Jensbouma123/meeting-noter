@@ -1,4 +1,4 @@
-import { type BadgeTone } from "../../components/ui/Badge.js";
+import { type BadgeTone } from "../ui/Badge/index.js";
 export interface ActivityEvent {
     id: string;
     actor: string;

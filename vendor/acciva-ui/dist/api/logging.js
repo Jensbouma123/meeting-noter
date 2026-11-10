@@ -1,10 +1,15 @@
 import { createLogger } from "../logger/index.js";
 import { redactBodyForLog, redactHeadersForLog, redactUrlForLog } from "./redact.js";
 export function resolveLogger(logger) {
-    return logger !== null && logger !== void 0 ? logger : createLogger("api");
+    return logger ?? createLogger("api");
 }
 export function logRequestStart(logger, ctx, body, logBody) {
-    logger.debug("api.request.start", Object.assign({ method: ctx.method, url: redactUrlForLog(ctx.url), headers: redactHeadersForLog(ctx.headers) }, (logBody ? { body: redactBodyForLog(body) } : {})));
+    logger.debug("api.request.start", {
+        method: ctx.method,
+        url: redactUrlForLog(ctx.url),
+        headers: redactHeadersForLog(ctx.headers),
+        ...(logBody ? { body: redactBodyForLog(body) } : {}),
+    });
 }
 export function logRequestSuccess(logger, ctx, status, durationMs) {
     logger.debug("api.request.success", {

@@ -1,0 +1,21 @@
+import type { KeyboardEvent } from "react";
+import type { CropAspect, CropRect } from "../../../lib/image/index.js";
+import type { CropCorner, ImageCropperMessages, Point, Size } from "./types.js";
+type CropSurfaceProps = {
+    url: string | undefined;
+    image: Size;
+    rect: CropRect;
+    aspect: CropAspect;
+    scale: number;
+    viewCenter: Point;
+    stageSize: Size;
+    inert: boolean;
+    dragging: boolean;
+    label: string;
+    minSize: number;
+    messages: ImageCropperMessages;
+    onBoxKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void;
+    onCornerKeyDown: (corner: CropCorner) => (event: KeyboardEvent<HTMLDivElement>) => void;
+};
+export declare function CropSurface({ url, image, rect, aspect, scale, viewCenter, stageSize, inert, dragging, label, minSize, messages, onBoxKeyDown, onCornerKeyDown, }: CropSurfaceProps): import("react").JSX.Element;
+export {};

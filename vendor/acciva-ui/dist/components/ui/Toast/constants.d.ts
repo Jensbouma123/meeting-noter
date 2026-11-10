@@ -1,0 +1,12 @@
+import type { ToastPosition, ToastVariant } from "./types.js";
+export declare const TOAST_BAR: Record<ToastVariant, string>;
+export declare const DEFAULT_DURATION_MS = 5000;
+export declare const ACTION_DURATION_MS = 10000;
+export declare function defaultToastDuration(variant: ToastVariant, hasAction: boolean): number;
+export declare const DEFAULT_MAX_VISIBLE = 3;
+export declare const DEFAULT_POSITION: ToastPosition;
+export declare const DEFAULT_HOTKEY = "F6";
+export declare const EXIT_DURATION_MS = 150;
+export declare const ALL_POSITIONS: ToastPosition[];
+export declare const FOCUSABLE_SELECTOR = "a[href], button:not([disabled]), [tabindex]:not([tabindex=\"-1\"])";
+export declare const POSITION_HORIZONTAL_CLASS: Record<ToastPosition, string>;

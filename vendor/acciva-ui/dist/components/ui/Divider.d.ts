@@ -1,5 +1,5 @@
 import { type HTMLAttributes } from "react";
-import type { Spacing } from "./Stack.js";
+import type { Spacing } from "./Stack/index.js";
 /** Orientation of the rule. */
 export type DividerOrientation = "horizontal" | "vertical";
 export interface DividerProps extends HTMLAttributes<HTMLElement> {

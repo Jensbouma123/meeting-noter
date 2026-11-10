@@ -1,12 +1,12 @@
 import { jsxs as _jsxs, jsx as _jsx } from "react/jsx-runtime";
 import { Check } from "lucide-react";
-import { Badge } from "../../components/ui/Badge.js";
-import { Button } from "../../components/ui/Button.js";
-import { Card } from "../../components/ui/Card.js";
-import { HStack } from "../../components/ui/HStack.js";
-import { Heading } from "../../components/ui/Heading.js";
-import { Text } from "../../components/ui/Text.js";
-import { VStack } from "../../components/ui/VStack.js";
+import { Badge } from "../ui/Badge/index.js";
+import { Button } from "../ui/Button/index.js";
+import { Card } from "../ui/Card/index.js";
+import { HStack } from "../ui/HStack.js";
+import { Heading } from "../ui/Heading/index.js";
+import { Text } from "../ui/Text.js";
+import { VStack } from "../ui/VStack.js";
 import { cn } from "../../lib/utils.js";
 /** Ordered fulfilment steps; `cancelled` sits outside the timeline. */
 const STEPS = [

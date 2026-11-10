@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { type BadgeVariant } from "../../components/ui/Badge.js";
+import { type BadgeVariant } from "../ui/Badge/index.js";
 export interface ProfileStat {
     label: string;
     value: string;

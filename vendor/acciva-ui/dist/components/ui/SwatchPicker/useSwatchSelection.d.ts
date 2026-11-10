@@ -1,0 +1,2 @@
+import type { ResolvedOption, SwatchDetails } from "./types.js";
+export declare function useSwatchSelection(resolved: ResolvedOption[], value: string | null | undefined, defaultValue: string | null, onChange: ((value: string, details: SwatchDetails) => void) | undefined, disabled: boolean): readonly [string | null, number, (index: number) => void, import("react").Dispatch<import("react").SetStateAction<number>>];

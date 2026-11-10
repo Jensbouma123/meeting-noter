@@ -1,0 +1,48 @@
+/* Global reduced-motion kill switch (WCAG 2.2 SC 2.3.3): collapsing the
+   duration tokens to 0ms stills every transition that reads them without any
+   per-component override. The fade keyframes drop the vestibular-triggering
+   vertical travel while keeping an opacity fade, so modal/drawer entrances
+   stay perceivable instead of vanishing. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-feedback-in: 0ms;
+    --motion-feedback: 0ms;
+    --motion-typing-cycle: 0ms;
+    --motion-typing-stagger: 0ms;
+    --motion-spatial: 0ms;
+    --motion-drag: 0ms;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  @keyframes acciva-fade-in {
+    from {
+      opacity: 0;
+      transform: none;
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/* Expands small controls (xxs, xs) to a 44x44px hit area on touch devices without
+   changing their visual size — see touchTargetClass() in sizing-tokens.ts. */
+.touch-target-44 {
+  position: relative;
+}
+
+@media (pointer: coarse) {
+  .touch-target-44::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 2.75rem);
+    height: max(100%, 2.75rem);
+    transform: translate(-50%, -50%);
+  }
+}

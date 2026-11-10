@@ -17,11 +17,13 @@ export const VARIANT_ACCENT_TEXT = {
     warning: "text-warning",
     danger: "text-danger",
 };
-export const VARIANT_ACCENT_BORDER = {
-    info: "border-info",
-    success: "border-success",
-    warning: "border-warning",
-    danger: "border-danger",
+// A background fill, not a border colour: the base layer's unlayered `* { border-color }`
+// beats every layered border utility, so a `border-{variant}` accent renders grey.
+export const VARIANT_ACCENT_BAR = {
+    info: "bg-info",
+    success: "bg-success",
+    warning: "bg-warning",
+    danger: "bg-danger",
 };
 export const VARIANT_ACCENT_BORDER_LEFT = {
     info: "border-l-info",

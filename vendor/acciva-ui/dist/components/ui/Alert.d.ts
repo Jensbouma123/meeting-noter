@@ -1,5 +1,5 @@
 import { type HTMLAttributes, type ReactNode } from "react";
-import { type SemanticVariant } from "../../components/ui/variant-tokens.js";
+import { type SemanticVariant } from "./variant-tokens.js";
 export type AlertVariant = SemanticVariant;
 export type AlertLiveRole = "alert" | "status";
 export type AlertLayout = "card" | "banner" | "inline";

@@ -44,7 +44,7 @@ export function redactUrlForLog(rawUrl) {
         url.search = nextSearch.toString();
         return url.toString();
     }
-    catch (_a) {
+    catch {
         return rawUrl;
     }
 }

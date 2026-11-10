@@ -1,6 +1,6 @@
-import { formatOklch, hexToOklch } from "../space.js";
-import { cssVariableName } from "./resolve.js";
-import { isDtcgToken } from "../tokens.js";
+import { formatOklch, hexToOklch } from "../space/index.js";
+import { cssVariableName } from "./resolve/index.js";
+import { isDtcgToken } from "../tokens/index.js";
 /**
  * Rebuilds a group with the `$value` of every token whose CSS variable name is
  * in `overrides` replaced by that hex, serialised as `oklch()`. Insertion order
@@ -25,18 +25,25 @@ function overrideGroup(node, path, overrides) {
         rebuilt[key] =
             overrideHex === undefined
                 ? child
-                : Object.assign(Object.assign({}, child), { $value: formatOklch(hexToOklch(overrideHex)) });
+                : { ...child, $value: formatOklch(hexToOklch(overrideHex)) };
     }
     return rebuilt;
 }
 function withOverrides(doc, overrides) {
-    return Object.assign(Object.assign({}, doc), { color: Object.assign(Object.assign({}, doc.color), { semantic: {
+    return {
+        ...doc,
+        color: {
+            ...doc.color,
+            semantic: {
                 light: overrideGroup(doc.color.semantic.light, ["color", "semantic", "light"], overrides.light),
                 dark: overrideGroup(doc.color.semantic.dark, ["color", "semantic", "dark"], overrides.dark),
-            }, component: {
+            },
+            component: {
                 light: overrideGroup(doc.color.component.light, ["color", "component", "light"], overrides.light),
                 dark: overrideGroup(doc.color.component.dark, ["color", "component", "dark"], overrides.dark),
-            } }) });
+            },
+        },
+    };
 }
 function hasEntries(overrides) {
     if (overrides === undefined)

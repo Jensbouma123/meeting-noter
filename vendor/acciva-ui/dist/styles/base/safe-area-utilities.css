@@ -1,0 +1,137 @@
+@utility p-safe {
+  padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+}
+
+@utility px-safe {
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+}
+
+@utility py-safe {
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+}
+
+@utility pt-safe {
+  padding-top: var(--safe-top);
+}
+
+@utility pr-safe {
+  padding-right: var(--safe-right);
+}
+
+@utility pb-safe {
+  padding-bottom: var(--safe-bottom);
+}
+
+/* A scroll region whose bottom edge meets the screen edge, e.g. a bottom sheet's content
+   column: its own `pb-4` rhythm PLUS the home-indicator inset. `pb-safe` alone would
+   replace the rhythm rather than add to it, and leaving the inset off puts the last
+   control under the iOS home indicator — where a tap is swallowed as a system swipe and
+   dismisses the app instead of pressing the button. Padding rather than margin so the
+   space belongs to the scroller and the panel's background still bleeds to the edge. */
+@utility pb-4-safe {
+  padding-bottom: calc(var(--spacing, 0.25rem) * 4 + var(--safe-bottom));
+}
+
+@utility pl-safe {
+  padding-left: var(--safe-left);
+}
+
+@utility m-safe {
+  margin: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+}
+
+@utility mx-safe {
+  margin-left: var(--safe-left);
+  margin-right: var(--safe-right);
+}
+
+@utility my-safe {
+  margin-top: var(--safe-top);
+  margin-bottom: var(--safe-bottom);
+}
+
+@utility mt-safe {
+  margin-top: var(--safe-top);
+}
+
+@utility mr-safe {
+  margin-right: var(--safe-right);
+}
+
+@utility mb-safe {
+  margin-bottom: var(--safe-bottom);
+}
+
+@utility ml-safe {
+  margin-left: var(--safe-left);
+}
+
+@utility inset-safe {
+  top: var(--safe-top);
+  right: var(--safe-right);
+  bottom: var(--safe-bottom);
+  left: var(--safe-left);
+}
+
+@utility inset-x-safe {
+  left: var(--safe-left);
+  right: var(--safe-right);
+}
+
+@utility inset-y-safe {
+  top: var(--safe-top);
+  bottom: var(--safe-bottom);
+}
+
+@utility top-safe {
+  top: var(--safe-top);
+}
+
+@utility right-safe {
+  right: var(--safe-right);
+}
+
+@utility bottom-safe {
+  bottom: var(--safe-bottom);
+}
+
+@utility left-safe {
+  left: var(--safe-left);
+}
+
+@utility h-safe-top {
+  height: var(--safe-top);
+}
+
+@utility h-safe-bottom {
+  height: var(--safe-bottom);
+}
+
+@utility min-h-screen-safe {
+  min-height: calc(100svh - var(--safe-top) - var(--safe-bottom));
+}
+
+/* Bottom-nav-aware composition. `pb-safe-nav` is what a scrolling page uses so
+   its last row clears the fixed bar; `bottom-safe-nav` is what a Drawer, Toast
+   or FAB anchors to so it sits on top of the bar rather than under it. */
+@utility h-safe-nav {
+  height: var(--safe-bottom-nav);
+}
+
+@utility pb-safe-nav {
+  padding-bottom: var(--safe-bottom-nav);
+}
+
+@utility mb-safe-nav {
+  margin-bottom: var(--safe-bottom-nav);
+}
+
+@utility bottom-safe-nav {
+  bottom: var(--safe-bottom-nav);
+}
+
+@utility scroll-pb-safe-nav {
+  scroll-padding-bottom: var(--safe-bottom-nav);
+}

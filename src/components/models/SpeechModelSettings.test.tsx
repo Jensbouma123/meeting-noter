@@ -69,6 +69,13 @@ import { SpeechModelSettings } from './SpeechModelSettings';
 
 describe('DeleteDownloadedModels mid-download', () => {
   beforeEach(() => {
+    // acciva-ui 0.17 Modal is a native <dialog>; jsdom has no showModal/close.
+    HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) {
+      this.setAttribute('open', '');
+    };
+    HTMLDialogElement.prototype.close ??= function (this: HTMLDialogElement) {
+      this.removeAttribute('open');
+    };
     mocks.deleteDownloadedModels.mockReset().mockResolvedValue({ deleted: true });
     mocks.resetBrowserASR.mockReset();
   });

@@ -1,0 +1,7 @@
+/* `hidden` wins over every component's display utility. A root class such as Button's
+   `inline-flex` would otherwise override the UA's `[hidden] { display: none }`. Unlayered
+   and `!important` so no utility layer can beat it. `hidden="until-found"` is excluded:
+   the browser keeps that content in the layout for find-in-page (see .agents/modern-web.md). */
+[hidden]:where(:not([hidden="until-found"])) {
+  display: none !important;
+}

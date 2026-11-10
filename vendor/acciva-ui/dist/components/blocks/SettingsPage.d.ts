@@ -1,15 +1,6 @@
 import { type FormEvent, type ReactNode } from "react";
-import { type CardVariant } from "../../components/ui/Card.js";
-export interface SettingsSectionProps {
-    id?: string;
-    title: ReactNode;
-    description?: ReactNode;
-    children: ReactNode;
-    actions?: ReactNode;
-    variant?: CardVariant;
-    className?: string;
-}
-export declare function SettingsSection({ id, title, description, children, actions, variant, className, }: SettingsSectionProps): import("react").JSX.Element;
+import { SettingsSection } from "./SettingsPage/SettingsPageParts.js";
+export { SettingsSection, type SettingsSectionProps } from "./SettingsPage/SettingsPageParts.js";
 export interface SettingsPageProps {
     title: ReactNode;
     description?: ReactNode;

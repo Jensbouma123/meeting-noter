@@ -1,0 +1,68 @@
+/* Border width, chart and code-highlight tokens (seed-independent, so they live
+   here rather than in the generated tokens.css). `--hairline` is the 1px
+   device-independent border width. `--chart-1..8` is the categorical series
+   palette: every stop clears 3:1 against `--background`, `--surface` and
+   `--code-background` in its mode (WCAG 2.2 SC 1.4.11). `--code-*` roles are
+   solved at >= 4.5:1 against `--code-background` (SC 1.4.3). Both are
+   asserted by `npm run tokens:contrast` — change a value, re-run it. Series
+   are never told apart by colour alone: pair with a label, marker or pattern
+   (SC 1.4.1). */
+:root {
+  --hairline: 1px;
+  --chart-1: oklch(0.595 0.15 255);
+  --chart-2: oklch(0.605 0.15 50);
+  --chart-3: oklch(0.575 0.15 150);
+  --chart-4: oklch(0.61 0.15 330);
+  --chart-5: oklch(0.58 0.099 200);
+  --chart-6: oklch(0.595 0.122 90);
+  --chart-7: oklch(0.605 0.15 295);
+  --chart-8: oklch(0.61 0.15 20);
+  --code-background: oklch(0.97 0.005 250);
+  --code-keyword: oklch(0.515 0.14 300);
+  --code-string: oklch(0.49 0.12 150);
+  --code-comment: oklch(0.505 0.015 250);
+  --code-number: oklch(0.515 0.136 50);
+  --code-function: oklch(0.505 0.14 255);
+  --code-type: oklch(0.49 0.083 200);
+  --code-punctuation: oklch(0.505 0.01 250);
+}
+
+html[data-theme="dark"] {
+  --chart-1: oklch(0.72 0.15 255);
+  --chart-2: oklch(0.72 0.15 50);
+  --chart-3: oklch(0.72 0.15 150);
+  --chart-4: oklch(0.72 0.15 330);
+  --chart-5: oklch(0.72 0.1 200);
+  --chart-6: oklch(0.72 0.12 90);
+  --chart-7: oklch(0.72 0.15 295);
+  --chart-8: oklch(0.72 0.15 20);
+  --code-background: oklch(0.18 0.008 250);
+  --code-keyword: oklch(0.615 0.14 300);
+  --code-string: oklch(0.59 0.12 150);
+  --code-comment: oklch(0.605 0.015 250);
+  --code-number: oklch(0.62 0.14 50);
+  --code-function: oklch(0.605 0.14 255);
+  --code-type: oklch(0.59 0.1 200);
+  --code-punctuation: oklch(0.605 0.01 250);
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) {
+    --chart-1: oklch(0.72 0.15 255);
+    --chart-2: oklch(0.72 0.15 50);
+    --chart-3: oklch(0.72 0.15 150);
+    --chart-4: oklch(0.72 0.15 330);
+    --chart-5: oklch(0.72 0.1 200);
+    --chart-6: oklch(0.72 0.12 90);
+    --chart-7: oklch(0.72 0.15 295);
+    --chart-8: oklch(0.72 0.15 20);
+    --code-background: oklch(0.18 0.008 250);
+    --code-keyword: oklch(0.615 0.14 300);
+    --code-string: oklch(0.59 0.12 150);
+    --code-comment: oklch(0.605 0.015 250);
+    --code-number: oklch(0.62 0.14 50);
+    --code-function: oklch(0.605 0.14 255);
+    --code-type: oklch(0.59 0.1 200);
+    --code-punctuation: oklch(0.605 0.01 250);
+  }
+}

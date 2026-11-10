@@ -1,14 +1,3 @@
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { Check } from "lucide-react";
 import { forwardRef } from "react";
@@ -33,19 +22,18 @@ function stateOf(index, current) {
         return "current";
     return "upcoming";
 }
-export const Stepper = forwardRef(function Stepper(_a, ref) {
-    var { steps, current, variant = "dots", className } = _a, props = __rest(_a, ["steps", "current", "variant", "className"]);
+export const Stepper = forwardRef(function Stepper({ steps, current, variant = "dots", className, ...props }, ref) {
     if (steps.length === 0)
         return null;
     const clamped = Number.isFinite(current)
         ? Math.min(Math.max(Math.floor(current), 0), steps.length - 1)
         : 0;
-    return (_jsx("nav", Object.assign({ ref: ref }, props, { "aria-label": `Step ${clamped + 1} of ${steps.length}: ${steps[clamped]}`, className: cn(className), children: _jsx("ol", { className: cn("flex items-center", variant === "dots" ? "gap-2" : "flex-wrap gap-2"), children: steps.map((label, index) => {
+    return (_jsx("nav", { ref: ref, ...props, "aria-label": `Step ${clamped + 1} of ${steps.length}: ${steps[clamped]}`, className: cn(className), children: _jsx("ol", { className: cn("flex items-center", variant === "dots" ? "gap-2" : "flex-wrap gap-2"), children: steps.map((label, index) => {
                 const state = stateOf(index, clamped);
                 const isCurrent = index === clamped;
                 if (variant === "dots") {
                     return (_jsxs("li", { "aria-current": isCurrent ? "step" : undefined, className: "inline-flex items-center", children: [_jsx("span", { "aria-hidden": "true", className: cn("size-2 shrink-0 rounded-full", dotClasses[state]) }), _jsxs("span", { className: "sr-only", children: [`Step ${index + 1}: ${label}`, state === "completed" ? " (completed)" : isCurrent ? " (current step)" : ""] })] }, index));
                 }
                 return (_jsx("li", { "aria-current": isCurrent ? "step" : undefined, className: "inline-flex min-w-0 items-center", children: _jsxs("span", { className: cn("inline-flex max-w-40 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium", chipClasses[state]), children: [state === "completed" ? (_jsx(Check, { "aria-hidden": "true", className: "size-3.5 shrink-0 text-success", strokeWidth: 3 })) : null, _jsx("span", { className: "truncate", children: label }), state !== "upcoming" ? (_jsx("span", { className: "sr-only", children: state === "completed" ? " (completed)" : " (current step)" })) : null] }) }, index));
-            }) }) })));
+            }) }) }));
 });

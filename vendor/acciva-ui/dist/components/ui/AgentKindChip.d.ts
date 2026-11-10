@@ -1,5 +1,5 @@
 import type { HTMLAttributes } from "react";
-export type AgentKind = "claude" | "pi" | "opencode" | "agy" | "codex" | "hermes";
+export type AgentKind = "claude" | "pi" | "opencode" | "agy" | "codex" | "hermes" | "copilot";
 export type AgentKindChipSize = "xs" | "sm" | "md";
 export interface AgentKindChipProps extends Omit<HTMLAttributes<HTMLSpanElement>, "children" | "onSelect"> {
     kind: AgentKind;

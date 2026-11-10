@@ -9,12 +9,10 @@
  * lightness is perceptually uniform, so the walk is monotonic in contrast for
  * a fixed hue/chroma and a coarse-scan-then-bisect search converges tightly.
  */
-import { type ContrastReport } from "./contrast.js";
+import type { ContrastReport } from "./contrast/index.js";
+import { type ContrastTarget } from "./solveReport.js";
 import type { OKLCH } from "./types.js";
-export type ContrastTarget = {
-    ratio: number;
-    lc: number;
-};
+export type { ContrastTarget } from "./solveReport.js";
 export type ContrastSolution = {
     color: OKLCH;
     report: ContrastReport;

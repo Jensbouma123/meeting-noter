@@ -1,0 +1,65 @@
+/* Duration utilities components apply instead of hardcoded duration-*
+   classes. Each pairs its duration token with the standard easing. */
+@utility motion-feedback {
+  transition-duration: var(--motion-feedback);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+/* Coarse pointers keep 140ms (no hover there). */
+@media (hover: hover) and (pointer: fine) {
+  .motion-feedback:hover,
+  .motion-feedback:focus-visible,
+  .motion-feedback:active {
+    transition-duration: var(--motion-feedback-in);
+  }
+}
+
+@utility motion-spatial {
+  transition-duration: var(--motion-spatial);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+@utility motion-drag {
+  transition-duration: var(--motion-drag);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+/* Easing-only utilities, for a surface that keeps its duration token but needs a
+   different curve than the standard one. */
+@utility ease-emphasized {
+  transition-timing-function: var(--motion-ease-emphasized);
+}
+
+@utility ease-sheet {
+  transition-timing-function: var(--motion-ease-sheet);
+}
+
+/* A sliding, fading surface: the travel rides the sheet curve, the fade runs linear.
+   Sharing one curve between them is what made the fade invisible — `ease-sheet`
+   decelerates so hard that opacity reached ~0.87 within 100ms, while the panel was
+   still 13% off-screen, then crawled to 1 for another 160ms. Closing, it fell to 0.11
+   by 100ms and the panel finished travelling while already invisible. A linear fade
+   tracks the travel instead of front-running it, so the surface reads as one movement.
+   The list order below pairs with `transition-property`. */
+@utility motion-sheet-in {
+  transition-property: opacity, translate;
+  /* The fade finishes ahead of the travel so the panel is solid as it settles, instead
+     of arriving at ~35% and developing in place for the rest of the duration. */
+  transition-duration: calc(var(--motion-spatial) * 0.7), var(--motion-spatial);
+  transition-timing-function: linear, var(--motion-ease-sheet);
+}
+
+@utility motion-sheet-out {
+  transition-property: opacity, translate;
+  /* Leaving, the fade spans the whole travel: the panel must not be invisible while it
+     is still moving, or the exit reads as a blink followed by nothing. */
+  transition-duration: var(--motion-spatial);
+  transition-timing-function: linear, var(--motion-ease-sheet);
+}
+
+/* The scrim behind it, fading on the same linear curve so the two stay in step. */
+@utility motion-scrim {
+  transition-property: opacity;
+  transition-duration: var(--motion-spatial);
+  transition-timing-function: linear;
+}

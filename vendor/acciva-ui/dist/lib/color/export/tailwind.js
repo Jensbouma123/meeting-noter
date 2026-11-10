@@ -1,5 +1,5 @@
-import { TAILWIND_ALIASES } from "../ramp.js";
-import { applyOverrides, flattenDocument } from "./resolve.js";
+import { TAILWIND_ALIASES } from "../ramp/index.js";
+import { applyOverrides, flattenDocument } from "./resolve/index.js";
 const DARK_SELECTOR = 'html[data-theme="dark"]';
 const SYSTEM_DARK_SELECTOR = 'html:not([data-theme="light"])';
 function declarations(tokens, indent) {
@@ -10,14 +10,13 @@ function declarations(tokens, indent) {
  * republished under the conventional 50-950 alias names it expects.
  */
 function paletteScale(primitive, indent) {
-    var _a;
     const byPalette = new Map();
     for (const token of primitive) {
         const palette = token.path[2];
         const step = token.path[3];
         if (palette === undefined || step === undefined)
             continue;
-        const steps = (_a = byPalette.get(palette)) !== null && _a !== void 0 ? _a : new Map();
+        const steps = byPalette.get(palette) ?? new Map();
         steps.set(step, token);
         byPalette.set(palette, steps);
     }
@@ -35,7 +34,7 @@ function paletteScale(primitive, indent) {
 }
 export function exportTailwindTheme(doc, overrides) {
     const flattened = flattenDocument(doc);
-    const { primitive, light, dark } = applyOverrides(flattened, overrides !== null && overrides !== void 0 ? overrides : { light: {}, dark: {} });
+    const { primitive, light, dark } = applyOverrides(flattened, overrides ?? { light: {}, dark: {} });
     return [
         "@theme {",
         paletteScale(primitive, "  "),

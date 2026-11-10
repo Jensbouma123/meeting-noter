@@ -18,7 +18,7 @@
   "dependencies": {
     "@huggingface/transformers": "4.3.1",
     "@jensbouma123/acciva-ui": "file:./vendor/acciva-ui",
-    "lucide-react": "^1.47.0",
+    "lucide-react": "^1.61.0",
     "next": "16.3.6",
     "onnxruntime-web": "1.24.1",
     "parakeet.js": "1.4.4",
@@ -27,12 +27,16 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.6",
     "fake-indexeddb": "^6.2.5",
+    "jsdom": "^30.1.1",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.11"

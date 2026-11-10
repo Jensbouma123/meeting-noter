@@ -1,8 +1,8 @@
-import { auditTokenGraph, } from "./audit.js";
+import { auditTokenGraph, } from "./audit/index.js";
 import { exportDtcgJson } from "./export/dtcg.js";
 import { exportTailwindTheme } from "./export/tailwind.js";
-import { applyRoleOverrides, arrivalRoles, baselineRoleHexes, resolveRoles, roleOverridesFrom, splitIntent, tokenOverridesFrom, } from "./studio.js";
-import { buildAppPalette, buildThemeStylesheet, DEFAULT_HARMONY } from "../theme-tokens.js";
+import { applyRoleOverrides, arrivalRoles, baselineRoleHexes, resolveRoles, roleOverridesFrom, splitIntent, tokenOverridesFrom, } from "./studio/index.js";
+import { buildAppPalette, buildThemeStylesheet, DEFAULT_HARMONY } from "../theme-tokens/index.js";
 /**
  * A headless WCAG 2.2 AA theme from a brand seed, with no human in the loop.
  *
@@ -16,8 +16,7 @@ import { buildAppPalette, buildThemeStylesheet, DEFAULT_HARMONY } from "../theme
  * Deterministic: the same seed and harmony give byte-identical output.
  */
 export function generateTheme(seed, options) {
-    var _a;
-    const harmony = (_a = options === null || options === void 0 ? void 0 : options.harmony) !== null && _a !== void 0 ? _a : DEFAULT_HARMONY;
+    const harmony = options?.harmony ?? DEFAULT_HARMONY;
     const palette = buildAppPalette(seed, harmony);
     const arrival = arrivalRoles(palette);
     const splits = {};

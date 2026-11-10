@@ -1,6 +1,6 @@
 import { generateTheme, type GeneratedTheme, type UnresolvableRole } from "../lib/color/theme.js";
 import type { HarmonyMode } from "../lib/color/types.js";
-import type { ParsedThemeOptions, ThemeFormat } from "./parse.js";
+import type { ParsedThemeOptions, ThemeFormat } from "./parse/index.js";
 export type ThemeGenerator = typeof generateTheme;
 export interface ThemeCommandResult {
     readonly exitCode: 0 | 1;

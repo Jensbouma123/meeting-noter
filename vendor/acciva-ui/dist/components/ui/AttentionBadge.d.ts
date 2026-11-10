@@ -1,5 +1,5 @@
 import type { HTMLAttributes } from "react";
-import { type SizeTier } from "../../lib/sizing-tokens.js";
+import { type SizeTier } from "../../lib/sizing-tokens/index.js";
 export type AttentionReason = "grill" | "compare" | "permission" | "stuck";
 export type AttentionBadgeSize = Extract<SizeTier, "xxs" | "xs" | "sm" | "md">;
 export interface AttentionBadgeProps extends Omit<HTMLAttributes<HTMLSpanElement>, "children" | "onSelect"> {

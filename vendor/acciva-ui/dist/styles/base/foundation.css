@@ -1,0 +1,105 @@
+* {
+  border-color: var(--border);
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+::selection {
+  background: var(--color-primary-300);
+  color: var(--color-primary-950);
+}
+
+/* Focus indicator (WCAG 2.2 SC 2.4.11 / 2.4.13). The ring colour is the
+   engine's solved focus role, so it clears 3:1 against both the control it
+   outlines and the canvas behind the offset gap. The action fill is solved
+   against *white label text* instead, which is a different gate — painting the
+   ring with it is what let a light seed produce a ring under 3:1 (SC 1.4.11). */
+.focus-ring {
+  outline: none;
+}
+
+.focus-ring:focus-visible:not(:root[data-quiet-focus] *) {
+  outline: none;
+  border-color: var(--focus-ring) !important;
+  box-shadow: 0 0 0 1px var(--focus-ring), 0 0 0 3.5px color-mix(in srgb, var(--focus-ring) 30%, transparent) !important;
+}
+
+/* Global quiet focus (input-modality.ts): `data-quiet-focus` is on <html> from load and after any
+   pointerdown, and goes on the first navigation key (Tab, arrows, Home/End, PageUp/PageDown);
+   typing never ends it. While set, nothing paints a focus indicator: no outline (UA rings,
+   focusable scrollers, outline utilities, a peer's ring) and no box-shadow ring. A `tabindex=-1`
+   surface (a dialog or popover container) keeps its elevation shadow: it is a surface, not an
+   indicator. Keyboard navigation always shows the ring (SC 2.4.7, 2.4.11). Unlayered !important
+   beats every utility. */
+:root[data-quiet-focus] :is(:focus-visible, :focus-visible ~ *) {
+  outline: none !important;
+}
+
+:root[data-quiet-focus] :focus-visible:not([tabindex="-1"]) {
+  box-shadow: none !important;
+}
+
+/* A tapped text field shows only a subtle neutral border where the caret is, never the glow. */
+:root[data-quiet-focus] :is(input:not([type=button], [type=checkbox], [type=radio], [type=range], [type=submit], [type=reset], [type=color], [type=file], [type=image]), textarea, [contenteditable]):focus {
+  border-color: var(--muted-foreground) !important;
+}
+
+/* Shadow and glow scale (seed-independent, so it lives here rather than in
+   the generated tokens.css). `--shadow-elevation-0..4` composes with the
+   colour-only `--elevation-0..4` ladder: a surface pairs `bg-elevation-N`
+   with `shadow-elevation-N`. Every lift is the shadow-as-border idiom — a
+   1px ring plus a two-layer lift — so an edge stays crisp on a same-colour
+   canvas without a second border. A shadow never participates in the layout
+   box: borders stay `border-border`, the shadow only paints outside it.
+   `--shadow-glow-brand/danger/warning` are the coloured focus/selection
+   glows. Each references a solved colour role through `var()`/`color-mix`,
+   so the glow follows the theme (including dark mode) instead of pinning a
+   stop. A glow is never the only focus indicator: pair it with `.focus-ring`
+   or a border-colour change (WCAG 2.2 SC 2.4.11 / 2.4.13, SC 1.4.11).
+   Registered as `@theme` keys, so every variant (`hover:`, `focus-visible:`,
+   `dark:`) attaches; the scale is identical at every viewport (mobile-first,
+   no breakpoint overrides). */
+@theme inline {
+  --shadow-elevation-0: none;
+  --shadow-elevation-1: 0 0 0 1px color-mix(in srgb, var(--foreground) 8%, transparent), 0 1px 2px rgb(0 0 0 / 0.05), 0 1px 3px rgb(0 0 0 / 0.08);
+  --shadow-elevation-2: 0 0 0 1px color-mix(in srgb, var(--foreground) 8%, transparent), 0 2px 4px rgb(0 0 0 / 0.06), 0 4px 12px rgb(0 0 0 / 0.1);
+  --shadow-elevation-3: 0 0 0 1px color-mix(in srgb, var(--foreground) 10%, transparent), 0 4px 8px rgb(0 0 0 / 0.08), 0 12px 28px rgb(0 0 0 / 0.14);
+  --shadow-elevation-4: 0 0 0 1px color-mix(in srgb, var(--foreground) 10%, transparent), 0 8px 16px rgb(0 0 0 / 0.1), 0 24px 48px rgb(0 0 0 / 0.18);
+  --shadow-glow-brand: 0 0 0 1px var(--focus-ring), 0 0 0 4px color-mix(in srgb, var(--focus-ring) 30%, transparent);
+  --shadow-glow-danger: 0 0 0 1px var(--danger), 0 0 0 4px color-mix(in srgb, var(--danger) 30%, transparent);
+  --shadow-glow-warning: 0 0 0 1px var(--warning), 0 0 0 4px color-mix(in srgb, var(--warning) 30%, transparent);
+}
+
+/* The utility itself is generated from the --animate-fade-in @theme key in
+   tokens.css, not hand-written here: a hand-written .animate-fade-in is a
+   plain rule, so no variant can attach to it and
+   motion-safe:animate-fade-in silently compiles to nothing
+   (WCAG 2.2 SC 2.3.3). Registered as a theme key, every variant works. */
+@keyframes acciva-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Type steps Tailwind's named scale lacks, so no component needs an arbitrary
+   `text-[Npx]`. Keys mirror the sizing-token tiers (`3xs`, `xxs`); `xsm` is the
+   13px step between `text-xs` (12) and `text-sm` (14). `tracking-label` is the
+   wide-tracked uppercase micro-label. 10px is the floor (SC 1.4.4). */
+@theme inline {
+  --text-3xs: 10px;
+  --text-xxs: 11px;
+  --text-xsm: 13px;
+  --tracking-label: 0.12em;
+}

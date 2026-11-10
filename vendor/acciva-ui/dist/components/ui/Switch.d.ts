@@ -1,5 +1,5 @@
 import { type HTMLAttributes, type ReactNode } from "react";
-import { type ResponsiveSize, type SizeTier } from "../../lib/sizing-tokens.js";
+import { type ResponsiveSize, type SizeTier } from "../../lib/sizing-tokens/index.js";
 export interface SwitchProps extends Omit<HTMLAttributes<HTMLSpanElement>, "children" | "onChange"> {
     checked: boolean;
     onCheckedChange: (checked: boolean) => void;

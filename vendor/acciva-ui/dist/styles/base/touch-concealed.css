@@ -1,0 +1,29 @@
+/* Visually conceals an interactive control on coarse pointers while keeping it
+   operable for assistive tech (WCAG 2.2 SC 2.1.1): clip-based, so — unlike
+   `opacity-0 pointer-events-none` — it never swallows the synthesized tap
+   VoiceOver dispatches on activation. Plain rules (like `.touch-target-44`
+   below), not `@utility`, so the coarse-pointer concealment always wins over
+   the element's own size utilities without `!important`. */
+@media (pointer: coarse) {
+  .touch-concealed {
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  .touch-concealed:focus-visible {
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    clip-path: none;
+    white-space: normal;
+  }
+}

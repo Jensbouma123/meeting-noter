@@ -1,0 +1,27 @@
+"use client";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { forwardRef, useImperativeHandle, useRef } from "react";
+import { HStack } from "../HStack.js";
+import { InputActions } from "./InputActions.js";
+import { InputAddon, InputLabel, InputLeadingIcon, InputMessages } from "./InputParts.js";
+import { DEFAULT_AUTOCOMPLETE, defaultInputMode } from "./constants.js";
+import { inputClassName } from "./inputClasses.js";
+import { useInputHandlers } from "./useInputHandlers.js";
+import { useInputIds } from "./useInputIds.js";
+import { useInputReveal } from "./useInputReveal.js";
+import { useInputValue } from "./useInputValue.js";
+export const Input = forwardRef(function Input(props, forwardedRef) {
+    const { className, label, hint, error, leadingIcon, trailingIcon, leadingAddon, trailingAddon, size = "md", id, required, disabled, readOnly, clearable = false, onClear, showCharCount = false, validate, value, defaultValue, onChange, onBlur, maxLength, minLength, min, max, step, type = "text", inputMode, autoComplete, revealToggle = true, "aria-describedby": describedBy, ...rest } = props;
+    const inputRef = useRef(null);
+    useImperativeHandle(forwardedRef, () => inputRef.current);
+    const isPassword = type === "password";
+    const showPasswordToggle = isPassword && revealToggle;
+    const [revealed, handleToggleReveal] = useInputReveal(inputRef);
+    const [isControlled, currentValue, setUncontrolledValue, internalError, runValidation] = useInputValue(value, defaultValue, validate, minLength, type, min, max, step);
+    const [handleChange, handleBlur, handleClear] = useInputHandlers(inputRef, isControlled, setUncontrolledValue, runValidation, disabled, readOnly, onChange, onBlur, onClear);
+    const activeError = error ?? internalError;
+    const showClear = clearable && !disabled && !readOnly && currentValue.length > 0;
+    const [inputId, hintId, errorId, charCountId, leadingAddonId, trailingAddonId, describedByIds] = useInputIds(id, hint, activeError, showCharCount, leadingAddon, trailingAddon, describedBy);
+    const trailingCount = [showClear, showPasswordToggle, Boolean(trailingIcon)].filter(Boolean).length;
+    return (_jsxs("div", { className: "flex w-full flex-col gap-1.5", children: [label ? _jsx(InputLabel, { id: inputId, label: label, required: required, size: size }) : null, _jsxs(HStack, { align: "stretch", spacing: "none", className: "w-full", children: [leadingAddon ? (_jsx(InputAddon, { id: leadingAddonId, side: "leading", size: size, disabled: disabled, children: leadingAddon })) : null, _jsxs("div", { className: "relative flex min-w-0 flex-1 items-center", children: [leadingIcon ? _jsx(InputLeadingIcon, { size: size, children: leadingIcon }) : null, _jsx("input", { ref: inputRef, id: inputId, type: isPassword && revealed ? "text" : type, inputMode: inputMode ?? defaultInputMode(type, step), autoComplete: autoComplete ?? DEFAULT_AUTOCOMPLETE[type], required: required, disabled: disabled, readOnly: readOnly, value: value, defaultValue: defaultValue, onChange: handleChange, onBlur: handleBlur, maxLength: maxLength, minLength: minLength, min: min, max: max, step: step, "aria-invalid": activeError ? true : undefined, "aria-describedby": describedByIds, "data-autofocus": rest.autoFocus || undefined, className: inputClassName(size, type, disabled, readOnly, Boolean(activeError), Boolean(leadingIcon), trailingCount, Boolean(leadingAddon), Boolean(trailingAddon), className), ...rest }), _jsx(InputActions, { size: size, label: label, showClear: showClear, showPasswordToggle: showPasswordToggle, trailingIcon: trailingIcon, revealed: revealed, onClear: handleClear, onToggleReveal: handleToggleReveal })] }), trailingAddon ? (_jsx(InputAddon, { id: trailingAddonId, side: "trailing", size: size, disabled: disabled, children: trailingAddon })) : null] }), hint || activeError || showCharCount ? (_jsx(InputMessages, { hint: hint, error: activeError, hintId: hintId, errorId: errorId, charCountId: showCharCount ? charCountId : undefined, count: currentValue.length, maxLength: maxLength })) : null] }));
+});

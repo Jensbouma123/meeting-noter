@@ -1,0 +1,35 @@
+import type { ReactNode } from "react";
+import type { DismissConfirmation } from "../Modal/index.js";
+export type DrawerLength = number | string;
+export type DrawerModality = "modal" | "persistent";
+export type DrawerSide = "bottom" | "left" | "right";
+export type DrawerDetent = "peek" | "half" | "full";
+export type DrawerAxis = "vertical" | "horizontal";
+export declare const DRAWER_DETENTS: readonly ["peek", "half", "full"];
+export interface DrawerProps {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    children?: ReactNode;
+    modality?: DrawerModality;
+    side?: DrawerSide;
+    detent?: DrawerDetent;
+    defaultDetent?: DrawerDetent;
+    minSize?: DrawerLength;
+    defaultSize?: DrawerLength;
+    maxSize?: DrawerLength;
+    minHeight?: DrawerLength;
+    defaultHeight?: DrawerLength;
+    maxHeight?: DrawerLength;
+    onSnapChange?: (sizePx: number, detent: DrawerDetent) => void;
+    connectToBottomNav?: boolean;
+    safeAreaPadding?: boolean;
+    confirmDismissal?: DismissConfirmation;
+    draggable?: boolean;
+    swipeToDismiss?: boolean;
+    handleLabel?: string;
+    closeLabel?: string;
+    showCloseOnTouch?: boolean;
+    className?: string;
+    "aria-label"?: string;
+    "aria-labelledby"?: string;
+}

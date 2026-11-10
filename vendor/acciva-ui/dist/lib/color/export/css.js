@@ -1,4 +1,4 @@
-import { applyOverrides, flattenDocument } from "./resolve.js";
+import { applyOverrides, flattenDocument } from "./resolve/index.js";
 const DARK_SELECTOR = 'html[data-theme="dark"]';
 const SYSTEM_DARK_SELECTOR = 'html:not([data-theme="light"])';
 /**
@@ -13,7 +13,7 @@ function declarations(tokens, indent) {
 }
 export function exportCssVariables(doc, overrides) {
     const flattened = flattenDocument(doc);
-    const { primitive, light, dark } = applyOverrides(flattened, overrides !== null && overrides !== void 0 ? overrides : { light: {}, dark: {} });
+    const { primitive, light, dark } = applyOverrides(flattened, overrides ?? { light: {}, dark: {} });
     return [
         ":root {",
         declarations(primitive, "  "),

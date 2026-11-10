@@ -1,4 +1,4 @@
-import { normalizeHue } from "./space.js";
+import { normalizeHue } from "./space/index.js";
 /**
  * Hue offsets in degrees, applied to the seed. `monochromatic` holds the hue and
  * walks lightness instead, so it carries no offsets.

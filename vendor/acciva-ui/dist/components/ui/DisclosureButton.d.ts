@@ -1,5 +1,5 @@
 import { type ButtonHTMLAttributes, type ReactNode } from "react";
-import { type SizeTier } from "../../lib/sizing-tokens.js";
+import { type SizeTier } from "../../lib/sizing-tokens/index.js";
 export interface DisclosureButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     size?: SizeTier;
     leadingIcon?: ReactNode;

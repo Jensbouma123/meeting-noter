@@ -1,4 +1,4 @@
-import { CHROMA_EPSILON, normalizeHue, oklabToXyz, oklchToOklab, xyzToLinearRgb, } from "./space.js";
+import { CHROMA_EPSILON, normalizeHue, oklabToXyz, oklchToOklab, xyzToLinearRgb, } from "./space/index.js";
 const GAMUT_EPSILON = 1e-4;
 const MINDE_MIN_ITERATIONS = 10;
 const MINDE_RESOLUTION = 1e-4;

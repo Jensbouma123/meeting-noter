@@ -1,0 +1,11 @@
+import { type SizeTier } from "../../../lib/sizing-tokens/index.js";
+import type { TabsOrientation, TabsVariant } from "./types.js";
+export declare const TAB_LIST_FLOW: Record<TabsOrientation, string>;
+export declare const TAB_LIST_SHELL: Record<TabsVariant, Record<TabsOrientation, string>>;
+export declare const TAB_LIST_INSET: Record<TabsVariant, Record<SizeTier, string> | null>;
+export declare const TAB_SHAPE: Record<TabsVariant, Record<SizeTier, string> | null>;
+export declare const TAB_EDGE: Record<TabsVariant, Record<TabsOrientation, string>>;
+export declare const TAB_SELECTED: Record<TabsVariant, string>;
+export declare const TAB_COVERED: Record<TabsVariant, string>;
+export declare const INDICATOR: Record<TabsVariant, string>;
+export declare const TAB_IDLE: Record<TabsVariant, string>;

@@ -1,4 +1,4 @@
-import { type SocialProvider } from "../../components/ui/SocialButton.js";
+import { type SocialProvider } from "../ui/SocialButton/index.js";
 export interface LoginCredentials {
     email: string;
     password: string;

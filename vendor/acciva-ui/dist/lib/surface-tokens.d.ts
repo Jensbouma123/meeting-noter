@@ -45,6 +45,8 @@ export declare const GLOW_SHADOW: Record<GlowTone, string>;
 /**
  * Background and border for each role, in semantic roles only. `inset` drops to
  * `bg-background` so a nested panel reads as a well cut into its parent rather
- * than a second card stacked on it.
+ * than a second card stacked on it. `overlay` fills at `bg-elevation-3` (the
+ * colour its `shadow-elevation-3` pairs with), so a menu or popover opened over
+ * a `bg-surface` sheet stays distinct from it in both themes.
  */
 export declare const SURFACE_FILL: Record<SurfaceRole, string>;

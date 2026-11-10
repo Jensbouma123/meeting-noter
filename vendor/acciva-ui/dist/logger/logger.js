@@ -1,4 +1,4 @@
-import { redactContext } from "../logger/redact.js";
+import { redactContext } from "./redact.js";
 const LEVEL_RANK = {
     debug: 0,
     info: 1,
@@ -46,7 +46,7 @@ export function setLogLevel(level) {
 }
 /** Swaps the sink every scope emits through. Pass `null` to restore the console default. */
 export function setLogSink(next) {
-    sink = next !== null && next !== void 0 ? next : consoleSink;
+    sink = next ?? consoleSink;
 }
 function isLevelEnabled(level) {
     return LEVEL_RANK[level] >= LEVEL_RANK[minLevel];

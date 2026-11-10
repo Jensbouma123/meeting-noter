@@ -1,0 +1,60 @@
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --bottom-nav-height: 3.5rem;
+  --safe-bottom-nav: calc(var(--bottom-nav-height) + var(--safe-bottom));
+  --status-rail-thickness: 3px;
+}
+
+/* Horizontal TabList overflow: x scroll with snap, no scrollbar, and a mask fade on the
+   side(s) with more content (data-overflow-start/end, set by TabList from scroll position).
+   scroll-padding keeps the selected/focused tab clear of the fade (WCAG 2.2 SC 2.4.11);
+   smooth scrolling is opt-in via no-preference (SC 2.3.3). overflow-y is hidden because
+   overflow-x alone would compute overflow-y to auto and let the bar scroll vertically; the
+   list's own padding (TAB_LIST_PADDING / pt-1) keeps focus rings from being clipped. */
+@utility tab-scroll {
+  --tab-fade: 1.5rem;
+  --tab-fade-start: 0px;
+  --tab-fade-end: 0px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: var(--tab-fade);
+  scrollbar-width: none;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black var(--tab-fade-start),
+    black calc(100% - var(--tab-fade-end)),
+    transparent
+  );
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  &[data-overflow-start="true"] {
+    --tab-fade-start: var(--tab-fade);
+  }
+  &[data-overflow-end="true"] {
+    --tab-fade-end: var(--tab-fade);
+  }
+  &[data-dragging] {
+    scroll-snap-type: none;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    scroll-behavior: smooth;
+  }
+  &[data-dragging] {
+    scroll-behavior: auto;
+  }
+}
+
+@utility w-status-rail {
+  width: var(--status-rail-thickness);
+}
+
+@utility h-status-rail {
+  height: var(--status-rail-thickness);
+}

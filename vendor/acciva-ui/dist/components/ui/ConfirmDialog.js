@@ -1,8 +1,8 @@
 "use client";
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { AlertTriangle, Info } from "lucide-react";
-import { Button } from "../../components/ui/Button.js";
-import { Modal } from "../../components/ui/Modal.js";
+import { Button } from "./Button/index.js";
+import { Modal } from "./Modal/index.js";
 import { cn } from "../../lib/utils.js";
 export function ConfirmDialog({ open, onClose, onConfirm, title, description, confirmText = "Confirm", cancelText = "Cancel", variant = "primary", loading = false, children, }) {
     const isDestructive = variant === "danger";

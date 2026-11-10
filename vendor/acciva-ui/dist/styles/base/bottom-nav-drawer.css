@@ -1,0 +1,16 @@
+/* BottomNavDrawer composition. The drawer publishes its collapsed height (handle + peek
+   row) as `--bottom-nav-drawer-peek` on the root element; it is unset (0) without one.
+   `pb-safe-nav-drawer` is what `AppShell`'s `<main>` uses so its last row clears the bar
+   *and* the collapsed drawer (SC 2.4.11); `max-h-bottom-nav-drawer` caps the expanded panel
+   below the top safe area, the bar and one `spacing-4` gap. */
+@utility pb-safe-nav-drawer {
+  padding-bottom: calc(var(--safe-bottom-nav) + var(--bottom-nav-drawer-peek, 0px));
+}
+
+@utility scroll-pb-safe-nav-drawer {
+  scroll-padding-bottom: calc(var(--safe-bottom-nav) + var(--bottom-nav-drawer-peek, 0px));
+}
+
+@utility max-h-bottom-nav-drawer {
+  max-height: calc(100dvh - var(--safe-top) - var(--safe-bottom-nav) - var(--spacing) * 4);
+}

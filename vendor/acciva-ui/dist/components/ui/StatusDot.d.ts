@@ -1,5 +1,5 @@
 import type { HTMLAttributes } from "react";
-import { type ResponsiveSize, type SizeTier } from "../../lib/sizing-tokens.js";
+import { type ResponsiveSize, type SizeTier } from "../../lib/sizing-tokens/index.js";
 export type StatusDotTone = "neutral" | "info" | "success" | "warning" | "danger" | "brand";
 export interface StatusDotProps extends HTMLAttributes<HTMLSpanElement> {
     /** Semantic colour role, never a colour name. */

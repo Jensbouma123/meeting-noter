@@ -1,0 +1,10 @@
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import { rgbaToHex } from "../../../lib/color/formats/index.js";
+import { cn } from "../../../lib/utils.js";
+import { Tab, TabList, Tabs } from "../Tabs/index.js";
+import { ChannelInput, HexInput, integerIn } from "./ColorPickerInputs.js";
+import { FORMATS } from "./colorPickerUtils.js";
+export function ColorPickerEditor({ editorFormat, onEditorFormatChange, hsva, rgba, hsla, allowAlpha, commitRgba, commitHsla, onChange, }) {
+    const alphaInput = allowAlpha ? (_jsx(ChannelInput, { label: "A", accessibleName: "Alpha", committed: String(Math.round(hsva.a * 100)), parse: integerIn(100), onCommit: (value) => onChange({ ...hsva, a: value / 100 }) })) : null;
+    return (_jsxs(_Fragment, { children: [_jsx(Tabs, { value: editorFormat, onValueChange: (next) => onEditorFormatChange(next), variant: "pill", size: "sm", className: "w-full", children: _jsx(TabList, { "aria-label": "Color format", className: "w-full", children: FORMATS.map((option) => (_jsx(Tab, { value: option, className: "flex-1 justify-center", children: option.toUpperCase() }, option))) }) }), _jsxs("div", { className: cn("grid gap-2", allowAlpha ? "grid-cols-4" : "grid-cols-3"), children: [editorFormat === "hex" ? (_jsx("div", { className: "col-span-3", children: _jsx(HexInput, { committed: rgbaToHex(rgba, false), onCommit: (next) => commitRgba(next.a < 1 ? next : { ...next, a: hsva.a }) }) })) : editorFormat === "rgb" ? (["r", "g", "b"].map((channel) => (_jsx(ChannelInput, { label: channel.toUpperCase(), accessibleName: { r: "Red", g: "Green", b: "Blue" }[channel], committed: String(rgba[channel]), parse: integerIn(255), onCommit: (value) => commitRgba({ ...rgba, a: hsva.a, [channel]: value }) }, channel)))) : (["h", "s", "l"].map((channel) => (_jsx(ChannelInput, { label: channel.toUpperCase(), accessibleName: { h: "Hue", s: "Saturation", l: "Lightness" }[channel], committed: String(hsla[channel]), parse: integerIn(channel === "h" ? 360 : 100), onCommit: (value) => commitHsla({ ...hsla, a: hsva.a, [channel]: channel === "h" ? value % 360 : value }) }, channel)))), alphaInput] })] }));
+}

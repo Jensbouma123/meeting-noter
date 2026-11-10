@@ -19,8 +19,7 @@ export function resolveAccept(accept) {
     return isPreset(accept) ? ACCEPT_PRESETS[accept] : accept;
 }
 function tokens(accept) {
-    var _a;
-    return ((_a = resolveAccept(accept)) !== null && _a !== void 0 ? _a : "")
+    return (resolveAccept(accept) ?? "")
         .split(",")
         .map((t) => t.trim().toLowerCase())
         .filter(Boolean);
@@ -46,12 +45,11 @@ export function describeAccept(accept) {
     if (accept && isPreset(accept))
         return PRESET_LABELS[accept];
     const labels = tokens(accept).map((t) => {
-        var _a;
         if (t.startsWith("."))
             return t.slice(1).toUpperCase();
         const [major, minor = ""] = t.split("/");
         if (minor === "*")
-            return (_a = WILDCARD_LABELS[major]) !== null && _a !== void 0 ? _a : major.toUpperCase();
+            return WILDCARD_LABELS[major] ?? major.toUpperCase();
         return minor.replace(/^x-/, "").toUpperCase();
     });
     return [...new Set(labels)].join(", ");

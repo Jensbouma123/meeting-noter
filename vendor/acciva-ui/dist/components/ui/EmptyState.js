@@ -1,14 +1,3 @@
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { Inbox } from "lucide-react";
 import { forwardRef } from "react";
@@ -37,8 +26,7 @@ const ACTIONS_MARGIN = {
     sm: "mt-4",
     md: "mt-6",
 };
-export const EmptyState = forwardRef(function EmptyState(_a, ref) {
-    var { icon, title, description, action, secondaryAction, size, compact = false, className } = _a, props = __rest(_a, ["icon", "title", "description", "action", "secondaryAction", "size", "compact", "className"]);
-    const resolvedSize = size !== null && size !== void 0 ? size : (compact ? "sm" : "md");
-    return (_jsxs("div", Object.assign({ ref: ref, className: cn("flex flex-col items-center justify-center text-center", ROOT_PADDING[resolvedSize], className) }, props, { children: [_jsx("div", { "aria-hidden": "true", className: cn("flex items-center justify-center rounded-2xl bg-elevation-2 text-muted-foreground", ICON_FRAME[resolvedSize]), children: icon !== null && icon !== void 0 ? icon : _jsx(Inbox, { className: ICON_SIZE[resolvedSize] }) }), _jsx("h3", { className: cn("font-semibold text-foreground tracking-tight", TITLE_TEXT[resolvedSize]), children: title }), description ? (_jsx("p", { className: cn("text-muted-foreground max-w-sm mt-1.5", DESCRIPTION_TEXT[resolvedSize]), children: description })) : null, (action || secondaryAction) ? (_jsxs("div", { className: cn("flex flex-wrap items-center justify-center gap-3", ACTIONS_MARGIN[resolvedSize]), children: [action, secondaryAction] })) : null] })));
+export const EmptyState = forwardRef(function EmptyState({ icon, title, description, action, secondaryAction, size, compact = false, className, ...props }, ref) {
+    const resolvedSize = size ?? (compact ? "sm" : "md");
+    return (_jsxs("div", { ref: ref, className: cn("flex flex-col items-center justify-center text-center", ROOT_PADDING[resolvedSize], className), ...props, children: [_jsx("div", { "aria-hidden": "true", className: cn("flex items-center justify-center rounded-2xl bg-elevation-2 text-muted-foreground", ICON_FRAME[resolvedSize]), children: icon ?? _jsx(Inbox, { className: ICON_SIZE[resolvedSize] }) }), _jsx("h3", { className: cn("font-semibold text-foreground tracking-tight", TITLE_TEXT[resolvedSize]), children: title }), description ? (_jsx("p", { className: cn("text-muted-foreground max-w-sm mt-1.5", DESCRIPTION_TEXT[resolvedSize]), children: description })) : null, (action || secondaryAction) ? (_jsxs("div", { className: cn("flex flex-wrap items-center justify-center gap-3", ACTIONS_MARGIN[resolvedSize]), children: [action, secondaryAction] })) : null] }));
 });

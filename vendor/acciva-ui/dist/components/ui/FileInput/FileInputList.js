@@ -1,0 +1,15 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { Check, Crop, File as FileIcon, X } from "lucide-react";
+import { formatBytes, isCroppable } from "../../../lib/image/index.js";
+import { cn } from "../../../lib/utils.js";
+import { Badge } from "../Badge/index.js";
+import { Button } from "../Button/index.js";
+export function FileInputList({ files, states, previews, iconClass, textClass, m, cropConfig, disabled, removeAt, openRecrop, }) {
+    return (_jsx("ul", { className: "mt-1 flex flex-col gap-2", children: files.map((file, i) => {
+            const state = states[i];
+            const preview = previews.get(file);
+            return (_jsxs("li", { className: "flex items-center gap-3 rounded-lg border border-border bg-background p-2", children: [preview ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
+                    _jsx("img", { src: preview, alt: "", className: "size-10 shrink-0 rounded-md object-cover" })) : (_jsx("span", { className: "flex size-10 shrink-0 items-center justify-center rounded-md bg-elevation-2 text-muted-foreground", children: _jsx(FileIcon, { className: iconClass, "aria-hidden": "true" }) })), _jsxs("div", { className: "flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3", children: [_jsx("span", { title: file.name, className: cn("min-w-0 truncate text-foreground sm:flex-1", textClass), children: file.name }), _jsxs("span", { className: "flex flex-wrap items-center gap-2 text-xs text-muted-foreground", children: [_jsx("span", { children: formatBytes(file.size) }), state?.status === "uploading" ? (_jsx("span", { role: "progressbar", "aria-label": file.name, "aria-valuemin": 0, "aria-valuemax": 100, "aria-valuenow": state.progress, className: "block h-1.5 w-24 overflow-hidden rounded-full bg-elevation-2", children: _jsx("span", { className: cn("block h-full rounded-full bg-primary-500", state.progress === undefined && "w-1/3 animate-pulse"), style: state.progress !== undefined ? { width: `${Math.min(100, Math.max(0, state.progress))}%` } : undefined }) })) : state?.status === "done" ? (_jsxs("span", { className: "inline-flex items-center gap-1 text-success", children: [_jsx(Check, { className: "size-3.5", "aria-hidden": "true" }), m.uploaded(file.name)] })) : state?.status === "error" ? (_jsx(Badge, { variant: "danger", size: "xs", children: state.error ?? m.failed(file.name) })) : null] })] }), cropConfig && isCroppable(file) && !disabled ? (_jsx(Button, { variant: "ghost", size: "sm", iconOnly: true, tooltip: m.crop(file.name), className: "touch-target-44", onClick: () => openRecrop(file), children: _jsx(Crop, { "aria-hidden": "true" }) })) : null, !disabled ? (_jsx(Button, { variant: "ghost", size: "sm", iconOnly: true, tooltip: m.remove(file.name), "data-file-remove": "", className: "touch-target-44", onClick: () => removeAt(i), children: _jsx(X, { "aria-hidden": "true" }) })) : null] }, `${file.name}-${file.lastModified}-${i}`));
+        }) }));
+}

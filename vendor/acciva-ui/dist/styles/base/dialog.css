@@ -1,0 +1,120 @@
+/* Dialog enter/exit endpoints (Modal, and ConfirmDialog through Modal). The
+   transition itself comes from the motion-* + ease-* utilities on the element;
+   these rules only name the transitioned properties and the open/closed values,
+   so durations keep following the motion tokens — including the
+   prefers-reduced-motion collapse to 0ms (WCAG 2.2 SC 2.3.3). Travel is
+   pointer-aware: fine pointers get a subtle rise, coarse pointers get more
+   travel to follow the finger (with the longer coarse --motion-spatial). */
+:root {
+  --dialog-translate: 0.25rem;
+  --dialog-scale-from: 0.96;
+}
+
+@media (pointer: coarse) {
+  :root {
+    --dialog-translate: 0.75rem;
+  }
+}
+
+/* Native <dialog> (Modal): the top layer and ::backdrop come from showModal().
+   `display` + `overlay` are transitioned discretely so the dialog stays in the top
+   layer while it animates out; entry uses @starting-style. Modal also awaits the
+   exit animation before close(), which covers browsers without discrete
+   display/overlay transitions. */
+.dialog-panel {
+  /* UA max-width keeps a gutter; the size utility replaces it, so state it on width. */
+  width: calc(100% - var(--spacing) * 8);
+  margin: auto;
+  overscroll-behavior: contain;
+  opacity: 0;
+  translate: 0 var(--dialog-translate);
+  scale: var(--dialog-scale-from);
+  transition-property: opacity, translate, scale, display, overlay;
+  transition-behavior: allow-discrete;
+}
+
+.dialog-panel[open][data-open="true"] {
+  opacity: 1;
+  translate: 0 0;
+  scale: 1;
+
+  @starting-style {
+    opacity: 0;
+    translate: 0 var(--dialog-translate);
+    scale: var(--dialog-scale-from);
+  }
+}
+
+.dialog-panel::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+  background-color: transparent;
+  transition-property: background-color, display, overlay;
+  transition-duration: var(--motion-feedback);
+  transition-behavior: allow-discrete;
+}
+
+.dialog-panel[open][data-open="true"]::backdrop {
+  background-color: color-mix(in oklab, var(--color-black) 50%, transparent);
+
+  @starting-style {
+    background-color: transparent;
+  }
+}
+
+/* Drawer: the panel is a native <dialog> in the top layer (showModal(), or a manual
+   popover when persistent). These rules only undo the UA dialog/popover box and pin
+   the panel to its edge; size, shape, slide and scrim fade stay on the component's
+   utilities (layered here so those utilities win). `--drawer-inset-bottom` lifts the
+   panel and its ::backdrop above a connected BottomNav. Scroll stays on the page's
+   side of the backdrop natively — no JS scroll lock (`overscroll-behavior` on a
+   non-scroller is progressive enhancement, per .agents/modern-web.md).
+   On-screen keyboard: the bottom edge also clears `--keyboard-inset` (useKeyboardInset:
+   layout viewport bottom minus visual viewport bottom, so it tracks iOS's focus pan) or
+   `env(keyboard-inset-height)` under `navigator.virtualKeyboard.overlaysContent`. */
+@layer components {
+  .drawer-panel {
+    position: fixed;
+    inset: auto 0
+      max(var(--drawer-inset-bottom, 0px), var(--keyboard-inset, 0px), env(keyboard-inset-height, 0px)) 0;
+    margin: 0;
+    padding: 0;
+    max-width: none;
+    max-height: none;
+    overscroll-behavior: contain;
+  }
+
+  /* Keyboard open: cap to the visible strip under the status bar so the body scrolls and
+     the focused input stays in view (SC 1.4.10, 2.4.11). `!important` beats the inline
+     detent height/max-height; max-height wins over a dragged inline height. */
+  .drawer-panel[data-keyboard-open] {
+    max-height: calc(var(--visual-height, 100dvh) - var(--safe-top)) !important;
+  }
+
+  /* `height: auto`: the UA's fit-content would stop a side panel stretching between
+     its insets. */
+  .drawer-panel[data-side="left"] {
+    top: 0;
+    right: auto;
+    height: auto;
+  }
+
+  .drawer-panel[data-side="right"] {
+    top: 0;
+    left: auto;
+    height: auto;
+  }
+
+  @media (width >= 48rem) {
+    .drawer-panel[data-persistent] {
+      top: 0;
+      left: auto;
+    }
+  }
+
+  .drawer-panel::backdrop {
+    bottom: var(--drawer-inset-bottom, 0);
+    overflow: hidden;
+    overscroll-behavior: contain;
+  }
+}

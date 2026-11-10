@@ -1,5 +1,5 @@
 import { type HTMLAttributes, type ReactNode } from "react";
-import { type TextSizeTier } from "../../lib/sizing-tokens.js";
+import { type TextSizeTier } from "../../lib/sizing-tokens/index.js";
 export type TextTag = "p" | "span" | "div" | "label" | "strong" | "em" | "small" | "blockquote" | "code";
 export type TextSize = TextSizeTier | "caption";
 export type TextVariant = "default" | "muted" | "subtle" | "primary" | "success" | "warning" | "danger" | "inherit";

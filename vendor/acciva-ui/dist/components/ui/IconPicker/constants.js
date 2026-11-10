@@ -1,0 +1,18 @@
+export const CATEGORY_OPTIONS = [
+    "All",
+    "Navigation",
+    "Interface",
+    "Communication",
+    "Media",
+    "Files",
+    "Commerce",
+    "Weather & Nature",
+    "Travel",
+    "Development",
+    "Charts & Data",
+    "People",
+    "Security",
+    "Devices",
+    "Emotion",
+    "Misc",
+];

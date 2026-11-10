@@ -1,4 +1,5 @@
 import { decodeImage, isCompressible, renderImage, resolveCompressOptions, } from "./compress.js";
+import { clamp } from "../utils.js";
 import { ImageProcessError, throwIfAborted } from "./errors.js";
 const RATIOS = { "1:1": 1, circle: 1, "4:3": 4 / 3, "16:9": 16 / 9 };
 /** Width / height for a locked aspect; `undefined` for `"free"` or an invalid number. */
@@ -7,7 +8,6 @@ export function aspectRatio(aspect) {
         return Number.isFinite(aspect) && aspect > 0 ? aspect : undefined;
     return RATIOS[aspect];
 }
-const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 /** Largest centred rect of the ratio, scaled to 80%; free = 80% × 80%. Integers. */
 export function initialCropRect(width, height, aspect = "free") {
     const ratio = aspectRatio(aspect);
@@ -54,10 +54,10 @@ export const isCroppable = isCompressible;
  * Without `options` keeps the cropped size and source format at quality 0.92. Always returns a new File.
  */
 export async function cropImage(file, rect, options, init) {
-    throwIfAborted(init === null || init === void 0 ? void 0 : init.signal);
+    throwIfAborted(init?.signal);
     if (!isCroppable(file))
         throw new ImageProcessError("unsupported");
-    const bitmap = await decodeImage(file, init === null || init === void 0 ? void 0 : init.signal);
+    const bitmap = await decodeImage(file, init?.signal);
     try {
         const x = Math.round(clamp(rect.x, 0, bitmap.width));
         const y = Math.round(clamp(rect.y, 0, bitmap.height));
@@ -68,7 +68,7 @@ export async function cropImage(file, rect, options, init) {
         const resolved = options
             ? resolveCompressOptions(options)
             : { maxWidth: Infinity, maxHeight: Infinity, quality: 0.92, format: "original" };
-        return await renderImage(file, bitmap, { x, y, width, height }, resolved, false, init === null || init === void 0 ? void 0 : init.signal);
+        return await renderImage(file, bitmap, { x, y, width, height }, resolved, false, init?.signal);
     }
     finally {
         bitmap.close();

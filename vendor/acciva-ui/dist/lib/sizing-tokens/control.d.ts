@@ -1,0 +1,11 @@
+import { type SizeTier } from "./tiers.js";
+export declare const CONTROL_HEIGHT: Record<SizeTier, string>;
+export declare const TOUCH_TARGET_MIN_PX = 44;
+export declare const TOUCH_TARGET_TIERS: readonly SizeTier[];
+export declare const TOUCH_TARGET_CLASS = "touch-target-44";
+export declare function needsTouchTarget(size: SizeTier): boolean;
+export declare function touchTargetClass(size: SizeTier): string | undefined;
+export declare const CONTROL_WIDTH: Record<SizeTier, string>;
+export declare const CONTROL_PADDING_X: Record<SizeTier, string>;
+export declare const CONTROL_GAP: Record<SizeTier, string>;
+export declare const CONTROL_RADIUS: Record<SizeTier, string>;

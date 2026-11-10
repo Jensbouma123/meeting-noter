@@ -1,0 +1,20 @@
+import type { CalendarViewMode } from "../DatePicker/index.js";
+export declare function useDateRangeCalendar(startDate: Date | null): {
+    containerRef: import("react").RefObject<HTMLDivElement | null>;
+    triggerRef: import("react").RefObject<HTMLButtonElement | null>;
+    gridRef: import("react").RefObject<HTMLDivElement | null>;
+    moveFocusRef: import("react").RefObject<boolean>;
+    isOpen: boolean;
+    setIsOpen: import("react").Dispatch<import("react").SetStateAction<boolean>>;
+    viewMode: CalendarViewMode;
+    setViewMode: import("react").Dispatch<import("react").SetStateAction<CalendarViewMode>>;
+    viewDate: Date;
+    setViewDate: import("react").Dispatch<import("react").SetStateAction<Date>>;
+    focusedDate: Date;
+    setFocusedDate: import("react").Dispatch<import("react").SetStateAction<Date>>;
+    hoveredDate: Date | null;
+    setHoveredDate: import("react").Dispatch<import("react").SetStateAction<Date | null>>;
+    handlePrevView: () => void;
+    handleNextView: () => void;
+    cycleViewMode: () => void;
+};

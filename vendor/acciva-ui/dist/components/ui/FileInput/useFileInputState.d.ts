@@ -1,0 +1,24 @@
+import type { CropSession, FileChangeDetails, FileInputMessages, FileInputProps, FileRejection } from "./types.js";
+export declare function useFileInputState(value: readonly File[] | undefined, defaultValue: readonly File[] | undefined, onChange: FileInputProps["onChange"], fileState: FileInputProps["fileState"], m: FileInputMessages): {
+    inputRef: import("react").RefObject<HTMLInputElement | null>;
+    rootRef: import("react").RefObject<HTMLDivElement | null>;
+    files: readonly File[];
+    commit: (next: File[], details: FileChangeDetails) => void;
+    rejections: FileRejection[];
+    setRejections: import("react").Dispatch<import("react").SetStateAction<FileRejection[]>>;
+    announcement: string;
+    setAnnouncement: import("react").Dispatch<import("react").SetStateAction<string>>;
+    processing: boolean;
+    setProcessing: import("react").Dispatch<import("react").SetStateAction<boolean>>;
+    drag: "accept" | "reject" | null;
+    setDrag: import("react").Dispatch<import("react").SetStateAction<"accept" | "reject" | null>>;
+    cropSession: CropSession | null;
+    setCropSession: import("react").Dispatch<import("react").SetStateAction<CropSession | null>>;
+    previews: ReadonlyMap<File, string>;
+    states: (import("./types.js").FileItemState | undefined)[];
+    originals: import("react").RefObject<WeakMap<File, File>>;
+    abortRef: import("react").RefObject<AbortController | null>;
+    focusAfterRemove: import("react").RefObject<number | null>;
+    syncNative: (list: readonly File[]) => void;
+};
+export type FileInputState = ReturnType<typeof useFileInputState>;

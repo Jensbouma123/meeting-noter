@@ -56,13 +56,15 @@ export const GLOW_SHADOW = {
 /**
  * Background and border for each role, in semantic roles only. `inset` drops to
  * `bg-background` so a nested panel reads as a well cut into its parent rather
- * than a second card stacked on it.
+ * than a second card stacked on it. `overlay` fills at `bg-elevation-3` (the
+ * colour its `shadow-elevation-3` pairs with), so a menu or popover opened over
+ * a `bg-surface` sheet stays distinct from it in both themes.
  */
 export const SURFACE_FILL = {
     surface: "border border-border bg-surface",
     raised: "border border-border bg-surface",
     inset: "border border-border bg-background",
-    overlay: "border border-border bg-surface",
+    overlay: "border border-border bg-elevation-3",
     control: "border border-border bg-surface",
     pill: "border border-border bg-surface",
 };
