@@ -61,3 +61,7 @@ __pycache__/
 
 # compiled native system-audio tap
 server/native/bin/
+
+# private Node.js downloaded by "Start Meeting Noter.command"
+.runtime/
+.runtime-server.pid

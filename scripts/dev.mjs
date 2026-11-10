@@ -69,7 +69,7 @@ function run(tag, cmd, args) {
 
 for (const sig of ["SIGINT", "SIGTERM", "SIGHUP"]) process.on(sig, () => stopAll(0));
 
-if (process.platform === "darwin") {
+if (process.platform === "darwin" && !process.env.MEETING_NOTER_NO_HELPER) {
   if (await portListening(HELPER_PORT)) {
     console.log(`[helper] already listening on ${HELPER_PORT}; not starting another`);
   } else {

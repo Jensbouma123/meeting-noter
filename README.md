@@ -4,6 +4,32 @@ Meeting Noter is een volledig lokale, browser-native vergadertranscriptie-app: s
 
 *English: Meeting Noter is a 100% client-side, browser-native meeting transcription app. ASR, speaker diarization and language ID run on-device (WebGPU, WASM fallback). Audio never leaves your browser. Quick start below.*
 
+## Voor iedereen (geen technische kennis nodig)
+
+Je hebt een Mac en Google Chrome nodig. Verder niets: de app haalt zelf alles op wat ze nodig heeft.
+
+1. Klik op deze GitHub-pagina op **Code > Download ZIP**.
+2. Dubbelklik het ZIP-bestand in Downloads om het uit te pakken.
+3. Klik in de uitgepakte map met **rechtermuisknop op `Start Meeting Noter.command` > Open** en bevestig met **Open**. macOS waarschuwt de eerste keer omdat het bestand van internet komt. Staat er geen Open-knop, ga dan naar **Systeeminstellingen > Privacy en beveiliging**, scroll naar beneden en klik **Toch openen**.
+4. Wacht de eerste keer enkele minuten: er wordt eenmalig alles geïnstalleerd en gebouwd (het venster laat zien waar het mee bezig is; laat het openstaan). Daarna opent Chrome vanzelf op `http://localhost:3000`. Bij het eerste gebruik vraagt de app toestemming om spraakmodellen te downloaden (ca. 650 MB, eenmalig, daarna bewaard in de browser).
+5. Gebruik **Chrome** (of Edge). Safari werkt ook, maar met een kleiner, trager model.
+
+Stoppen: sluit het Terminal-venster, of dubbelklik `Stop Meeting Noter.command`.
+
+In gewoon Nederlands: de snelste (grafische-kaart-)variant van het spraakmodel wordt niet automatisch meegeleverd. De app valt daarom terug op een iets tragere variant die op elke computer werkt; je moet die eenmalig bevestigen.
+
+Systeemaudio van gespreksdeelnemers opnemen kan met de audio-helper. Die heeft Apple's "Command Line Tools" nodig; het startbestand biedt aan die te installeren. Zonder helper werkt de app met je microfoon en met het delen van een browsertabblad met geluid.
+
+### Updaten
+
+Bij elke start kijkt `Start Meeting Noter.command` of er een nieuwe versie is. Zo ja, dan vraagt het "Nieuwe versie X beschikbaar. Nu updaten? (j/n)": typ **j** en druk op Enter. Ook in de app zelf verschijnt een melding; sluit de app dan en start opnieuw via `Start Meeting Noter.command`. Je instellingen en opnames (opgeslagen in de browser) blijven bewaard.
+
+Privacy: voor de updatecheck vraagt de app (en het startbestand) alleen het versienummer van de nieuwste release op bij GitHub (`api.github.com`). Audio en transcripties verlaten je computer niet.
+
+*English: for non-technical Mac users: download the ZIP, unzip, right-click `Start Meeting Noter.command` > Open, wait for the first-time setup, use Chrome. It fetches its own Node.js, builds the app and opens it. Updates are offered at each start (and via an in-app banner); only the latest release version number is fetched from GitHub.*
+
+## Voor ontwikkelaars
+
 ## Snel starten / Quick start
 
 **Vereisten / Requirements**
