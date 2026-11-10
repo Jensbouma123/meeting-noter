@@ -65,4 +65,3 @@ server/native/bin/
 # private Node.js downloaded by "Start Meeting Noter.command"
 .runtime/
 .runtime-server.pid
-.pages-aside/

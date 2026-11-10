@@ -7,7 +7,6 @@
     "dev:next": "next dev",
     "build": "next build",
     "start": "next start",
-    "build:pages": "node scripts/build-pages.mjs",
     "lint": "eslint",
     "test": "vitest run",
     "helper:build": "sh helper/build.sh",

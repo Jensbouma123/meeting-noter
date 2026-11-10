@@ -1,6 +1,6 @@
 'use client';
 
-import { sessionPath, resolveSessionId } from '@/lib/site';
+import { sessionPath } from '@/lib/session-path';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { Suspense, useState, useCallback } from 'react';
 import MeetingView from './MeetingView';
@@ -19,7 +19,7 @@ function MeetingViewShell() {
   const { toast } = useToast();
   const params = useParams<{ sessionId?: string }>();
   // The id is the `[sessionId]` route segment; `?id=` is kept for old links.
-  const sessionId = resolveSessionId(params?.sessionId, searchParams.get('id'));
+  const sessionId = params?.sessionId ?? searchParams.get('id') ?? undefined;
 
   // Sidebar open state.
   const [sidebarOpen, setSidebarOpen] = useState(true);

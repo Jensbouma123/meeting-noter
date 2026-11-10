@@ -68,7 +68,7 @@ Onderaan kies je **Mic** (alleen je microfoon) of **Mic + gesprek** (je microfoo
 
 ## Voor ontwikkelaars
 
-Statische export voor GitHub Pages: `npm run build:pages` (zet `PAGES=1`, schrijft naar `out/`; `.github/workflows/pages.yml` deployt dit bij elke push naar `main`). In Settings > Pages moet *Source* op *GitHub Actions* staan.
+De Mac-installer wordt gebouwd door `.github/workflows/release.yml` (zie [docs/RELEASING.md](docs/RELEASING.md)).
 
 ## Snel starten / Quick start
 

@@ -402,7 +402,7 @@ export class Capture {
         throw sysR.reason;
       }
       try {
-        await ctx.audioWorklet.addModule(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/worklets/pcm16.js`);
+        await ctx.audioWorklet.addModule('/worklets/pcm16.js');
       } catch (err) {
         throw new Error(`Failed to load audio worklet: ${err instanceof Error ? err.message : String(err)}`);
       }

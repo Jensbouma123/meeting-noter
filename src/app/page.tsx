@@ -1,6 +1,6 @@
 'use client';
 
-import { sessionPath } from '@/lib/site';
+import { sessionPath } from '@/lib/session-path';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Video } from 'lucide-react';

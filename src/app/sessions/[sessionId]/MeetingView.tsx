@@ -1,6 +1,6 @@
 'use client';
 
-import { sessionPath } from '@/lib/site';
+import { sessionPath } from '@/lib/session-path';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback, useMemo, useRef, useSyncExternalStore } from 'react';
 import type { CaptureMode } from '@/lib/meeting';
