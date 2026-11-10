@@ -250,18 +250,28 @@ export function BottomDock({
           const tabs = (
             <Tabs value={mode === 'system' ? 'both' : mode} onValueChange={(value) => onModeChange(value as CaptureMode)} size="sm" variant="pill">
               <TabList aria-label="Audio source">
-                <Tab value="mic" disabled={isRecordingActive} className="touch-target-44">
-                  <HStack as="span" spacing="xs" className="items-center">
-                    <Mic className="size-3.5" />
-                    <span className="sr-only sm:not-sr-only">Mic</span>
-                  </HStack>
-                </Tab>
-                <Tab value="both" disabled={isRecordingActive} className="touch-target-44">
-                  <HStack as="span" spacing="xs" className="items-center">
-                    <PhoneCall className="size-3.5" />
-                    <span className="sr-only sm:not-sr-only">Mic + gesprek</span>
-                  </HStack>
-                </Tab>
+                {/* Tab forwards no handlers, so the tooltip trigger is a wrapper element:
+                    hover and focus (focusin bubbles) both reach it. */}
+                <Tooltip content="Records only your mic">
+                  <span className="inline-flex">
+                  <Tab value="mic" disabled={isRecordingActive} className="touch-target-44">
+                    <HStack as="span" spacing="xs" className="items-center">
+                      <Mic className="size-3.5" />
+                      <span className="sr-only sm:not-sr-only">Mic</span>
+                    </HStack>
+                  </Tab>
+                  </span>
+                </Tooltip>
+                <Tooltip content="Records your mic + audio from a meeting call">
+                  <span className="inline-flex">
+                  <Tab value="both" disabled={isRecordingActive} className="touch-target-44">
+                    <HStack as="span" spacing="xs" className="items-center">
+                      <PhoneCall className="size-3.5" />
+                      <span className="sr-only sm:not-sr-only">Mic + gesprek</span>
+                    </HStack>
+                  </Tab>
+                  </span>
+                </Tooltip>
               </TabList>
             </Tabs>
           );
