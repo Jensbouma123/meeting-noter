@@ -25,7 +25,7 @@ Bij het eerste gebruik vraagt de app toestemming om de spraakmodellen te downloa
 curl -fsSL https://github.com/Jensbouma123/meeting-noter/releases/latest/download/uninstall.sh | bash
 ```
 
-De installer downloadt ook het snelle spraakmodel (ca. 0,5 GB extra) voor live transcriptie. Je hebt geen Node.js, Xcode of beheerdersrechten nodig; macOS 13.5 of nieuwer. Alles draait op je eigen Mac; audio en transcripties verlaten je computer niet. Meer uitleg en hulp bij problemen: [docs/INSTALL-MAC.md](docs/INSTALL-MAC.md).
+Na de installatie bouwt de installer eenmalig het snelle GPU-spraakmodel op je Mac (ca. 5-15 min, ca. 2,5 GB download van Hugging Face, 4 GB tijdelijk, 0,5 GB blijvend) voor live transcriptie. Je hebt geen Node.js, Xcode of beheerdersrechten nodig; macOS 13.5 of nieuwer. Alles draait op je eigen Mac; audio en transcripties verlaten je computer niet. Meer uitleg en hulp bij problemen: [docs/INSTALL-MAC.md](docs/INSTALL-MAC.md).
 
 *English: open Terminal, paste the line above and press Enter. Meeting Noter appears in Applications and opens in your browser. To update, paste the same line again; to uninstall, run the `uninstall.sh` line. Everything runs on-device.*
 

@@ -12,20 +12,25 @@ beheerdersrechten nodig, en er komt geen waarschuwing van macOS.
    curl -fsSL https://github.com/Jensbouma123/meeting-noter/releases/latest/download/install.sh | bash
    ```
 
-3. Wacht enkele minuten: de installer downloadt ook het snelle spraakmodel
-   (ca. 0,5 GB extra, eenmalig; bij een onderbroken download gaat de volgende
-   keer verder waar het stopte). Daarna opent Meeting Noter in uw browser op
+3. Wacht enkele minuten. De app draait daarna; de installer bereidt dan nog eenmalig
+   het snelle GPU-spraakmodel voor (zie hieronder, ca. 5-15 minuten extra). Daarna opent Meeting Noter in uw browser op
    `http://localhost:3000`, en staat **Meeting Noter** in de map **Apps**
    (Programma's) en in Spotlight. Bent u geen beheerder van de Mac, dan staat het
    in de map Apps in uw thuismap (`~/Applications`).
 
-Het spraakmodel (WebGPU, q4f16, 516 MB) komt van de GitHub-release `models-v1` en
-staat in `~/Library/Application Support/Meeting Noter/models/`; het blijft bewaard
-bij updates. Bij het eerste gebruik vraagt de app toestemming om het (en het kleine
-decodermodel) in de browser te laden, waarna u live kunt transcriberen. Optioneel
-het fp16-model (1,2 GB, reserve voor GPU's die q4f16 niet aankunnen):
-`curl -fsSL .../install.sh | bash -s -- --fp16`. Lukt de modeldownload niet, dan
-gebruikt de app het CPU-model: transcriptie pas na Stop.
+**Snel GPU-spraakmodel.** Na de installatie bouwt de installer eenmalig het
+WebGPU-model (`encoder-model.q4f16.onnx`, 516 MB) op uw eigen Mac: hij downloadt
+daarvoor het bronmodel (ca. 2,5 GB) van Hugging Face en het hulpprogramma `uv`
+(vastgepinde versie, SHA-256 gecontroleerd) en zet het om. Dat kost ca. 5-15
+minuten en ca. 4 GB tijdelijke schijfruimte (wordt daarna verwijderd); er is
+minimaal 6 GB vrije ruimte en 8 GB werkgeheugen nodig. Het resultaat staat in
+`~/Library/Application Support/Meeting Noter/models/` en blijft bewaard bij
+updates (het wordt niet opnieuw gebouwd). Met dit model kunt u live
+transcriberen; bij het eerste gebruik vraagt de app toestemming om het te laden.
+Mislukt de bouw (of is er te weinig ruimte), dan werkt de app met het CPU-model:
+transcriptie pas na Stop. Opnieuw proberen:
+`curl -fsSL https://github.com/Jensbouma123/meeting-noter/releases/latest/download/install.sh | bash -s -- --gpu-model`.
+Logbestand: `logs/model-build.log`.
 
 Nodig: macOS 13.5 of nieuwer. Systeemaudio van gespreksdeelnemers opnemen (de
 audio-helper) vraagt macOS 14.4 of nieuwer; op een oudere Mac werkt de app met de
@@ -79,12 +84,12 @@ blijven bewaard; wis die via de websitegegevens van `localhost` in uw browser.
 | `~/Library/Application Support/Meeting Noter/` | de app met eigen Node.js, de audio-helper, logbestanden, `uninstall.sh` |
 | `~/Library/LaunchAgents/nl.jensbouma.meeting-noter.server.plist` | start de webserver op `127.0.0.1:3000` bij het inloggen |
 | `~/Library/LaunchAgents/nl.jensbouma.meeting-noter.audio-helper.plist` | start de audio-helper (alleen macOS 14.4+) |
-| `~/Library/Application Support/Meeting Noter/models/` | het WebGPU-spraakmodel (blijft bewaard bij updates) |
+| `~/Library/Application Support/Meeting Noter/models/` | het zelfgebouwde WebGPU-spraakmodel (blijft bewaard bij updates) |
+| `~/Library/Application Support/Meeting Noter/bin/uv` | modelbouwer, alleen gebruikt om het model te maken |
 | `/Applications/Meeting Noter.app` (of `~/Applications/…`) | opent `http://localhost:3000`, biedt updates aan |
 
-De installer downloadt alleen van GitHub-releases
-(`releases/latest` en `releases/download/models-v1`) en controleert de
-SHA-256 van elke download. Voor de updatecheck vraagt de app alleen het versienummer
+De installer downloadt van GitHub-releases (de app en `uv`, SHA-256 gecontroleerd)
+en, voor het spraakmodel, van Hugging Face (`istupakov/parakeet-tdt-0.6b-v3-onnx`). Voor de updatecheck vraagt de app alleen het versienummer
 van de nieuwste release op bij `api.github.com`. Audio en transcripties verlaten uw
 Mac niet.
 

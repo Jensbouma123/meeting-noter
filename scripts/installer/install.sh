@@ -14,15 +14,16 @@
 # The fast WebGPU speech model (encoder-model.q4f16.onnx, 516 MB) is built once on
 # this Mac, after the app runs: a pinned standalone `uv` (astral-sh, sha256
 # checked) runs the bundled convert-parakeet-v3.py, which downloads the fp32 model
-# from Hugging Face and converts it (5-15 min, ~3 GB temporary, then deleted).
+# from Hugging Face and converts it (5-15 min, ~4 GB temporary, then deleted).
 # The result lives in ~/Library/Application Support/Meeting Noter/models/ (kept
 # across updates; never rebuilt when present) and the app serves it same-origin
-# at /models/. Needs >= 5 GB free disk and >= 8 GB RAM; otherwise, or when the
+# at /models/. Needs >= 6 GB free disk and >= 8 GB RAM; otherwise, or when the
 # build fails, the app stays on the CPU model (no live transcription) and
 # `install.sh --gpu-model` (same command, plus `bash -s -- --gpu-model`) retries.
 #
-# Test-only overrides: MEETING_NOTER_MODELS_BASE (model download URL, file:// too),
-# MEETING_NOTER_Q4F16_BYTES / MEETING_NOTER_Q4F16_SHA256 (expected model file), MEETING_NOTER_DOWNLOAD_BASE (any curl URL, file:// too),
+# Test-only overrides: MEETING_NOTER_UV (use this uv binary, skip its download),
+# MEETING_NOTER_UV_BASE (uv download URL), MEETING_NOTER_SKIP_GPU_MODEL=1,
+# MEETING_NOTER_MIN_DISK_KB, MEETING_NOTER_DOWNLOAD_BASE (any curl URL, file:// too),
 # MEETING_NOTER_NO_LAUNCHD=1 (write the agents and the app, but load, register
 # and wait for nothing, so it runs in a scratch HOME next to a real install),
 # MEETING_NOTER_NO_OPEN=1 (do not open the browser), MEETING_NOTER_FORCE=1
@@ -38,10 +39,7 @@ UV_VERSION=0.11.20
 UV_BASE=${MEETING_NOTER_UV_BASE:-https://github.com/astral-sh/uv/releases/download/$UV_VERSION}
 # Pinned: the combination verified to convert the encoder (ORT >= 1.22 dropped
 # the matmul_4bits_quantizer module the script uses).
-CONVERT_DEPS=(--with onnx==1.17.0 --with onnxconverter-common==1.14.0 --with onnxruntime==1.20.1)
-# Hash of the converted encoder from the reference build; a different hash is a
-# warning only, since the script validates its own output against fp32.
-Q4F16_SHA=${MEETING_NOTER_Q4F16_SHA256:-b35e232db131890641452b1ffa671f58ad713c4b7bec2cd1b4862ea137e5a68a}
+CONVERT_DEPS=(--with numpy==1.26.4 --with onnx==1.17.0 --with onnxconverter-common==1.14.0 --with onnxruntime==1.20.1)
 ROOT="$HOME/Library/Application Support/Meeting Noter"
 MODEL_DIR_NAME=parakeet-tdt-0.6b-v3-webgpu
 AGENTS="$HOME/Library/LaunchAgents"
@@ -99,14 +97,14 @@ agent_start() {
 # Builds models/<dir>/encoder-model.q4f16.onnx on this Mac. Returns 1 (with a
 # friendly message) on any problem; the app then keeps the CPU model.
 build_model() {
-  local dir="$ROOT/models/$MODEL_DIR_NAME" out work uv arch_uv uv_sha free_kb mem actual
+  local dir="$ROOT/models/$MODEL_DIR_NAME" out work uv arch_uv uv_sha free_kb mem
   out="$dir/encoder-model.q4f16.onnx"
   [ -f "$out" ] && { say "✓ Snel GPU-spraakmodel is al aanwezig"; return 0; }
   say
-  say "Snel GPU-spraakmodel voorbereiden (eenmalig, ca. 5-15 min, ~3 GB tijdelijk)"
+  say "Snel GPU-spraakmodel voorbereiden (eenmalig, ca. 5-15 min, ca. 4 GB tijdelijk)"
   free_kb=$(df -k "$ROOT" | awk 'NR==2 {print $4}')
-  if [ "${free_kb:-0}" -lt "${MEETING_NOTER_MIN_DISK_KB:-5000000}" ]; then
-    say "⚠️  Te weinig vrije schijfruimte (minimaal 5 GB nodig). De app gebruikt het CPU-model."; return 1
+  if [ "${free_kb:-0}" -lt "${MEETING_NOTER_MIN_DISK_KB:-6000000}" ]; then
+    say "⚠️  Te weinig vrije schijfruimte (minimaal 6 GB nodig). De app gebruikt het CPU-model."; return 1
   fi
   mem=$(sysctl -n hw.memsize 2>/dev/null || echo 0)
   if [ "$mem" -lt 8000000000 ]; then
@@ -137,8 +135,8 @@ build_model() {
     say "   De app gebruikt het CPU-model. Opnieuw proberen: voer de installatieregel opnieuw uit met '| bash -s -- --gpu-model'."
     rm -rf "$work"; return 1
   fi
-  actual=$(shasum -a 256 "$work/out/encoder-model.q4f16.onnx" | awk '{print $1}')
-  [ "$actual" = "$Q4F16_SHA" ] || say "ℹ️  Model-hash wijkt af van de referentiebouw (door de ingebouwde validatie goedgekeurd)."
+  # The output hash varies with library versions, so no hash check: the script
+  # validates the result against the fp32 model itself and fails otherwise.
   mv "$work/out/encoder-model.q4f16.onnx" "$out"
   rm -rf "$work"
   say "✓ GPU-spraakmodel gebouwd"

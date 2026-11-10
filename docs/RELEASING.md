@@ -38,12 +38,13 @@ and set it in the `npm run build:pages` step of `.github/workflows/pages.yml`:
 404s, the app falls back automatically to the next available variant. Dev
 (`next dev`) keeps serving `public/models/…` without any variable.
 
-## Mac installer speech model (`models-v1`)
+## Mac installer speech model (built on the user's Mac)
 
-The installed app is built (by `scripts/installer/package.sh`) with the encoder URLs
-pointing at same-origin `/models/parakeet-tdt-0.6b-v3-webgpu/...`. `install.sh`
-downloads `encoder-model.q4f16.onnx` (and with `--fp16` the fp16 one) from the
-GitHub **prerelease** `models-v1` (never "latest"), checks the hardcoded SHA-256 and
-symlinks `~/Library/Application Support/Meeting Noter/models` into the server's
-`public/models`. If a file's content ever changes, publish a new tag and update the
-URLs and hashes in `install.sh`.
+No model file is hosted. The installed app is built (by `scripts/installer/package.sh`)
+with the encoder URLs pointing at same-origin `/models/parakeet-tdt-0.6b-v3-webgpu/...`.
+After the app is running, `install.sh` fetches a pinned `uv`, runs the bundled
+`convert-parakeet-v3.py` (pinned numpy/onnx/onnxconverter-common/onnxruntime, in
+`CONVERT_DEPS`) and keeps only `encoder-model.q4f16.onnx` in
+`~/Library/Application Support/Meeting Noter/models/`, symlinked into the server's
+`public/models`. Bump `UV_VERSION` and its two hashes together; ORT >= 1.22 breaks
+the script (`matmul_4bits_quantizer` removed) and numpy 2 breaks onnxconverter-common 1.14.

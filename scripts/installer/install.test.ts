@@ -81,14 +81,14 @@ describe.skipIf(process.platform !== 'darwin')('install.sh', () => {
   // A stand-in for `uv run ... convert-parakeet-v3.py --outdir DIR`.
   function fakeUv(body: string) {
     const file = path.join(dir, 'fake-uv');
-    exe(file, `#!/bin/bash\nwhile [ $# -gt 0 ]; do [ "$1" = --outdir ] && out=$2; shift; done\n${body}\n`);
+    exe(file, `#!/bin/bash\nall="$*"\nwhile [ $# -gt 0 ]; do [ "$1" = --outdir ] && out=$2; shift; done\n${body}\n`);
     return file;
   }
   const modelFile = () => path.join(root(), 'models/parakeet-tdt-0.6b-v3-webgpu/encoder-model.q4f16.onnx');
 
   it('builds the speech model on this Mac, keeps it across updates and links it into public/models', () => {
     release('0.2.1');
-    const uv = fakeUv('mkdir -p "$out"; echo "$@" >> "$HOME/uv-calls"; printf fake-encoder > "$out/encoder-model.q4f16.onnx"');
+    const uv = fakeUv('mkdir -p "$out"; echo "$all" >> "$HOME/uv-calls"; printf fake-encoder > "$out/encoder-model.q4f16.onnx"');
     const env = { MEETING_NOTER_UV: uv, MEETING_NOTER_SKIP_GPU_MODEL: '' };
     const first = run(INSTALL, env);
     expect(first.code, first.out).toBe(0);
