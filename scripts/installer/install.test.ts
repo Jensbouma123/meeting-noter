@@ -93,7 +93,7 @@ describe.skipIf(process.platform !== 'darwin')('install.sh', () => {
     const first = run(INSTALL, env);
     expect(first.code, first.out).toBe(0);
     expect(readFileSync(modelFile(), 'utf8')).toBe('fake-encoder');
-    expect(readFileSync(path.join(home, 'uv-calls'), 'utf8')).toMatch(/--python 3\.12 --with onnx==.* --with onnxruntime==.*convert-parakeet-v3\.py/);
+    expect(readFileSync(path.join(home, 'uv-calls'), 'utf8')).toMatch(/--python 3\.12 --with numpy==.* --with onnx==.* --with onnxruntime==.*convert-parakeet-v3\.py/);
     expect(existsSync(path.join(root(), 'model-build'))).toBe(false);
     // Served same-origin: the server's public/models resolves to the same dir.
     expect(readFileSync(path.join(root(), 'app/server/public/models/parakeet-tdt-0.6b-v3-webgpu/encoder-model.q4f16.onnx'), 'utf8')).toBe('fake-encoder');
