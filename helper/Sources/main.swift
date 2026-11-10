@@ -129,6 +129,8 @@ server.hello = {
 var mixer = Mixer()
 /// Clients streaming with the mic, as of the last `reconcileTap`. On the audio queue.
 var micClients = 0
+/// Clients streaming the mic alone, as of the last `reconcileTap`. On the audio queue.
+var soloMicClients = 0
 /// What a mic client is told about the mic. On the audio queue.
 var micState = "unavailable"
 var micError: String?
@@ -184,7 +186,9 @@ func watchMicSilence(_ samples: UnsafeBufferPointer<Float>, rate: Double) {
 
 mic.onSamples = { samples, rate in
     watchMicSilence(samples, rate: rate)
-    mixer.pushMic(samples, rate: rate)
+    mixer.pushMic(samples, rate: rate, alone: soloMicClients == 0 ? nil : { frame in
+        server.broadcast(frame.withUnsafeBytes { Data($0) }, stream: .mic)
+    })
 }
 mic.onRestart = { error in
     mixer.resetMic()
@@ -203,11 +207,11 @@ var levelFrames = 0
 var levelPeak = 0.0
 tap.onSamples = { samples, rate in
     mixer.pushTap(samples, rate: rate, system: { frame in
-        server.broadcast(frame.withUnsafeBytes { Data($0) }, mixed: false)
+        server.broadcast(frame.withUnsafeBytes { Data($0) }, stream: .system)
         if options.verbose, micClients == 0 { logLevel(frame) }
     }, mixed: { frame in
         guard micClients > 0 else { return }
-        server.broadcast(frame.withUnsafeBytes { Data($0) }, mixed: true)
+        server.broadcast(frame.withUnsafeBytes { Data($0) }, stream: .mixed)
         if options.verbose { logLevel(frame) }
     })
 }
@@ -267,12 +271,14 @@ final class PendingReply {
 /// told it failed: under the page's own 4 s wait for `started`.
 let startDeadline: DispatchTimeInterval = .seconds(3)
 
-/// Runs the tap while at least one client streams, and the mic while one
-/// of them asked for it. On the server queue.
+/// Runs the tap while at least one client streams system audio, and the mic
+/// while one of them asked for it or streams the mic alone. On the server queue.
 func reconcileTap(reply: FrameServer.Client? = nil) {
-    let wanted = server.streamingCount > 0
+    let wanted = server.tapCount > 0
     let wantedMic = server.micCount
+    let wantedSolo = server.soloMicCount
     let replyWantsMic = reply?.wantsMic ?? false
+    let replyWantsSystem = reply?.wantsSystem ?? true
     let pending = PendingReply()
     if let client = reply {
         // A Core Audio call that never returns would otherwise leave the
@@ -301,20 +307,23 @@ func reconcileTap(reply: FrameServer.Client? = nil) {
             log("tap stopped (no page is recording)")
         }
         micClients = wantedMic
-        reconcileMic(wanted: wantedMic > 0 && failure == nil)
+        soloMicClients = wantedSolo
+        // A failed tap leaves nothing to mix the mic into, but the mic alone
+        // still streams.
+        reconcileMic(wanted: wantedMic > 0 && (failure == nil || wantedSolo > 0))
         let status = micStatus()
         guard let client = reply else { return }
         server.queue.async {
             guard !pending.answered else { return }
             pending.answered = true
-            if let failure {
+            if let failure, replyWantsSystem {
                 server.send(client, ["type": "error", "message": "Could not start the system audio tap: \(failure)"])
                 server.close(client)
             } else {
                 var started: [String: Any] = [
                     "type": "started",
                     "sampleRate": Int(Downsampler.outputRate),
-                    "inputSampleRate": Int(tap.sampleRate),
+                    "inputSampleRate": Int(replyWantsSystem ? tap.sampleRate : mic.sampleRate),
                     "permission": AudioCapturePermission.preflight().rawValue,
                 ]
                 if replyWantsMic { started.merge(status) { a, _ in a } }

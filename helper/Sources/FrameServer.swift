@@ -9,7 +9,8 @@ import Network
 /// - the page sends `{"type":"start"}`, or `{"type":"start","mic":true}`
 ///   for the default input device mixed in; the helper starts the tap (and
 ///   the mic) if not running yet and answers `{"type":"started", ...}` or
-///   `{"type":"error", message}`. With `mic`, `started` carries `mic`:
+///   `{"type":"error", message}`. `{"type":"start","mic":true,"system":false}`
+///   streams the mic alone and starts no tap. With `mic`, `started` carries `mic`:
 ///   `"live"`, `"unknown"` (the permission prompt is still up),
 ///   `"denied"` (no Microphone permission: system audio alone),
 ///   `"silent"` (open, but delivering only digital silence: macOS withholds
@@ -17,7 +18,8 @@ import Network
 ///   device; `micError` says why), and `micPermission`;
 /// - from then on every binary message is one frame: `frameSamples` mono
 ///   Int16LE samples at `sampleRate` (100 ms at 16 kHz), of the system audio,
-///   or of the system audio plus the mic for a client that asked for it;
+///   of the system audio plus the mic for a client that asked for it, or of
+///   the mic alone for a client that asked for no system audio;
 /// - a mic client gets `{"type":"mic", mic, micError?, micPermission}`
 ///   whenever the mic's state changes (device unplugged, another default);
 /// - `{"type":"stop"}` or closing the socket ends that client's stream.
@@ -33,10 +35,17 @@ final class FrameServer {
         case stopped(Client)
     }
 
+    /// Which frames a client gets.
+    enum Stream {
+        case system, mixed, mic
+    }
+
     final class Client {
         let connection: NWConnection
         var streaming = false
         var wantsMic = false
+        var wantsSystem = true
+        var stream: Stream { !wantsSystem ? .mic : wantsMic ? .mixed : .system }
         init(connection: NWConnection) {
             self.connection = connection
         }
@@ -53,6 +62,10 @@ final class FrameServer {
 
     var streamingCount: Int { clients.values.filter(\.streaming).count }
     var micCount: Int { clients.values.filter { $0.streaming && $0.wantsMic }.count }
+    /// Clients streaming the system audio, with or without the mic.
+    var tapCount: Int { clients.values.filter { $0.streaming && $0.wantsSystem }.count }
+    /// Clients streaming the mic alone.
+    var soloMicCount: Int { clients.values.filter { $0.streaming && $0.stream == .mic }.count }
 
     init(port: UInt16, allowOrigin: @escaping (String?) -> Bool) {
         self.port = port
@@ -87,13 +100,12 @@ final class FrameServer {
         self.listener = listener
     }
 
-    /// Sends one frame to every client that asked to stream, with or without
-    /// the mic as `mixed` says. Any queue.
-    func broadcast(_ frame: Data, mixed: Bool) {
+    /// Sends one frame to every client streaming `stream`. Any queue.
+    func broadcast(_ frame: Data, stream: Stream) {
         queue.async {
             let meta = NWProtocolWebSocket.Metadata(opcode: .binary)
             let context = NWConnection.ContentContext(identifier: "frame", metadata: [meta])
-            for client in self.clients.values where client.streaming && client.wantsMic == mixed {
+            for client in self.clients.values where client.streaming && client.stream == stream {
                 client.connection.send(content: frame, contentContext: context, isComplete: true, completion: .idempotent)
             }
         }
@@ -164,12 +176,14 @@ final class FrameServer {
         case "start":
             if client.streaming { return }
             client.streaming = true
-            client.wantsMic = message["mic"] as? Bool ?? false
+            client.wantsSystem = message["system"] as? Bool ?? true
+            client.wantsMic = !client.wantsSystem || (message["mic"] as? Bool ?? false)
             onEvent?(.started(client))
         case "stop":
             if !client.streaming { return }
             client.streaming = false
             client.wantsMic = false
+            client.wantsSystem = true
             onEvent?(.stopped(client))
         default:
             break

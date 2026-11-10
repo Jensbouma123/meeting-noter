@@ -1,7 +1,8 @@
 import Foundation
 
 /// The system tap and the mic, each at its own rate and clock, into 100 ms
-/// 16 kHz frames: one of the tap alone, one of the tap plus the mic.
+/// 16 kHz frames: one of the tap alone, one of the tap plus the mic, and one
+/// of the mic alone.
 ///
 /// The tap is the clock. Each source is downsampled to 16 kHz on arrival; mic
 /// samples wait in a short jitter buffer and are added to the tap's sample by
@@ -27,6 +28,7 @@ struct Mixer {
     private var leveler = MicLeveler()
     private var systemFramer = Framer()
     private var mixedFramer = Framer()
+    private var solo = SoloMic()
 
     var micBuffered: Int { mic16.count - micRead }
 
@@ -42,15 +44,21 @@ struct Mixer {
         micRead = 0
         priming = true
         leveler = MicLeveler()
+        solo = SoloMic()
     }
 
-    mutating func pushMic(_ samples: UnsafeBufferPointer<Float>, rate: Double) {
+    /// `alone`, when given, gets frames of the mic by itself, for a page that
+    /// records only the mic (Safari's Mic mode): the mic is their clock, and
+    /// they run whether or not the tap does.
+    mutating func pushMic(_ samples: UnsafeBufferPointer<Float>, rate: Double, alone: (([Int16]) -> Void)? = nil) {
         if micDown?.inputRate != rate { micDown = Downsampler(inputRate: rate) }
         if micRead > 0, micRead >= Self.maxSamples {
             mic16.removeFirst(micRead)
             micRead = 0
         }
+        let from = mic16.count
         micDown!.push(samples, into: &mic16)
+        if let alone, mic16.count > from { solo.push(mic16[from...], emit: alone) }
         if micBuffered > Self.maxSamples { micRead = mic16.count - Self.primeSamples }
     }
 
@@ -89,6 +97,23 @@ struct Mixer {
     }
 }
 
+/// The mic by itself, raised like the mixed-in mic but with no call on the
+/// tap to keep its echo under: what it hears of the speakers is wanted here.
+struct SoloMic {
+    private var leveler = MicLeveler(echoLimited: false)
+    private var framer = Framer()
+
+    mutating func push(_ block: ArraySlice<Float>, emit: ([Int16]) -> Void) {
+        let samples = Array(block)
+        let from = leveler.gain
+        let to = leveler.update(mic: samples, tap: [])
+        let step = (to - from) / Float(samples.count)
+        for i in samples.indices {
+            framer.push((from + step * Float(i + 1)) * samples[i], emit: emit)
+        }
+    }
+}
+
 /// The gain the mic is mixed in with.
 ///
 /// The mic is read raw, with none of the gain a browser or a call app gets
@@ -117,6 +142,9 @@ struct MicLeveler {
     /// playing loud, so an unmeasured echo stays under the call too.
     static let priorEcho: Float = 0.01
 
+    /// Whether the gain is held where the mic's echo of the tap stays under
+    /// the call. Off for the mic by itself (`SoloMic`).
+    let echoLimited: Bool
     /// Applied at the end of the last buffer.
     private(set) var gain: Float = 1
     /// The user's speech peaks: rises at once, falls 1.5 dB/s.
@@ -127,9 +155,14 @@ struct MicLeveler {
     /// Mic level over tap level while the tap plays.
     private var echo = priorEcho
 
-    /// The gain for the mic samples of one tap buffer.
+    init(echoLimited: Bool = true) {
+        self.echoLimited = echoLimited
+    }
+
+    /// The gain for one block of mic samples, and the tap's samples alongside
+    /// them (none for the mic by itself).
     mutating func update(mic: [Float], tap: [Float]) -> Float {
-        let seconds = Float(tap.count) / Float(Downsampler.outputRate)
+        let seconds = Float(mic.count) / Float(Downsampler.outputRate)
         let micSq = meanSquare(mic)
         let tapSq = meanSquare(tap)
         let smooth = 1 - exp(-seconds / 0.3)
@@ -144,7 +177,7 @@ struct MicLeveler {
             echo += (ratio - echo) * rate
         }
         speechLevel = max(micSq.squareRoot(), speechLevel * pow(0.841, seconds))
-        let limit = min(Self.maxGain, Self.maxEcho / max(echo, 1e-6))
+        let limit = echoLimited ? min(Self.maxGain, Self.maxEcho / max(echo, 1e-6)) : Self.maxGain
         let wanted = speechLevel > 0 ? Self.targetRms / speechLevel : limit
         gain = max(1, min(limit, wanted))
         return gain
