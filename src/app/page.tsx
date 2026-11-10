@@ -1,5 +1,6 @@
 'use client';
 
+import { sessionPath } from '@/lib/site';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Video } from 'lucide-react';
@@ -17,7 +18,7 @@ export default function Home() {
 
   useEffect(() => {
     const latest = listSessions()[0];
-    if (latest) router.replace(`/sessions/${latest.sessionId}`);
+    if (latest) router.replace(sessionPath(latest.sessionId));
     /* eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot hydration from the session index */
     else setEmpty(true);
   }, [router]);
@@ -25,7 +26,7 @@ export default function Home() {
   const handleOpenSession = useCallback(
     (sessionId: string) => {
       if (!sessionId) setNewDialogOpen(true);
-      else router.push(`/sessions/${sessionId}`);
+      else router.push(sessionPath(sessionId));
     },
     [router],
   );
@@ -36,7 +37,7 @@ export default function Home() {
       try {
         const draftId = createDraftSession(title);
         clearIdleSession();
-        router.push(`/sessions/${draftId}`);
+        router.push(sessionPath(draftId));
       } catch { /* best-effort */ }
     },
     [router],

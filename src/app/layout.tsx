@@ -5,6 +5,7 @@ import { ToastProvider } from "@jensbouma123/acciva-ui";
 // NOTE: the acciva-ui token/base CSS is imported from `globals.css`, not here —
 // Tailwind can only register its `@theme` utilities in the file it processes.
 import "./globals.css";
+import { HostedBrowserNotice } from "@/components/HostedBrowserNotice";
 import { UpdateBanner } from "@/components/UpdateBanner";
 
 const geistSans = Geist({
@@ -53,6 +54,7 @@ export default function RootLayout({
         <ThemeProvider>
           <ToastProvider position="bottom-right">
             <UpdateBanner />
+            <HostedBrowserNotice />
             {children}
           </ToastProvider>
         </ThemeProvider>

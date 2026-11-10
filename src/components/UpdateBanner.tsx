@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Alert } from '@jensbouma123/acciva-ui';
+import { HOSTED } from '@/lib/site';
 import { findNewerRelease } from '@/lib/update/version.mjs';
 
 const CURRENT = process.env.NEXT_PUBLIC_APP_VERSION ?? '0.0.0';
@@ -12,6 +13,7 @@ export function UpdateBanner() {
   const [latest, setLatest] = useState<string | null>(null);
 
   useEffect(() => {
+    if (HOSTED) return; // the hosted site always serves the latest build
     let cancelled = false;
     void findNewerRelease(CURRENT).then((rel) => {
       if (cancelled || !rel) return;

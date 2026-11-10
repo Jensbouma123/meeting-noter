@@ -4,7 +4,21 @@ Meeting Noter is een volledig lokale, browser-native vergadertranscriptie-app: s
 
 *English: Meeting Noter is a 100% client-side, browser-native meeting transcription app. ASR, speaker diarization and language ID run on-device (WebGPU, WASM fallback). Audio never leaves your browser. Quick start below.*
 
-## Voor iedereen (geen technische kennis nodig)
+## Gebruik het direct in je browser (geen installatie)
+
+**https://jensbouma123.github.io/meeting-noter/**
+
+1. Open de link in **Google Chrome** (of Edge). Safari wordt hier niet ondersteund; zie hieronder.
+2. Sta het downloaden van de spraakmodellen toe als de app erom vraagt (ca. 650 MB, eenmalig; daarna bewaard in je browser).
+3. Klik op **New meeting** en neem op. Kies **Mic** (alleen jouw microfoon) of **Mic + gesprek** (deel een browsertabblad met geluid).
+
+Alles draait op je eigen computer; audio en transcripties verlaten je browser niet. Meetings staan in deze browser, dus gebruik steeds dezelfde browser. De online versie is altijd up-to-date. Safari kan de lokale audio-helper vanaf deze https-pagina niet betrouwbaar bereiken: gebruik Chrome/Edge, of de lokale installatie hieronder.
+
+*English: open the link in Chrome or Edge, allow the one-time model download, then record. Everything runs on-device. Safari: use the local install below.*
+
+## Geavanceerd: lokale installatie (Advanced: local install)
+
+### Lokaal draaien op je Mac (met systeemaudio-helper)
 
 Je hebt een Mac en Google Chrome nodig. Verder niets: de app haalt zelf alles op wat ze nodig heeft.
 
@@ -40,6 +54,8 @@ Privacy: voor de updatecheck vraagt de app (en het startbestand) alleen het vers
 Onderaan kies je **Mic** (alleen je microfoon) of **Mic + gesprek** (je microfoon plus het geluid van de andere deelnemers; deel een browsertabblad of je scherm met geluid, of gebruik de audio-helper).
 
 ## Voor ontwikkelaars
+
+Statische export voor GitHub Pages: `npm run build:pages` (zet `PAGES=1`, schrijft naar `out/`; `.github/workflows/pages.yml` deployt dit bij elke push naar `main`). In Settings > Pages moet *Source* op *GitHub Actions* staan.
 
 ## Snel starten / Quick start
 

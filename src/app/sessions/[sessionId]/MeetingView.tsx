@@ -1,5 +1,6 @@
 'use client';
 
+import { sessionPath } from '@/lib/site';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback, useMemo, useRef, useSyncExternalStore } from 'react';
 import type { CaptureMode } from '@/lib/meeting';
@@ -298,7 +299,7 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
         started = meeting.start(startOptions);
         if (target === 'new') {
           setTitle('Untitled meeting');
-          router.push(`/sessions/${id}`);
+          router.push(sessionPath(id));
         }
         await started;
       } catch {
