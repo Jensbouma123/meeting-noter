@@ -4,6 +4,22 @@ import { useEffect, useState } from 'react';
 import { Alert } from '@jensbouma123/acciva-ui';
 import { isSafariEngine } from '@/lib/asr/browser/backend-detect';
 import { HOSTED } from '@/lib/site';
+import { probeHelper } from '@/lib/meeting/helper-source';
+
+/**
+ * Whether the Safari notice applies: hosted site, Safari, and the local helper
+ * not reachable. A short-timeout connect to the helper decides the last part —
+ * if WebKit blocks ws://127.0.0.1 from this https page (mixed content) the
+ * probe fails like a missing helper, so the notice stays, which is correct.
+ */
+export async function shouldShowSafariNotice(
+  hosted: boolean,
+  safari: boolean,
+  probe: () => Promise<boolean> = probeHelper,
+): Promise<boolean> {
+  if (!hosted || !safari) return false;
+  return !(await probe());
+}
 
 /**
  * Hosted site only. An https page cannot reliably reach the local audio helper
@@ -13,8 +29,13 @@ import { HOSTED } from '@/lib/site';
 export function HostedBrowserNotice() {
   const [show, setShow] = useState(false);
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot UA check after hydration
-    if (HOSTED && isSafariEngine()) setShow(true);
+    let cancelled = false;
+    void shouldShowSafariNotice(HOSTED, isSafariEngine()).then((v) => {
+      if (!cancelled && v) setShow(true);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
   if (!show) return null;
   return (
