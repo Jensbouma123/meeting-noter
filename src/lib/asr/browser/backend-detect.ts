@@ -32,6 +32,7 @@ import {
   manifestForFamily,
   webgpuManifestForEncoder,
   WEBGPU_ENCODER_FALLBACKS,
+  webgpuEncodersAvailable,
   type AsrBackend,
   type AsrModelManifest,
   type WebgpuEncoderQuant,
@@ -109,6 +110,10 @@ async function probeAsrBackend(): Promise<AsrBackend> {
   // default and the same chain — the q4f16 file is unbenched on Chrome (§2 of
   // the bench results could not run it), which is exactly what the fp16 rung
   // is there for.
+  // No hosted WebGPU encoder (the default in a production build): the CPU
+  // model is the best variant that is actually downloadable. Nemotron has its
+  // own hosted WebGPU files, so only Parakeet is routed away.
+  if (getAsrModelFamily() !== 'nemotron' && !webgpuEncodersAvailable()) return 'wasm';
   const deviceMemory = getDeviceMemoryGiB();
   if (deviceMemory !== null && deviceMemory < MIN_GIB_FOR_WEBGPU_MODEL) {
     console.info(
@@ -167,7 +172,7 @@ let forcedEncoder: WebgpuEncoderQuant | null = null;
 
 /** Which WebGPU encoder this page session will try next. */
 export function activeWebgpuEncoder(): WebgpuEncoderQuant {
-  return forcedEncoder ?? WEBGPU_ENCODER_FALLBACKS[0];
+  return forcedEncoder ?? WEBGPU_ENCODER_FALLBACKS[0] ?? 'q4f16';
 }
 
 /**
@@ -181,7 +186,7 @@ export function activeWebgpuEncoder(): WebgpuEncoderQuant {
 export function activeAsrManifest(backend: AsrBackend): AsrModelManifest {
   // Nemotron has one WebGPU variant, so there is no encoder rung to apply.
   if (getAsrModelFamily() === 'nemotron') return manifestForFamily('nemotron', backend);
-  if (backend === 'wasm') return manifestForBackend('wasm');
+  if (backend === 'wasm' || !webgpuEncodersAvailable()) return manifestForBackend('wasm');
   return webgpuManifestForEncoder(activeWebgpuEncoder());
 }
 

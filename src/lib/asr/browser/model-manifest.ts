@@ -184,6 +184,21 @@ export const Q4F16_ENCODER_URL =
   process.env.NEXT_PUBLIC_Q4F16_ENCODER_URL ??
   '/models/parakeet-tdt-0.6b-v3-webgpu/encoder-model.q4f16.onnx';
 
+/**
+ * Whether the self-built WebGPU encoders can actually be fetched.
+ *
+ * They are served from nowhere by default: the `/models/…` fallbacks above are
+ * gitignored conversion output that only `next dev` serves. So an encoder is
+ * offered only when its `NEXT_PUBLIC_*_ENCODER_URL` is set (someone hosts the
+ * file) or the build is not a production one (dev serves `public/models`).
+ * Without this, a hosted build offered q4f16 and the user got a dead
+ * "file wasn't found" card. Read once at module load — the env is inlined at
+ * build time, so it cannot change at runtime.
+ */
+function encoderAvailable(envUrl: string | undefined): boolean {
+  return (envUrl !== undefined && envUrl !== '') || process.env.NODE_ENV !== 'production';
+}
+
 /** Sizes of the two files every Parakeet variant shares, as the HF tree
  *  reports them. Kept in one place so no variant can quote a total that omits
  *  or re-spells them. */
@@ -396,10 +411,23 @@ export function manifestForFamily(family: AsrModelFamily, backend: AsrBackend): 
  * session gets instead, and it is a genuinely different graph rather than a
  * re-quantisation hint — which is the only reason to keep 1.24 GB around.
  */
-export const WEBGPU_ENCODER_FALLBACKS: readonly WebgpuEncoderQuant[] = Object.freeze([
-  'q4f16',
-  'fp16',
-]);
+export const WEBGPU_ENCODER_FALLBACKS: readonly WebgpuEncoderQuant[] = Object.freeze(
+  (
+    [
+      ['q4f16', process.env.NEXT_PUBLIC_Q4F16_ENCODER_URL],
+      ['fp16', process.env.NEXT_PUBLIC_FP16_ENCODER_URL],
+    ] as const
+  )
+    .filter(([, url]) => encoderAvailable(url))
+    .map(([quant]) => quant),
+);
+
+/** Whether any WebGPU encoder is hosted — when not (the upstream repo ships only
+ *  fp32 at 2.4 GB and int8, which has no WebGPU kernels), the CPU variant is
+ *  the default and the only one offered. */
+export function webgpuEncodersAvailable(): boolean {
+  return WEBGPU_ENCODER_FALLBACKS.length > 0;
+}
 
 /** The WebGPU manifest for one rung of `WEBGPU_ENCODER_FALLBACKS`. */
 export function webgpuManifestForEncoder(encoder: WebgpuEncoderQuant): AsrModelManifest {
@@ -447,7 +475,7 @@ export function asrManifestFallbackOrder(): readonly AsrModelManifest[] {
  *  made, for the *first* attempt on that backend (see
  *  `asrManifestFallbackOrder` for what happens after a failure). */
 export function manifestForBackend(backend: AsrBackend): AsrModelManifest {
-  return backend === 'webgpu' ? PARAKEET_TDT_V3_WEBGPU : PARAKEET_TDT_V3_WASM;
+  return backend === 'webgpu' ? webgpuManifestForEncoder(WEBGPU_ENCODER_FALLBACKS[0] ?? 'q4f16') : PARAKEET_TDT_V3_WASM;
 }
 
 /** Every manifest this app ships, for looking one up by its `variant`. */

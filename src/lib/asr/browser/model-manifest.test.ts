@@ -251,3 +251,50 @@ describe('declared file sizes', () => {
     }
   });
 });
+
+/**
+ * Variant availability depends on build-time env, so each case reloads the
+ * module with `NODE_ENV` and the `NEXT_PUBLIC_*_ENCODER_URL` vars stubbed.
+ */
+describe('which WebGPU encoders are offered', () => {
+  async function loadWith(env: Record<string, string>) {
+    vi.resetModules();
+    vi.unstubAllEnvs();
+    for (const [k, v] of Object.entries(env)) vi.stubEnv(k, v);
+    const manifest = await import('./model-manifest');
+    const detect = await import('./backend-detect');
+    return { manifest, detect };
+  }
+
+  it('offers none in a production build with no hosted encoder URL, defaulting to CPU int8', async () => {
+    const { manifest, detect } = await loadWith({
+      NODE_ENV: 'production',
+      NEXT_PUBLIC_Q4F16_ENCODER_URL: '',
+      NEXT_PUBLIC_FP16_ENCODER_URL: '',
+    });
+    expect(manifest.WEBGPU_ENCODER_FALLBACKS).toEqual([]);
+    expect(manifest.asrManifestFallbackOrder().map((m) => m.variant)).toEqual(['wasm-int8']);
+    expect(manifest.manifestForBackend('webgpu').variant).not.toBe('wasm-int8');
+    expect(await detect.detectAsrBackend()).toBe('wasm');
+    expect(detect.activeAsrManifest('webgpu').variant).toBe('wasm-int8');
+  });
+
+  it('offers only the encoder whose URL is set in production', async () => {
+    const { manifest, detect } = await loadWith({
+      NODE_ENV: 'production',
+      NEXT_PUBLIC_Q4F16_ENCODER_URL: 'https://example.test/q4f16.onnx',
+      NEXT_PUBLIC_FP16_ENCODER_URL: '',
+    });
+    expect(manifest.WEBGPU_ENCODER_FALLBACKS).toEqual(['q4f16']);
+    expect(manifest.asrManifestFallbackOrder().map((m) => m.variant)).toEqual(['webgpu-q4f16', 'wasm-int8']);
+    expect(manifest.PARAKEET_TDT_V3_WEBGPU.fileUrlOverrides?.['encoder-model.q4f16.onnx']).toBe(
+      'https://example.test/q4f16.onnx',
+    );
+    expect(detect.activeAsrManifest('webgpu').variant).toBe('webgpu-q4f16');
+  });
+
+  it('offers both outside production (dev serves public/models)', async () => {
+    const { manifest } = await loadWith({ NODE_ENV: 'development' });
+    expect(manifest.WEBGPU_ENCODER_FALLBACKS).toEqual(['q4f16', 'fp16']);
+  });
+});

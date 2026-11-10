@@ -15,3 +15,25 @@ Notes: only the *latest non-draft, non-prerelease* release counts. Tags must loo
 like `vMAJOR.MINOR.PATCH`. The launcher updates by `git pull` (clean checkout) or
 by replacing files from the release zipball, keeping `.runtime/`, `node_modules/`
 and `.next/`.
+
+## Hosted speech model variants (GitHub Pages)
+
+The fast WebGPU encoders (`encoder-model.q4f16.onnx`, 516 MB; `encoder-model.fp16.onnx`,
+1.24 GB) are self-built with `scripts/convert-parakeet-v3.py` and are **not** in the
+upstream Hugging Face repo or this repo. In a production build without a URL for
+them, the app does not offer them: the default is the upstream CPU variant
+(`encoder-model.int8.onnx`, ~670 MB total download; transcribes after Stop).
+
+To enable the fast variant on the hosted site: upload the file somewhere that serves
+CORS and `Range` (e.g. a Hugging Face model repo, `.../resolve/main/encoder-model.q4f16.onnx`)
+and set it in the `npm run build:pages` step of `.github/workflows/pages.yml`:
+
+```yaml
+      - run: npm run build:pages
+        env:
+          NEXT_PUBLIC_Q4F16_ENCODER_URL: https://huggingface.co/<user>/<repo>/resolve/main/encoder-model.q4f16.onnx
+```
+
+`NEXT_PUBLIC_FP16_ENCODER_URL` does the same for fp16. If a configured file later
+404s, the app falls back automatically to the next available variant. Dev
+(`next dev`) keeps serving `public/models/…` without any variable.

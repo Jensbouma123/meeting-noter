@@ -11,6 +11,9 @@
 
 import {
   hubOptionsFor,
+  manifestForVariant,
+  webgpuEncoderOf,
+  WEBGPU_ENCODER_FALLBACKS,
   type AsrBackend,
   type AsrModelManifest,
   type ManifestRuntimeOptions,
@@ -732,6 +735,29 @@ export function initRegistry(): void {
   // Recompute isReady
   for (const entry of Object.values(entries)) {
     entry.isReady = entry.status === 'cached';
+  }
+  migrateUnavailableWebgpuEntries();
+}
+
+/**
+ * An entry saved for a WebGPU encoder this build no longer offers (it was never
+ * hosted, so the download 404s) is re-pointed at the variant that is actually
+ * available. Consent is keyed by model, not variant, so it carries over and the
+ * download resumes on its own. A fully cached entry is left alone: its bytes exist.
+ */
+function migrateUnavailableWebgpuEntries(): void {
+  for (const [key, entry] of Object.entries(entries)) {
+    if ((entry.kind ?? 'asr') !== 'asr' || entry.status === 'cached') continue;
+    const saved = manifestForVariant(entry.variant);
+    if (!saved || saved.engine !== 'parakeet') continue;
+    const encoder = webgpuEncoderOf(saved);
+    if (encoder === null || WEBGPU_ENCODER_FALLBACKS.includes(encoder)) continue;
+    const active = activeAsrManifest('wasm');
+    delete entries[key];
+    registerManifest(
+      active,
+      `The ${encoder.toUpperCase()} speech model isn't available here, so this uses the CPU model instead.`,
+    );
   }
 }
 

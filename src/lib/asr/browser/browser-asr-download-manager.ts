@@ -14,7 +14,8 @@
 
 import * as registry from './model-registry';
 import type { ModelEntry } from './model-registry';
-import { manifestForBackend, manifestForVariant, probeModelSize } from './model-manifest';
+import { manifestForBackend, manifestForVariant, probeModelSize, webgpuEncoderOf } from './model-manifest';
+import { forceNextWebgpuEncoder, forceWasmBackend, activeAsrManifest } from './backend-detect';
 import { downloadParakeetModelResumable, closeModelCacheConnections, deleteModelCache, abortInFlightDownloads, isDownloadCancelled, type ModelDownloadProgress, type DeleteModelCacheResult } from './resumable-download';
 
 /** The manifest an entry was registered under: by its `variant` (which also
@@ -174,11 +175,51 @@ function downloadOrJoin(key: string): Promise<void> {
   if (key in downloadPromises) return downloadPromises[key];
   const entry = registry.getState().entries[key];
   if (!entry) return Promise.resolve();
-  const downloadPromise: Promise<void> = _doDownload(key, entry).finally(() => {
+  const downloadPromise: Promise<void> = downloadWithFallback(key, entry).finally(() => {
     if (downloadPromises[key] === downloadPromise) delete downloadPromises[key];
   });
   downloadPromises[key] = downloadPromise;
   return downloadPromise;
+}
+
+/**
+ * A WebGPU encoder that 404s (the self-built files are only served where
+ * someone hosts them) is not a dead end: step down to the next variant that
+ * exists — the next WebGPU rung, else the upstream CPU int8 one — and download
+ * that, keeping the consent on file (the key is unchanged and the replacement
+ * is the smaller or equal-class download). The entry carries a one-line notice.
+ * Returns whether a fallback was registered.
+ */
+function fallBackAfterMissingEncoder(key: string, entry: ModelEntry, err: unknown): boolean {
+  if ((entry.kind ?? 'asr') !== 'asr') return false;
+  const failed = manifestForEntry(entry);
+  const failedEncoder = failed.engine === 'parakeet' ? webgpuEncoderOf(failed) : null;
+  if (failedEncoder === null) return false;
+  const message = err instanceof Error ? err.message : String(err);
+  if (!/\b404\b/.test(message)) return false;
+
+  let next = forceNextWebgpuEncoder(failedEncoder);
+  if (next === null) {
+    forceWasmBackend();
+    next = activeAsrManifest('wasm');
+  }
+  const notice =
+    `The ${failedEncoder.toUpperCase()} speech model isn't available here, so this uses the ` +
+    `${next.asrBackend === 'wasm' ? 'CPU' : next.encoderQuant.toUpperCase()} model instead.`;
+  registry.registerManifest(next, notice);
+  console.warn(`[asr] ${failedEncoder} encoder not found (404), falling back to ${next.variant}`);
+  return true;
+}
+
+async function downloadWithFallback(key: string, entry: ModelEntry): Promise<void> {
+  try {
+    await _doDownload(key, entry);
+  } catch (err) {
+    if (isDownloadCancelled(err) || !fallBackAfterMissingEncoder(key, entry, err)) throw err;
+    const replacement = registry.getState().entries[key];
+    if (!replacement) throw err;
+    await downloadWithFallback(key, replacement);
+  }
 }
 
 /**
