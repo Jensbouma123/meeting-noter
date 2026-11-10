@@ -28,6 +28,17 @@ Privacy: voor de updatecheck vraagt de app (en het startbestand) alleen het vers
 
 *English: for non-technical Mac users: download the ZIP, unzip, right-click `Start Meeting Noter.command` > Open, wait for the first-time setup, use Chrome. It fetches its own Node.js, builds the app and opens it. Updates are offered at each start (and via an in-app banner); only the latest release version number is fetched from GitHub.*
 
+### Je meetings bewaren
+
+- Een update of herinstallatie van de app laat je meetings staan. Ze worden bewaard in deze browser, op deze Mac, en niet op een server.
+- Gebruik daarom steeds dezelfde browser (en open de app op http://localhost:3000). In een andere browser of ander profiel zie je je meetings niet.
+- Na je eerste meeting vraagt de app de browser om de opslag te beschermen, zodat de browser hem niet uit zichzelf opruimt. In Instellingen > Opslag zie je of dat aan staat.
+- Meetings worden standaard na 2 jaar automatisch verwijderd (met hun transcript). Je kunt dit wijzigen naar 1 jaar, 5 jaar of Nooit bij Instellingen > Opslag > "Meetings automatisch verwijderen na".
+
+### Opnamemodus
+
+Onderaan kies je **Mic** (alleen je microfoon) of **Mic + gesprek** (je microfoon plus het geluid van de andere deelnemers; deel een browsertabblad of je scherm met geluid, of gebruik de audio-helper).
+
 ## Voor ontwikkelaars
 
 ## Snel starten / Quick start

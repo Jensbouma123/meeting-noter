@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useCallback, useEffect, useSyncExternalStore } from 'react';
+import { useState, useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { clearSessionTranscript, deleteSession, isSessionRecording, listSessions, type SessionMetadata } from '@/lib/meeting/session-store';
 import { subscribe as subscribeMeetingStore } from '@/lib/meeting/store';
 import {
   Badge,
   Button,
-  Card,
   ConfirmDialog,
   Divider,
   Drawer,
@@ -18,6 +17,8 @@ import {
   EmptyState,
   HStack,
   Heading,
+  Input,
+  ListItem,
   Text,
   VStack,
   useToast,
@@ -32,6 +33,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
+  Search,
   Eraser,
   Trash2,
   Video,
@@ -39,6 +41,10 @@ import {
 } from 'lucide-react';
 import { formatClock } from '@/lib/meeting/export';
 import type { CaptureMode } from '@/lib/meeting/types';
+import { loadSessionTranscript } from '@/lib/meeting/persist';
+import { filterSessions, groupSessionsByDay } from '@/lib/meeting/session-groups';
+import { purgeExpiredSessions } from '@/lib/meeting/retention';
+import { loadSettings } from '@/components/meeting/types';
 
 /* -------------------------------------------------------------------------- */
 /* Formatting helpers                                                         */
@@ -49,18 +55,24 @@ function formatDuration(seconds: number | null): string {
   return formatClock(seconds);
 }
 
-function formatDate(timestamp: number): string {
-  const date = new Date(timestamp);
-  const diffMs = Date.now() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
+function formatTime(timestamp: number): string {
+  return new Date(timestamp).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+}
 
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+/** Debounced copy of a value; the search box stays responsive on long lists. */
+function useDebounced<T>(value: T, ms: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), ms);
+    return () => clearTimeout(t);
+  }, [value, ms]);
+  return debounced;
+}
+
+/** Transcript text per session, read lazily and only while a query is active. */
+function transcriptText(sessionId: string): string {
+  const t = loadSessionTranscript(sessionId);
+  return t ? t.segments.map((seg) => seg.text).join(' ') : '';
 }
 
 /* -------------------------------------------------------------------------- */
@@ -79,6 +91,8 @@ function useSessionIndex() {
 
   // Load sessions on mount (never during render — hydration rule).
   useEffect(() => {
+    // App start: drop meetings past the retention period before listing.
+    purgeExpiredSessions(loadSettings().retention);
     /* eslint-disable react-hooks/set-state-in-effect -- one-shot hydration from session index */
     setSessions(listSessions());
     setLoaded(true);
@@ -213,6 +227,12 @@ export function SessionSidebar({
   const [deleteTarget, setDeleteTarget] = useState<SessionMetadata | null>(null);
   const [clearTarget, setClearTarget] = useState<SessionMetadata | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const debouncedQuery = useDebounced(query, 200);
+  const groups = useMemo(
+    () => groupSessionsByDay(filterSessions(sessions, debouncedQuery, transcriptText)),
+    [sessions, debouncedQuery],
+  );
 
   // Opened from the headers' "Show meetings" buttons below lg.
   useEffect(() => {
@@ -270,8 +290,25 @@ export function SessionSidebar({
         </HStack>
       </HStack>
 
+      {/* Search */}
+      {sessions.length > 0 && (
+        <div className="shrink-0 border-b border-border-subtle p-2">
+          <Input
+            type="search"
+            size="sm"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Zoek in meetings"
+            aria-label="Zoek in meetings"
+            leadingIcon={<Search className="size-4" />}
+            clearable
+            onClear={() => setQuery('')}
+          />
+        </div>
+      )}
+
       {/* Rail body */}
-      <VStack spacing="none" fill className="flex-1 overflow-y-auto p-2">
+      <VStack spacing="none" fill className="flex-1 overflow-y-auto">
         {sessions.length === 0 ? (
           <EmptyState
             size="sm"
@@ -290,19 +327,28 @@ export function SessionSidebar({
             }
             className="my-auto"
           />
+        ) : groups.length === 0 ? (
+          <EmptyState size="sm" icon={<Search className="size-5" />} title="Geen meetings gevonden" className="my-auto" />
         ) : (
-          <VStack spacing="xs" className="w-full">
-            {sessions.map((session) => (
-              <RailSessionRow
-                key={session.sessionId}
-                session={session}
-                isActive={activeSessionId === session.sessionId}
-                onOpen={() => openSession(session.sessionId)}
-                onClear={() => setClearTarget(session)}
-                onDelete={() => setDeleteTarget(session)}
-              />
-            ))}
-          </VStack>
+          groups.map((group) => (
+            <section key={group.key} aria-label={group.label}>
+              <h3 className="sticky top-0 z-10 bg-surface px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+                {group.label}
+              </h3>
+              <VStack spacing="none" className="w-full px-2 pb-2">
+                {group.sessions.map((session) => (
+                  <RailSessionRow
+                    key={session.sessionId}
+                    session={session}
+                    isActive={activeSessionId === session.sessionId}
+                    onOpen={() => openSession(session.sessionId)}
+                    onClear={() => setClearTarget(session)}
+                    onDelete={() => setDeleteTarget(session)}
+                  />
+                ))}
+              </VStack>
+            </section>
+          ))
         )}
       </VStack>
     </VStack>
@@ -393,11 +439,11 @@ export function SessionSidebar({
 function CaptureIcon({ mode }: { mode: CaptureMode | undefined }) {
   const label =
     mode === 'mic' ? 'Microphone only' : mode === 'system' ? 'System audio only' : mode === 'both' ? 'Microphone and system audio' : null;
-  if (!label) return <FileText className="size-3.5" />;
+  if (!label) return <FileText className="size-4" />;
   const Icon = mode === 'mic' ? Mic : mode === 'system' ? MonitorSpeaker : AudioLines;
   return (
     <span title={label} className="inline-flex">
-      <Icon className="size-3.5" />
+      <Icon className="size-4" />
       <span className="sr-only">{label}</span>
     </span>
   );
@@ -431,63 +477,30 @@ export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete }:
   useSyncExternalStore(subscribeMeetingStore, () => isSessionRecording(session.sessionId), () => false);
   const recording = isSessionRecording(session.sessionId);
   const badgeState = getRailBadgeState(session, recording);
+  const locked = isSessionRecording(session.sessionId);
+  const subtitle = `${formatTime(session.createdAt)} · ${formatDuration(session.durationSeconds)}`;
   return (
-    <Card
-      variant={isActive ? 'bordered' : 'ghost'}
-      padding="sm"
-      className={[
-        session.isDraft ? 'border-dashed border-border' : '',
-        isActive ? 'bg-primary-500/5' : '',
-      ].join(' ')}
-    >
-      <HStack spacing="sm" align="center">
-        <Button
-          variant="ghost"
-          onClick={onOpen}
-          aria-current={isActive ? 'page' : undefined}
-          className="h-auto min-w-0 flex-1 justify-start gap-2 px-1 py-1 text-left"
-        >
-        <span
-          aria-hidden="true"
-          className={[
-            'flex size-7 shrink-0 items-center justify-center rounded-md',
-            session.isDraft
-              ? 'bg-warning-500/10 text-warning-600'
-              : 'bg-elevation-1 text-primary-600',
-          ].join(' ')}
-        >
-          {session.isDraft ? (
-            <Pencil className="size-3.5" />
-          ) : (
-            <CaptureIcon mode={session.captureMode} />
-          )}
-        </span>
-
-        <VStack spacing="none" className="min-w-0 flex-1">
-          <HStack spacing="xs" className="w-full">
-            <Text size="xs" weight="semibold" truncate className="flex-1">
-              {session.title}
-            </Text>
-            {badgeState === 'recording' ? (
-              <Badge variant="danger" size="xs" dot>Recording</Badge>
-            ) : badgeState === 'draft' ? (
-              <Badge variant="warning" size="xs">Not recorded</Badge>
-            ) : null}
-          </HStack>
-          <HStack spacing="xs" className="min-w-0">
-            <Text size="xxs" variant="muted" truncate>
-              {formatDate(session.createdAt)}
-            </Text>
-            <Text size="xxs" variant="subtle" aria-hidden="true">
-              ·
-            </Text>
-            <Text size="xxs" variant="muted" font="mono" className="shrink-0">
-              {formatDuration(session.durationSeconds)}
-            </Text>
-          </HStack>
-        </VStack>
-        </Button>
-
+    <div className="group relative w-full">
+      <ListItem
+        title={session.title}
+        subtitle={subtitle}
+        selected={isActive}
+        onClick={onOpen}
+        leading={
+          <span aria-hidden="true" className={session.isDraft ? 'text-muted-foreground' : 'text-primary-600'}>
+            {session.isDraft ? <Pencil className="size-4" /> : <CaptureIcon mode={session.captureMode} />}
+          </span>
+        }
+        trailing={
+          badgeState === 'recording' ? (
+            <Badge variant="danger" size="xs" dot>Recording</Badge>
+          ) : badgeState === 'draft' ? (
+            <Badge variant="warning" size="xs">Not recorded</Badge>
+          ) : undefined
+        }
+        className="w-full pr-10"
+      />
+      <div className="absolute right-1 top-1/2 -translate-y-1/2">
         <DropdownMenu>
           <DropdownMenuTrigger>
             <Button
@@ -500,31 +513,23 @@ export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete }:
             />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              icon={<ArrowRight className="size-4" />}
-              onClick={onOpen}
-            >
+            <DropdownMenuItem icon={<ArrowRight className="size-4" />} onClick={onOpen}>
               Open
             </DropdownMenuItem>
-            <DropdownMenuItem
-              variant="danger"
-              icon={<Eraser className="size-4" />}
-              disabled={isSessionRecording(session.sessionId)}
-              onClick={onClear}
-            >
+            <DropdownMenuItem variant="danger" icon={<Eraser className="size-4" />} disabled={locked} onClick={onClear}>
               Clear transcript
             </DropdownMenuItem>
-            {isSessionRecording(session.sessionId) && (
+            {locked && (
               <Text size="xs" variant="muted" className="px-2 py-1">
                 Stop the recording first
               </Text>
             )}
-            <DropdownMenuItem variant="danger" icon={<Trash2 className="size-4" />} disabled={isSessionRecording(session.sessionId)} onClick={onDelete}>
+            <DropdownMenuItem variant="danger" icon={<Trash2 className="size-4" />} disabled={locked} onClick={onDelete}>
               Delete meeting
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      </HStack>
-    </Card>
+      </div>
+    </div>
   );
 }

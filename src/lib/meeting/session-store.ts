@@ -19,6 +19,7 @@ import {
   loadIdleSession,
 } from './store';
 import { resetDiarization } from './diarization-bridge';
+import { requestPersistentStorage } from './persistent-storage';
 
 // ---------------------------------------------------------------------------
 // Session index: persisted map of sessionId → session metadata.
@@ -131,6 +132,8 @@ function notifySessionsChanged(): void {
   }
 }
 
+let persistRequested = false;
+
 /** List all persisted sessions, sorted newest first. */
 export function listSessions(): SessionMetadata[] {
   const index = readSessionIndex();
@@ -193,6 +196,11 @@ export function persistSession(input: CreateSessionInput): string {
     speakers: input.speakers ?? {},
     startedAt,
   });
+  // First real meeting saved: ask the browser once not to evict our storage.
+  if (segmentCount > 0 && !persistRequested) {
+    persistRequested = true;
+    void requestPersistentStorage();
+  }
   notifySessionsChanged();
   return sessionId;
 }

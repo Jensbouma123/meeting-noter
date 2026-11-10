@@ -64,18 +64,13 @@ export function AudioCaptureSection({
             orientation="vertical"
           >
             <Radio value="mic" label="Mic" description="Only your microphone" />
-            <Radio
-              value="system"
-              label="Call"
-              description="Only the call audio from a shared tab or screen"
-            />
-            <Radio value="both" label="Both" description="Your mic and the call audio" />
+            <Radio value="both" label="Mic + gesprek" description="Your mic and the call audio" />
           </RadioGroup>
         </SettingsStackedRow>
       </SettingsGroup>
 
       <Alert variant="info" layout="inline" title="Recording call audio">
-        When you record Call or Both, your browser asks you to share a tab or screen. Turn on
+        When you record Mic + gesprek, your browser asks you to share a tab or screen. Turn on
         &ldquo;Share tab audio&rdquo; (or &ldquo;Share system audio&rdquo;). If you skip that, only
         your mic is recorded.
       </Alert>

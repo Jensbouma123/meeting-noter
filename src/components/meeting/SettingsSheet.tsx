@@ -83,7 +83,7 @@ export function SettingsSheet({
       {activeSection === 'speech-model' && <SpeechModelSection />}
       {activeSection === 'appearance' && <AppearanceSection />}
       {activeSection === 'shortcuts' && <ShortcutsSection />}
-      {activeSection === 'storage' && <StorageSection />}
+      {activeSection === 'storage' && <StorageSection settings={settings} onSettingsChange={onSettingsChange} />}
       {activeSection === 'about' && <AboutSection />}
     </SettingsDialog>
   );

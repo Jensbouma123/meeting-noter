@@ -564,7 +564,7 @@ export function LiveTranscript({
             }
             secondaryAction={
               <Text size="xs" variant="muted" className="max-w-[40ch] text-center">
-                Recording a call? Choose Call or Both, then share the meeting tab with audio turned
+                Recording a call? Choose Mic + gesprek, then share the meeting tab with audio turned
                 on.
               </Text>
             }

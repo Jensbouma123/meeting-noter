@@ -1,4 +1,5 @@
 import type { CaptureMode, SystemVia } from '@/lib/meeting';
+import { DEFAULT_RETENTION, parseRetention, type RetentionChoice } from '@/lib/meeting/retention';
 
 export interface AppSettings {
   mode: CaptureMode;
@@ -6,6 +7,8 @@ export interface AppSettings {
   micDeviceId: string;
   language: string;
   autoScroll: boolean;
+  /** Meetings older than this are deleted at app start. */
+  retention: RetentionChoice;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -14,6 +17,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   micDeviceId: 'default',
   language: 'auto',
   autoScroll: true,
+  retention: DEFAULT_RETENTION,
 };
 
 export const SETTINGS_STORAGE_KEY = 'mn.settings';
@@ -26,11 +30,13 @@ export function loadSettings(): AppSettings {
     if (!raw) return DEFAULT_SETTINGS;
     const parsed = JSON.parse(raw);
     return {
-      mode: parsed.mode ?? DEFAULT_SETTINGS.mode,
+      // Call-only is no longer selectable; a saved 'system' preference becomes 'both'.
+      mode: parsed.mode === 'system' ? 'both' : (parsed.mode ?? DEFAULT_SETTINGS.mode),
       systemVia: parsed.systemVia ?? DEFAULT_SETTINGS.systemVia,
       micDeviceId: parsed.micDeviceId ?? DEFAULT_SETTINGS.micDeviceId,
       language: parsed.language ?? DEFAULT_SETTINGS.language,
       autoScroll: parsed.autoScroll ?? DEFAULT_SETTINGS.autoScroll,
+      retention: parseRetention(parsed.retention),
     };
   } catch {
     return DEFAULT_SETTINGS;

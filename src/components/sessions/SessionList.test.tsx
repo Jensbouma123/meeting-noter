@@ -96,6 +96,6 @@ describe('RailSessionRow recording badge', () => {
     rerender(row(draft({ isDraft: false, segmentCount: 2, durationSeconds: 65 })));
     expect(screen.queryByText('Recording')).toBeNull();
     expect(screen.queryByText('Not recorded')).toBeNull();
-    expect(screen.getByText('01:05')).toBeInTheDocument();
+    expect(screen.getByText(/· 01:05$/)).toBeInTheDocument();
   });
 });

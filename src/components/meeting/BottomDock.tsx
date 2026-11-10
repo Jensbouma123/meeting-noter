@@ -7,7 +7,7 @@ import { LevelMeter } from './LevelMeter';
 import { captureDebugEnabled, setCaptureDebug } from './CaptureDiagnostics';
 import { useReleaseOnUnmount } from './useReleaseOnUnmount';
 import type { ModelProgressView, ModelReadiness } from './modelReadiness';
-import { Activity, Download, Mic, Pause, Play, Square, Volume2, VolumeX, PhoneCall, Bug } from 'lucide-react';
+import { Activity, Download, Mic, Pause, Play, Square, VolumeX, PhoneCall, Bug } from 'lucide-react';
 import {
   Button,
   Divider,
@@ -243,12 +243,12 @@ export function BottomDock({
 
         <Divider orientation="vertical" className="hidden h-5 w-px shrink-0 sm:block" />
 
-        {/* Source selector (Mic / Call / Both) — a segmented control, locked while
+        {/* Source selector (Mic / Mic + gesprek; call-only stays in lib but is not selectable) — a segmented control, locked while
             a recording is active since the capture pipeline reads `mode` once at
             start (see MeetingView's startRecording) and never re-reads it live. */}
         {(() => {
           const tabs = (
-            <Tabs value={mode} onValueChange={(value) => onModeChange(value as CaptureMode)} size="sm" variant="pill">
+            <Tabs value={mode === 'system' ? 'both' : mode} onValueChange={(value) => onModeChange(value as CaptureMode)} size="sm" variant="pill">
               <TabList aria-label="Audio source">
                 <Tab value="mic" disabled={isRecordingActive} className="touch-target-44">
                   <HStack as="span" spacing="xs" className="items-center">
@@ -256,16 +256,10 @@ export function BottomDock({
                     <span className="sr-only sm:not-sr-only">Mic</span>
                   </HStack>
                 </Tab>
-                <Tab value="system" disabled={isRecordingActive} className="touch-target-44">
-                  <HStack as="span" spacing="xs" className="items-center">
-                    <Volume2 className="size-3.5" />
-                    <span className="sr-only sm:not-sr-only">Call</span>
-                  </HStack>
-                </Tab>
                 <Tab value="both" disabled={isRecordingActive} className="touch-target-44">
                   <HStack as="span" spacing="xs" className="items-center">
                     <PhoneCall className="size-3.5" />
-                    <span className="sr-only sm:not-sr-only">Both</span>
+                    <span className="sr-only sm:not-sr-only">Mic + gesprek</span>
                   </HStack>
                 </Tab>
               </TabList>
