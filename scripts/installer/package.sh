@@ -18,8 +18,9 @@ stage="$out/stage/meeting-noter"
 cache="$out/cache"
 asset="meeting-noter-macos-$arch.tar.gz"
 
-# The WebGPU encoders are not in the tarball: install.sh downloads them and links
-# them into the server's public/models, so the app fetches them same-origin.
+# The WebGPU encoders are not in the tarball: install.sh builds the q4f16 one on
+# the user's Mac and links it into the server's public/models, so the app fetches
+# it same-origin.
 if [ -z "${SKIP_BUILD:-}" ]; then
   STANDALONE=1 \
     NEXT_PUBLIC_Q4F16_ENCODER_URL=/models/parakeet-tdt-0.6b-v3-webgpu/encoder-model.q4f16.onnx \
@@ -66,6 +67,7 @@ for s in 16 32 128 256 512; do
 done
 iconutil -c icns "$iconset" -o "$stage/launcher/AppIcon.icns"
 
+cp scripts/installer/convert-parakeet-v3.py "$stage/convert-parakeet-v3.py"
 cp scripts/installer/uninstall.sh "$stage/uninstall.sh"
 echo "$version" > "$stage/VERSION"
 echo "$arch" > "$stage/ARCH"

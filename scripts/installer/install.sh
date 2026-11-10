@@ -11,14 +11,18 @@
 #   ~/Library/LaunchAgents/nl.jensbouma.meeting-noter.{server,audio-helper}.plist
 #   /Applications (or ~/Applications)/Meeting Noter.app  opens http://localhost:3000
 #
-# The fast WebGPU speech model (encoder-model.q4f16.onnx, ~0.5 GB) is downloaded
-# from the models-v1 release into ~/Library/Application Support/Meeting Noter/models/
-# (kept across updates, skipped when its SHA-256 already matches) and served
-# same-origin by the app at /models/... Pass --fp16 (bash -s -- --fp16) to also
-# fetch the 1.2 GB fp16 encoder, the fallback for GPUs that cannot run q4f16.
-# Without the file the app falls back to the CPU model (no live transcription).
+# The fast WebGPU speech model (encoder-model.q4f16.onnx, 516 MB) is built once on
+# this Mac, after the app runs: a pinned standalone `uv` (astral-sh, sha256
+# checked) runs the bundled convert-parakeet-v3.py, which downloads the fp32 model
+# from Hugging Face and converts it (5-15 min, ~3 GB temporary, then deleted).
+# The result lives in ~/Library/Application Support/Meeting Noter/models/ (kept
+# across updates; never rebuilt when present) and the app serves it same-origin
+# at /models/. Needs >= 5 GB free disk and >= 8 GB RAM; otherwise, or when the
+# build fails, the app stays on the CPU model (no live transcription) and
+# `install.sh --gpu-model` (same command, plus `bash -s -- --gpu-model`) retries.
 #
-# Test-only overrides: MEETING_NOTER_MODELS_BASE (model download URL, file:// too), MEETING_NOTER_DOWNLOAD_BASE (any curl URL, file:// too),
+# Test-only overrides: MEETING_NOTER_MODELS_BASE (model download URL, file:// too),
+# MEETING_NOTER_Q4F16_BYTES / MEETING_NOTER_Q4F16_SHA256 (expected model file), MEETING_NOTER_DOWNLOAD_BASE (any curl URL, file:// too),
 # MEETING_NOTER_NO_LAUNCHD=1 (write the agents and the app, but load, register
 # and wait for nothing, so it runs in a scratch HOME next to a real install),
 # MEETING_NOTER_NO_OPEN=1 (do not open the browser), MEETING_NOTER_FORCE=1
@@ -30,7 +34,14 @@ set -euo pipefail
 
 REPO=Jensbouma123/meeting-noter
 BASE=${MEETING_NOTER_DOWNLOAD_BASE:-https://github.com/$REPO/releases/latest/download}
-MODELS_BASE=${MEETING_NOTER_MODELS_BASE:-https://github.com/$REPO/releases/download/models-v1}
+UV_VERSION=0.11.20
+UV_BASE=${MEETING_NOTER_UV_BASE:-https://github.com/astral-sh/uv/releases/download/$UV_VERSION}
+# Pinned: the combination verified to convert the encoder (ORT >= 1.22 dropped
+# the matmul_4bits_quantizer module the script uses).
+CONVERT_DEPS=(--with onnx==1.17.0 --with onnxconverter-common==1.14.0 --with onnxruntime==1.20.1)
+# Hash of the converted encoder from the reference build; a different hash is a
+# warning only, since the script validates its own output against fp32.
+Q4F16_SHA=${MEETING_NOTER_Q4F16_SHA256:-b35e232db131890641452b1ffa671f58ad713c4b7bec2cd1b4862ea137e5a68a}
 ROOT="$HOME/Library/Application Support/Meeting Noter"
 MODEL_DIR_NAME=parakeet-tdt-0.6b-v3-webgpu
 AGENTS="$HOME/Library/LaunchAgents"
@@ -85,36 +96,68 @@ agent_start() {
   launchctl bootstrap "gui/$(id -u)" "$AGENTS/$1.plist" || fail "Kon achtergronddienst $1 niet starten."
 }
 
-# fetch_model file bytes sha256 -> 0 when ~/.../models/<dir>/<file> is present
-# and verified. Resumable (curl -C -); a file whose hash already matches is kept.
-fetch_model() {
-  local file=$1 bytes=$2 sha=$3 dir="$ROOT/models/$MODEL_DIR_NAME" actual
-  mkdir -p "$dir"
-  if [ -f "$dir/$file" ] && [ "$(shasum -a 256 "$dir/$file" | awk '{print $1}')" = "$sha" ]; then
-    say "✓ Spraakmodel $file is al aanwezig"
-    return 0
+# Builds models/<dir>/encoder-model.q4f16.onnx on this Mac. Returns 1 (with a
+# friendly message) on any problem; the app then keeps the CPU model.
+build_model() {
+  local dir="$ROOT/models/$MODEL_DIR_NAME" out work uv arch_uv uv_sha free_kb mem actual
+  out="$dir/encoder-model.q4f16.onnx"
+  [ -f "$out" ] && { say "✓ Snel GPU-spraakmodel is al aanwezig"; return 0; }
+  say
+  say "Snel GPU-spraakmodel voorbereiden (eenmalig, ca. 5-15 min, ~3 GB tijdelijk)"
+  free_kb=$(df -k "$ROOT" | awk 'NR==2 {print $4}')
+  if [ "${free_kb:-0}" -lt "${MEETING_NOTER_MIN_DISK_KB:-5000000}" ]; then
+    say "⚠️  Te weinig vrije schijfruimte (minimaal 5 GB nodig). De app gebruikt het CPU-model."; return 1
   fi
-  rm -f "$dir/$file"
-  say "Downloaden: spraakmodel $file ($((bytes / 1000000)) MB, eenmalig)"
-  if [ "$(wc -c < "$dir/$file.part" 2>/dev/null || echo 0)" -ne "$bytes" ]; then
-    curl -fL --progress-bar -C - "$MODELS_BASE/$file" -o "$dir/$file.part" || return 1
+  mem=$(sysctl -n hw.memsize 2>/dev/null || echo 0)
+  if [ "$mem" -lt 8000000000 ]; then
+    say "⚠️  Te weinig werkgeheugen (minimaal 8 GB nodig). De app gebruikt het CPU-model."; return 1
   fi
-  actual=$(shasum -a 256 "$dir/$file.part" | awk '{print $1}')
-  if [ "$actual" != "$sha" ]; then
-    rm -f "$dir/$file.part"
-    say "⚠️  Controlesom van $file klopt niet."
-    return 1
+  work="$ROOT/model-build"
+  rm -rf "$work"; mkdir -p "$work" "$dir"
+  uv=${MEETING_NOTER_UV:-$ROOT/bin/uv}
+  if [ -z "${MEETING_NOTER_UV:-}" ] && ! "$uv" --version 2>/dev/null | grep -q "^uv $UV_VERSION "; then
+    if [ "$(sysctl -n hw.optional.arm64 2>/dev/null || echo 0)" = 1 ]; then
+      arch_uv=aarch64; uv_sha=0a2b6a757d5693671a7ce0002554ae869604e1e69acb10313ac14d08374be01a
+    else
+      arch_uv=x86_64; uv_sha=bef01a86faab997f6022b45cfa29bfc5b090f2f72cd4a91d2ecefe641efdabe7
+    fi
+    curl -fsSL "$UV_BASE/uv-$arch_uv-apple-darwin.tar.gz" -o "$work/uv.tgz" \
+      || { say "⚠️  Kon de modelbouwer (uv) niet downloaden."; rm -rf "$work"; return 1; }
+    [ "$(shasum -a 256 "$work/uv.tgz" | awk '{print $1}')" = "$uv_sha" ] \
+      || { say "⚠️  Controlesom van uv klopt niet."; rm -rf "$work"; return 1; }
+    tar -xzf "$work/uv.tgz" -C "$work" --strip-components 1 "uv-$arch_uv-apple-darwin/uv" \
+      || { say "⚠️  Uitpakken van uv mislukt."; rm -rf "$work"; return 1; }
+    mv "$work/uv" "$ROOT/bin/uv"
   fi
-  mv "$dir/$file.part" "$dir/$file"
-  say "✓ Spraakmodel $file gecontroleerd"
+  if ! UV_CACHE_DIR="$work/uv-cache" UV_PYTHON_INSTALL_DIR="$work/python" \
+    "$uv" run --python 3.12 "${CONVERT_DEPS[@]}" python -I "$ROOT/app/convert-parakeet-v3.py" \
+      --workdir "$work/src" --outdir "$work/out" > "$ROOT/logs/model-build.log" 2>&1 \
+    || [ ! -f "$work/out/encoder-model.q4f16.onnx" ]; then
+    say "⚠️  Het GPU-spraakmodel kon niet worden gebouwd (zie $ROOT/logs/model-build.log)."
+    say "   De app gebruikt het CPU-model. Opnieuw proberen: voer de installatieregel opnieuw uit met '| bash -s -- --gpu-model'."
+    rm -rf "$work"; return 1
+  fi
+  actual=$(shasum -a 256 "$work/out/encoder-model.q4f16.onnx" | awk '{print $1}')
+  [ "$actual" = "$Q4F16_SHA" ] || say "ℹ️  Model-hash wijkt af van de referentiebouw (door de ingebouwde validatie goedgekeurd)."
+  mv "$work/out/encoder-model.q4f16.onnx" "$out"
+  rm -rf "$work"
+  say "✓ GPU-spraakmodel gebouwd"
+}
+
+wait_ready() {
+  local i
+  for i in $(seq 1 60); do
+    curl -fs -o /dev/null "http://127.0.0.1:$PORT" 2>/dev/null && return 0
+    sleep 1
+  done
+  return 1
 }
 
 # Escapes &, < and > for a plist <string>.
 xml() { local s=${1//&/&amp;}; s=${s//</&lt;}; printf '%s' "${s//>/&gt;}"; }
 
 main() {
-  local want_fp16=${MEETING_NOTER_FP16:-}
-  [ "${1:-}" = --fp16 ] && want_fp16=1
+  # --gpu-model: retry the model build; the install itself is idempotent.
   [ "$(uname)" = Darwin ] || fail "Meeting Noter installeren werkt alleen op macOS. / macOS only."
   local macos arch asset expected actual helper_ok=1
   macos=$(sw_vers -productVersion)
@@ -156,15 +199,9 @@ main() {
     say "✓ Versie $(cat "$ROOT/app/VERSION") uitgepakt"
   fi
 
-  # Speech models: outside app/ so updates keep them; linked into the server's
-  # public/ so it serves them same-origin at /models/. A failed download is not
-  # fatal: the app then falls back to the CPU model.
-  fetch_model encoder-model.q4f16.onnx 515756810 b35e232db131890641452b1ffa671f58ad713c4b7bec2cd1b4862ea137e5a68a \
-    || say "⚠️  Het snelle spraakmodel kon niet worden gedownload; de app gebruikt het CPU-model (transcriptie pas na Stop). Voer de installatie opnieuw uit om het nogmaals te proberen."
-  if [ -n "$want_fp16" ]; then
-    fetch_model encoder-model.fp16.onnx 1239245959 053e454f7af73d9786d4ee3fa0357573c3b3e3b10d51df4df69ad73bd4b0a554 \
-      || say "⚠️  Het fp16-model kon niet worden gedownload."
-  fi
+  # The server serves public/ from a list read at start-up, so link the models
+  # dir in before it starts (and restart it after the model is built).
+  mkdir -p "$ROOT/models/$MODEL_DIR_NAME" "$ROOT/app/server/public"
   rm -rf "$ROOT/app/server/public/models"
   ln -s "$ROOT/models" "$ROOT/app/server/public/models"
 
@@ -242,13 +279,16 @@ EOF
 
   if [ -z "${MEETING_NOTER_NO_LAUNCHD:-}" ]; then
     say "Wachten tot Meeting Noter klaar is…"
-    local i
-    for i in $(seq 1 60); do
-      curl -fs -o /dev/null "http://127.0.0.1:$PORT" 2>/dev/null && break
-      sleep 1
-    done
-    curl -fs -o /dev/null "http://127.0.0.1:$PORT" 2>/dev/null \
-      || fail "Meeting Noter startte niet. Logbestand: $ROOT/logs/server.log"
+    wait_ready || fail "Meeting Noter startte niet. Logbestand: $ROOT/logs/server.log"
+  fi
+
+  if [ -z "${MEETING_NOTER_SKIP_GPU_MODEL:-}" ]; then
+    local had_model=
+    [ -f "$ROOT/models/$MODEL_DIR_NAME/encoder-model.q4f16.onnx" ] && had_model=1
+    if build_model && [ -z "$had_model" ]; then
+      agent_start "$SERVER_LABEL"
+      [ -n "${MEETING_NOTER_NO_LAUNCHD:-}" ] || wait_ready || fail "Meeting Noter startte niet. Logbestand: $ROOT/logs/server.log"
+    fi
   fi
 
   say

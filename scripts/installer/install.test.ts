@@ -53,6 +53,7 @@ function run(script: string, env: Record<string, string> = {}) {
       MEETING_NOTER_DOWNLOAD_BASE: `file://${base}`,
       MEETING_NOTER_NO_LAUNCHD: '1',
       MEETING_NOTER_NO_OPEN: '1',
+      MEETING_NOTER_SKIP_GPU_MODEL: '1',
       ...env,
     },
     encoding: 'utf8',
@@ -62,7 +63,7 @@ function run(script: string, env: Record<string, string> = {}) {
 
 function fakeMac({ version = '15.1', arm64 = '1' } = {}) {
   exe(path.join(shims, 'sw_vers'), `#!/bin/sh\necho ${version}\n`);
-  exe(path.join(shims, 'sysctl'), `#!/bin/sh\necho ${arm64}\n`);
+  exe(path.join(shims, 'sysctl'), `#!/bin/sh\ncase "$*" in *hw.memsize*) echo 17179869184 ;; *) echo ${arm64} ;; esac\n`);
 }
 
 describe.skipIf(process.platform !== 'darwin')('install.sh', () => {
@@ -76,6 +77,51 @@ describe.skipIf(process.platform !== 'darwin')('install.sh', () => {
     fakeMac();
   });
   afterEach(() => rmSync(dir, { recursive: true, force: true }));
+
+  // A stand-in for `uv run ... convert-parakeet-v3.py --outdir DIR`.
+  function fakeUv(body: string) {
+    const file = path.join(dir, 'fake-uv');
+    exe(file, `#!/bin/bash\nwhile [ $# -gt 0 ]; do [ "$1" = --outdir ] && out=$2; shift; done\n${body}\n`);
+    return file;
+  }
+  const modelFile = () => path.join(root(), 'models/parakeet-tdt-0.6b-v3-webgpu/encoder-model.q4f16.onnx');
+
+  it('builds the speech model on this Mac, keeps it across updates and links it into public/models', () => {
+    release('0.2.1');
+    const uv = fakeUv('mkdir -p "$out"; echo "$@" >> "$HOME/uv-calls"; printf fake-encoder > "$out/encoder-model.q4f16.onnx"');
+    const env = { MEETING_NOTER_UV: uv, MEETING_NOTER_SKIP_GPU_MODEL: '' };
+    const first = run(INSTALL, env);
+    expect(first.code, first.out).toBe(0);
+    expect(readFileSync(modelFile(), 'utf8')).toBe('fake-encoder');
+    expect(readFileSync(path.join(home, 'uv-calls'), 'utf8')).toMatch(/--python 3\.12 --with onnx==.* --with onnxruntime==.*convert-parakeet-v3\.py/);
+    expect(existsSync(path.join(root(), 'model-build'))).toBe(false);
+    // Served same-origin: the server's public/models resolves to the same dir.
+    expect(readFileSync(path.join(root(), 'app/server/public/models/parakeet-tdt-0.6b-v3-webgpu/encoder-model.q4f16.onnx'), 'utf8')).toBe('fake-encoder');
+    // Update: new app, model kept, converter not run again.
+    release('0.2.2');
+    const second = run(INSTALL, env);
+    expect(second.code, second.out).toBe(0);
+    expect(second.out).toContain('al aanwezig');
+    expect(readFileSync(path.join(home, 'uv-calls'), 'utf8').trim().split('\n')).toHaveLength(1);
+    expect(readFileSync(path.join(root(), 'app/server/public/models/parakeet-tdt-0.6b-v3-webgpu/encoder-model.q4f16.onnx'), 'utf8')).toBe('fake-encoder');
+  });
+
+  it('keeps the CPU model and still installs when the conversion fails or the disk is too full', () => {
+    release('0.2.1');
+    const failing = run(INSTALL, { MEETING_NOTER_UV: fakeUv('echo boom >&2; exit 1'), MEETING_NOTER_SKIP_GPU_MODEL: '' });
+    expect(failing.code, failing.out).toBe(0);
+    expect(failing.out).toContain('CPU-model');
+    expect(existsSync(modelFile())).toBe(false);
+    expect(existsSync(path.join(root(), 'model-build'))).toBe(false);
+    const full = run(INSTALL, {
+      MEETING_NOTER_UV: fakeUv('exit 0'),
+      MEETING_NOTER_SKIP_GPU_MODEL: '',
+      MEETING_NOTER_MIN_DISK_KB: '99999999999',
+      MEETING_NOTER_FORCE: '1',
+    });
+    expect(full.code, full.out).toBe(0);
+    expect(full.out).toContain('schijfruimte');
+  });
 
   it('installs the app, both LaunchAgents and the .app', () => {
     release('0.2.0');
