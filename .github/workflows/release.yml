@@ -1,0 +1,74 @@
+# Attaches the Mac installer to a GitHub release: per arch a tarball with the
+# standalone web app, a pinned Node.js runtime and the audio helper (built by
+# scripts/installer/package.sh), its .sha256, and install.sh + uninstall.sh.
+# Users install and update with
+#   curl -fsSL https://github.com/Jensbouma123/meeting-noter/releases/latest/download/install.sh | bash
+# Per-arch runners instead of a cross build: sharp, the server's only native
+# module, is installed for the runner's arch by `npm ci`.
+name: Release Mac installer
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to (re)build, e.g. v0.2.0
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event.release.tag_name || inputs.tag }}
+
+env:
+  TAG: ${{ github.event.release.tag_name || inputs.tag }}
+
+jobs:
+  tarball:
+    strategy:
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-15
+          - arch: x64
+            runner: macos-15-intel
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4.2.2
+        with:
+          ref: ${{ env.TAG }}
+      # Builds with the same Node.js version the tarball ships.
+      - uses: actions/setup-node@v4.4.0
+        with:
+          node-version-file: scripts/installer/node-version
+          cache: npm
+      - name: Check that package.json matches the tag
+        run: |
+          version=$(node -p 'require("./package.json").version')
+          [ "v$version" = "$TAG" ] || { echo "package.json is $version, tag is $TAG" >&2; exit 1; }
+      - run: npm ci
+      - run: bash scripts/installer/package.sh
+      - name: Check arch
+        run: |
+          [ "$(cat build/installer/stage/meeting-noter/ARCH)" = "${{ matrix.arch }}" ]
+          file build/installer/stage/meeting-noter/node/bin/node build/installer/stage/meeting-noter/helper/meeting-noter-audio-helper
+      - name: Upload tarball
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$TAG" build/installer/meeting-noter-macos-${{ matrix.arch }}.tar.gz build/installer/meeting-noter-macos-${{ matrix.arch }}.tar.gz.sha256 --clobber
+
+  # Last, so releases/latest/download/install.sh only exists once both
+  # tarballs are attached.
+  scripts:
+    needs: tarball
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+        with:
+          ref: ${{ env.TAG }}
+      - name: Upload install.sh and uninstall.sh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$TAG" scripts/installer/install.sh scripts/installer/uninstall.sh --clobber --repo "$GITHUB_REPOSITORY"

@@ -7,6 +7,9 @@ const { version } = JSON.parse(readFileSync("./package.json", "utf8"));
 // Without it nothing here changes: local build/start and the launcher are as before.
 const pages = process.env.PAGES === "1";
 const basePath = pages ? "/meeting-noter" : "";
+// STANDALONE=1 -> self-contained server in .next/standalone for the Mac installer
+// (scripts/installer/package.sh); the app itself is the same as the local build.
+const standalone = process.env.STANDALONE === "1" && !pages;
 
 const nextConfig: NextConfig = {
   env: {
@@ -15,6 +18,7 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_HOSTED: pages ? "1" : "",
   },
   ...(pages ? { output: "export", basePath, assetPrefix: basePath, trailingSlash: true, images: { unoptimized: true } } : {}),
+  ...(standalone ? { output: "standalone" } : {}),
   turbopack: {
     resolveAlias: {
       "@jensbouma123/acciva-ui": "./vendor/acciva-ui",

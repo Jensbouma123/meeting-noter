@@ -4,21 +4,34 @@ Meeting Noter is een volledig lokale, browser-native vergadertranscriptie-app: s
 
 *English: Meeting Noter is a 100% client-side, browser-native meeting transcription app. ASR, speaker diarization and language ID run on-device (WebGPU, WASM fallback). Audio never leaves your browser. Quick start below.*
 
-## Gebruik het direct in je browser (geen installatie)
+## Installeren op je Mac
 
-**https://jensbouma123.github.io/meeting-noter/**
+1. Open **Terminal**: druk op ⌘-spatie, typ `Terminal` en druk op Enter.
+2. Plak deze regel in het venster en druk op Enter:
 
-1. Open de link in **Google Chrome** (of Edge). Safari wordt hier niet ondersteund; zie hieronder.
-2. Sta het downloaden van de spraakmodellen toe als de app erom vraagt (ca. 650 MB, eenmalig; daarna bewaard in je browser).
-3. Klik op **New meeting** en neem op. Kies **Mic** (alleen jouw microfoon) of **Mic + gesprek** (deel een browsertabblad met geluid).
+   ```bash
+   curl -fsSL https://github.com/Jensbouma123/meeting-noter/releases/latest/download/install.sh | bash
+   ```
 
-Alles draait op je eigen computer; audio en transcripties verlaten je browser niet. Meetings staan in deze browser, dus gebruik steeds dezelfde browser. De online versie is altijd up-to-date. Safari kan de lokale audio-helper vanaf deze https-pagina niet betrouwbaar bereiken: gebruik Chrome/Edge, of de lokale installatie hieronder.
+3. Wacht ongeveer een minuut. **Meeting Noter** staat daarna bij je Apps (en in Spotlight) en opent vanzelf in je browser.
 
-*English: open the link in Chrome or Edge, allow the one-time model download, then record. Everything runs on-device. Safari: use the local install below.*
+Bij het eerste gebruik vraagt de app toestemming om de spraakmodellen te downloaden (ca. 650 MB, eenmalig). Gebruik **Chrome** of **Edge** voor het snelste model; Safari werkt ook. Neem je voor het eerst op, dan vraagt macOS om toegang tot de microfoon: klik **Sta toe**.
 
-## Geavanceerd: lokale installatie (Advanced: local install)
+**Bijwerken:** plak dezelfde regel opnieuw (de app biedt een nieuwe versie ook zelf aan). Je opnames blijven bewaard.
 
-### Lokaal draaien op je Mac (met systeemaudio-helper)
+**Verwijderen:**
+
+```bash
+curl -fsSL https://github.com/Jensbouma123/meeting-noter/releases/latest/download/uninstall.sh | bash
+```
+
+Je hebt geen Node.js, Xcode of beheerdersrechten nodig; macOS 13.5 of nieuwer. Alles draait op je eigen Mac; audio en transcripties verlaten je computer niet. Meer uitleg en hulp bij problemen: [docs/INSTALL-MAC.md](docs/INSTALL-MAC.md).
+
+*English: open Terminal, paste the line above and press Enter. Meeting Noter appears in Applications and opens in your browser. To update, paste the same line again; to uninstall, run the `uninstall.sh` line. Everything runs on-device.*
+
+## Geavanceerd: lokale installatie vanuit de broncode (Advanced: run from source)
+
+### Met de ZIP en `Start Meeting Noter.command`
 
 Je hebt een Mac en Google Chrome nodig. Verder niets: de app haalt zelf alles op wat ze nodig heeft.
 
