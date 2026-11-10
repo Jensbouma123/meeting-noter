@@ -37,3 +37,13 @@ and set it in the `npm run build:pages` step of `.github/workflows/pages.yml`:
 `NEXT_PUBLIC_FP16_ENCODER_URL` does the same for fp16. If a configured file later
 404s, the app falls back automatically to the next available variant. Dev
 (`next dev`) keeps serving `public/models/…` without any variable.
+
+## Mac installer speech model (`models-v1`)
+
+The installed app is built (by `scripts/installer/package.sh`) with the encoder URLs
+pointing at same-origin `/models/parakeet-tdt-0.6b-v3-webgpu/...`. `install.sh`
+downloads `encoder-model.q4f16.onnx` (and with `--fp16` the fp16 one) from the
+GitHub **prerelease** `models-v1` (never "latest"), checks the hardcoded SHA-256 and
+symlinks `~/Library/Application Support/Meeting Noter/models` into the server's
+`public/models`. If a file's content ever changes, publish a new tag and update the
+URLs and hashes in `install.sh`.

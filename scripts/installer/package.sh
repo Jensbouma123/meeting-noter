@@ -18,7 +18,14 @@ stage="$out/stage/meeting-noter"
 cache="$out/cache"
 asset="meeting-noter-macos-$arch.tar.gz"
 
-if [ -z "${SKIP_BUILD:-}" ]; then STANDALONE=1 npx next build; fi
+# The WebGPU encoders are not in the tarball: install.sh downloads them and links
+# them into the server's public/models, so the app fetches them same-origin.
+if [ -z "${SKIP_BUILD:-}" ]; then
+  STANDALONE=1 \
+    NEXT_PUBLIC_Q4F16_ENCODER_URL=/models/parakeet-tdt-0.6b-v3-webgpu/encoder-model.q4f16.onnx \
+    NEXT_PUBLIC_FP16_ENCODER_URL=/models/parakeet-tdt-0.6b-v3-webgpu/encoder-model.fp16.onnx \
+    npx next build
+fi
 [ -f .next/standalone/server.js ] || { echo "no .next/standalone/server.js; build with STANDALONE=1" >&2; exit 1; }
 
 rm -rf "$out/stage" "$out/$asset" "$out/$asset.sha256"
@@ -27,6 +34,7 @@ mkdir -p "$stage/node/bin" "$stage/helper" "$stage/launcher" "$cache"
 # 1. Web app: standalone server plus the static files it does not copy itself.
 cp -R .next/standalone "$stage/server"
 cp -R public "$stage/server/public"
+rm -rf "$stage/server/public/models"   # dev-only conversion output; install.sh links the real one
 cp -R .next/static "$stage/server/.next/static"
 
 # 2. Node.js runtime, checked against nodejs.org's SHASUMS256.txt.
