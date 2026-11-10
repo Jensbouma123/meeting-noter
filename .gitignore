@@ -1,0 +1,63 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# local runtime
+.venv/
+server/Nemotron-*/
+server/__pycache__/
+/[0-9a-f]*-[0-9a-f]*-[0-9a-f]*-[0-9a-f]*-[0-9a-f]*/
+server/[0-9a-f]*-[0-9a-f]*-[0-9a-f]*-[0-9a-f]*-[0-9a-f]*/
+public/uploads/
+# Self-built WebGPU encoders (scripts/convert-parakeet-v3.py output, ~1.7 GB).
+# Dev-served by Next from public/; production hosting is set via
+# NEXT_PUBLIC_FP16_ENCODER_URL — never commit these files.
+public/models/
+# Bench clips for /dev/asr-bench `?file=` (copies of test-audio wavs).
+# Dev-served by Next from public/; never commit these files.
+public/bench/
+recordings/
+jobs.json
+__pycache__/
+.pytest_cache/
+
+# compiled native system-audio tap
+server/native/bin/

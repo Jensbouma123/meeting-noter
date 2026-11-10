@@ -1,0 +1,213 @@
+@import "tailwindcss";
+@source "../../node_modules/@jensbouma123/acciva-ui/dist";
+
+/* The library's generated token layer (colours, radii, shadows) plus its base
+   reset. This import must live HERE, not in `layout.tsx`: Tailwind only
+   registers the `@theme` utilities it can see in the file its own pass
+   processes, so importing the tokens as a separate CSS entry point leaves
+   `globals.css` unaware of the colour names and silently drops every
+   `bg-primary-500` / `text-muted-foreground` utility. Never copy this file
+   into `src/` — a vendored duplicate drifts from the published one. */
+@import "@jensbouma123/acciva-ui/styles";
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@keyframes wordIn {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Gentle entrance for newly transcribed words. inline-block so the
+   transform applies; whitespace stays in plain text nodes so wrapping
+   and spacing are unchanged. */
+.mn-word-new {
+  display: inline-block;
+  animation: wordIn 180ms ease-out both;
+}
+
+@keyframes turnEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes breathingRing {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.36);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes softCaret {
+  0%, 100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 0.15;
+  }
+}
+
+.animate-turn-enter {
+  animation: turnEnter 220ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-breathing-ring {
+  animation: breathingRing 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.animate-soft-caret {
+  animation: softCaret 1.1s ease-in-out infinite;
+}
+
+@keyframes bannerEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bannerExit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes fadeOutOnly {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.animate-banner-enter {
+  animation: bannerEnter 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-banner-exit {
+  animation: bannerExit 180ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes langCrossfade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-lang-crossfade {
+  display: inline-block;
+  animation: langCrossfade 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* No content-visibility on .turn-block: its fixed intrinsic size size-contains
+   each line, so rows kept a stale height and overlapped the next line as text
+   grew or wrapped. Unlayered CSS beats Tailwind utilities, so it can't be
+   overridden from a utility class either. */
+
+/* Transcript rows are virtualised: a row remounts every time it scrolls back
+   into the window, which would replay the enter animation as a flicker. */
+.mn-vrow .animate-turn-enter {
+  animation: none;
+}
+
+.btn-record-spring {
+  transition: transform 160ms cubic-bezier(0.34, 1.56, 0.64, 1), border-radius 240ms cubic-bezier(0.22, 1, 0.36, 1), background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.btn-record-spring:active {
+  transform: scale(0.95);
+}
+
+/* Safety net only: it hides overflow bugs. QA rule (plan 0.4): comment this
+   out locally and check 375px for horizontal scroll before shipping layout
+   changes; never commit it commented out. */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Bottom padding that clears the home indicator on notched phones. */
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@keyframes fadeInOnly {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mn-word-new {
+    animation: none !important;
+    transform: none !important;
+  }
+  .animate-turn-enter {
+    animation: fadeInOnly 220ms ease-out forwards !important;
+    transform: none !important;
+  }
+  .animate-breathing-ring {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+  .btn-record-spring {
+    transition: background-color 180ms ease, box-shadow 180ms ease, border-radius 240ms ease !important;
+    transform: none !important;
+  }
+  .animate-soft-caret {
+    animation: none !important;
+    opacity: 0.85 !important;
+  }
+  .animate-banner-enter {
+    animation: fadeInOnly 220ms ease-out both !important;
+    transform: none !important;
+  }
+  .animate-banner-exit {
+    animation: fadeOutOnly 180ms ease-out forwards !important;
+    transform: none !important;
+  }
+  .animate-lang-crossfade,
+  .animate-fade-in {
+    animation: none !important;
+    transform: none !important;
+  }
+}

@@ -1,0 +1,5 @@
+{"type": "segment", "id": "mic-1", "source": "mic", "speaker": "mic:0", "text": "Good morning everyone,", "start": 0.2, "end": 1.0, "final": true}
+{"type": "segment", "id": "mic-2", "source": "mic", "speaker": "mic:2", "text": "welcome to", "start": 8.1, "end": 8.6, "final": true}
+{"type": "segment", "id": "mic-3", "source": "mic", "speaker": "mic:0", "text": "the weekly standup.", "start": 13.4, "end": 14.2, "final": true}
+{"type": "segment", "id": "mic-4", "source": "mic", "speaker": "mic:0", "text": "Let's review our milestones and goals.", "start": 14.3, "end": 18.3, "final": true}
+{"type": "segment", "id": "mic-5", "source": "mic", "speaker": "mic:0", "text": "Everything looks", "start": 18.9, "end": 19.4, "final": true}

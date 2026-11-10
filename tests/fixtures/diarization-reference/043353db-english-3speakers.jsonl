@@ -1,0 +1,6 @@
+{"type": "segment", "id": "mic-1", "source": "mic", "speaker": "mic:0", "text": "standup. Let's review our milestones", "start": 0.0, "end": 2.0, "final": true}
+{"type": "segment", "id": "mic-2", "source": "mic", "speaker": "mic:1", "text": "Everything looks on track for the release.", "start": 2.75, "end": 5.6, "final": true}
+{"type": "segment", "id": "mic-3", "source": "mic", "speaker": "mic:2", "text": "Everything looks on track for the release.", "start": 6.35, "end": 9.2, "final": true}
+{"type": "segment", "id": "mic-4", "source": "mic", "speaker": "mic:0", "text": "Everything looks on track", "start": 9.95, "end": 11.8, "final": true}
+{"type": "segment", "id": "mic-5", "source": "mic", "speaker": "mic:0", "text": "Good morning everyone, welcome to the weekly standup. Let's review our milestones", "start": 12.15, "end": 17.1, "final": true}
+{"type": "segment", "id": "mic-6", "source": "mic", "speaker": "mic:0", "text": "Good morning everyone, welcome to the weekly", "start": 17.25, "end": 20.2, "final": true}

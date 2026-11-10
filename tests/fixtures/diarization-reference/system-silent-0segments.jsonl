@@ -1,0 +1,4 @@
+# Diarization reference: system-only source produced 0 segments (silence/no speech)
+# Generated with: python server/realtime/test_client.py --wav server/c47a51f1-513f-4f67-9a89-cedd5d699217/normalized.wav --url ws://127.0.0.1:8766/ws --source system --fast
+# Mock model: no speech detected above RMS threshold; language still detecting (confidence=0.0)
+# Session ID: c7fcb450-b8ac-4b39-9cfd-218a6eaa1c48

@@ -1,0 +1,45 @@
+{
+  "name": "meeting-noter",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:next": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "vitest run",
+    "helper:build": "sh helper/build.sh",
+    "helper": "sh helper/build.sh && ./helper/build/meeting-noter-audio-helper",
+    "app": "node scripts/dev.mjs --prod",
+    "helper:install": "sh helper/install-agent.sh",
+    "helper:uninstall": "sh helper/install-agent.sh uninstall"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "4.3.1",
+    "@jensbouma123/acciva-ui": "file:./vendor/acciva-ui",
+    "lucide-react": "^1.47.0",
+    "next": "16.3.6",
+    "onnxruntime-web": "1.24.1",
+    "parakeet.js": "1.4.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.6",
+    "fake-indexeddb": "^6.2.5",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^4.1.11"
+  },
+  "engines": {
+    "node": ">=20.9"
+  },
+  "license": "MIT",
+  "description": "On-device, browser-native meeting transcription (ASR, diarization, language ID)."
+}

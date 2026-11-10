@@ -1,0 +1,535 @@
+/*
+ * acciva-ui base layer — STATIC, seed-independent. Not generated and never
+ * touched by `npm run tokens:generate`; edit by hand when the layer changes.
+ *
+ * Resets, the focus ring (WCAG 2.2 SC 2.4.11 / 2.4.13), the shadow and glow
+ * scale (WCAG 2.2 SC 1.4.11 / 2.4.11 / 2.4.13), the fade keyframes,
+ * the touch-target helper, the motion duration/easing tokens and utilities
+ * (with the prefers-reduced-motion kill switch, WCAG 2.2 SC 2.3.3), the
+ * coarse-pointer concealment helper (WCAG 2.2 SC 2.1.1) and the
+ * safe-area tokens and utilities — the one place `env(safe-area-inset-*)`
+ * is read (see .agents/pwa.md).
+ *
+ * Pulled in by `src/styles/tokens.css` (`@import "./base.css"`), so
+ * `@import "@jensbouma123/acciva-ui/styles"` keeps shipping both.
+ */
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+::selection {
+  background: var(--color-primary-300);
+  color: var(--color-primary-950);
+}
+
+/* Focus indicator (WCAG 2.2 SC 2.4.11 / 2.4.13). The ring colour is the
+   engine's solved focus role, so it clears 3:1 against both the control it
+   outlines and the canvas behind the offset gap. The action fill is solved
+   against *white label text* instead, which is a different gate — painting the
+   ring with it is what let a light seed produce a ring under 3:1 (SC 1.4.11). */
+.focus-ring {
+  outline: none;
+}
+
+.focus-ring:focus-visible {
+  outline: none;
+  border-color: var(--focus-ring) !important;
+  box-shadow: 0 0 0 1px var(--focus-ring), 0 0 0 3.5px color-mix(in srgb, var(--focus-ring) 30%, transparent) !important;
+}
+
+/* Shadow and glow scale (seed-independent, so it lives here rather than in
+   the generated tokens.css). `--shadow-elevation-0..4` composes with the
+   colour-only `--elevation-0..4` ladder: a surface pairs `bg-elevation-N`
+   with `shadow-elevation-N`. Every lift is the shadow-as-border idiom — a
+   1px ring plus a two-layer lift — so an edge stays crisp on a same-colour
+   canvas without a second border. A shadow never participates in the layout
+   box: borders stay `border-border`, the shadow only paints outside it.
+   `--shadow-glow-brand/danger/warning` are the coloured focus/selection
+   glows. Each references a solved colour role through `var()`/`color-mix`,
+   so the glow follows the theme (including dark mode) instead of pinning a
+   stop. A glow is never the only focus indicator: pair it with `.focus-ring`
+   or a border-colour change (WCAG 2.2 SC 2.4.11 / 2.4.13, SC 1.4.11).
+   Registered as `@theme` keys, so every variant (`hover:`, `focus-visible:`,
+   `dark:`) attaches; the scale is identical at every viewport (mobile-first,
+   no breakpoint overrides). */
+@theme inline {
+  --shadow-elevation-0: none;
+  --shadow-elevation-1: 0 0 0 1px color-mix(in srgb, var(--foreground) 8%, transparent), 0 1px 2px rgb(0 0 0 / 0.05), 0 1px 3px rgb(0 0 0 / 0.08);
+  --shadow-elevation-2: 0 0 0 1px color-mix(in srgb, var(--foreground) 8%, transparent), 0 2px 4px rgb(0 0 0 / 0.06), 0 4px 12px rgb(0 0 0 / 0.1);
+  --shadow-elevation-3: 0 0 0 1px color-mix(in srgb, var(--foreground) 10%, transparent), 0 4px 8px rgb(0 0 0 / 0.08), 0 12px 28px rgb(0 0 0 / 0.14);
+  --shadow-elevation-4: 0 0 0 1px color-mix(in srgb, var(--foreground) 10%, transparent), 0 8px 16px rgb(0 0 0 / 0.1), 0 24px 48px rgb(0 0 0 / 0.18);
+  --shadow-glow-brand: 0 0 0 1px var(--focus-ring), 0 0 0 4px color-mix(in srgb, var(--focus-ring) 30%, transparent);
+  --shadow-glow-danger: 0 0 0 1px var(--danger), 0 0 0 4px color-mix(in srgb, var(--danger) 30%, transparent);
+  --shadow-glow-warning: 0 0 0 1px var(--warning), 0 0 0 4px color-mix(in srgb, var(--warning) 30%, transparent);
+}
+
+/* The utility itself is generated from the --animate-fade-in @theme key in
+   tokens.css, not hand-written here: a hand-written .animate-fade-in is a
+   plain rule, so no variant can attach to it and
+   motion-safe:animate-fade-in silently compiles to nothing
+   (WCAG 2.2 SC 2.3.3). Registered as a theme key, every variant works. */
+@keyframes acciva-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Motion tokens (seed-independent, so they live here rather than in the
+   generated tokens.css): feedback covers hover/press/focus/active, spatial
+   covers drawer/sheet/modal/panel travel, drag covers press-and-hold
+   interactions. Consumers retune the values; the library keeps the semantics.
+   Base values target fine pointers; touch gets a longer spatial duration so a
+   user who dragged a surface can follow it. */
+:root {
+  /* Hover/press/focus arrive fast so a quick pointer still sees the state;
+     the 140ms token stays the departure duration so leaving stays smooth. */
+  --motion-feedback-in: 70ms;
+  --motion-feedback: 140ms;
+  --motion-spatial: 180ms;
+  --motion-drag: 160ms;
+  /* Typing indicator: one dot-pulse cycle and the stagger between neighbouring dots. */
+  --motion-typing-cycle: 1200ms;
+  --motion-typing-stagger: 150ms;
+  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-ease-emphasized: cubic-bezier(0.05, 0.7, 0.1, 1);
+  /* The sheet curve a dragged surface settles on: decelerates hard at the end so
+     the panel arrives under the finger rather than coasting. */
+  --motion-ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@media (pointer: coarse) {
+  :root {
+    --motion-spatial: 260ms;
+  }
+}
+
+/* Border width, chart and code-highlight tokens (seed-independent, so they live
+   here rather than in the generated tokens.css). `--hairline` is the 1px
+   device-independent border width. `--chart-1..8` is the categorical series
+   palette: every stop clears 3:1 against `--background`, `--surface` and
+   `--code-background` in its mode (WCAG 2.2 SC 1.4.11). `--code-*` roles are
+   solved at >= 4.5:1 against `--code-background` (SC 1.4.3). Both are
+   asserted by `npm run tokens:contrast` — change a value, re-run it. Series
+   are never told apart by colour alone: pair with a label, marker or pattern
+   (SC 1.4.1). */
+:root {
+  --hairline: 1px;
+  --chart-1: oklch(0.595 0.15 255);
+  --chart-2: oklch(0.605 0.15 50);
+  --chart-3: oklch(0.575 0.15 150);
+  --chart-4: oklch(0.61 0.15 330);
+  --chart-5: oklch(0.58 0.099 200);
+  --chart-6: oklch(0.595 0.122 90);
+  --chart-7: oklch(0.605 0.15 295);
+  --chart-8: oklch(0.61 0.15 20);
+  --code-background: oklch(0.97 0.005 250);
+  --code-keyword: oklch(0.515 0.14 300);
+  --code-string: oklch(0.49 0.12 150);
+  --code-comment: oklch(0.505 0.015 250);
+  --code-number: oklch(0.515 0.136 50);
+  --code-function: oklch(0.505 0.14 255);
+  --code-type: oklch(0.49 0.083 200);
+  --code-punctuation: oklch(0.505 0.01 250);
+}
+
+html[data-theme="dark"] {
+  --chart-1: oklch(0.72 0.15 255);
+  --chart-2: oklch(0.72 0.15 50);
+  --chart-3: oklch(0.72 0.15 150);
+  --chart-4: oklch(0.72 0.15 330);
+  --chart-5: oklch(0.72 0.1 200);
+  --chart-6: oklch(0.72 0.12 90);
+  --chart-7: oklch(0.72 0.15 295);
+  --chart-8: oklch(0.72 0.15 20);
+  --code-background: oklch(0.18 0.008 250);
+  --code-keyword: oklch(0.615 0.14 300);
+  --code-string: oklch(0.59 0.12 150);
+  --code-comment: oklch(0.605 0.015 250);
+  --code-number: oklch(0.62 0.14 50);
+  --code-function: oklch(0.605 0.14 255);
+  --code-type: oklch(0.59 0.1 200);
+  --code-punctuation: oklch(0.605 0.01 250);
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) {
+    --chart-1: oklch(0.72 0.15 255);
+    --chart-2: oklch(0.72 0.15 50);
+    --chart-3: oklch(0.72 0.15 150);
+    --chart-4: oklch(0.72 0.15 330);
+    --chart-5: oklch(0.72 0.1 200);
+    --chart-6: oklch(0.72 0.12 90);
+    --chart-7: oklch(0.72 0.15 295);
+    --chart-8: oklch(0.72 0.15 20);
+    --code-background: oklch(0.18 0.008 250);
+    --code-keyword: oklch(0.615 0.14 300);
+    --code-string: oklch(0.59 0.12 150);
+    --code-comment: oklch(0.605 0.015 250);
+    --code-number: oklch(0.62 0.14 50);
+    --code-function: oklch(0.605 0.14 255);
+    --code-type: oklch(0.59 0.1 200);
+    --code-punctuation: oklch(0.605 0.01 250);
+  }
+}
+
+/* Duration utilities components apply instead of hardcoded duration-*
+   classes. Each pairs its duration token with the standard easing. */
+@utility motion-feedback {
+  transition-duration: var(--motion-feedback);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+/* Coarse pointers keep 140ms (no hover there). */
+@media (hover: hover) and (pointer: fine) {
+  .motion-feedback:hover,
+  .motion-feedback:focus-visible,
+  .motion-feedback:active {
+    transition-duration: var(--motion-feedback-in);
+  }
+}
+
+@utility motion-spatial {
+  transition-duration: var(--motion-spatial);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+@utility motion-drag {
+  transition-duration: var(--motion-drag);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+/* Easing-only utilities, for a surface that keeps its duration token but needs a
+   different curve than the standard one. */
+@utility ease-emphasized {
+  transition-timing-function: var(--motion-ease-emphasized);
+}
+
+@utility ease-sheet {
+  transition-timing-function: var(--motion-ease-sheet);
+}
+
+/* A sliding, fading surface: the travel rides the sheet curve, the fade runs linear.
+   Sharing one curve between them is what made the fade invisible — `ease-sheet`
+   decelerates so hard that opacity reached ~0.87 within 100ms, while the panel was
+   still 13% off-screen, then crawled to 1 for another 160ms. Closing, it fell to 0.11
+   by 100ms and the panel finished travelling while already invisible. A linear fade
+   tracks the travel instead of front-running it, so the surface reads as one movement.
+   The list order below pairs with `transition-property`. */
+@utility motion-sheet-in {
+  transition-property: opacity, translate;
+  /* The fade finishes ahead of the travel so the panel is solid as it settles, instead
+     of arriving at ~35% and developing in place for the rest of the duration. */
+  transition-duration: calc(var(--motion-spatial) * 0.7), var(--motion-spatial);
+  transition-timing-function: linear, var(--motion-ease-sheet);
+}
+
+@utility motion-sheet-out {
+  transition-property: opacity, translate;
+  /* Leaving, the fade spans the whole travel: the panel must not be invisible while it
+     is still moving, or the exit reads as a blink followed by nothing. */
+  transition-duration: var(--motion-spatial);
+  transition-timing-function: linear, var(--motion-ease-sheet);
+}
+
+/* The scrim behind it, fading on the same linear curve so the two stay in step. */
+@utility motion-scrim {
+  transition-property: opacity;
+  transition-duration: var(--motion-spatial);
+  transition-timing-function: linear;
+}
+
+/* Visually conceals an interactive control on coarse pointers while keeping it
+   operable for assistive tech (WCAG 2.2 SC 2.1.1): clip-based, so — unlike
+   `opacity-0 pointer-events-none` — it never swallows the synthesized tap
+   VoiceOver dispatches on activation. Plain rules (like `.touch-target-44`
+   below), not `@utility`, so the coarse-pointer concealment always wins over
+   the element's own size utilities without `!important`. */
+@media (pointer: coarse) {
+  .touch-concealed {
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  .touch-concealed:focus-visible {
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    clip-path: none;
+    white-space: normal;
+  }
+}
+
+/* Dialog enter/exit endpoints (Modal, and ConfirmDialog through Modal). The
+   transition itself comes from the motion-* + ease-* utilities on the element;
+   these rules only name the transitioned properties and the open/closed values,
+   so durations keep following the motion tokens — including the
+   prefers-reduced-motion collapse to 0ms (WCAG 2.2 SC 2.3.3). Travel is
+   pointer-aware: fine pointers get a subtle rise, coarse pointers get more
+   travel to follow the finger (with the longer coarse --motion-spatial). */
+:root {
+  --dialog-translate: 0.25rem;
+  --dialog-scale-from: 0.96;
+}
+
+@media (pointer: coarse) {
+  :root {
+    --dialog-translate: 0.75rem;
+  }
+}
+
+.dialog-overlay {
+  transition-property: opacity;
+}
+
+.dialog-overlay[data-open="true"] {
+  opacity: 1;
+}
+
+.dialog-overlay[data-open="false"] {
+  opacity: 0;
+}
+
+.dialog-panel {
+  transition-property: opacity, translate, scale;
+}
+
+.dialog-panel[data-open="true"] {
+  opacity: 1;
+  translate: 0 0;
+  scale: 1;
+}
+
+.dialog-panel[data-open="false"] {
+  opacity: 0;
+  translate: 0 var(--dialog-translate);
+  scale: var(--dialog-scale-from);
+}
+
+/* Global reduced-motion kill switch (WCAG 2.2 SC 2.3.3): collapsing the
+   duration tokens to 0ms stills every transition that reads them without any
+   per-component override. The fade keyframes drop the vestibular-triggering
+   vertical travel while keeping an opacity fade, so modal/drawer entrances
+   stay perceivable instead of vanishing. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-feedback-in: 0ms;
+    --motion-feedback: 0ms;
+    --motion-typing-cycle: 0ms;
+    --motion-typing-stagger: 0ms;
+    --motion-spatial: 0ms;
+    --motion-drag: 0ms;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  @keyframes acciva-fade-in {
+    from {
+      opacity: 0;
+      transform: none;
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/* Expands small controls (xxs, xs) to a 44x44px hit area on touch devices without
+   changing their visual size — see touchTargetClass() in sizing-tokens.ts. */
+.touch-target-44 {
+  position: relative;
+}
+
+@media (pointer: coarse) {
+  .touch-target-44::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 2.75rem);
+    height: max(100%, 2.75rem);
+    transform: translate(-50%, -50%);
+  }
+}
+
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --bottom-nav-height: 3.5rem;
+  --safe-bottom-nav: calc(var(--bottom-nav-height) + var(--safe-bottom));
+  --status-rail-thickness: 3px;
+}
+
+@utility w-status-rail {
+  width: var(--status-rail-thickness);
+}
+
+@utility h-status-rail {
+  height: var(--status-rail-thickness);
+}
+
+@utility p-safe {
+  padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+}
+
+@utility px-safe {
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+}
+
+@utility py-safe {
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+}
+
+@utility pt-safe {
+  padding-top: var(--safe-top);
+}
+
+@utility pr-safe {
+  padding-right: var(--safe-right);
+}
+
+@utility pb-safe {
+  padding-bottom: var(--safe-bottom);
+}
+
+/* A scroll region whose bottom edge meets the screen edge, e.g. a bottom sheet's content
+   column: its own `pb-4` rhythm PLUS the home-indicator inset. `pb-safe` alone would
+   replace the rhythm rather than add to it, and leaving the inset off puts the last
+   control under the iOS home indicator — where a tap is swallowed as a system swipe and
+   dismisses the app instead of pressing the button. Padding rather than margin so the
+   space belongs to the scroller and the panel's background still bleeds to the edge. */
+@utility pb-4-safe {
+  padding-bottom: calc(var(--spacing, 0.25rem) * 4 + var(--safe-bottom));
+}
+
+@utility pl-safe {
+  padding-left: var(--safe-left);
+}
+
+@utility m-safe {
+  margin: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+}
+
+@utility mx-safe {
+  margin-left: var(--safe-left);
+  margin-right: var(--safe-right);
+}
+
+@utility my-safe {
+  margin-top: var(--safe-top);
+  margin-bottom: var(--safe-bottom);
+}
+
+@utility mt-safe {
+  margin-top: var(--safe-top);
+}
+
+@utility mr-safe {
+  margin-right: var(--safe-right);
+}
+
+@utility mb-safe {
+  margin-bottom: var(--safe-bottom);
+}
+
+@utility ml-safe {
+  margin-left: var(--safe-left);
+}
+
+@utility inset-safe {
+  top: var(--safe-top);
+  right: var(--safe-right);
+  bottom: var(--safe-bottom);
+  left: var(--safe-left);
+}
+
+@utility inset-x-safe {
+  left: var(--safe-left);
+  right: var(--safe-right);
+}
+
+@utility inset-y-safe {
+  top: var(--safe-top);
+  bottom: var(--safe-bottom);
+}
+
+@utility top-safe {
+  top: var(--safe-top);
+}
+
+@utility right-safe {
+  right: var(--safe-right);
+}
+
+@utility bottom-safe {
+  bottom: var(--safe-bottom);
+}
+
+@utility left-safe {
+  left: var(--safe-left);
+}
+
+@utility h-safe-top {
+  height: var(--safe-top);
+}
+
+@utility h-safe-bottom {
+  height: var(--safe-bottom);
+}
+
+@utility min-h-screen-safe {
+  min-height: calc(100svh - var(--safe-top) - var(--safe-bottom));
+}
+
+/* Bottom-nav-aware composition. `pb-safe-nav` is what a scrolling page uses so
+   its last row clears the fixed bar; `bottom-safe-nav` is what a Drawer, Toast
+   or FAB anchors to so it sits on top of the bar rather than under it. */
+@utility h-safe-nav {
+  height: var(--safe-bottom-nav);
+}
+
+@utility pb-safe-nav {
+  padding-bottom: var(--safe-bottom-nav);
+}
+
+@utility mb-safe-nav {
+  margin-bottom: var(--safe-bottom-nav);
+}
+
+@utility bottom-safe-nav {
+  bottom: var(--safe-bottom-nav);
+}
+
+@utility scroll-pb-safe-nav {
+  scroll-padding-bottom: var(--safe-bottom-nav);
+}
