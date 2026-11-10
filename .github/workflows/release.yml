@@ -1,10 +1,9 @@
-# Attaches the Mac installer to a GitHub release: per arch a tarball with the
-# standalone web app, a pinned Node.js runtime and the audio helper (built by
-# scripts/installer/package.sh), its .sha256, and install.sh + uninstall.sh.
+# Attaches the Mac installer to a GitHub release: an Apple Silicon (arm64) tarball
+# with the standalone web app, a pinned Node.js runtime and the audio helper
+# (built by scripts/installer/package.sh), its .sha256, and install.sh + uninstall.sh.
 # Users install and update with
 #   curl -fsSL https://github.com/Jensbouma123/meeting-noter/releases/latest/download/install.sh | bash
-# Per-arch runners instead of a cross build: sharp, the server's only native
-# module, is installed for the runner's arch by `npm ci`.
+# Intel Macs are not supported yet, so there is no x64 job.
 name: Release Mac installer
 
 on:
@@ -32,8 +31,6 @@ jobs:
         include:
           - arch: arm64
             runner: macos-15
-          - arch: x64
-            runner: macos-15-intel
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4.2.2

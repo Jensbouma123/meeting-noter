@@ -1,5 +1,7 @@
 # Meeting Noter installeren op een Mac
 
+Alleen Apple Silicon (M1 of nieuwer). Intel-Macs worden nog niet ondersteund.
+
 Eén regel in Terminal installeert Meeting Noter. U heeft geen Node.js, Xcode of
 beheerdersrechten nodig, en er komt geen waarschuwing van macOS.
 
@@ -101,8 +103,8 @@ in the browser. Needs macOS 13.5+ (system audio helper: 14.4+).*
 ## Voor de beheerder: een release maken
 
 Zie `docs/RELEASING.md`. Zodra een release is gepubliceerd, bouwt
-`.github/workflows/release.yml` op een arm64- en een Intel-runner
-`meeting-noter-macos-{arm64,x64}.tar.gz` (+ `.sha256`) met
+`.github/workflows/release.yml` op een arm64-runner
+`meeting-noter-macos-arm64.tar.gz` (+ `.sha256`) met
 `scripts/installer/package.sh` en hangt daarna `install.sh` en `uninstall.sh` aan
 de release. De versie in `package.json` moet gelijk zijn aan de tag. Lokaal testen:
 

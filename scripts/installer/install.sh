@@ -90,8 +90,18 @@ EOF
 agent_stop() { [ -n "${MEETING_NOTER_NO_LAUNCHD:-}" ] || launchctl bootout "gui/$(id -u)/$1" 2>/dev/null || true; }
 agent_start() {
   [ -n "${MEETING_NOTER_NO_LAUNCHD:-}" ] && return 0
-  launchctl bootout "gui/$(id -u)/$1" 2>/dev/null || true
-  launchctl bootstrap "gui/$(id -u)" "$AGENTS/$1.plist" || fail "Kon achtergronddienst $1 niet starten."
+  local label=$1 domain="gui/$(id -u)" n=0 try
+  launchctl bootout "$domain/$label" 2>/dev/null || true
+  # bootout is asynchronous: until the label is gone, bootstrap fails with "Input/output error" (5).
+  while launchctl print "$domain/$label" >/dev/null 2>&1 && [ "$n" -lt 10 ]; do sleep 1; n=$((n + 1)); done
+  for try in 1 2 3; do
+    launchctl bootstrap "$domain" "$AGENTS/$label.plist" 2>/dev/null && return 0
+    [ "$try" -lt 3 ] && sleep 1
+  done
+  if launchctl print "$domain/$label" >/dev/null 2>&1; then
+    launchctl kickstart -k "$domain/$label" 2>/dev/null && return 0
+  fi
+  fail "Kon achtergronddienst $label niet starten."
 }
 
 # Builds models/<dir>/encoder-model.q4f16.onnx on this Mac. Returns 1 (with a
@@ -162,7 +172,9 @@ main() {
   version_at_least 13.5 "$macos" || fail "macOS $macos is te oud; minimaal macOS 13.5 nodig."
   version_at_least 14.4 "$macos" || helper_ok=
   # hw.optional.arm64 is also 1 in a Rosetta shell, where uname -m says x86_64.
-  if [ "$(sysctl -n hw.optional.arm64 2>/dev/null || echo 0)" = 1 ]; then arch=arm64; else arch=x64; fi
+  [ "$(sysctl -n hw.optional.arm64 2>/dev/null || echo 0)" = 1 ] \
+    || fail "Intel Macs worden nog niet ondersteund. / Intel Macs are not supported yet."
+  arch=arm64
   asset="meeting-noter-macos-$arch.tar.gz"
 
   say "=============================="
@@ -297,4 +309,5 @@ EOF
   if [ -z "${MEETING_NOTER_NO_OPEN:-}" ] && [ -z "${MEETING_NOTER_NO_LAUNCHD:-}" ]; then open "$URL"; fi
 }
 
-main "$@"
+# MEETING_NOTER_SOURCE_ONLY=1 sources the functions without running the install (tests).
+[ -n "${MEETING_NOTER_SOURCE_ONLY:-}" ] || main "$@"

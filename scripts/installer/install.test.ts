@@ -177,12 +177,65 @@ describe.skipIf(process.platform !== 'darwin')('install.sh', () => {
     expect(readFileSync(path.join(root(), 'app/VERSION'), 'utf8').trim()).toBe('0.2.0');
   });
 
-  it('picks the x64 tarball on Intel Macs', () => {
+  it('refuses Intel Macs with a friendly message and installs nothing', () => {
     fakeMac({ arm64: '0' });
-    release('0.2.0', { arch: 'x64' });
+    release('0.2.0');
     const r = run(INSTALL);
-    expect(r.code).toBe(0);
-    expect(r.out).toContain('meeting-noter-macos-x64.tar.gz');
+    expect(r.code).not.toBe(0);
+    expect(r.out).toContain('Intel Macs worden nog niet ondersteund');
+    expect(r.out).toContain('Intel Macs are not supported yet');
+    expect(existsSync(root())).toBe(false);
+  });
+
+  describe('agent_start', () => {
+    /** launchctl stub: bootstrap fails with I/O error 5 for the first `fails` calls; `stuck` keeps the label loaded. */
+    function fakeLaunchctl({ fails = 0, stuck = false } = {}) {
+      const calls = path.join(home, 'launchctl-calls');
+      const loaded = path.join(home, 'launchctl-loaded');
+      const count = path.join(home, 'launchctl-bootstraps');
+      exe(path.join(shims, 'launchctl'), [
+        '#!/bin/sh',
+        `echo "$*" >> "${calls}"`,
+        'case "$1" in',
+        `  bootout) ${stuck ? ':' : `rm -f "${loaded}"`} ;;`,
+        `  print) ${stuck ? 'exit 0' : `[ -f "${loaded}" ]`} ;;`,
+        `  bootstrap) n=$(cat "${count}" 2>/dev/null || echo 0); echo $((n + 1)) > "${count}"`,
+        `    if [ "$n" -lt ${fails} ]; then echo "Bootstrap failed: 5: Input/output error" >&2; exit 5; fi`,
+        `    touch "${loaded}" ;;`,
+        '  kickstart) exit 0 ;;',
+        'esac',
+        '',
+      ].join('\n'));
+      return () => readFileSync(calls, 'utf8').trim().split('\n');
+    }
+
+    function startAgent(label: string) {
+      const agents = path.join(home, 'Library/LaunchAgents');
+      mkdirSync(agents, { recursive: true });
+      writeFileSync(path.join(agents, `${label}.plist`), '<plist/>');
+      const script = `export MEETING_NOTER_SOURCE_ONLY=1; source "${INSTALL}"; agent_start "${label}"`;
+      const r = spawnSync('/bin/bash', ['-c', script], {
+        env: { NODE_ENV: 'test', PATH: `${shims}:/usr/bin:/bin:/usr/sbin:/sbin`, HOME: home },
+        encoding: 'utf8',
+      });
+      return { code: r.status, out: r.stdout + r.stderr };
+    }
+
+    it('retries bootstrap after the I/O error 5 that bootout leaves behind', () => {
+      const calls = fakeLaunchctl({ fails: 1 });
+      const r = startAgent('nl.jensbouma.meeting-noter.server');
+      expect(r.code, r.out).toBe(0);
+      const lines = calls();
+      expect(lines.filter((l) => l.startsWith('bootstrap'))).toHaveLength(2);
+      expect(lines.some((l) => l.startsWith('kickstart'))).toBe(false);
+    });
+
+    it('kickstarts the label when it stays loaded and bootstrap keeps failing', () => {
+      const calls = fakeLaunchctl({ fails: 99, stuck: true });
+      const r = startAgent('nl.jensbouma.meeting-noter.audio-helper');
+      expect(r.code, r.out).toBe(0);
+      expect(calls().some((l) => l.startsWith('kickstart -k gui/'))).toBe(true);
+    }, 60_000);
   });
 
   it('skips the audio helper before macOS 14.4 and stops before 13.5', () => {
