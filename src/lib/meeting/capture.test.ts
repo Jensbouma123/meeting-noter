@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Capture, SHARE_SOUND_RMS, SILENT_MIC_FRAMES, SILENT_MIC_WARNING, SILENT_SHARE_FRAMES } from './capture';
+import { Capture, SAFARI_MIC_NEEDS_HELPER, SHARE_SOUND_RMS, SILENT_MIC_FRAMES, SILENT_MIC_WARNING, SILENT_SHARE_FRAMES } from './capture';
 
 /**
  * Meeting audio played through the speakers reaches a mic-only recording only
@@ -104,10 +104,10 @@ describe('Safari: no getDisplayMedia audio support', () => {
     expect(getDisplayMedia).not.toHaveBeenCalled();
   });
 
-  it('refuses Safari mic-only capture before opening a microphone stream', async () => {
+  it('fails Safari mic-only capture without a helper, never opening a microphone stream', async () => {
     stubSafari();
     const cap = new Capture(handler);
-    await expect(cap.start('mic')).rejects.toThrow(/Safari microphone capture can interrupt/);
+    await expect(cap.start('mic')).rejects.toThrow(SAFARI_MIC_NEEDS_HELPER);
     expect(getUserMedia).not.toHaveBeenCalled();
     expect(getDisplayMedia).not.toHaveBeenCalled();
   });

@@ -29,7 +29,8 @@ interface SegmentLevels {
   peak: number;
 }
 
-type Report = Record<'speakers' | 'headphones' | 'headset', SegmentLevels[]>;
+/** `alone`: the mic streamed by itself (Safari's Mic mode), no tap. */
+type Report = Record<'speakers' | 'headphones' | 'headset' | 'alone', SegmentLevels[]>;
 
 let report: Report;
 
@@ -76,5 +77,11 @@ describe.skipIf(!canBuild)('helper mixer: the mic mixed into the system audio', 
     expect(user.mic).toBeGreaterThan(0.05);
     expect(user.mic).toBeLessThan(0.15);
     expect(seg('headset', 'both').peak).toBeLessThan(1);
+  });
+
+  it('raises a quiet built-in mic streamed alone, and leaves a headset unclipped', () => {
+    expect(seg('alone', 'built-in').mic).toBeGreaterThan(0.015);
+    expect(seg('alone', 'headset').mic).toBeGreaterThan(0.05);
+    expect(seg('alone', 'headset').peak).toBeLessThan(1);
   });
 });

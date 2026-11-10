@@ -79,6 +79,38 @@ func run(_ segments: [Segment], leak: Float, seconds: Double = 4) -> [[String: A
     return report
 }
 
+/// The mic by itself, as Safari's Mic mode streams it: no tap pushed, and
+/// the frames come from `pushMic`'s `alone`. `mic` is their RMS.
+func runAlone(_ segments: [Segment], seconds: Double = 4) -> [[String: Any]] {
+    var mixer = Mixer()
+    var frames: [Int16] = []
+    var report: [[String: Any]] = []
+    var n = 0
+    for segment in segments {
+        let start = frames.count
+        for _ in 0..<(Int(seconds * rate) / buffer) {
+            var mic = [Float](repeating: 0, count: buffer)
+            for i in 0..<buffer { mic[i] = voice(220, segment.userAmp, Double(n + i) / rate) + hiss() }
+            n += buffer
+            mic.withUnsafeBufferPointer { mixer.pushMic($0, rate: rate, alone: { frames += $0 }) }
+        }
+        let from = max(start, frames.count - 32_000)
+        var sq = 0.0, peak = 0
+        for i in from..<frames.count {
+            let m = Double(frames[i]) / 32768
+            sq += m * m
+            peak = max(peak, abs(Int(frames[i])))
+        }
+        report.append([
+            "segment": segment.name,
+            "call": 0.0,
+            "mic": (sq / Double(max(1, frames.count - from))).squareRoot(),
+            "peak": Double(peak) / 32768,
+        ])
+    }
+    return report
+}
+
 let speakers: [Segment] = [
     Segment(name: "call", callAmp: 0.18, userAmp: 0),
     Segment(name: "user", callAmp: 0, userAmp: 0.0009),
@@ -98,6 +130,10 @@ let out: [String: Any] = [
     "speakers": run(speakers, leak: 0.003),
     "headphones": run(headphones, leak: 0),
     "headset": run(headset, leak: 0),
+    "alone": runAlone([
+        Segment(name: "built-in", callAmp: 0, userAmp: 0.0009),
+        Segment(name: "headset", callAmp: 0, userAmp: 0.18),
+    ]),
 ]
 let data = try! JSONSerialization.data(withJSONObject: out, options: [.sortedKeys])
 print(String(decoding: data, as: UTF8.self))

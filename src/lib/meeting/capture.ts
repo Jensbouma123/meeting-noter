@@ -114,12 +114,27 @@ interface HelperNodes {
 type SourceNodes = StreamNodes | HelperNodes;
 
 /**
- * What Safari's Both mode tells the user about their voice, which only the
- * helper records (Safari never opens the mic, see `Capture.start`).
+ * Safari in Mic mode with no helper to record the mic: how to start it.
+ * Dutch, as the launcher and its README are.
  */
-export function safariMicWarning(mic: HelperMic | null): string {
-  if (mic && (mic.state === 'live' || mic.state === 'unknown')) {
-    return 'Safari can interrupt the microphone and camera in another call app, so Safari does not open your microphone: the system audio helper records it instead, mixed with the call audio, so your words appear among the call’s speakers. Your other call keeps its microphone.';
+export const SAFARI_MIC_NEEDS_HELPER =
+  'Safari opent je microfoon niet zelf, omdat dat de microfoon en camera van een andere gesprek-app kan onderbreken. Meeting Noter neemt je microfoon daarom op via de audiohelper, maar die draait niet. Sluit Meeting Noter en start het opnieuw door op ‘Start Meeting Noter.command’ te dubbelklikken (of met `npm run app` in Terminal), en druk dan weer op Record.';
+
+/** Whether the helper's mic can record the user at all. */
+function helperMicUsable(mic: HelperMic | null): boolean {
+  return !!mic && (mic.state === 'live' || mic.state === 'unknown');
+}
+
+/**
+ * What Safari tells the user about their voice, which only the helper
+ * records (Safari never opens the mic, see `Capture.start`): mixed into the
+ * call audio in Both mode, `alone` in Mic mode.
+ */
+export function safariMicWarning(mic: HelperMic | null, alone = false): string {
+  if (helperMicUsable(mic)) {
+    return alone
+      ? 'Safari can interrupt the microphone and camera in another call app, so Safari does not open your microphone: the system audio helper records it instead. Your other call keeps its microphone.'
+      : 'Safari can interrupt the microphone and camera in another call app, so Safari does not open your microphone: the system audio helper records it instead, mixed with the call audio, so your words appear among the call’s speakers. Your other call keeps its microphone.';
   }
   const why =
     mic?.state === 'denied'
@@ -127,7 +142,9 @@ export function safariMicWarning(mic: HelperMic | null): string {
       : mic?.state === 'silent'
         ? 'the helper’s microphone delivers only silence — macOS has not given the helper Microphone permission (System Settings → Privacy & Security → Microphone: allow Meeting Noter Audio Helper, then restart it), or the input is muted'
         : `the helper could not open it${mic?.error ? ` (${mic.error})` : ''}`;
-  return `Your microphone is not recorded: ${why}. Safari does not open it because it can interrupt the microphone and camera in another call app, so this recording captures system audio only.`;
+  return alone
+    ? `Your microphone is not recorded: ${why}. Safari does not open it because it can interrupt the microphone and camera in another call app.`
+    : `Your microphone is not recorded: ${why}. Safari does not open it because it can interrupt the microphone and camera in another call app, so this recording captures system audio only.`;
 }
 
 /** What a call audio request yields. */
@@ -137,9 +154,11 @@ function isStream(input: SystemInput): input is MediaStream {
   return typeof (input as MediaStream).getTracks === 'function';
 }
 
-function helperReadout(helper: HelperSource): TrackReadout {
+function helperReadout(helper: HelperSource, source: Source): TrackReadout {
   return {
-    label: helper.mic ? `System audio helper (Core Audio tap + mic: ${helper.mic.state})` : 'System audio helper (Core Audio tap)',
+    label: source === 'mic'
+      ? `System audio helper (mic alone: ${helper.mic?.state ?? 'unavailable'})`
+      : helper.mic ? `System audio helper (Core Audio tap + mic: ${helper.mic.state})` : 'System audio helper (Core Audio tap)',
     readyState: helper.live ? 'live' : 'ended',
     muted: helper.hello.permission === 'denied',
     enabled: true,
@@ -289,13 +308,9 @@ export class Capture {
     // Safari's getDisplayMedia never carries audio, so a share picker would
     // only show a pointless prompt and a "sharing" indicator: Safari asks the
     // helper, which in Both mode also records the mic. Safari never calls
-    // getUserMedia, so it fails rather than fall back to the mic alone.
+    // getUserMedia: in Mic mode the helper streams the mic alone, and with
+    // no helper Safari fails rather than open the mic itself.
     const safari = isSafariEngine();
-    if (safari && mode === 'mic') {
-      throw new Error(
-        'Safari microphone capture can interrupt the microphone and camera used by another call app. Use Both: the system audio helper then records your microphone together with the call audio, without Safari opening the microphone.',
-      );
-    }
     const viaHelper = wantSystem && (safari || helperKnownReachable());
     const Ctx = window.AudioContext ??
       (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
@@ -336,9 +351,25 @@ export class Capture {
       this.micCancelsEcho = callAttached && !isSafariEngine();
       return this.keep(run, this.micStream(micDeviceId, this.micCancelsEcho));
     };
-    const micP = !wantMic || safari
+    // Safari's Mic mode: the helper streams the mic alone. A helper that
+    // answers but cannot record the mic fails too, since nothing would be
+    // recorded at all.
+    const safariMic = (): Promise<HelperSource> =>
+      this.keepHelper(run, connectHelper({ mic: true, system: false })).then(
+        (helper) => {
+          if (helperMicUsable(helper.mic)) return helper;
+          throw new Error(safariMicWarning(helper.mic, true));
+        },
+        (err: unknown) => {
+          if (aborted() || helperKnownReachable()) return label('Microphone')(err);
+          throw new Error(SAFARI_MIC_NEEDS_HELPER);
+        },
+      );
+    const micP: Promise<MediaStream | HelperSource> | null = !wantMic
       ? null
-      : (systemP
+      : safari
+        ? mode === 'mic' ? safariMic() : null
+        : (systemP
           ? systemP.then(
               () => true,
               () => false,
@@ -384,13 +415,18 @@ export class Capture {
         }
       }
       if (aborted()) return;
-      if (mic) this.attachSource(ctx, 'mic', mic);
+      if (mic && isStream(mic)) {
+        this.attachSource(ctx, 'mic', mic);
+      } else if (mic) {
+        this.attachHelper(mic, 'mic');
+        this.warning = safariMicWarning(mic.mic, true);
+      }
       if (system) {
         if (isStream(system)) {
           this.attachSource(ctx, 'system', system);
           this.systemVia = 'share';
         } else {
-          this.attachHelper(system);
+          this.attachHelper(system, 'system');
           this.systemVia = 'helper';
           if (system.mic) this.warning = safariMicWarning(system.mic);
         }
@@ -594,28 +630,33 @@ export class Capture {
     this.handler.onCallAudioSilent?.(true);
   }
 
-  /** Helper frames are already 16 kHz Int16 frames: they skip the worklet. */
-  private attachHelper(helper: HelperSource): void {
+  /**
+   * Helper frames are already 16 kHz Int16 frames: they skip the worklet.
+   * As `system` they carry the call audio (with the mic mixed in, in
+   * Safari's Both mode); as `mic`, the mic alone. The helper reports its own
+   * mic going silent, so `mic` frames are not run through `watchMic`.
+   */
+  private attachHelper(helper: HelperSource, source: Source): void {
     const stats = newStats();
     const ended = (): void => {
-      const current = this.sources.get('system');
-      if (current?.kind === 'helper' && current.helper === helper) this.handler.onSourceEnded('system');
+      const current = this.sources.get(source);
+      if (current?.kind === 'helper' && current.helper === helper) this.handler.onSourceEnded(source);
     };
     helper.onFrame = (pcm, rms) => {
       countFrame(stats, rms);
-      this.handler.onLevel('system', rms);
-      this.handler.onFrame('system', pcm);
-      this.watchShare(rms);
+      this.handler.onLevel(source, rms);
+      this.handler.onFrame(source, pcm);
+      if (source === 'system') this.watchShare(rms);
     };
     helper.onEnded = ended;
     // Kept current for a later readout; a mic that stops recording the user
     // (silent, denied, unplugged) is reported at once, not at the next start.
     helper.onMicChange = (mic) => {
-      this.warning = safariMicWarning(mic);
+      this.warning = safariMicWarning(mic, source === 'mic');
       console.info(`[capture] Helper mic is now ${mic.state}${mic.error ? `: ${mic.error}` : ''}`);
-      if (mic.state !== 'live' && mic.state !== 'unknown') this.handler.onWarning?.(this.warning);
+      if (!helperMicUsable(mic)) this.handler.onWarning?.(this.warning);
     };
-    this.sources.set('system', { kind: 'helper', helper, stats });
+    this.sources.set(source, { kind: 'helper', helper, stats });
     // It may have dropped between connecting and attaching.
     if (!helper.live) queueMicrotask(ended);
   }
@@ -657,7 +698,7 @@ export class Capture {
     for (const [source, entry] of this.sources) {
       const { stats } = entry;
       sources[source] = {
-        tracks: entry.kind === 'helper' ? [helperReadout(entry.helper)] : entry.stream.getAudioTracks().map(trackReadout),
+        tracks: entry.kind === 'helper' ? [helperReadout(entry.helper, source)] : entry.stream.getAudioTracks().map(trackReadout),
         frames: stats.frames,
         zeroFrames: stats.zeroFrames,
         soundFrames: stats.soundFrames,

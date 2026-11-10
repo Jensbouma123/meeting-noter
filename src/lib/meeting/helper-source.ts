@@ -10,7 +10,8 @@
  * records the far side of a call (see `helper/Sources/FrameServer.swift` for
  * the protocol). Asked with `mic`, it also mixes the Mac's default input
  * device into the same frames, so Safari records the user's voice without
- * opening the microphone itself.
+ * opening the microphone itself. Asked with `mic` and `system: false`, it
+ * streams the mic alone and starts no tap: Safari's Mic mode.
  */
 
 export const HELPER_URL = 'ws://127.0.0.1:47853';
@@ -51,6 +52,8 @@ export interface HelperOptions {
   url?: string;
   /** Ask the helper to mix the default input device into the frames. */
   mic?: boolean;
+  /** `false`: no system audio, only the mic (with `mic`). */
+  system?: boolean;
   timeoutMs?: number;
   /** The WebSocket class; defaults to the page's. */
   WebSocket?: WebSocketCtor;
@@ -116,7 +119,7 @@ export class HelperSource {
   onFrame: ((pcm: ArrayBuffer, rms: number) => void) | null = null;
   /** Fired once when the stream ends without `close()`. */
   onEnded: ((reason: string) => void) | null = null;
-  /** The mic mixed into the frames; `null` for a connection without `mic`. */
+  /** The mic in the frames, mixed in or alone; `null` for a connection without `mic`. */
   mic: HelperMic | null;
   /** Fired when the helper's mic changes state mid-stream. */
   onMicChange: ((mic: HelperMic) => void) | null = null;
@@ -309,6 +312,8 @@ export async function connectHelper(opts: HelperOptions = {}): Promise<HelperSou
       clearTimeout(timer);
       resolve(new HelperSource(ws, hello, opts.mic ? parseMic(msg) : null));
     };
-    ws.send(JSON.stringify(opts.mic ? { type: 'start', mic: true } : { type: 'start' }));
+    ws.send(JSON.stringify(
+      !opts.mic ? { type: 'start' } : opts.system === false ? { type: 'start', mic: true, system: false } : { type: 'start', mic: true },
+    ));
   });
 }
