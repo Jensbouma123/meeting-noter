@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Check } from 'lucide-react';
 import type { Segment } from '@/lib/meeting';
 import { getSpeakerColor } from './speaker-theme';
 import { Badge, Button, HStack, Text } from '@jensbouma123/acciva-ui';
@@ -44,6 +45,8 @@ export const TranscriptTurn = React.memo(
     const t = useT('transcript');
     const colorStyle = getSpeakerColor(speakerColorIndex);
     const isFinal = segment.final;
+    // Which note this line was saved as, so the click gives visible feedback.
+    const [added, setAdded] = useState<'action' | 'decision' | null>(null);
 
     const tokens = useMemo(() => tokenize(segment.text), [segment.text]);
     // Number of tokens shown on the previous commit; only the tail past
@@ -114,9 +117,31 @@ export const TranscriptTurn = React.memo(
             />
           </Text>
           {actions && segment.final && (
-            <div className="flex gap-2 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-              <Button type="button" variant="ghost" size="sm" onClick={actions.createAction}>{t('createAction')}</Button>
-              <Button type="button" variant="ghost" size="sm" onClick={actions.markDecision}>{t('markDecision')}</Button>
+            <div className="flex flex-wrap items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => { actions.createAction(); setAdded('action'); }}
+              >
+                {t('createAction')}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => { actions.markDecision(); setAdded('decision'); }}
+              >
+                {t('markDecision')}
+              </Button>
+              <span role="status" aria-live="polite" className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                {added && (
+                  <>
+                    <Check aria-hidden="true" className="size-3.5" />
+                    {added === 'action' ? t('actionAdded') : t('decisionAdded')}
+                  </>
+                )}
+              </span>
             </div>
           )}
         </div>

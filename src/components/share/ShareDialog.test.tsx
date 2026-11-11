@@ -16,24 +16,50 @@ vi.mock('@/lib/meeting/export', async (load) => {
 
 afterEach(cleanup);
 
+const seg = { id: '1', source: 'mic', speaker: 'sp1', text: 'Hello', start: 0, end: 1, final: true } as const;
+const base = { open: true, onClose: () => {}, title: 'Planning', date: '11 Nov', durationS: 60, participants: [], speakers: {} };
+const decisions = [{ id: 'd1', text: 'Ship Friday' }];
+const actions = [{ id: 'a1', text: 'Write notes', ownerName: 'Sam', due: 'Mon', done: false }];
+
 describe('ShareDialog', () => {
-  it('copies the summary even when there is no transcript', async () => {
-    render(<ShareDialog open onClose={() => {}} title="Planning" date="11 Nov" durationS={60} participants={[]} decisions={[]} actions={[]} segments={[]} speakers={{}} />);
-    expect(screen.getByText('No transcript yet')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Copy summary' })).toBeEnabled();
-    expect(screen.getByRole('button', { name: 'Download (.md)' })).toBeEnabled();
-    expect(screen.getByRole('button', { name: 'More formats' })).toBeDisabled();
-    fireEvent.click(screen.getByRole('button', { name: 'Copy summary' }));
-    const exp = await import('@/lib/meeting/export');
-    expect(exp.copyToClipboard).toHaveBeenCalled();
+  it('shows an empty state and no actions when there is nothing to share', () => {
+    render(<ShareDialog {...base} decisions={[]} actions={[]} segments={[]} />);
+    expect(screen.getByText(/Nothing to share yet/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Copy summary' })).toBeNull();
   });
 
-  it('reveals transcript formats and reports clipboard failures', async () => {
+  it('previews the summary and copies plain text with a confirmation', async () => {
+    const exp = await import('@/lib/meeting/export');
+    render(<ShareDialog {...base} decisions={decisions} actions={actions} segments={[]} />);
+    const preview = screen.getByRole('region', { name: 'Preview of what you will share' });
+    expect(preview).toHaveTextContent('Planning');
+    expect(preview).toHaveTextContent('Ship Friday');
+    expect(preview).toHaveTextContent('Write notes');
+    expect(preview).toHaveTextContent('Owner: Sam');
+    expect(preview).toHaveTextContent('Due: Mon');
+    fireEvent.click(screen.getByRole('button', { name: 'Copy summary' }));
+    expect(await screen.findByRole('status')).toHaveTextContent('Copied');
+    const text = vi.mocked(exp.copyToClipboard).mock.calls.at(-1)![0];
+    expect(text).toContain('Ship Friday');
+    expect(text).not.toContain('# ');
+  });
+
+  it('offers email with subject and body, and download', async () => {
+    const exp = await import('@/lib/meeting/export');
+    render(<ShareDialog {...base} decisions={decisions} actions={actions} segments={[]} />);
+    const href = screen.getByRole('link', { name: 'Send by email' }).getAttribute('href')!;
+    expect(href).toContain('subject=Meeting%20summary%3A%20Planning');
+    expect(decodeURIComponent(href)).toContain('Ship Friday');
+    fireEvent.click(screen.getByRole('button', { name: 'Download as document' }));
+    expect(exp.downloadFile).toHaveBeenCalled();
+  });
+
+  it('keeps transcript formats under Advanced and reports clipboard failures', async () => {
     const exp = await import('@/lib/meeting/export');
     vi.mocked(exp.copyToClipboard).mockResolvedValueOnce(false);
-    render(<ShareDialog open onClose={() => {}} title="Planning" date="11 Nov" durationS={60} participants={[]} decisions={[]} actions={[]} segments={[{ id: '1', source: 'mic', speaker: 'sp1', text: 'Hello', start: 0, end: 1, final: true }]} speakers={{}} />);
-    fireEvent.click(screen.getByRole('button', { name: 'More formats' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Copy TXT' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Copy failed. Use Download (.md).');
+    render(<ShareDialog {...base} decisions={decisions} actions={[]} segments={[seg]} />);
+    expect(screen.getByText('Advanced')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Copy: Subtitles (.srt)' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Copying did not work');
   });
 });

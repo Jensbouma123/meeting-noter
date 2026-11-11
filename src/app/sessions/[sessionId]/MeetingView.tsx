@@ -818,7 +818,7 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
           className="relative min-w-0 w-full max-w-full overflow-hidden"
         >
           <LiveTranscript
-            sessionId={initialSessionId}
+            sessionId={shareSessionId}
             segments={segments}
             speakers={speakers}
             status={status}

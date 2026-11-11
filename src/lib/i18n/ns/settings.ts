@@ -2,7 +2,10 @@ export const settings = {
   en: {
     title: 'Settings',
     needsAttention: 'Needs attention',
-    section: { general: 'General', storage: 'Storage & privacy', about: 'About & updates', advanced: 'Advanced' },
+    'section.general': 'General',
+    'section.storage': 'Storage & privacy',
+    'section.about': 'About & updates',
+    'section.advanced': 'Advanced',
     uiLanguage: 'Interface language',
     uiLanguageDescription: 'Choose the language used in the app.',
     uiEnglish: 'English',
@@ -68,7 +71,10 @@ export const settings = {
   nl: {
     title: 'Instellingen',
     needsAttention: 'Je aandacht nodig',
-    section: { general: 'Algemeen', storage: 'Opslag & privacy', about: 'Over & updates', advanced: 'Geavanceerd' },
+    'section.general': 'Algemeen',
+    'section.storage': 'Opslag & privacy',
+    'section.about': 'Over & updates',
+    'section.advanced': 'Geavanceerd',
     uiLanguage: 'Taal van de app',
     uiLanguageDescription: 'Kies de taal die de app gebruikt.',
     uiEnglish: 'English',
