@@ -21,9 +21,10 @@ export interface Notes {
   decisions: Decision[];
 }
 
-export type ActionItemInput = Omit<ActionItem, 'id' | 'done'> & { done?: boolean };
+export type ActionItemInput = Partial<Omit<ActionItem, 'id' | 'done' | 'text'>> & { done?: boolean };
 export type DecisionInput = Omit<Decision, 'id'>;
-export type NotePatch = Partial<Omit<ActionItem, 'id'>>;
+export type ActionItemPatch = Partial<Omit<ActionItem, 'id'>>;
+export type NotePatch = ActionItemPatch;
 
 export interface NoteSuggestion {
   text: string;

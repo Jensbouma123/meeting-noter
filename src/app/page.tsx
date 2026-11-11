@@ -55,7 +55,7 @@ export default function Home() {
         onNewSession={() => setNewDialogOpen(true)}
       >
         <div className="flex flex-1 items-center justify-center p-6">
-          <VStack gap="lg" align="center" className="w-full max-w-xl text-center">
+          <VStack spacing="lg" align="center" className="w-full max-w-xl text-center">
             <Video className="size-8 text-primary" aria-hidden="true" />
             <Heading as="h1" size="xl" weight="semibold">{t('title')}</Heading>
             <section aria-labelledby="home-how-it-works" className="w-full">
