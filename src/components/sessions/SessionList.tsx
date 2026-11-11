@@ -45,6 +45,8 @@ import { loadSessionTranscript } from '@/lib/meeting/persist';
 import { filterSessions, groupSessionsByDay } from '@/lib/meeting/session-groups';
 import { purgeExpiredSessions } from '@/lib/meeting/retention';
 import { loadSettings } from '@/components/meeting/types';
+import { openCount } from '@/lib/meeting/notes';
+import { useT } from '@/lib/i18n/useT';
 
 /* -------------------------------------------------------------------------- */
 /* Formatting helpers                                                         */
@@ -56,7 +58,8 @@ function formatDuration(seconds: number | null): string {
 }
 
 function formatTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  const locale = typeof navigator !== 'undefined' && navigator.language.toLowerCase().startsWith('nl') ? 'nl-NL' : 'en-US';
+  return new Date(timestamp).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
 }
 
 /** Debounced copy of a value; the search box stays responsive on long lists. */
@@ -106,12 +109,13 @@ function useSessionIndex() {
   }, [refresh]);
 
   const { toast } = useToast();
+  const t = useT('sidebar');
   const remove = useCallback(
     (sessionId: string): boolean => {
       let removed = false;
       try {
         if (isSessionRecording(sessionId)) {
-          toast.warning('Stop the recording before deleting this session.');
+          toast.warning(t('stopBeforeDelete'));
           return false;
         }
         removed = deleteSession(sessionId);
@@ -121,7 +125,7 @@ function useSessionIndex() {
       refresh();
       return removed;
     },
-    [refresh, toast]
+    [refresh, toast, t]
   );
 
   const clear = useCallback(
@@ -132,12 +136,12 @@ function useSessionIndex() {
       } catch {
         // Never throw — the row keeps its stale counts until the next refresh.
       }
-      if (cleared) toast({ title: 'Transcript cleared', variant: 'success' });
-      else toast.warning('Stop the recording first');
+      if (cleared) toast({ title: t('cleared'), variant: 'success' });
+      else toast.warning(t('stopBeforeClear'));
       refresh();
       return cleared;
     },
-    [refresh, toast]
+    [refresh, toast, t]
   );
 
   return { sessions, loaded, refresh, remove, clear };
@@ -154,6 +158,7 @@ interface DeleteSessionDialogProps {
 }
 
 function DeleteSessionDialog({ session, onClose, onConfirm }: DeleteSessionDialogProps) {
+  const t = useT('sidebar');
   return (
     <ConfirmDialog
       open={session !== null}
@@ -162,20 +167,18 @@ function DeleteSessionDialog({ session, onClose, onConfirm }: DeleteSessionDialo
         if (session) onConfirm(session.sessionId);
       }}
       variant="danger"
-      title="Delete this meeting?"
+      title={t('deleteTitle')}
       description={
-        <>
-          This permanently deletes <strong>{session ? `“${session.title}”` : 'this meeting'}</strong>{' '}
-          and its transcript. This can&apos;t be undone.
-        </>
+        <>{t('deleteDescription').replace('{title}', session?.title ?? '')}</>
       }
-      confirmText="Delete meeting"
-      cancelText="Cancel"
+      confirmText={t('deleteConfirm')}
+      cancelText={t('cancel')}
     />
   );
 }
 
 function ClearTranscriptDialog({ session, onClose, onConfirm }: DeleteSessionDialogProps) {
+  const t = useT('sidebar');
   return (
     <ConfirmDialog
       open={session !== null}
@@ -184,16 +187,12 @@ function ClearTranscriptDialog({ session, onClose, onConfirm }: DeleteSessionDia
         if (session) onConfirm(session.sessionId);
       }}
       variant="danger"
-      title="Clear this transcript?"
+      title={t('clearTitle')}
       description={
-        <>
-          This permanently removes all transcript lines and speakers from{' '}
-          <strong>{session ? `“${session.title}”` : 'this meeting'}</strong>. The meeting is kept and
-          a new recording starts from 00:00. This can&apos;t be undone.
-        </>
+        <>{t('clearDescription').replace('{title}', session?.title ?? '')}</>
       }
-      confirmText="Clear transcript"
-      cancelText="Cancel"
+      confirmText={t('clearConfirm')}
+      cancelText={t('cancel')}
     />
   );
 }
@@ -222,6 +221,7 @@ export function SessionSidebar({
   open,
   onToggle,
 }: SessionSidebarProps) {
+  const t = useT('sidebar');
   const router = useRouter();
   const { sessions, remove, clear } = useSessionIndex();
   const [deleteTarget, setDeleteTarget] = useState<SessionMetadata | null>(null);
@@ -261,7 +261,7 @@ export function SessionSidebar({
         <HStack spacing="sm" className="min-w-0 flex-1">
           <Video className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
           <Heading as="span" size="xs" variant="muted" weight="semibold" truncate>
-            Meetings
+            {t('meetings')}
           </Heading>
           <Badge variant="neutral" size="sm">
             {sessions.length}
@@ -274,7 +274,8 @@ export function SessionSidebar({
             size="sm"
             iconOnly
             onClick={onNewSession}
-            tooltip="New meeting"
+            tooltip={t('new')}
+            aria-label={t('new')}
             leadingIcon={<Plus className="size-4" />}
             className="touch-target-44"
           />
@@ -283,7 +284,7 @@ export function SessionSidebar({
             size="sm"
             iconOnly
             onClick={onToggle}
-            tooltip={open ? 'Hide meetings list' : 'Show meetings list'}
+            tooltip={open ? t('hide') : t('show')}
             leadingIcon={open ? <PanelLeftClose className="size-4" /> : <PanelLeftOpen className="size-4" />}
             className="hidden touch-target-44 lg:inline-flex"
           />
@@ -298,8 +299,8 @@ export function SessionSidebar({
             size="sm"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Zoek in meetings"
-            aria-label="Zoek in meetings"
+            placeholder={t('search')}
+            aria-label={t('search')}
             leadingIcon={<Search className="size-4" />}
             clearable
             onClear={() => setQuery('')}
@@ -313,8 +314,8 @@ export function SessionSidebar({
           <EmptyState
             size="sm"
             icon={<Video className="size-5" />}
-            title="No meetings yet"
-            description="Meetings you record show up here."
+            title={t('empty')}
+            description={t('emptyHint')}
             action={
               <Button
                 size="sm"
@@ -322,13 +323,13 @@ export function SessionSidebar({
                 leadingIcon={<Plus className="size-4" />}
                 onClick={onNewSession}
               >
-                New meeting
+                {t('new')}
               </Button>
             }
             className="my-auto"
           />
         ) : groups.length === 0 ? (
-          <EmptyState size="sm" icon={<Search className="size-5" />} title="Geen meetings gevonden" className="my-auto" />
+          <EmptyState size="sm" icon={<Search className="size-5" />} title={t('noResults')} className="my-auto" />
         ) : (
           groups.map((group) => (
             <section key={group.key} aria-label={group.label}>
@@ -367,7 +368,7 @@ export function SessionSidebar({
         draggable
         swipeToDismiss
         showCloseOnTouch
-        aria-label="Meetings"
+        aria-label={t('meetings')}
         className="lg:hidden"
       >
         {railBody}
@@ -375,7 +376,7 @@ export function SessionSidebar({
 
       {/* Desktop rail */}
       <aside
-        aria-label="Meetings"
+        aria-label={t('meetings')}
         className={[
           'hidden shrink-0 border-r border-border-subtle transition-[width] duration-200 ease-in-out lg:flex lg:flex-col',
           open ? 'w-72 xl:w-80' : 'w-16',
@@ -390,7 +391,7 @@ export function SessionSidebar({
               size="sm"
               iconOnly
               onClick={onToggle}
-              tooltip="Show meetings list"
+              tooltip={t('show')}
               leadingIcon={<PanelLeftOpen className="size-4" />}
               className="touch-target-44"
             />
@@ -400,7 +401,8 @@ export function SessionSidebar({
               size="sm"
               iconOnly
               onClick={onNewSession}
-              tooltip="New meeting"
+              tooltip={t('new')}
+              aria-label={t('new')}
               leadingIcon={<Plus className="size-4" />}
               className="touch-target-44"
             />
@@ -437,8 +439,9 @@ export function SessionSidebar({
 
 /** Capture-source glyph; sessions recorded before it was stored keep the document icon. */
 function CaptureIcon({ mode }: { mode: CaptureMode | undefined }) {
+  const t = useT('sidebar');
   const label =
-    mode === 'mic' ? 'Microphone only' : mode === 'system' ? 'System audio only' : mode === 'both' ? 'Microphone and system audio' : null;
+    mode === 'mic' ? t('microphone') : mode === 'system' ? t('systemAudio') : mode === 'both' ? t('micAndSystem') : null;
   if (!label) return <FileText className="size-4" />;
   const Icon = mode === 'mic' ? Mic : mode === 'system' ? MonitorSpeaker : AudioLines;
   return (
@@ -472,12 +475,14 @@ export function getRailBadgeState(
 }
 
 export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete }: RailSessionRowProps) {
+  const t = useT('sidebar');
   // Re-render when a capture starts/stops so the badge flips without waiting
   // for the next index event (the stop persist then fills in the duration).
   useSyncExternalStore(subscribeMeetingStore, () => isSessionRecording(session.sessionId), () => false);
   const recording = isSessionRecording(session.sessionId);
   const badgeState = getRailBadgeState(session, recording);
   const locked = isSessionRecording(session.sessionId);
+  const count = openCount(session.sessionId);
   const subtitle = `${formatTime(session.createdAt)} · ${formatDuration(session.durationSeconds)}`;
   return (
     <div className="group relative w-full">
@@ -491,13 +496,14 @@ export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete }:
             {session.isDraft ? <Pencil className="size-4" /> : <CaptureIcon mode={session.captureMode} />}
           </span>
         }
-        trailing={
-          badgeState === 'recording' ? (
-            <Badge variant="danger" size="xs" dot>Recording</Badge>
+        trailing={<>
+          {count > 0 && <Badge variant="neutral" size="xs">{t('openCount').replace('{n}', String(count))}</Badge>}
+          {badgeState === 'recording' ? (
+            <Badge variant="danger" size="xs" dot>{t('recording')}</Badge>
           ) : badgeState === 'draft' ? (
-            <Badge variant="warning" size="xs">Not recorded</Badge>
-          ) : undefined
-        }
+            <Badge variant="warning" size="xs">{t('notRecorded')}</Badge>
+          ) : undefined}
+        </>}
         className="w-full pr-10"
       />
       <div className="absolute right-1 top-1/2 -translate-y-1/2">
@@ -507,25 +513,25 @@ export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete }:
               variant="ghost"
               size="sm"
               iconOnly
-              tooltip={`More actions for “${session.title}”`}
+              tooltip={t('more').replace('{title}', session.title)}
               leadingIcon={<MoreHorizontal className="size-4" />}
               className="touch-target-44"
             />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem icon={<ArrowRight className="size-4" />} onClick={onOpen}>
-              Open
+              {t('open')}
             </DropdownMenuItem>
             <DropdownMenuItem variant="danger" icon={<Eraser className="size-4" />} disabled={locked} onClick={onClear}>
-              Clear transcript
+              {t('clear')}
             </DropdownMenuItem>
             {locked && (
               <Text size="xs" variant="muted" className="px-2 py-1">
-                Stop the recording first
+                {t('stopFirst')}
               </Text>
             )}
             <DropdownMenuItem variant="danger" icon={<Trash2 className="size-4" />} disabled={locked} onClick={onDelete}>
-              Delete meeting
+              {t('delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

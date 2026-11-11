@@ -11,6 +11,7 @@ import {
   VStack,
 } from '@jensbouma123/acciva-ui';
 import { Plus } from 'lucide-react';
+import { useT } from '@/lib/i18n/useT';
 
 const MAX_NAME_LENGTH = 80;
 
@@ -21,6 +22,7 @@ interface NewSessionDialogProps {
 }
 
 export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogProps) {
+  const t = useT('sidebar');
   const [draft, setDraft] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,39 +39,34 @@ export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogPr
   }, [open]);
 
   const handleSubmit = useCallback(() => {
-    const trimmed = draft.trim();
-    if (!trimmed) {
-      setError('Enter a name for the meeting.');
-      return;
-    }
+    const trimmed = draft.trim() || defaultMeetingName();
     setIsSubmitting(true);
     try {
       onCreate('', trimmed);
     } catch {
-      setError("Couldn't create the meeting. Try again.");
+      setError(t('createError'));
     }
     setIsSubmitting(false);
-  }, [draft, onCreate]);
+  }, [draft, onCreate, t]);
 
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title="New meeting"
-      description="Give it a name so you can find it later."
+      title={t('newTitle')}
+      description={t('newDescription')}
       footer={
         <HStack spacing="sm">
           <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button
             variant="primary"
             onClick={handleSubmit}
             loading={isSubmitting}
-            disabled={draft.trim().length === 0}
             leadingIcon={<Plus className="size-4" />}
           >
-            Create meeting
+            {t('create')}
           </Button>
         </HStack>
       }
@@ -77,10 +74,9 @@ export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogPr
       <VStack spacing="md" fill>
         <FormField
           id="session-name"
-          label="Meeting name"
-          hint="You can rename it any time."
+          label={t('nameOptional')}
+          hint={t('nameHint')}
           error={error ?? undefined}
-          required
         >
           <Input
             value={draft}
@@ -95,7 +91,7 @@ export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogPr
               }
             }}
             id="session-name"
-            placeholder="e.g. Sprint planning #42"
+            placeholder={t('namePlaceholder')}
             maxLength={MAX_NAME_LENGTH}
             showCharCount
             clearable={draft.length > 0}
@@ -109,9 +105,18 @@ export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogPr
         </FormField>
 
         <Text size="xs" variant="subtle">
-          Recording doesn&apos;t start until you press Record.
+          {t('recordingHint')}
         </Text>
       </VStack>
     </Modal>
   );
+}
+
+function defaultMeetingName(): string {
+  const now = new Date();
+  const language = typeof navigator === 'undefined' ? 'en' : navigator.language;
+  const locale = language.toLowerCase().startsWith('nl') ? 'nl-NL' : 'en-US';
+  const date = new Intl.DateTimeFormat(locale, { weekday: 'short', day: 'numeric', month: 'short' }).format(now);
+  const time = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(now);
+  return `Meeting ${date}, ${time}`;
 }
