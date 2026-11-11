@@ -89,4 +89,13 @@ describe('meeting notes', () => {
       seg('neutral', 'Monday is the first day of the week.'),
     ])).toHaveLength(2);
   });
+
+  it('ignores fragments under 5 words and dedupes repeated sentences', () => {
+    const out = suggestFromSegments([
+      seg('1', 'Graag even.'),
+      seg('2', 'Graag de planning nog even doen.'),
+      seg('3', 'graag de planning nog even doen.'),
+    ]);
+    expect(out.map((item) => item.sourceSegmentId)).toEqual(['2']);
+  });
 });

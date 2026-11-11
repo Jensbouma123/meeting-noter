@@ -6,7 +6,7 @@ import { getSpeakerColor } from './speaker-theme';
 import { useSpeakerStats } from '@/lib/meeting';
 import type { Speaker } from '@/lib/meeting';
 import { meeting } from './store';
-import { Check, ChevronLeft, ChevronRight, Pencil, Users } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, ListChecks, Pencil, Users } from 'lucide-react';
 import { ProgressTrack } from '@/components/common/ProgressTrack';
 import { NotesPanel } from '@/components/notes/NotesPanel';
 import type { Segment } from '@/lib/meeting/types';
@@ -280,8 +280,8 @@ export function RightRail({ sessionId, segments = [] }: { sessionId: string; seg
     >
       <VStack spacing="sm" className="h-full min-h-0 p-4">
         <HStack spacing="sm" role="tablist" aria-label={t('tabs')}>
-          <Button role="tab" aria-selected={activeTab === 'participants'} size="sm" variant={activeTab === 'participants' ? 'primary' : 'ghost'} onClick={() => setActiveTab('participants')}>{t('participants')} <Badge variant="neutral" size="sm">{speakerStatRows.length}</Badge></Button>
-          <Button role="tab" aria-selected={activeTab === 'summary'} size="sm" variant={activeTab === 'summary' ? 'primary' : 'ghost'} onClick={() => setActiveTab('summary')}>{t('summary')}</Button>
+          <Button className="whitespace-nowrap" role="tab" aria-selected={activeTab === 'participants'} size="sm" variant={activeTab === 'participants' ? 'primary' : 'ghost'} onClick={() => setActiveTab('participants')}>{t('participants')} <Badge variant="neutral" size="sm">{speakerStatRows.length}</Badge></Button>
+          <Button className="whitespace-nowrap" role="tab" aria-selected={activeTab === 'summary'} size="sm" variant={activeTab === 'summary' ? 'primary' : 'ghost'} onClick={() => setActiveTab('summary')}>{t('summary')}</Button>
         </HStack>
         <VStack spacing="sm" className="min-h-0 flex-1 overflow-y-auto pb-4">
           {activeTab === 'participants' ? list : <NotesPanel sessionId={sessionId} speakers={speakerStatRows.map((row) => ({ id: row.id, label: row.label, colorIndex: row.colorIndex, source: row.source }))} segments={segments} />}
@@ -328,13 +328,15 @@ export function RightRail({ sessionId, segments = [] }: { sessionId: string; seg
       >
         <HStack spacing="sm" justify="between" className="shrink-0 px-4 pt-4">
           <HStack spacing="sm">
-            <Users className="size-4 text-muted-foreground" aria-hidden="true" />
+            {activeTab === 'participants'
+              ? <Users className="size-4 text-muted-foreground" aria-hidden="true" />
+              : <ListChecks className="size-4 text-muted-foreground" aria-hidden="true" />}
             <Heading as="h2" level={2} size="xs" variant="muted" weight="semibold">
               {activeTab === 'participants' ? t('participants') : t('summary')}
             </Heading>
-            <Badge variant="neutral" size="sm">
+            {activeTab === 'participants' && <Badge variant="neutral" size="sm">
               {speakerStatRows.length}
-            </Badge>
+            </Badge>}
           </HStack>
 
           <Button
@@ -350,8 +352,8 @@ export function RightRail({ sessionId, segments = [] }: { sessionId: string; seg
         </HStack>
 
         <HStack spacing="sm" role="tablist" aria-label={t('tabs')} className="shrink-0 px-4">
-          <Button role="tab" aria-selected={activeTab === 'participants'} size="sm" variant={activeTab === 'participants' ? 'primary' : 'ghost'} onClick={() => setActiveTab('participants')}>{t('participants')}</Button>
-          <Button role="tab" aria-selected={activeTab === 'summary'} size="sm" variant={activeTab === 'summary' ? 'primary' : 'ghost'} onClick={() => setActiveTab('summary')}>{t('summary')}</Button>
+          <Button className="whitespace-nowrap" role="tab" aria-selected={activeTab === 'participants'} size="sm" variant={activeTab === 'participants' ? 'primary' : 'ghost'} onClick={() => setActiveTab('participants')}>{t('participants')}</Button>
+          <Button className="whitespace-nowrap" role="tab" aria-selected={activeTab === 'summary'} size="sm" variant={activeTab === 'summary' ? 'primary' : 'ghost'} onClick={() => setActiveTab('summary')}>{t('summary')}</Button>
         </HStack>
         <VStack spacing="sm" className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
           {activeTab === 'participants' ? list : <NotesPanel sessionId={sessionId} speakers={speakerStatRows.map((row) => ({ id: row.id, label: row.label, colorIndex: row.colorIndex, source: row.source }))} segments={segments} />}
