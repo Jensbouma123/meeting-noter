@@ -3,6 +3,7 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { getMeetingDiagnostics, type MeetingDiagnostics } from '@/lib/meeting';
 import type { TrackReadout } from '@/lib/meeting/capture';
+import { useT } from '@/lib/i18n/useT';
 
 const STORAGE_KEY = 'capture-debug';
 
@@ -83,6 +84,7 @@ function trackLine(t: TrackReadout): string {
  * and the frames, speech, inferences, words and diarization turns it fed.
  */
 export function CaptureDiagnostics() {
+  const t = useT('dialogs');
   const enabled = useSyncExternalStore(subscribeCaptureDebug, captureDebugEnabled, () => false);
   const [diag, setDiag] = useState<MeetingDiagnostics | null>(null);
 
@@ -102,26 +104,26 @@ export function CaptureDiagnostics() {
       className="fixed right-3 top-16 z-50 max-w-[min(30rem,calc(100vw-2rem))] rounded-md border border-border-subtle bg-surface/95 p-2 font-mono text-[11px] leading-snug shadow-lg"
     >
       <div className="mb-1 flex items-center justify-between gap-3 font-semibold">
-        <span>Capture diagnostics</span>
+        <span>{t('diagnostics.title')}</span>
         <button
           type="button"
           onClick={() => setCaptureDebug(false)}
           className="rounded px-1.5 text-muted-foreground hover:text-foreground"
-          aria-label="Hide capture diagnostics"
+          aria-label={t('diagnostics.hide')}
         >
           ✕
         </button>
       </div>
       {!diag || !c ? (
-        <div>No recording running.</div>
+        <div>{t('diagnostics.idle')}</div>
       ) : (
         <>
           <div>
             mode={c.mode} · ctx={c.contextState} {c.contextSampleRate} Hz · surface={c.displaySurface ?? '—'} · micEC=
             {String(c.micCancelsEcho)} · micReopens={c.micReopens} · postStop={String(diag.postStop)}
           </div>
-          {c.shareError && <div className="text-warning-foreground">share failed: {c.shareError}</div>}
-          {c.shareSilent && <div className="text-warning-foreground">share flagged silent</div>}
+          {c.shareError && <div className="text-warning-foreground">{t('diagnostics.shareFailed').replace('{error}', c.shareError)}</div>}
+          {c.shareSilent && <div className="text-warning-foreground">{t('diagnostics.shareSilent')}</div>}
           {(['mic', 'system'] as const).map((source) => {
             const s = c.sources[source];
             const frames = diag.frames[source];
@@ -131,8 +133,8 @@ export function CaptureDiagnostics() {
             return (
               <div key={source} className="mt-1 border-t border-border-subtle pt-1">
                 <div className="font-semibold">
-                  {source === 'mic' ? 'Mic' : 'Call'}
-                  {s ? '' : ' (detached)'}
+                  {t(source === 'mic' ? 'diagnostics.mic' : 'diagnostics.call')}
+                  {s ? '' : t('diagnostics.detached')}
                 </div>
                 {s?.tracks.map((t, i) => (
                   <div key={i} className="break-all">

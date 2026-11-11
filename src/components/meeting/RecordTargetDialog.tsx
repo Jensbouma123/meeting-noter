@@ -1,6 +1,7 @@
 'use client';
 
 import { Button, Modal } from '@jensbouma123/acciva-ui';
+import { useT } from '@/lib/i18n/useT';
 
 export interface RecordTargetDialogProps {
   open: boolean;
@@ -33,24 +34,30 @@ export function RecordTargetDialog({
   onAppend,
   onStartNew,
 }: RecordTargetDialogProps) {
-  const noun = segmentCount === 1 ? 'segment' : 'segments';
+  const t = useT('dialogs');
+  const noun = t(segmentCount === 1 ? 'recordTarget.segment' : 'recordTarget.segments');
+  const description = t('recordTarget.description')
+    .replace('{title}', title)
+    .replace('{count}', String(segmentCount))
+    .replace('{segmentWord}', noun)
+    .replace('{duration}', formatDuration(durationSeconds));
   return (
     <Modal
       open={open}
       onClose={onCancel}
-      title="This session already has a transcript"
-      description={`“${title}” has ${segmentCount} ${noun} (${formatDuration(durationSeconds)}). Add the new recording to it, or keep it as is and start a new session?`}
+      title={t('recordTarget.title')}
+      description={description}
       size="sm"
       footer={
         <div className="flex w-full flex-col gap-2 sm:flex-row-reverse sm:justify-start">
           <Button variant="primary" className="min-h-11 w-full sm:w-auto" onClick={onAppend}>
-            Append to this session
+            {t('recordTarget.append')}
           </Button>
           <Button variant="secondary" className="min-h-11 w-full sm:w-auto" onClick={onStartNew}>
-            Start a new session
+            {t('recordTarget.newSession')}
           </Button>
           <Button variant="ghost" className="min-h-11 w-full sm:w-auto" onClick={onCancel}>
-            Cancel
+            {t('recordTarget.cancel')}
           </Button>
         </div>
       }

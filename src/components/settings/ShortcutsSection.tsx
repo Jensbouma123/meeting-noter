@@ -10,7 +10,7 @@ export function ShortcutsSection() {
       {SHORTCUTS.map((s) => (
         <SettingsRow
           key={s.label}
-          label={s.label}
+          label={`shortcut:${s.label}`}
           control={
             <HStack spacing="xs" className="flex-wrap">
               {s.keys.map((k) => (
