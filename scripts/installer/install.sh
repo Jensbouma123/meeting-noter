@@ -8,8 +8,12 @@
 #
 # Installs:
 #   ~/Library/Application Support/Meeting Noter/   app, helper, logs, uninstall.sh
-#   ~/Library/LaunchAgents/nl.jensbouma.meeting-noter.{server,audio-helper}.plist
-#   /Applications (or ~/Applications)/Meeting Noter.app  opens http://localhost:3000
+#   ~/Library/LaunchAgents/nl.jensbouma.meeting-noter.audio-helper.plist
+#   /Applications (or ~/Applications)/Meeting Noter.app  starts the server on demand
+#     and opens http://localhost:3000
+# The web server is no longer a LaunchAgent: the app starts it when opened and it
+# stops itself when the browser tab is gone. An older install's server agent is
+# removed here.
 #
 # The fast WebGPU speech model (encoder-model.q4f16.onnx, 516 MB) is built once on
 # this Mac, after the app runs: a pinned standalone `uv` (astral-sh, sha256
@@ -87,6 +91,24 @@ EOF
   plutil -lint -s "$AGENTS/$1.plist" || fail "Ongeldig LaunchAgent-bestand: $AGENTS/$1.plist"
 }
 
+# Stops the on-demand server (the pid in server.pid, only when it runs our app).
+server_stop() {
+  local pid n=0
+  pid=$(cat "$ROOT/server.pid" 2>/dev/null) || return 0
+  case $pid in ''|*[!0-9]*) return 0 ;; esac
+  case $(ps -p "$pid" -o command= 2>/dev/null) in *"$ROOT/app"*) ;; *) rm -f "$ROOT/server.pid"; return 0 ;; esac
+  kill "$pid" 2>/dev/null || true
+  while kill -0 "$pid" 2>/dev/null && [ "$n" -lt 10 ]; do sleep 1; n=$((n + 1)); done
+  kill -0 "$pid" 2>/dev/null && kill -9 "$pid" 2>/dev/null || true
+  rm -f "$ROOT/server.pid"
+}
+server_start() {
+  [ -n "${MEETING_NOTER_NO_LAUNCHD:-}" ] && return 0
+  bash "$ROOT/app/launcher/launcher.sh" --no-open
+}
+# Stops the server whether it still runs as the old LaunchAgent or on demand.
+server_halt() { agent_stop "$SERVER_LABEL"; server_stop; }
+
 agent_stop() { [ -n "${MEETING_NOTER_NO_LAUNCHD:-}" ] || launchctl bootout "gui/$(id -u)/$1" 2>/dev/null || true; }
 agent_start() {
   [ -n "${MEETING_NOTER_NO_LAUNCHD:-}" ] && return 0
@@ -152,15 +174,6 @@ build_model() {
   say "✓ GPU-spraakmodel gebouwd"
 }
 
-wait_ready() {
-  local i
-  for i in $(seq 1 60); do
-    curl -fs -o /dev/null "http://127.0.0.1:$PORT" 2>/dev/null && return 0
-    sleep 1
-  done
-  return 1
-}
-
 # Escapes &, < and > for a plist <string>.
 xml() { local s=${1//&/&amp;}; s=${s//</&lt;}; printf '%s' "${s//>/&gt;}"; }
 
@@ -201,7 +214,7 @@ main() {
     mkdir "$ROOT/app.new"
     tar -xzf "$tmp/$asset" -C "$ROOT/app.new" --strip-components 1 || fail "Uitpakken mislukt."
     "$ROOT/app.new/node/bin/node" -e 0 2>/dev/null || fail "De meegeleverde Node.js start niet op deze Mac."
-    agent_stop "$SERVER_LABEL"
+    server_halt
     if [ -d "$ROOT/app" ]; then mv "$ROOT/app" "$ROOT/app.old"; fi
     mv "$ROOT/app.new" "$ROOT/app"
     rm -rf "$ROOT/app.old"
@@ -217,7 +230,8 @@ main() {
 
   # The helper keeps its old copy when it is byte-identical: macOS ties the
   # microphone permission of an ad-hoc signed binary to its exact contents.
-  agent_stop "$SERVER_LABEL"
+  server_halt
+  rm -f "$AGENTS/$SERVER_LABEL.plist"
   if [ -z "${MEETING_NOTER_NO_LAUNCHD:-}" ] && curl -fs -o /dev/null "http://127.0.0.1:$PORT" 2>/dev/null; then
     fail "Poort $PORT is al in gebruik door een ander programma (draait 'Start Meeting Noter.command' nog?). Sluit dat en probeer opnieuw."
   fi
@@ -232,19 +246,8 @@ main() {
   fi
   cp "$ROOT/app/uninstall.sh" "$ROOT/uninstall.sh"
 
-  local node server
-  node=$(xml "$ROOT/app/node/bin/node")
-  server=$(xml "$ROOT/app/server")
-  write_agent "$SERVER_LABEL" \
-    "<string>$node</string><string>$server/server.js</string>" \
-    "	<key>WorkingDirectory</key><string>$server</string>
-	<key>EnvironmentVariables</key><dict>
-		<key>PORT</key><string>$PORT</string>
-		<key>HOSTNAME</key><string>127.0.0.1</string>
-		<key>NODE_ENV</key><string>production</string>
-	</dict>" \
-    "$(xml "$ROOT/logs/server.log")"
-  agent_start "$SERVER_LABEL"
+  say "Wachten tot Meeting Noter klaar is…"
+  server_start || fail "Meeting Noter startte niet. Logbestand: $ROOT/logs/server.log"
   if [ -n "$helper_ok" ]; then
     write_agent "$HELPER_LABEL" "<string>$(xml "$helper")</string>" "" "$(xml "$ROOT/logs/helper.log")"
     agent_start "$HELPER_LABEL"
@@ -287,17 +290,12 @@ EOF
     || /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$APP" 2>/dev/null || true
   say "✓ App aangemaakt: $APP"
 
-  if [ -z "${MEETING_NOTER_NO_LAUNCHD:-}" ]; then
-    say "Wachten tot Meeting Noter klaar is…"
-    wait_ready || fail "Meeting Noter startte niet. Logbestand: $ROOT/logs/server.log"
-  fi
-
   if [ -z "${MEETING_NOTER_SKIP_GPU_MODEL:-}" ]; then
     local had_model=
     [ -f "$ROOT/models/$MODEL_DIR_NAME/encoder-model.q4f16.onnx" ] && had_model=1
     if build_model && [ -z "$had_model" ]; then
-      agent_start "$SERVER_LABEL"
-      [ -n "${MEETING_NOTER_NO_LAUNCHD:-}" ] || wait_ready || fail "Meeting Noter startte niet. Logbestand: $ROOT/logs/server.log"
+      server_halt
+      server_start || fail "Meeting Noter startte niet. Logbestand: $ROOT/logs/server.log"
     fi
   fi
 

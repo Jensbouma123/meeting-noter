@@ -1,11 +1,15 @@
 #!/bin/bash
 # What ~/Applications/Meeting Noter.app runs (install.sh makes the bundle exec
-# this file from the installed app). Makes sure both LaunchAgents run, offers a
-# newer release, waits for the server and opens it in the default browser.
+# this file from the installed app). Starts the web server on demand (it stops
+# itself when the browser tab is gone), then opens it in the default browser.
+# --no-open: no dialogs and no browser; print errors and exit 1 (used by install.sh).
 ROOT="$HOME/Library/Application Support/Meeting Noter"
 APP_DIR="$ROOT/app"
 URL="http://localhost:3000"
-INSTALL_URL="https://github.com/Jensbouma123/meeting-noter/releases/latest/download/install.sh"
+STATUS_URL="http://127.0.0.1:3000/api/app/status"
+PORT=3000
+NO_OPEN=
+[ "${1:-}" = "--no-open" ] && NO_OPEN=1
 uid=$(id -u)
 
 dialog() { # message [button…] -> prints the clicked button; the last one is the default
@@ -26,23 +30,71 @@ ensure_agent() {
   launchctl kickstart "gui/$uid/$label" 2>/dev/null
 }
 
-newer=$("$APP_DIR/node/bin/node" "$APP_DIR/launcher/check-update.mjs" 2>/dev/null)
-if [ -n "$newer" ]; then
-  answer=$(dialog "Er is een nieuwe versie van Meeting Noter ($newer). Nu bijwerken? Dit duurt ongeveer een minuut; uw opnames blijven bewaard." Later Bijwerken)
-  if [ "$answer" = "Bijwerken" ]; then
-    osascript -e 'display notification "Bijwerken… de app opent zodra het klaar is." with title "Meeting Noter"' 2>/dev/null
-    if ! curl -fsSL "$INSTALL_URL" | MEETING_NOTER_NO_OPEN=1 bash >"$ROOT/logs/update.log" 2>&1; then
-      dialog "Bijwerken is mislukt; de huidige versie blijft werken. Details: $ROOT/logs/update.log" >/dev/null
-    fi
-  fi
-fi
-
-ensure_agent nl.jensbouma.meeting-noter.server
 ensure_agent nl.jensbouma.meeting-noter.audio-helper
 
-for _ in $(seq 1 60); do
-  curl -fs -o /dev/null "http://127.0.0.1:3000" 2>/dev/null && exec open "$URL"
-  sleep 1
+# nl when the macOS locale starts with nl, else en.
+case $(defaults read -g AppleLocale 2>/dev/null) in nl*) LANG_UI=nl ;; *) LANG_UI=en ;; esac
+
+# Prints "ours" (our app answers), "free" (nothing listens) or "busy" (something else answers).
+probe() {
+  local body rc
+  body=$(curl -fs --max-time 3 "$STATUS_URL" 2>/dev/null); rc=$?
+  if [ $rc -eq 0 ] && printf '%s' "$body" | grep -q '"app":"meeting-noter"'; then echo ours
+  elif [ $rc -eq 7 ]; then echo free
+  else echo busy; fi
+}
+
+port_busy() {
+  if [ -n "$NO_OPEN" ]; then
+    echo "Port $PORT is in use by another program." >&2
+    exit 1
+  fi
+  local title body retry close
+  if [ "$LANG_UI" = nl ]; then
+    title="Meeting Noter kan niet starten"
+    body="Een ander programma gebruikt poort 3000, die Meeting Noter nodig heeft. Sluit dat programma (bijvoorbeeld een oudere Meeting Noter die nog via 'Start Meeting Noter' draait) en probeer het opnieuw. Je opnames blijven bewaard."
+    close=Sluiten; retry="Opnieuw proberen"
+  else
+    title="Meeting Noter can't start"
+    body="Another program is using port 3000, which Meeting Noter needs. Close that program (for example an older Meeting Noter still running via 'Start Meeting Noter') and try again. Your recordings are kept."
+    close=Close; retry="Try again"
+  fi
+  local answer
+  answer=$(osascript - "$title" "$body" "$close" "$retry" <<'EOS' 2>/dev/null
+on run argv
+  return button returned of (display dialog (item 2 of argv) with title (item 1 of argv) buttons {item 3 of argv, item 4 of argv} default button 2)
+end run
+EOS
+)
+  [ "$answer" = "$retry" ]
+}
+
+start_failed() {
+  if [ -n "$NO_OPEN" ]; then echo "Meeting Noter did not start; see $ROOT/logs/server.log" >&2; exit 1; fi
+  if [ "$LANG_UI" = nl ]; then dialog "Meeting Noter startte niet. Logbestand: $ROOT/logs/server.log" >/dev/null
+  else dialog "Meeting Noter did not start. Log file: $ROOT/logs/server.log" >/dev/null; fi
+  exit 1
+}
+
+while :; do
+  case $(probe) in
+    ours) break ;;
+    free)
+      mkdir -p "$ROOT/logs"
+      (cd "$APP_DIR/server" && PORT=$PORT HOSTNAME=127.0.0.1 NODE_ENV=production MEETING_NOTER_IDLE_SHUTDOWN=1 MEETING_NOTER_ROOT="$ROOT" \
+        nohup "$APP_DIR/node/bin/node" server.js >>"$ROOT/logs/server.log" 2>&1 </dev/null & echo $! > "$ROOT/server.pid")
+      pid=$(cat "$ROOT/server.pid")
+      ready=
+      for _ in $(seq 1 60); do
+        kill -0 "$pid" 2>/dev/null || break
+        [ "$(probe)" = ours ] && { ready=1; break; }
+        sleep 1
+      done
+      [ -n "$ready" ] || start_failed
+      break ;;
+    *) port_busy || exit 1 ;;
+  esac
 done
-dialog "Meeting Noter startte niet. Probeer de installatieopdracht opnieuw, of stuur dit logbestand mee als u hulp vraagt: $ROOT/logs/server.log" >/dev/null
-exit 1
+
+[ -n "$NO_OPEN" ] && exit 0
+exec open "$URL"

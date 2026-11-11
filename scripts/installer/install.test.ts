@@ -123,7 +123,7 @@ describe.skipIf(process.platform !== 'darwin')('install.sh', () => {
     expect(full.out).toContain('schijfruimte');
   });
 
-  it('installs the app, both LaunchAgents and the .app', () => {
+  it('installs the app, the audio-helper LaunchAgent and the .app (no server agent)', () => {
     release('0.2.0');
     const r = run(INSTALL);
     expect(r.out).toContain('Meeting Noter 0.2.0 is geïnstalleerd');
@@ -131,16 +131,22 @@ describe.skipIf(process.platform !== 'darwin')('install.sh', () => {
     expect(readFileSync(path.join(root(), 'app/VERSION'), 'utf8').trim()).toBe('0.2.0');
     expect(readFileSync(path.join(root(), 'bin/meeting-noter-audio-helper'), 'utf8')).toContain('helper-v1');
     expect(existsSync(path.join(root(), 'uninstall.sh'))).toBe(true);
-    for (const label of ['server', 'audio-helper']) {
-      const plist = path.join(home, `Library/LaunchAgents/nl.jensbouma.meeting-noter.${label}.plist`);
-      expect(spawnSync('plutil', ['-lint', '-s', plist]).status).toBe(0);
-    }
-    const server = readFileSync(path.join(home, 'Library/LaunchAgents/nl.jensbouma.meeting-noter.server.plist'), 'utf8');
-    expect(server).toContain(`<string>${root()}/app/server/server.js</string>`);
-    expect(server).toContain('<key>PORT</key><string>3000</string>');
+    const helperPlist = path.join(home, 'Library/LaunchAgents/nl.jensbouma.meeting-noter.audio-helper.plist');
+    expect(spawnSync('plutil', ['-lint', '-s', helperPlist]).status).toBe(0);
+    expect(existsSync(path.join(home, 'Library/LaunchAgents/nl.jensbouma.meeting-noter.server.plist'))).toBe(false);
     const app = path.join(home, 'Applications/Meeting Noter.app/Contents');
     expect(readFileSync(path.join(app, 'Info.plist'), 'utf8')).toContain('<string>0.2.0</string>');
     expect(statSync(path.join(app, 'MacOS/meeting-noter')).mode & 0o111).not.toBe(0);
+  });
+
+  it('migrates an older install: removes the server LaunchAgent', () => {
+    release('0.2.0');
+    const plist = path.join(home, 'Library/LaunchAgents/nl.jensbouma.meeting-noter.server.plist');
+    mkdirSync(path.dirname(plist), { recursive: true });
+    writeFileSync(plist, '<plist/>');
+    const r = run(INSTALL);
+    expect(r.code, r.out).toBe(0);
+    expect(existsSync(plist)).toBe(false);
   });
 
   it('downloads nothing when the newest version is already installed', () => {

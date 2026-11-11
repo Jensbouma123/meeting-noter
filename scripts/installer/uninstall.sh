@@ -11,6 +11,16 @@ set -uo pipefail
 ROOT="$HOME/Library/Application Support/Meeting Noter"
 AGENTS="$HOME/Library/LaunchAgents"
 
+# The server runs on demand (not as a LaunchAgent); stop it before its files go.
+pid=$(cat "$ROOT/server.pid" 2>/dev/null)
+case $pid in ''|*[!0-9]*) ;; *)
+  case $(ps -p "$pid" -o command= 2>/dev/null) in *"$ROOT/app"*)
+    kill "$pid" 2>/dev/null
+    for _ in 1 2 3 4 5 6 7 8 9 10; do kill -0 "$pid" 2>/dev/null || break; sleep 1; done
+    kill -9 "$pid" 2>/dev/null ;;
+  esac ;;
+esac
+
 for label in nl.jensbouma.meeting-noter.server nl.jensbouma.meeting-noter.audio-helper; do
   [ -n "${MEETING_NOTER_NO_LAUNCHD:-}" ] || launchctl bootout "gui/$(id -u)/$label" 2>/dev/null
   rm -f "$AGENTS/$label.plist"
