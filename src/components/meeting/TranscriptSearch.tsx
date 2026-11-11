@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown, ChevronUp, Search, X } from 'lucide-react';
 import type { Segment } from '@/lib/meeting';
+import { useT } from '@/lib/i18n/useT';
 import { Button, Card, HStack, Input, Text } from '@jensbouma123/acciva-ui';
 
 export interface SearchMatch {
@@ -86,6 +87,7 @@ export function TranscriptSearch({
   onClose,
   onNavigatedAway,
 }: TranscriptSearchProps) {
+  const t = useT('transcript');
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -219,8 +221,8 @@ export function TranscriptSearch({
     query.length === 0
       ? ''
       : matches.length === 0
-        ? 'No results'
-        : `${clampedActive + 1} of ${matches.length}`;
+        ? t('noResults')
+        : t('resultCount').replace('{current}', String(clampedActive + 1)).replace('{total}', String(matches.length));
 
   return (
     <Card
@@ -228,7 +230,7 @@ export function TranscriptSearch({
       padding="sm"
       className="w-full max-w-md animate-banner-enter shadow-elevation-3"
       role="search"
-      aria-label="Search transcript"
+      aria-label={t('searchLabel')}
       onKeyDown={(e) => {
         if (e.key === 'Escape') {
           e.stopPropagation();
@@ -253,8 +255,8 @@ export function TranscriptSearch({
               else goNext();
             }
           }}
-          placeholder="Search transcript…"
-          aria-label="Search transcript"
+          placeholder={t('searchPlaceholder')}
+          aria-label={t('searchLabel')}
           leadingIcon={<Search className="size-3.5" aria-hidden="true" />}
           clearable={query.length > 0}
           onClear={() => {
@@ -282,7 +284,7 @@ export function TranscriptSearch({
           className="touch-target-44"
           onClick={goPrev}
           disabled={matches.length === 0}
-          tooltip="Previous match (Shift+Enter)"
+          tooltip={t('previous')}
           leadingIcon={<ChevronUp className="size-4" />}
         />
         <Button
@@ -292,7 +294,7 @@ export function TranscriptSearch({
           className="touch-target-44"
           onClick={goNext}
           disabled={matches.length === 0}
-          tooltip="Next match (Enter)"
+          tooltip={t('next')}
           leadingIcon={<ChevronDown className="size-4" />}
         />
         <Button
@@ -301,7 +303,7 @@ export function TranscriptSearch({
           iconOnly
           className="touch-target-44"
           onClick={onClose}
-          tooltip="Close search (Esc)"
+          tooltip={t('close')}
           leadingIcon={<X className="size-4" />}
         />
       </HStack>

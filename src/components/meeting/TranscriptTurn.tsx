@@ -3,7 +3,8 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import type { Segment } from '@/lib/meeting';
 import { getSpeakerColor } from './speaker-theme';
-import { Badge, HStack, Text } from '@jensbouma123/acciva-ui';
+import { Badge, Button, HStack, Text } from '@jensbouma123/acciva-ui';
+import { useT } from '@/lib/i18n/useT';
 
 interface TranscriptTurnProps {
   segment: Segment;
@@ -11,6 +12,7 @@ interface TranscriptTurnProps {
   speakerColorIndex: number;
   /** First line of a run by the same speaker: shows name, time and source once. */
   showHeader?: boolean;
+  actions?: { createAction: () => void; markDecision: () => void };
 }
 
 function formatTimestamp(seconds: number): string {
@@ -37,7 +39,9 @@ export const TranscriptTurn = React.memo(
     speakerLabel,
     speakerColorIndex,
     showHeader = true,
+    actions,
   }: TranscriptTurnProps) {
+    const t = useT('transcript');
     const colorStyle = getSpeakerColor(speakerColorIndex);
     const isFinal = segment.final;
 
@@ -71,11 +75,11 @@ export const TranscriptTurn = React.memo(
               redefines — the hand-rolled `bg-elevation-1` + `text-muted-*`
               pair it replaced did not adapt. */}
             <Badge variant="neutral" size="xxs">
-              {segment.source === 'mic' ? 'Mic' : 'Call'}
+              {segment.source === 'mic' ? t('mic') : t('call')}
             </Badge>
             {!isFinal && (
               <Badge variant="primary" size="xxs" dot>
-                Listening…
+                {t('listening')}
               </Badge>
             )}
           </HStack>
@@ -109,6 +113,12 @@ export const TranscriptTurn = React.memo(
               aria-hidden="true"
             />
           </Text>
+          {actions && segment.final && (
+            <div className="flex gap-2 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+              <Button type="button" variant="ghost" size="sm" onClick={actions.createAction}>{t('createAction')}</Button>
+              <Button type="button" variant="ghost" size="sm" onClick={actions.markDecision}>{t('markDecision')}</Button>
+            </div>
+          )}
         </div>
       </article>
     );

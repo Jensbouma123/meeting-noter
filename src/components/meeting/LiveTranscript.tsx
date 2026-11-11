@@ -17,8 +17,11 @@ import {
 import { ArrowDown, Mic } from 'lucide-react';
 import type { ModelReadiness } from './modelReadiness';
 import type { SettingsSectionId } from '@/components/settings/sections';
+import { useT } from '@/lib/i18n/useT';
+import { addAction, addDecision } from '@/lib/meeting/notes';
 
 interface LiveTranscriptProps {
+  sessionId?: string;
   segments: Segment[];
   speakers: Record<string, Speaker>;
   status: Status;
@@ -46,9 +49,6 @@ const LIVE_EDGE_PX = 80;
 
 const cssEscape = (value: string): string =>
   typeof CSS !== 'undefined' && typeof CSS.escape === 'function' ? CSS.escape(value) : value;
-
-/** Full text of the speaker-cell placeholder (the cell itself says `Identifying…`). */
-const PENDING_LABEL = 'Checking who said this…';
 
 /** Drops the rule `TranscriptTurn` draws left of a line (its text box, the
  *  `.turn-block`'s child), from `sm` up, in an overlap column. */
@@ -97,6 +97,7 @@ const itemSegments = (item: Item): Segment[] =>
   item.kind === 'line' ? [item.seg] : item.columns.flatMap((c) => c.segs);
 
 export function LiveTranscript({
+  sessionId,
   segments,
   speakers,
   status,
@@ -105,6 +106,7 @@ export function LiveTranscript({
   modelReadiness,
   onOpenSettings,
 }: LiveTranscriptProps) {
+  const t = useT('transcript');
   // The transcript is a `VirtualList` (only the lines near the viewport are
   // in the DOM); its handle reaches the scrolling viewport and scrolls by line
   // index, which is how a search match that isn't mounted gets brought in.
@@ -314,15 +316,25 @@ export function LiveTranscript({
   const preparing = modelReadiness === 'loading' || modelReadiness === 'downloading';
   const failed = modelReadiness === 'failed';
   const emptyTitle = preparing
-    ? 'Getting the speech model ready…'
+    ? t('speechPreparing')
     : failed
-      ? "Speech model didn't load"
-      : 'Download the speech model';
+      ? t('speechFailed')
+      : t('speechMissing');
   const emptyBody = preparing
-    ? 'This can take a minute the first time. You can follow progress at the top of the page.'
+    ? t('speechPreparingDescription')
     : failed
-      ? 'Recording now would save audio without a transcript. Try again from Settings.'
-      : "It's a one-time download that lets Meeting Noter transcribe on your device.";
+      ? t('speechFailedDescription')
+      : t('speechMissingDescription');
+
+  // Hover/focus actions on a final line: save it to the notes as an action
+  // item or a decision, remembering the segment it came from.
+  const turnActions = (seg: Segment) =>
+    sessionId
+      ? {
+          createAction: () => { addAction(sessionId, seg.text, { sourceSegmentId: seg.id }); },
+          markDecision: () => { addDecision(sessionId, seg.text, seg.id); },
+        }
+      : undefined;
 
   // Timestamp gutter, then the speaker column: wide enough for hh:mm:ss once
   // the meeting passes an hour, and narrower on a phone. The phone speaker
@@ -344,7 +356,7 @@ export function LiveTranscript({
     const speaker = speakers[id];
     const colorIndex = speaker?.colorIndex ?? 0;
     return {
-      label: speaker?.label ?? (source === 'mic' ? 'You' : 'Unknown speaker'),
+      label: speaker?.label ?? (source === 'mic' ? t('you') : t('unknownSpeaker')),
       colorIndex,
       color: getSpeakerColor(colorIndex),
     };
@@ -357,7 +369,7 @@ export function LiveTranscript({
     const last = index === lines.length - 1;
     // A column's own source: the mic's and the call's speakers can overlap.
     const names = columns.map((c) => speakerStyle(c.speaker, c.segs[0].source).label);
-    const groupLabel = `Speaking at the same time: ${names.join(' and ')}`;
+    const groupLabel = t('overlap').replace('{names}', names.join(t('and')));
     return (
       <div className={`mn-vrow px-4 md:px-8 ${index === 0 ? 'pt-6' : ''} ${last ? 'pb-40' : ''}`}>
         <div className="mx-auto w-full max-w-[calc(72ch+10rem)]">
@@ -377,7 +389,7 @@ export function LiveTranscript({
               <span
                 data-overlap-bracket=""
                 aria-hidden="true"
-                title="Speaking at the same time"
+                title={groupLabel}
                 className="absolute inset-y-1 left-0 w-1.5 rounded-l-sm border-y-2 border-l-2 border-text-muted/50 sm:hidden"
               />
               <div
@@ -409,6 +421,7 @@ export function LiveTranscript({
                       {segs.map((seg) => (
                         <div key={seg.id} data-seg-id={seg.id} className="min-w-0">
                           <TranscriptTurn
+                            actions={turnActions(seg)}
                             segment={seg}
                             speakerLabel={label}
                             speakerColorIndex={colorIndex}
@@ -432,10 +445,10 @@ export function LiveTranscript({
 
   const renderLine = ({ seg, turnStart }: Line, index: number) => {
     const speaker = speakers[seg.speaker];
-    const speakerLabel = speaker?.label ?? (seg.source === 'mic' ? 'You' : 'Unknown speaker');
+    const speakerLabel = speaker?.label ?? (seg.source === 'mic' ? t('you') : t('unknownSpeaker'));
     const speakerColor = speaker?.colorIndex ?? 0;
     const colorStyle = getSpeakerColor(speakerColor);
-    const sourceLabel = seg.source === 'mic' ? 'Mic' : 'Call';
+    const sourceLabel = seg.source === 'mic' ? t('mic') : t('call');
     const last = index === lines.length - 1;
 
     // The row is the measured box. Every row has the same shape whether it
@@ -469,8 +482,8 @@ export function LiveTranscript({
               <span
                 data-speaker-pending=""
                 role="status"
-                aria-label={PENDING_LABEL}
-                title={PENDING_LABEL}
+                aria-label={t('pendingSpeaker')}
+                title={t('pendingSpeaker')}
                 className={`flex min-w-0 items-baseline gap-1.5 select-none ${turnStart ? '' : 'invisible'}`}
               >
                 <span className="inline-flex shrink-0 gap-0.5 self-center" aria-hidden="true">
@@ -483,7 +496,7 @@ export function LiveTranscript({
                   ))}
                 </span>
                 <Text as="span" size="sm" variant="muted" className="truncate">
-                  Identifying…
+                  {t('identifying')}
                 </Text>
               </span>
             ) : (
@@ -508,6 +521,7 @@ export function LiveTranscript({
             {/* Only the line itself: search offsets count every text node in here. */}
             <div data-seg-id={seg.id} className="min-w-0">
               <TranscriptTurn
+                actions={turnActions(seg)}
                 segment={seg}
                 speakerLabel={speakerLabel}
                 speakerColorIndex={speakerColor}
@@ -539,16 +553,16 @@ export function LiveTranscript({
       {isIdle ? (
         <div
           role="region"
-          aria-label="Meeting transcript"
+          aria-label={t('transcriptLabel')}
           className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto px-4 py-6 md:px-8"
         >
           <EmptyState
             size="md"
             icon={<Mic className="size-6" aria-hidden="true" />}
-            title={modelReady ? 'Ready to record' : emptyTitle}
+            title={modelReady ? t('ready') : emptyTitle}
             description={
               modelReady
-                ? 'Press Record (or R) to start. What people say shows up here, labelled by speaker.'
+                ? t('readyDescription')
                 : emptyBody
             }
             action={
@@ -558,14 +572,13 @@ export function LiveTranscript({
                   size={{ base: 'md', md: 'sm' }}
                   onClick={() => onOpenSettings('speech-model')}
                 >
-                  {failed ? 'Open settings' : 'Set up speech model'}
+                  {failed ? t('openSettings') : t('setupModel')}
                 </Button>
               ) : undefined
             }
             secondaryAction={
               <Text size="xs" variant="muted" className="max-w-[40ch] text-center">
-                Recording a call? Choose Mic + gesprek, then share the meeting tab with audio turned
-                on.
+                {t('callTip')}
               </Text>
             }
           />
@@ -573,15 +586,15 @@ export function LiveTranscript({
       ) : listening ? (
         <div
           role="region"
-          aria-label="Meeting transcript"
+          aria-label={t('transcriptLabel')}
           className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto px-4 py-6 md:px-8"
         >
           <EmptyState
             compact
             size="sm"
             icon={<Mic className="size-5" aria-hidden="true" />}
-            title="Listening…"
-            description="Words appear here as people talk."
+            title={t('listening')}
+            description={t('listeningDescription')}
           />
         </div>
       ) : (
@@ -603,7 +616,7 @@ export function LiveTranscript({
             itemRole="listitem"
             // Partial text updates several times per second; a polite live region
             // would spam screen readers, so this stays a plain labelled region.
-            aria-label="Meeting transcript"
+            aria-label={t('transcriptLabel')}
             onVisibleRangeChange={onVisibleRangeChange}
             className="h-full w-full"
           />
@@ -622,7 +635,7 @@ export function LiveTranscript({
             }
             className="rounded-full shadow-elevation-2"
           >
-            Jump to latest
+            {t('jump')}
           </Button>
         </div>
       )}
