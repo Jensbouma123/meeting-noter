@@ -20,6 +20,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<Language>('en');
 
   useEffect(() => {
+    // Reading localStorage during render would break SSR hydration, so the stored language is applied after mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLanguage(readLanguage());
     const sync = (event: StorageEvent) => {
       if (event.key === SETTINGS_KEY) setLanguage(readLanguage());

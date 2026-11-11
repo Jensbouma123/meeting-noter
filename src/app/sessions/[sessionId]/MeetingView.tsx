@@ -660,9 +660,10 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
     const ends = segments.map((sg) => sg.end).filter((n) => Number.isFinite(n));
     return ends.length ? Math.max(...ends) : 0;
   }, [segments]);
+  const [mountedAt] = useState(() => Date.now());
   const shareDate = useMemo(
-    () => new Date(startedAt ?? Date.now()).toLocaleDateString(),
-    [startedAt],
+    () => new Date(startedAt ?? mountedAt).toLocaleDateString(),
+    [startedAt, mountedAt],
   );
 
   const update = useUpdate(isRecording);

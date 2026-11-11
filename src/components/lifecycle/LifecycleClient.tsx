@@ -49,6 +49,8 @@ function useLanguage() {
   const [language, setLanguage] = useState<'en' | 'nl'>('nl');
   useEffect(() => {
     if (contextLanguage) {
+      // Language comes from context/localStorage, which is only readable after mount (SSR hydration).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLanguage(contextLanguage);
       return;
     }

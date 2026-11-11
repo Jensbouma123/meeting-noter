@@ -54,7 +54,7 @@ const INITIAL: UpdateSnapshot = {
 
 let snapshot = INITIAL;
 let checkPromise: Promise<void> | null = null;
-let listeners = new Set<() => void>();
+const listeners = new Set<() => void>();
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
 
 function publish(next: UpdateSnapshot): void {

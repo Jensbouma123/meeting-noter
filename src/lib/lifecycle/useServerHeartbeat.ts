@@ -10,7 +10,7 @@
  * Every mount in a tab shares one client id (sessionStorage, so a reload keeps
  * it) and one timer; the tab counts as recording while any mount passes true.
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 
 export const HEARTBEAT_URL = '/api/app/heartbeat';
 export const HEARTBEAT_INTERVAL_MS = 15_000;
@@ -80,7 +80,7 @@ function stop(): void {
 }
 
 export function useServerHeartbeat(isRecording?: boolean): void {
-  const key = useRef({}).current;
+  const [key] = useState(() => ({}));
 
   useEffect(() => {
     if (!mounts.has(key)) mounts.set(key, false);

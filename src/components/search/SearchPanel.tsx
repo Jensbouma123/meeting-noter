@@ -62,6 +62,8 @@ export function SearchPanel({
     const q = query.trim();
     const id = ++requestId.current;
     if (q === '') {
+      // The effect resets state when the query changes; the debounced request below is the external sync.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setState({ status: 'idle' });
       return;
     }
