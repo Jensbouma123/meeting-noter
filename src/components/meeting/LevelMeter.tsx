@@ -5,6 +5,7 @@ import type { CaptureMode, Levels } from '@/lib/meeting';
 import { meeting } from './store';
 import { Mic, Volume2, VolumeX } from 'lucide-react';
 import { HStack, Tooltip } from '@jensbouma123/acciva-ui';
+import { useT } from '@/lib/i18n/useT';
 
 interface LevelMeterProps {
   mode: CaptureMode;
@@ -14,6 +15,7 @@ interface LevelMeterProps {
 }
 
 export function LevelMeter({ mode, active, callMissing = false }: LevelMeterProps) {
+  const t = useT('dock');
   const micBarRef = useRef<HTMLDivElement>(null);
   const sysBarRef = useRef<HTMLDivElement>(null);
 
@@ -75,12 +77,12 @@ export function LevelMeter({ mode, active, callMissing = false }: LevelMeterProp
       spacing="sm"
       align="center"
       role="group"
-      aria-label="Audio levels"
+      aria-label={t('audioLevels')}
       className="rounded-full border border-border-subtle bg-surface px-2.5 py-1"
     >
       {showMic && (
-        <Tooltip content="Mic level" side="top">
-          <div tabIndex={0} aria-label="Mic level" className="flex items-center gap-1.5">
+        <Tooltip content={t('micLevel')} side="top">
+          <div tabIndex={0} aria-label={t('micLevel')} className="flex items-center gap-1.5">
             <Mic className={`size-3.5 transition-colors ${active ? 'text-primary-400' : 'text-muted-foreground'}`} />
             <div className="relative h-1.5 w-10 overflow-hidden rounded-full bg-foreground/15">
               <div
@@ -94,17 +96,17 @@ export function LevelMeter({ mode, active, callMissing = false }: LevelMeterProp
       )}
 
       {showSystem && callMissing && (
-        <Tooltip content="No call audio is being recorded" side="top">
-          <div tabIndex={0} aria-label="Call audio level: none" className="flex items-center gap-1.5">
+        <Tooltip content={t('noCallAudioTip')} side="top">
+          <div tabIndex={0} aria-label={t('noCallLevel')} className="flex items-center gap-1.5">
             <VolumeX className="size-3.5 text-warning" />
-            <span className="text-[11px] font-medium leading-none text-muted-foreground">none</span>
+            <span className="text-[11px] font-medium leading-none text-muted-foreground">{t('none')}</span>
           </div>
         </Tooltip>
       )}
 
       {showSystem && !callMissing && (
-        <Tooltip content="Call audio level" side="top">
-          <div tabIndex={0} aria-label="Call audio level" className="flex items-center gap-1.5">
+        <Tooltip content={t('callLevel')} side="top">
+          <div tabIndex={0} aria-label={t('callLevel')} className="flex items-center gap-1.5">
             <Volume2 className={`size-3.5 transition-colors ${active ? 'text-secondary-400' : 'text-muted-foreground'}`} />
             <div className="relative h-1.5 w-10 overflow-hidden rounded-full bg-foreground/15">
               <div

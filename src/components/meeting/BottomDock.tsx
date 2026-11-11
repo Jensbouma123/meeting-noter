@@ -4,10 +4,9 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { getCallAudioMissing, getMeetingDiagnostics, subscribeCallAudio, type CaptureMode, type Status } from '@/lib/meeting';
 import { callAudioHint } from '@/lib/meeting/call-audio-hint';
 import { LevelMeter } from './LevelMeter';
-import { captureDebugEnabled, setCaptureDebug } from './CaptureDiagnostics';
 import { useReleaseOnUnmount } from './useReleaseOnUnmount';
 import type { ModelProgressView, ModelReadiness } from './modelReadiness';
-import { Activity, Download, Mic, Pause, Play, Square, VolumeX, PhoneCall, Bug } from 'lucide-react';
+import { Activity, Download, Mic, Pause, Play, Square, VolumeX, PhoneCall } from 'lucide-react';
 import {
   Button,
   Divider,
@@ -16,8 +15,8 @@ import {
   TabList,
   Tabs,
   Tooltip,
-  useToast,
 } from '@jensbouma123/acciva-ui';
+import { useT } from '@/lib/i18n/useT';
 
 /** Never `false` before the store hydrates client-side (no call to be missing yet). */
 function getCallAudioMissingServerSnapshot(): boolean {
@@ -40,6 +39,7 @@ interface BottomDockProps {
   onStop: () => void;
   onPause: () => void;
   onResume: () => void;
+  onOpenAdvanced: () => void;
 }
 
 function formatElapsed(totalSeconds: number): string {
@@ -58,8 +58,9 @@ export function BottomDock({
   onStop,
   onPause,
   onResume,
+  onOpenAdvanced,
 }: BottomDockProps) {
-  const { toast } = useToast();
+  const t = useT('dock');
   const [metersOpen, setMetersOpen] = useState(false);
   const dockRef = useRef<HTMLElement>(null);
   // The dock owns the Record control, so it lives exactly as long as the
@@ -107,9 +108,9 @@ export function BottomDock({
         ? `${modelProgress.label} — ${modelProgress.detail}`
         : modelProgress.label
       : modelReadiness === 'failed'
-        ? "The speech model didn't load. Open Settings › Speech model to try again."
-        : 'Download the speech model to start recording'
-    : 'Start recording (R)';
+        ? t('modelFailedTip')
+        : t('modelMissingTip')
+    : t('recordTip');
 
   // Elapsed recording time, tracked locally: the capture pipeline reads `mode`
   // once at start (see MeetingView's startRecording), so this dock owns its own
@@ -163,7 +164,7 @@ export function BottomDock({
     <nav
       ref={dockRef}
       className="absolute bottom-[calc(1.25rem+env(safe-area-inset-bottom))] left-1/2 z-40 max-w-[calc(100%-32px)] -translate-x-1/2 select-none sm:bottom-6"
-      aria-label="Recording controls"
+      aria-label={t('recordingControls')}
     >
       {/* Floating meters popover on mobile behind tap */}
       {showMeters && metersOpen && (
@@ -193,8 +194,8 @@ export function BottomDock({
               onClick={onStop}
               disabled={isStopping}
               loading={isStopping}
-              tooltip="Stop recording (R)"
-              aria-label={`Stop recording, ${formatElapsed(elapsedSeconds)} elapsed`}
+              tooltip={t('stopTip')}
+              aria-label={`${t('stop')}, ${formatElapsed(elapsedSeconds)}`}
               leadingIcon={<Square className="size-3.5 fill-current" />}
               className="btn-record-spring relative z-10 !rounded-full tabular-nums"
             >
@@ -207,17 +208,11 @@ export function BottomDock({
               onClick={onStart}
               disabled={recordDisabled}
               tooltip={recordTooltip}
-              aria-label={
-                needsModel
-                  ? 'Download the speech model'
-                  : recordDisabled
-                    ? `Start recording, ${recordTooltip}`
-                    : 'Start recording'
-              }
+              aria-label={needsModel ? t('downloadModel') : recordTooltip}
               leadingIcon={needsModel ? <Download className="size-4" /> : <Mic className="size-4" />}
               className="btn-record-spring relative z-10 !rounded-full hover:scale-[1.02] active:scale-95"
             >
-              {needsModel ? 'Download model' : 'Record'}
+              {needsModel ? t('downloadModel') : t('record')}
             </Button>
           )}
         </div>
@@ -229,7 +224,8 @@ export function BottomDock({
             size={{ base: 'md', md: 'sm' }}
             iconOnly
             onClick={isPaused ? onResume : onPause}
-            tooltip={isPaused ? 'Resume recording (Space)' : 'Pause recording (Space)'}
+            tooltip={isPaused ? t('resumeTip') : t('pauseTip')}
+            aria-label={isPaused ? t('resume') : t('pause')}
             leadingIcon={
               isPaused ? (
                 <Play className="ml-0.5 size-4 fill-current text-primary" />
@@ -249,25 +245,25 @@ export function BottomDock({
         {(() => {
           const tabs = (
             <Tabs value={mode === 'system' ? 'both' : mode} onValueChange={(value) => onModeChange(value as CaptureMode)} size="sm" variant="pill">
-              <TabList aria-label="Audio source">
+              <TabList aria-label={t('audioSource')}>
                 {/* Tab forwards no handlers, so the tooltip trigger is a wrapper element:
                     hover and focus (focusin bubbles) both reach it. */}
-                <Tooltip content="Records only your mic">
+                <Tooltip content={t('micTip')}>
                   <span className="inline-flex">
                   <Tab value="mic" disabled={isRecordingActive} className="touch-target-44">
                     <HStack as="span" spacing="xs" className="items-center">
                       <Mic className="size-3.5" />
-                      <span className="sr-only sm:not-sr-only">Mic</span>
+                      <span className="sr-only sm:not-sr-only">{t('mic')}</span>
                     </HStack>
                   </Tab>
                   </span>
                 </Tooltip>
-                <Tooltip content="Records your mic + audio from a meeting call">
+                <Tooltip content={t('micCallTip')}>
                   <span className="inline-flex">
                   <Tab value="both" disabled={isRecordingActive} className="touch-target-44">
                     <HStack as="span" spacing="xs" className="items-center">
                       <PhoneCall className="size-3.5" />
-                      <span className="sr-only sm:not-sr-only">Mic + gesprek</span>
+                      <span className="sr-only sm:not-sr-only">{t('micCall')}</span>
                     </HStack>
                   </Tab>
                   </span>
@@ -276,7 +272,7 @@ export function BottomDock({
             </Tabs>
           );
           return isRecordingActive ? (
-            <Tooltip content="Stop recording to change the audio source">
+            <Tooltip content={t('changeSourceTip')}>
               <div>{tabs}</div>
             </Tooltip>
           ) : (
@@ -290,22 +286,12 @@ export function BottomDock({
               <button
                 type="button"
                 role="alert"
-                aria-label={`No call audio. ${callAudioMissingReason}`}
-                onClick={() => toast.warning(callAudioMissingReason, { title: "Call audio isn't being recorded" })}
+                aria-label={`${t('noCallAudio')}. ${callAudioMissingReason}`}
+                onClick={onOpenAdvanced}
                 className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-warning/50 bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning transition-colors hover:bg-warning/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-warning"
               >
                 <VolumeX className="size-3.5" />
-                No call audio
-              </button>
-            </Tooltip>
-            <Tooltip content="Show capture diagnostics" side="top">
-              <button
-                type="button"
-                aria-label="Show capture diagnostics"
-                onClick={() => setCaptureDebug(!captureDebugEnabled())}
-                className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
-              >
-                <Bug className="size-3.5" />
+                {t('noCallAudio')}
               </button>
             </Tooltip>
           </HStack>
@@ -324,7 +310,7 @@ export function BottomDock({
               size={{ base: 'md', md: 'sm' }}
               iconOnly
               onClick={() => setMetersOpen((prev) => !prev)}
-              tooltip={metersOpen ? 'Hide audio levels' : 'Show audio levels'}
+              tooltip={metersOpen ? t('hideLevels') : t('showLevels')}
               leadingIcon={<Activity className="size-3.5" />}
               aria-expanded={metersOpen}
               className="touch-target-44 !rounded-full sm:hidden"

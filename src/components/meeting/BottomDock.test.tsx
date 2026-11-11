@@ -2,11 +2,11 @@
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { ToastProvider } from '@jensbouma123/acciva-ui';
 import type { CaptureMode } from '@/lib/meeting';
 import { BottomDock } from './BottomDock';
 import { NO_MODEL_PROGRESS } from './modelReadiness';
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, loadSettings } from './types';
+import { LanguageContext } from '@/lib/i18n/LanguageContext';
 
 afterEach(() => {
   cleanup();
@@ -14,9 +14,9 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function renderDock(mode: CaptureMode, onModeChange: (m: CaptureMode) => void = () => {}) {
+function renderDock(mode: CaptureMode, onModeChange: (m: CaptureMode) => void = () => {}, onOpenAdvanced: () => void = () => {}) {
   render(
-    <ToastProvider>
+    <LanguageContext.Provider value="nl">
       <BottomDock
         status="idle"
         mode={mode}
@@ -27,8 +27,9 @@ function renderDock(mode: CaptureMode, onModeChange: (m: CaptureMode) => void = 
         onStop={() => {}}
         onPause={() => {}}
         onResume={() => {}}
+        onOpenAdvanced={onOpenAdvanced}
       />
-    </ToastProvider>,
+    </LanguageContext.Provider>,
   );
 }
 
@@ -44,10 +45,10 @@ describe('capture mode toggle', () => {
     renderDock('both');
     const [mic, both] = screen.getAllByRole('tab');
     fireEvent.mouseEnter(mic);
-    expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent('Records only your mic');
+    expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent('Neemt alleen je microfoon op.');
     fireEvent.mouseLeave(mic);
     fireEvent.focus(both);
-    expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent('Records your mic + audio from a meeting call');
+    expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent('Neemt je microfoon en het geluid van je gesprek op (Teams, Zoom, Meet).');
   });
 
   it('still reports the selection', () => {
@@ -56,6 +57,7 @@ describe('capture mode toggle', () => {
     fireEvent.click(screen.getAllByRole('tab')[0]);
     expect(onModeChange).toHaveBeenCalledWith('mic');
   });
+
 });
 
 describe('saved mode migration', () => {

@@ -792,6 +792,7 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
             onStop={stopRecording}
             onPause={pauseRecording}
             onResume={resumeRecording}
+            onOpenAdvanced={() => openSettings('speech-model')}
           />
           <CaptureDiagnostics />
         </VStack>
