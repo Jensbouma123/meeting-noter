@@ -9,15 +9,16 @@ export type SettingsSectionId = 'general' | 'storage' | 'about' | 'advanced';
 
 export interface SettingsSectionMeta {
   id: SettingsSectionId;
+  /** Settings-namespace i18n key (render with `useT('settings')`), not display text. */
   label: string;
   icon: ComponentType<{ className?: string }>;
 }
 
 export const SETTINGS_SECTIONS: SettingsSectionMeta[] = [
-  { id: 'general', label: 'General', icon: SlidersHorizontal },
-  { id: 'storage', label: 'Storage & privacy', icon: Database },
-  { id: 'about', label: 'About & updates', icon: Info },
-  { id: 'advanced', label: 'Advanced', icon: SlidersHorizontal },
+  { id: 'general', label: 'section.general', icon: SlidersHorizontal },
+  { id: 'storage', label: 'section.storage', icon: Database },
+  { id: 'about', label: 'section.about', icon: Info },
+  { id: 'advanced', label: 'section.advanced', icon: SlidersHorizontal },
 ];
 
 export const DEFAULT_SETTINGS_SECTION: SettingsSectionId = 'general';

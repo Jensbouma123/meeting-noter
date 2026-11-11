@@ -7,6 +7,7 @@ import MeetingView from './MeetingView';
 import { HomeLayout, NewSessionDialog } from '@/components/sessions';
 import { createDraftSession } from '@/lib/meeting/session-store';
 import { clearIdleSession } from '@/lib/meeting/store';
+import { useT } from '@/lib/i18n/useT';
 import { Skeleton, Text, useToast, VStack } from '@jensbouma123/acciva-ui';
 
 /* -------------------------------------------------------------------------- */
@@ -14,6 +15,7 @@ import { Skeleton, Text, useToast, VStack } from '@jensbouma123/acciva-ui';
 /* -------------------------------------------------------------------------- */
 
 function MeetingViewShell() {
+  const t = useT('meeting');
   const searchParams = useSearchParams();
   const router = useRouter();
   const { toast } = useToast();
@@ -42,9 +44,9 @@ function MeetingViewShell() {
       clearIdleSession();
       router.push(sessionPath(draftId));
     } catch {
-      toast.danger("Couldn't create the meeting. Try again.");
+      toast.danger(t('createFailed'));
     }
-  }, [router, toast]);
+  }, [router, toast, t]);
 
   return (
     <>
@@ -68,15 +70,20 @@ function MeetingViewShell() {
   );
 }
 
+function ShellFallback() {
+  const t = useT('meeting');
+  return (
+    <VStack fill align="center" justify="center" className="h-dvh">
+      <Skeleton variant="rounded" width={240} height={20} />
+      <Text size="sm" variant="muted">{t('loading')}</Text>
+    </VStack>
+  );
+}
+
 export default function SessionShell() {
   return (
     <Suspense
-      fallback={
-        <VStack fill align="center" justify="center" className="h-dvh">
-          <Skeleton variant="rounded" width={240} height={20} />
-          <Text size="sm" variant="muted">Loading meeting…</Text>
-        </VStack>
-      }
+      fallback={<ShellFallback />}
     >
       <MeetingViewShell />
     </Suspense>

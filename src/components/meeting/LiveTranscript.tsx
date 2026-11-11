@@ -570,7 +570,7 @@ export function LiveTranscript({
                 <Button
                   variant="secondary"
                   size={{ base: 'md', md: 'sm' }}
-                  onClick={() => onOpenSettings('speech-model')}
+                  onClick={() => onOpenSettings('advanced')}
                 >
                   {failed ? t('openSettings') : t('setupModel')}
                 </Button>

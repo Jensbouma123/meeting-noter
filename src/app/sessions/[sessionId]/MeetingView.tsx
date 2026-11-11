@@ -74,6 +74,14 @@ import {
 import { deriveModelProgress, deriveModelReadiness } from '@/components/meeting/modelReadiness';
 import type { BrowserASRPhase } from '@/lib/asr/browser/types';
 import { Alert, Button, HStack, Text, useToast, VStack } from '@jensbouma123/acciva-ui';
+import { useT } from '@/lib/i18n/useT';
+import { ShareDialog } from '@/components/share/ShareDialog';
+import { useUpdate } from '@/components/update/useUpdate';
+import { useServerHeartbeat } from '@/lib/lifecycle/useServerHeartbeat';
+import { getNotes, type Notes } from '@/lib/meeting/notes';
+
+const fill = (text: string, values: Record<string, string | number>): string =>
+  text.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k] ?? ''));
 
 /* -------------------------------------------------------------------------- */
 /* Meeting view — used as the page under /sessions/[sessionId]                */
@@ -86,6 +94,7 @@ interface MeetingViewProps {
 
 export default function MeetingView({ initialSessionId }: MeetingViewProps) {
   const router = useRouter();
+  const t = useT('meeting');
   // Store subscriptions via narrow selectors
   const status = useMeeting((s) => s.status);
   const startedAt = useMeeting((s) => s.startedAt);
@@ -284,7 +293,7 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
         id = null;
       }
       if (!id) {
-        toast({ title: 'Could not continue this session.', variant: 'warning' });
+        toast({ title: t('couldNotContinue'), variant: 'warning' });
         return;
       }
       try {
@@ -460,14 +469,17 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
     if (!showResume || !resumeCandidate) return;
     const lines = resumeCandidate.segments.length;
     const id = toast.info(
-      `“${resumeCandidate.title}” (${lines} ${lines === 1 ? 'line' : 'lines'}) was still open when the page closed.`,
+      fill(t('restoreBody'), {
+        title: resumeCandidate.title,
+        lines: fill(t(lines === 1 ? 'restoreLineOne' : 'restoreLineMany'), { n: lines }),
+      }),
       {
-        title: 'Restore your last meeting?',
-        action: { label: 'Restore', onClick: handleResumeSession },
+        title: t('restoreTitle'),
+        action: { label: t('restore'), onClick: handleResumeSession },
       },
     );
     return () => dismiss(id);
-  }, [showResume, resumeCandidate, handleResumeSession, toast, dismiss]);
+  }, [showResume, resumeCandidate, handleResumeSession, toast, dismiss, t]);
 
   // Keyboard shortcuts: R record/stop, Space pause/resume, Esc close sheets,
   // Cmd/Ctrl+F search, Cmd/Ctrl+E export, ? help. Ignored while typing.
@@ -574,8 +586,8 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
   const asrProblem = useMemo((): string | null => {
     if (!isRecording || !asrEnabledBool) return null;
     if (asrPhase !== 'blocked' && asrPhase !== 'failed') return null;
-    return getBrowserASRStatusMessage() ?? "Transcription isn't available right now.";
-  }, [isRecording, asrEnabledBool, asrPhase]);
+    return getBrowserASRStatusMessage() ?? t('unavailable');
+  }, [isRecording, asrEnabledBool, asrPhase, t]);
 
   // Live transcription is off on this device — not because anything failed,
   // but because its CPU model needs 1.41 s of compute per second of audio.
@@ -596,17 +608,17 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
     postStop === null || postStop.phase === 'recording'
       ? null
       : postStop.phase === 'done'
-        ? 'Transcript ready.'
+        ? t('transcriptReady')
         : postStop.phase === 'error'
-          ? `Couldn't finish the transcript: ${postStop.error ?? 'something went wrong'}.`
-          : `part ${postStop.chunksDone + 1} of ${postStop.chunksTotal}`;
+          ? fill(t('finishFailed'), { reason: postStop.error ?? t('finishFailedGeneric') })
+          : fill(t('part'), { n: postStop.chunksDone + 1, total: postStop.chunksTotal });
 
   // Transient recording error/warning — informational, not a decision the
   // user has to make, so it's a toast rather than a banner that sits on
   // screen until dismissed.
   useEffect(() => {
-    if (error) toast.danger(error, { title: 'Recording error' });
-  }, [error, toast]);
+    if (error) toast.danger(error, { title: t('recordingError') });
+  }, [error, toast, t]);
 
   useEffect(() => {
     if (warning) toast.warning(warning);
@@ -623,17 +635,50 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
     if (!wasPreparingRef.current || modelReadiness !== 'ready') return;
     wasPreparingRef.current = false;
     if (asrProblem) return;
-    toast.success('Speech model ready', {
-      description:
-        'You can start recording. Everything stays on this device.',
-    });
-  }, [modelProgress.stage, modelReadiness, asrProblem, toast]);
+    toast.success(t('modelReadyTitle'), { description: t('modelReadyBody') });
+  }, [modelProgress.stage, modelReadiness, asrProblem, toast, t]);
 
   const handleClearTranscript = useCallback(() => {
     if (!initialSessionId) return;
-    if (clearSessionTranscript(initialSessionId)) toast({ title: 'Transcript cleared', variant: 'success' });
-    else toast({ title: 'Stop the recording first', variant: 'warning' });
-  }, [initialSessionId, toast]);
+    if (clearSessionTranscript(initialSessionId)) toast({ title: t('transcriptCleared'), variant: 'success' });
+    else toast({ title: t('stopFirst'), variant: 'warning' });
+  }, [initialSessionId, toast, t]);
+
+  // Share dialog: notes are read once when it opens (localStorage-backed).
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareNotes, setShareNotes] = useState<Notes>({ actions: [], decisions: [] });
+  const shareSessionId = initialSessionId ?? getTranscriptSessionId() ?? 'active';
+  const openShare = useCallback(() => {
+    setShareNotes(getNotes(shareSessionId));
+    setShareOpen(true);
+  }, [shareSessionId]);
+  const shareParticipants = useMemo(
+    () => Object.values(speakers).map((sp) => sp.label),
+    [speakers],
+  );
+  const shareDurationS = useMemo(() => {
+    const ends = segments.map((sg) => sg.end).filter((n) => Number.isFinite(n));
+    return ends.length ? Math.max(...ends) : 0;
+  }, [segments]);
+  const shareDate = useMemo(
+    () => new Date(startedAt ?? Date.now()).toLocaleDateString(),
+    [startedAt],
+  );
+
+  const update = useUpdate(isRecording);
+  const updateAvailable =
+    update.status === 'available' && update.info?.latest !== update.dismissedVersion;
+  useServerHeartbeat(isRecording);
+
+  // One banner at a time, most urgent first.
+  const otherBanner = !!(initialSessionId && otherRecording && getTranscriptSessionId() !== initialSessionId);
+  const banner: 'other' | 'problem' | 'postStop' | null = otherBanner
+    ? 'other'
+    : asrProblem
+      ? 'problem'
+      : asrPostStop
+        ? 'postStop'
+        : null;
 
   return (
     <ModelRegistryProvider>
@@ -654,19 +699,22 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
         modelProgress={modelProgress}
         onClearTranscript={initialSessionId ? handleClearTranscript : undefined}
         clearDisabled={status !== 'idle' && status !== 'error'}
+        onOpenShare={openShare}
+        updateAvailable={updateAvailable}
+        modelFailed={modelReadiness === 'failed'}
       />
 
-      {initialSessionId && otherRecording && getTranscriptSessionId() !== initialSessionId && (
+      {banner === 'other' && (
         <Alert
           variant="warning"
           layout="banner"
           role="status"
-          title="Another meeting is recording"
+          title={t('otherTitle')}
           className="rounded-none max-sm:[&_p]:line-clamp-2"
         >
-          {getSessionMetadata(getTranscriptSessionId() ?? '')?.title ?? 'Another meeting'} is still
-          recording or transcribing. The transcript shown belongs to that meeting; stop it to open
-          this one.
+          {fill(t('otherBody'), {
+            title: getSessionMetadata(getTranscriptSessionId() ?? '')?.title ?? t('otherFallback'),
+          })}
         </Alert>
       )}
 
@@ -675,27 +723,27 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
           rather than an error that implies the meeting stopped. It is also
           not dismissible: a recording that silently transcribes nothing is
           the failure this whole path exists to make visible. */}
-      {asrProblem && (
+      {banner === 'problem' && (
         <Alert
           variant="warning"
           layout="banner"
           role="status"
-          title="Not transcribing"
+          title={t('notTranscribingTitle')}
           icon={<MicOff className="size-5" />}
           action={
             <Button
               size={{ base: 'md', md: 'sm' }}
               variant="secondary"
               onClick={() =>
-                asrPhase === 'blocked' ? promptBrowserASRDownload() : openSettings('speech-model')
+                asrPhase === 'blocked' ? promptBrowserASRDownload() : openSettings('advanced')
               }
             >
-              {asrPhase === 'blocked' ? 'Download speech model' : 'Open settings'}
+              {asrPhase === 'blocked' ? t('downloadModel') : t('openSettings')}
             </Button>
           }
           className="rounded-none max-sm:[&_p]:line-clamp-2"
         >
-          {asrProblem} Audio is still being recorded.
+          {asrProblem} {t('stillRecording')}
         </Alert>
       )}
 
@@ -704,8 +752,8 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
           model is simply too slow to transcribe while the meeting runs, so the
           recording is captured and transcribed on Stop. The progress bar is
           the same one from the post-stop store that drives the work. */}
-      {asrPostStop && (
-        <Alert variant="info" layout="banner" role="status" title="Transcribing after you stop" className="rounded-none max-sm:[&_p]:line-clamp-2">
+      {banner === 'postStop' && (
+        <Alert variant="info" layout="banner" role="status" title={t('postStopTitle')} className="rounded-none max-sm:[&_p]:line-clamp-2">
           <VStack spacing="xs" className="w-full">
             <Text as="span" size="xs" variant="muted">{asrPostStop}.</Text>
             {postStopTranscribing && (
@@ -715,7 +763,7 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
                     <div
                       className="h-full w-full rounded-full bg-primary-500/40 motion-safe:animate-pulse"
                       role="progressbar"
-                      aria-label="Transcribing the recording"
+                      aria-label={t('transcribingLabel')}
                     />
                   ) : (
                     <div
@@ -725,13 +773,13 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
                       aria-valuenow={postStopPercent}
                       aria-valuemin={0}
                       aria-valuemax={100}
-                      aria-label="Transcribing the recording"
+                      aria-label={t('transcribingLabel')}
                     />
                   )}
                 </div>
                 {postStopDetail && (
                   <Text as="span" size="xs" variant="muted" className="tabular-nums">
-                    Transcribing…{postStopPercent === null ? '' : ` ${postStopPercent}%`}
+                    {t('transcribing')}{postStopPercent === null ? '' : ` ${postStopPercent}%`}
                     {` · ${postStopDetail}`}
                   </Text>
                 )}
@@ -745,8 +793,7 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
             )}
             {postStop !== null && postStop.droppedSeconds > 0 && (
               <Text as="span" size="xs" variant="muted">
-                The first {Math.round(postStop.droppedSeconds)} s couldn&apos;t be kept in memory, so
-                they&apos;re missing from the transcript.
+                {fill(t('dropped'), { s: Math.round(postStop.droppedSeconds) })}
               </Text>
             )}
           </VStack>
@@ -770,6 +817,7 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
           className="relative min-w-0 w-full max-w-full overflow-hidden"
         >
           <LiveTranscript
+            sessionId={initialSessionId}
             segments={segments}
             speakers={speakers}
             status={status}
@@ -792,13 +840,13 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
             onStop={stopRecording}
             onPause={pauseRecording}
             onResume={resumeRecording}
-            onOpenAdvanced={() => openSettings('speech-model')}
+            onOpenAdvanced={() => openSettings('advanced')}
           />
           <CaptureDiagnostics />
         </VStack>
 
         {/* Speaker sidebar — manages its own open/collapsed state. */}
-        <RightRail sessionId={initialSessionId ?? getTranscriptSessionId() ?? 'active'} segments={segments} />
+        <RightRail sessionId={shareSessionId} segments={segments} />
       </HStack>
 
       {/* Settings dialog */}
@@ -819,6 +867,19 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
           onStartNew={() => void startInSession('new')}
         />
       )}
+
+      <ShareDialog
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        title={title}
+        date={shareDate}
+        durationS={shareDurationS}
+        participants={shareParticipants}
+        decisions={shareNotes.decisions}
+        actions={shareNotes.actions}
+        segments={segments}
+        speakers={speakers}
+      />
 
       {/* Keyboard Shortcuts Help Overlay */}
       <ShortcutsHelp open={helpOpen} onClose={() => setHelpOpen(false)} />
