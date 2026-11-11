@@ -5,6 +5,7 @@ import { Alert, Radio, RadioGroup, Select, Text } from '@jensbouma123/acciva-ui'
 import type { CaptureMode } from '@/lib/meeting';
 import type { AppSettings } from '@/components/meeting/types';
 import { meeting } from '@/components/meeting/store';
+import { useT } from '@/lib/i18n/useT';
 import { SettingsGroup, SettingsRow, SettingsStackedRow } from './SettingsRow';
 
 export function AudioCaptureSection({
@@ -14,6 +15,7 @@ export function AudioCaptureSection({
   settings: AppSettings;
   onSettingsChange: (settings: AppSettings) => void;
 }) {
+  const t = useT('settings');
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
 
   useEffect(() => {
@@ -45,40 +47,38 @@ export function AudioCaptureSection({
 
   const micOptions = devices.map((d, index) => ({
     value: d.deviceId || `device-${index}`,
-    label: d.label || `Mic ${index + 1}`,
+    label: d.label || `${t('mic')} ${index + 1}`,
   }));
   if (micOptions.length === 0) {
-    micOptions.push({ value: 'default', label: 'Default mic' });
+    micOptions.push({ value: 'default', label: t('defaultMic') });
   }
 
   return (
     <>
       <SettingsGroup>
         <SettingsStackedRow
-          label="Audio source"
-          description="What to record. You can also switch this in the recording bar."
+          label={t('audioSource')}
+          description={t('audioSourceDescription')}
         >
           <RadioGroup
             value={settings.mode}
             onChange={(mode) => onSettingsChange({ ...settings, mode: mode as CaptureMode })}
             orientation="vertical"
           >
-            <Radio value="mic" label="Mic" description="Only your microphone" />
-            <Radio value="both" label="Mic + gesprek" description="Your mic and the call audio" />
+            <Radio value="mic" label={t('mic')} description={t('micOnly')} />
+            <Radio value="both" label={t('micAndCall')} description={t('micAndCallDescription')} />
           </RadioGroup>
         </SettingsStackedRow>
       </SettingsGroup>
 
-      <Alert variant="info" layout="inline" title="Recording call audio">
-        When you record Mic + gesprek, your browser asks you to share a tab or screen. Turn on
-        &ldquo;Share tab audio&rdquo; (or &ldquo;Share system audio&rdquo;). If you skip that, only
-        your mic is recorded.
+      <Alert variant="info" layout="inline" title={t('recordingCallAudio')}>
+        {t('recordingCallAudioHelp')}
       </Alert>
 
       <SettingsGroup>
         <SettingsRow
-          label="Microphone"
-          description="The mic to record from."
+          label={t('microphone')}
+          description={t('microphoneDescription')}
           htmlFor="setting-mic-device"
           control={
             <div className="flex flex-col gap-2">
@@ -87,12 +87,12 @@ export function AudioCaptureSection({
                 options={micOptions}
                 value={settings.micDeviceId}
                 onChange={(micDeviceId) => onSettingsChange({ ...settings, micDeviceId })}
-                placeholder="Choose a mic"
-                aria-label="Microphone"
+                placeholder={t('chooseMic')}
+                aria-label={t('microphone')}
               />
               {needsPermission && (
                 <Text size="xs" variant="muted">
-                  Allow mic access once to see your device names.
+                  {t('micPermission')}
                 </Text>
               )}
             </div>

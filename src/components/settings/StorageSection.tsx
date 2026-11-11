@@ -9,6 +9,7 @@ import { deleteSession, listSessions } from '@/lib/meeting/session-store';
 import type { AppSettings } from '@/components/meeting/types';
 import { getPersistentStorageStatus, requestPersistentStorage } from '@/lib/meeting/persistent-storage';
 import { RETENTION_OPTIONS, parseRetention, purgeExpiredSessions } from '@/lib/meeting/retention';
+import { useT } from '@/lib/i18n/useT';
 import { SettingsGroup, SettingsRow } from './SettingsRow';
 
 export function StorageSection({
@@ -18,6 +19,7 @@ export function StorageSection({
   settings: AppSettings;
   onSettingsChange: (settings: AppSettings) => void;
 }) {
+  const t = useT('settings');
   const { toast } = useToast();
   const [sessionCount, setSessionCount] = useState(() => listSessions().length);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -55,20 +57,19 @@ export function StorageSection({
     setSessionCount(remaining);
     setConfirmOpen(false);
     window.dispatchEvent(new Event('mn:sessions-changed'));
-    toast.success(remaining > 0 ? 'Meetings deleted. The one being recorded was kept.' : 'All meetings deleted');
+    toast.success(remaining > 0 ? t('deleteRecordedKept') : t('allMeetingsDeleted'));
   };
 
   return (
     <>
-      <Alert variant="success" layout="inline" title="Everything stays on this device">
-        Transcripts, speaker names and the speech model are stored only in this browser. Nothing
-        is uploaded.
+      <Alert variant="success" layout="inline" title={t('deviceStorageTitle')}>
+        {t('deviceStorageDescription')}
       </Alert>
 
       <SettingsGroup>
         <SettingsRow
-          label="Saved meetings"
-          description={`${sessionCount} meeting${sessionCount === 1 ? '' : 's'} in this browser.`}
+          label={t('savedMeetings')}
+          description={t('meetingCount').replace('{count}', String(sessionCount))}
           control={
             <Button
               variant="secondary"
@@ -78,13 +79,13 @@ export function StorageSection({
               disabled={sessionCount === 0}
               className="max-sm:w-full"
             >
-              Delete all meetings
+              {t('deleteAllMeetings')}
             </Button>
           }
         />
         <SettingsRow
-          label="Meetings automatisch verwijderen na"
-          description="Oudere meetings worden bij het starten van de app verwijderd, met hun transcript."
+          label={t('retention')}
+          description={t('retentionDescription')}
           htmlFor="setting-retention"
           control={
             <Select
@@ -92,23 +93,23 @@ export function StorageSection({
               options={RETENTION_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
               value={settings.retention}
               onChange={changeRetention}
-              aria-label="Meetings automatisch verwijderen na"
+              aria-label={t('retentionAria')}
             />
           }
         />
         <SettingsRow
-          label="Bescherming tegen opschonen door de browser"
+          label={t('browserStorage')}
           description={
             persisted === null
-              ? 'Deze browser kan dit niet aangeven.'
+              ? t('browserStorageUnknown')
               : persisted
-                ? 'Aan: de browser verwijdert je meetings niet uit zichzelf.'
-                : 'Uit: de browser mag opslag opruimen bij weinig ruimte.'
+                ? t('browserStorageOn')
+                : t('browserStorageOff')
           }
           control={
             persisted === false ? (
               <Button variant="secondary" size={{ base: 'md', md: 'sm' }} onClick={protect} className="max-sm:w-full">
-                Nu beschermen
+                {t('protectNow')}
               </Button>
             ) : null
           }
@@ -119,9 +120,9 @@ export function StorageSection({
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
         onConfirm={clearAll}
-        title="Delete all meetings?"
-        description="This permanently removes every saved transcript from this browser. This can't be undone."
-        confirmText="Delete all meetings"
+        title={t('deleteAllMeetingsTitle')}
+        description={t('deleteAllMeetingsDescription')}
+        confirmText={t('deleteAllMeetings')}
         variant="danger"
       />
     </>

@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react';
 import { RadioGroup, Radio } from '@jensbouma123/acciva-ui';
 import { useThemePreference, type ThemePreference } from '@/components/meeting/ThemeSwitcher';
+import { useT } from '@/lib/i18n/useT';
 import { SettingsGroup, SettingsStackedRow } from './SettingsRow';
 
 export function AppearanceSection() {
+  const t = useT('settings');
   const { preference, choose } = useThemePreference();
   const [isSmUp, setIsSmUp] = useState(false);
 
@@ -19,7 +21,7 @@ export function AppearanceSection() {
 
   return (
     <SettingsGroup>
-      <SettingsStackedRow label="Theme" description="Use your device setting, or always light or dark.">
+      <SettingsStackedRow label={t('theme')} description={t('themeDescription')}>
         <RadioGroup
           value={preference}
           onChange={(v) => choose(v as ThemePreference)}
@@ -28,11 +30,11 @@ export function AppearanceSection() {
           <Radio
             value="system"
             variant="card"
-            label="System"
-            description="Matches your device's light or dark mode"
+            label={t('system')}
+            description={t('systemThemeDescription')}
           />
-          <Radio value="light" variant="card" label="Light" />
-          <Radio value="dark" variant="card" label="Dark" />
+          <Radio value="light" variant="card" label={t('light')} />
+          <Radio value="dark" variant="card" label={t('dark')} />
         </RadioGroup>
       </SettingsStackedRow>
     </SettingsGroup>
