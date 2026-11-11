@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import { Badge, Heading, Modal, ScrollView, Tab, TabList, TabPanel, Tabs, VStack } from '@jensbouma123/acciva-ui';
+import { useT } from '@/lib/i18n/useT';
 import { SETTINGS_SECTIONS, type SettingsSectionId } from './sections';
 
 interface SettingsDialogProps {
@@ -39,6 +40,7 @@ export function SettingsDialog({
   alertSections = [],
   children,
 }: SettingsDialogProps) {
+  const t = useT('settings');
   const isSmUp = useIsSmUp();
   const activeMeta = SETTINGS_SECTIONS.find((s) => s.id === activeSection);
 
@@ -48,10 +50,10 @@ export function SettingsDialog({
     return (
       <Tab key={section.id} value={section.id} className="touch-target-44 shrink-0 gap-2.5 sm:w-full sm:justify-start sm:px-3 sm:py-2 [&_svg]:!size-4 [&_svg]:shrink-0">
         <Icon className="size-4 shrink-0" aria-hidden="true" />
-        <span className="whitespace-nowrap">{section.label}</span>
+        <span className="whitespace-nowrap">{t(`section.${section.id}`)}</span>
         {hasAlert && (
           <Badge variant="danger" dot size="xxs" className="sm:ml-auto">
-            <span className="sr-only">needs attention</span>
+            <span className="sr-only">{t('needsAttention')}</span>
           </Badge>
         )}
       </Tab>
@@ -62,7 +64,7 @@ export function SettingsDialog({
     <Modal
       open={open}
       onClose={onClose}
-      title="Settings"
+      title={t('title')}
       size="lg"
       className="w-full !max-w-[calc(100vw-2rem)] max-sm:p-4 sm:!max-w-[860px]"
     >
@@ -99,7 +101,7 @@ export function SettingsDialog({
           <TabPanel value={activeSection}>
             <VStack spacing="lg" className="w-full max-w-2xl">
               <Heading as="h3" level={3} size="md" weight="semibold">
-                {activeMeta?.label}
+                {activeMeta ? t(`section.${activeMeta.id}`) : ''}
               </Heading>
               {children}
             </VStack>

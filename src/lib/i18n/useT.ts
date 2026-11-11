@@ -9,7 +9,8 @@ export function getDefaultLanguage(browserLanguage?: string): Language {
 }
 
 export function useT<N extends Namespace>(namespace: N) {
-  const language = useContext(LanguageContext) ?? getDefaultLanguage(
+  const context = useContext(LanguageContext);
+  const language = context ?? getDefaultLanguage(
     typeof navigator === 'undefined' ? undefined : navigator.language,
   );
   return (key: string) => t(namespace, key, language);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { LanguageContext, type Language } from './LanguageContext';
+import { LanguageContext, SetLanguageContext, type Language } from './LanguageContext';
 import { getDefaultLanguage } from './useT';
 
 const SETTINGS_KEY = 'mn.settings';
@@ -28,5 +28,5 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('storage', sync);
   }, []);
 
-  return <LanguageContext.Provider value={language}>{children}</LanguageContext.Provider>;
+  return <LanguageContext.Provider value={language}><SetLanguageContext.Provider value={setLanguage}>{children}</SetLanguageContext.Provider></LanguageContext.Provider>;
 }

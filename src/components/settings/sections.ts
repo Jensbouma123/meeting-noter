@@ -1,24 +1,11 @@
 import type { ComponentType } from 'react';
 import {
-  Cpu,
   Database,
   Info,
-  Keyboard,
-  Languages,
-  Mic,
-  Palette,
   SlidersHorizontal,
 } from 'lucide-react';
 
-export type SettingsSectionId =
-  | 'general'
-  | 'audio'
-  | 'transcription'
-  | 'speech-model'
-  | 'appearance'
-  | 'shortcuts'
-  | 'storage'
-  | 'about';
+export type SettingsSectionId = 'general' | 'storage' | 'about' | 'advanced';
 
 export interface SettingsSectionMeta {
   id: SettingsSectionId;
@@ -28,13 +15,9 @@ export interface SettingsSectionMeta {
 
 export const SETTINGS_SECTIONS: SettingsSectionMeta[] = [
   { id: 'general', label: 'General', icon: SlidersHorizontal },
-  { id: 'audio', label: 'Audio', icon: Mic },
-  { id: 'transcription', label: 'Transcription', icon: Languages },
-  { id: 'speech-model', label: 'Speech model', icon: Cpu },
-  { id: 'appearance', label: 'Appearance', icon: Palette },
-  { id: 'shortcuts', label: 'Shortcuts', icon: Keyboard },
-  { id: 'storage', label: 'Storage', icon: Database },
-  { id: 'about', label: 'About', icon: Info },
+  { id: 'storage', label: 'Storage & privacy', icon: Database },
+  { id: 'about', label: 'About & updates', icon: Info },
+  { id: 'advanced', label: 'Advanced', icon: SlidersHorizontal },
 ];
 
 export const DEFAULT_SETTINGS_SECTION: SettingsSectionId = 'general';
@@ -45,9 +28,8 @@ export function loadLastSettingsSection(): SettingsSectionId {
   if (typeof window === 'undefined') return DEFAULT_SETTINGS_SECTION;
   try {
     const raw = localStorage.getItem(SECTION_STORAGE_KEY);
-    if (raw && SETTINGS_SECTIONS.some((s) => s.id === raw)) {
-      return raw as SettingsSectionId;
-    }
+    if (raw === 'speech-model') return 'advanced';
+    if (raw && SETTINGS_SECTIONS.some((s) => s.id === raw)) return raw as SettingsSectionId;
   } catch {
     // localStorage unavailable — fall back to the default.
   }

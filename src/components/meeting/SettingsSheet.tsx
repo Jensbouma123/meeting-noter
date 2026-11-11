@@ -11,11 +11,7 @@ import {
   type SettingsSectionId,
 } from '@/components/settings/sections';
 import { GeneralSection } from '@/components/settings/GeneralSection';
-import { AudioCaptureSection } from '@/components/settings/AudioCaptureSection';
-import { TranscriptionSection } from '@/components/settings/TranscriptionSection';
-import { SpeechModelSection } from '@/components/settings/SpeechModelSection';
-import { AppearanceSection } from '@/components/settings/AppearanceSection';
-import { ShortcutsSection } from '@/components/settings/ShortcutsSection';
+import { AdvancedSection } from '@/components/settings/AdvancedSection';
 import { StorageSection } from '@/components/settings/StorageSection';
 import { AboutSection } from '@/components/settings/AboutSection';
 
@@ -26,7 +22,7 @@ interface SettingsSheetProps {
   onSettingsChange: (settings: AppSettings) => void;
   /** Deep-link to a section on open (e.g. the TopBar model pill jumps to "speech-model").
    *  Leave unset to keep whatever section the user last had open. */
-  section?: SettingsSectionId;
+  section?: SettingsSectionId | 'speech-model';
 }
 
 export function SettingsSheet({
@@ -54,7 +50,7 @@ export function SettingsSheet({
   if (open !== prevOpen) {
     setPrevOpen(open);
     if (open && section) {
-      setActiveSection(section);
+      setActiveSection(section === 'speech-model' ? 'advanced' : section);
     }
   }
 
@@ -69,20 +65,12 @@ export function SettingsSheet({
       onClose={onClose}
       activeSection={activeSection}
       onSectionChange={selectSection}
-      alertSections={modelFailed ? ['speech-model'] : []}
+      alertSections={modelFailed ? ['advanced'] : []}
     >
       {activeSection === 'general' && (
         <GeneralSection settings={settings} onSettingsChange={onSettingsChange} />
       )}
-      {activeSection === 'audio' && (
-        <AudioCaptureSection settings={settings} onSettingsChange={onSettingsChange} />
-      )}
-      {activeSection === 'transcription' && (
-        <TranscriptionSection settings={settings} onSettingsChange={onSettingsChange} />
-      )}
-      {activeSection === 'speech-model' && <SpeechModelSection />}
-      {activeSection === 'appearance' && <AppearanceSection />}
-      {activeSection === 'shortcuts' && <ShortcutsSection />}
+      {activeSection === 'advanced' && <AdvancedSection />}
       {activeSection === 'storage' && <StorageSection settings={settings} onSettingsChange={onSettingsChange} />}
       {activeSection === 'about' && <AboutSection />}
     </SettingsDialog>
