@@ -6,6 +6,8 @@ import { ToastProvider } from "@jensbouma123/acciva-ui";
 // Tailwind can only register its `@theme` utilities in the file it processes.
 import "./globals.css";
 import { UpdateBanner } from "@/components/UpdateBanner";
+import { I18nProvider } from "@/lib/i18n/I18nProvider";
+import { LifecycleClient } from "@/components/lifecycle/LifecycleClient";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,7 +43,7 @@ export default function RootLayout({
 }) {
   return (
     <html
-      lang="en"
+      lang="nl"
       data-theme="light"
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
@@ -50,12 +52,15 @@ export default function RootLayout({
         <ThemeInitScript />
       </head>
       <body className="min-h-dvh h-full flex flex-col bg-background text-foreground selection:bg-primary-100 selection:text-primary-900">
-        <ThemeProvider>
-          <ToastProvider position="bottom-right">
-            <UpdateBanner />
-            {children}
-          </ToastProvider>
-        </ThemeProvider>
+        <I18nProvider>
+          <ThemeProvider>
+            <ToastProvider position="bottom-right">
+              <UpdateBanner />
+              <LifecycleClient />
+              {children}
+            </ToastProvider>
+          </ThemeProvider>
+        </I18nProvider>
       </body>
     </html>
   );

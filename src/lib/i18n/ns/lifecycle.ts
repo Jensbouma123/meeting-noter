@@ -1,4 +1,4 @@
 export const lifecycle = {
-  en: {},
-  nl: {},
+  en: { connectionLost: 'Connection lost' },
+  nl: { connectionLost: 'Verbinding verbroken' },
 } as const;
