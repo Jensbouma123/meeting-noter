@@ -7,16 +7,14 @@ import { existsSync, readFileSync } from "node:fs";
 // In the release tarball version.mjs sits next to this file; in the repo it is
 // the app's own copy.
 const here = new URL("./version.mjs", import.meta.url);
-const { compareVersions, RELEASES_API } = await import(
+const { compareVersions, installerAssetsReady, RELEASES_API } = await import(
   existsSync(here) ? here.href : new URL("../../src/lib/update/version.mjs", import.meta.url).href
 );
 
 /** The release's version if it is newer than `current` and has the `arch` tarball, else null. */
 export function installableUpdate(release, current, arch) {
   if (compareVersions(release?.tag_name, current) !== 1) return null;
-  const want = `meeting-noter-macos-${arch}.tar.gz`;
-  const names = (release.assets ?? []).map((a) => a?.name);
-  if (!names.includes(want) || !names.includes(`${want}.sha256`)) return null;
+  if (!installerAssetsReady((release.assets ?? []).map((a) => a?.name), arch)) return null;
   return String(release.tag_name).replace(/^v/, "");
 }
 

@@ -37,8 +37,21 @@ export async function findNewerRelease(current, { fetchFn = fetch, url = RELEASE
       tag: rel.tag_name,
       zipballUrl: rel.zipball_url ?? null,
       pageUrl: rel.html_url ?? null,
+      name: rel.name || String(rel.tag_name),
+      notes: typeof rel.body === "string" && rel.body.trim() ? rel.body : null,
+      publishedAt: rel.published_at ?? null,
+      assetNames: Array.isArray(rel.assets) ? rel.assets.map((a) => a?.name).filter(Boolean) : [],
     };
   } catch {
     return null;
   }
+}
+
+/**
+ * True when a release carries the macOS tarball and checksum install.sh needs
+ * for `arch`; the release workflow uploads them minutes after publishing.
+ */
+export function installerAssetsReady(assetNames, arch) {
+  const want = `meeting-noter-macos-${arch}.tar.gz`;
+  return assetNames.includes(want) && assetNames.includes(`${want}.sha256`);
 }

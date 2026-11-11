@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compareVersions, findNewerRelease, parseVersion } from './version.mjs';
+import { compareVersions, findNewerRelease, installerAssetsReady, parseVersion } from './version.mjs';
 
 const ok = (body: unknown) => async () => ({ ok: true, json: async () => body }) as Response;
 
@@ -20,7 +20,31 @@ describe('findNewerRelease', () => {
     const r = await findNewerRelease('0.1.0', {
       fetchFn: ok({ tag_name: 'v0.2.0', zipball_url: 'z', html_url: 'h' }),
     });
-    expect(r).toEqual({ version: '0.2.0', tag: 'v0.2.0', zipballUrl: 'z', pageUrl: 'h' });
+    expect(r).toEqual({
+      version: '0.2.0',
+      tag: 'v0.2.0',
+      zipballUrl: 'z',
+      pageUrl: 'h',
+      name: 'v0.2.0',
+      notes: null,
+      publishedAt: null,
+      assetNames: [],
+    });
+  });
+  it('carries the release notes and asset names', async () => {
+    const r = await findNewerRelease('0.1.0', {
+      fetchFn: ok({
+        tag_name: 'v0.2.0',
+        name: 'Snellere start',
+        body: '- Nieuw: bijwerken vanuit de app',
+        published_at: '2026-11-10T12:00:00Z',
+        assets: [{ name: 'meeting-noter-macos-arm64.tar.gz' }, { name: 'meeting-noter-macos-arm64.tar.gz.sha256' }],
+      }),
+    });
+    expect(r).toMatchObject({ name: 'Snellere start', notes: '- Nieuw: bijwerken vanuit de app', publishedAt: '2026-11-10T12:00:00Z' });
+    expect(installerAssetsReady(r!.assetNames, 'arm64')).toBe(true);
+    expect(installerAssetsReady(r!.assetNames, 'x64')).toBe(false);
+    expect(installerAssetsReady(['meeting-noter-macos-arm64.tar.gz'], 'arm64')).toBe(false);
   });
   it('returns null when equal or older', async () => {
     expect(await findNewerRelease('0.2.0', { fetchFn: ok({ tag_name: 'v0.2.0' }) })).toBeNull();
