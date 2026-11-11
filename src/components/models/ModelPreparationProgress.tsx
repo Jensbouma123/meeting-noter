@@ -22,6 +22,7 @@
 import { useMemo, useSyncExternalStore } from 'react';
 import { Text } from '@jensbouma123/acciva-ui';
 import { ProgressTrack } from '@/components/common/ProgressTrack';
+import { useT } from '@/lib/i18n/useT';
 import {
   getServerBrowserASRProgress,
   getBrowserASRProgress,
@@ -110,10 +111,10 @@ export function describePreparation(state: ModelPreparationState): string | null
   const { engine } = state;
   if (engine.phase === 'ready') return null;
   if (engine.phase === 'downloading') {
-    return `Downloading model${state.downloadPercent === null ? '' : ` ${state.downloadPercent}%`}`;
+    return `status.preparing${state.downloadPercent === null ? '' : ` ${state.downloadPercent}%`}`;
   }
   if (engine.phase === 'loading') {
-    return `Setting up model${engine.percent === null ? '' : ` ${engine.percent}%`}`;
+    return `status.preparing${engine.percent === null ? '' : ` ${engine.percent}%`}`;
   }
   return null;
 }
@@ -130,14 +131,14 @@ export function describePreparationDetail(state: ModelPreparationState): string 
  * status out and give a short, readable line, with the filename shown beside it.
  */
 export function parseDownloadError(raw: string | null): { summary: string; filename: string | null } {
-  if (!raw) return { summary: "Download didn't finish.", filename: null };
+  if (!raw) return { summary: 'error.download', filename: null };
 
   const match = raw.match(/Failed to download ([^:]+):\s*(\d{3})/);
   if (!match) return { summary: raw, filename: null };
 
   const [, filename, status] = match;
-  const reason = status === '404' ? "the file wasn't found" : `the server had a problem (${status})`;
-  return { summary: `Download didn't finish: ${reason}`, filename };
+  const reason = status === '404' ? 'error.downloadNotFound' : `error.downloadServer:${status}`;
+  return { summary: `error.downloadSummary:${reason}`, filename };
 }
 
 /** True while the model is being prepared, whether or not it can be measured. */
@@ -147,8 +148,12 @@ export function isPreparing(state: ModelPreparationState): boolean {
 
 /** The bar + line, shared verbatim by the consent dialog and Settings. */
 export function ModelPreparationBar({ state }: { state: ModelPreparationState }) {
-  const label = describePreparation(state);
-  if (label === null) return null;
+  const t = useT('models');
+  const labelKey = describePreparation(state);
+  if (labelKey === null) return null;
+  const label = labelKey.startsWith('status.preparing')
+    ? `${t('status.preparing')}${labelKey.slice('status.preparing'.length)}`
+    : labelKey;
   const percent = state.engine.stage === 'downloading' ? state.downloadPercent : state.engine.percent;
 
   const detail = describePreparationDetail(state);
@@ -166,4 +171,15 @@ export function ModelPreparationBar({ state }: { state: ModelPreparationState })
       )}
     </div>
   );
+}
+
+export function translatedDownloadError(raw: string | null, t: (key: string) => string) {
+  const { summary, filename } = parseDownloadError(raw);
+  const reason = summary.includes(':') ? summary.slice(summary.lastIndexOf(':') + 1) : null;
+  if (summary === 'error.download') return { summary: t(summary), filename };
+  if (reason?.startsWith('error.downloadServer:')) {
+    const status = reason.slice('error.downloadServer:'.length);
+    return { summary: t('error.downloadSummary').replace('{reason}', t('error.downloadServer').replace('{status}', status)), filename };
+  }
+  return { summary: t('error.downloadSummary').replace('{reason}', t(reason ?? 'error.downloadNotFound')), filename };
 }

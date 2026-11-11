@@ -36,10 +36,12 @@ import {
   VStack,
 } from '@jensbouma123/acciva-ui';
 import { ProgressTrack } from '@/components/common/ProgressTrack';
+import { useT } from '@/lib/i18n/useT';
 import {
   ModelPreparationBar,
   isPreparing,
   parseDownloadError,
+  translatedDownloadError,
   useModelPreparation,
   type ModelPreparationState,
 } from './ModelPreparationProgress';
@@ -54,6 +56,7 @@ import {
 /* ------------------------------------------------------------------ */
 
 export function SpeechModelSettings() {
+  const t = useT('models');
   const { entries } = useSyncExternalStore(subscribeRegistry, getState, getServerSnapshot);
   const models = Object.values(entries);
   const preparation = useModelPreparation();
@@ -63,7 +66,7 @@ export function SpeechModelSettings() {
   return (
     <VStack spacing="sm" className="w-full">
       <Text size="xs" variant="muted">
-        Transcribes on your device. Your audio never leaves this browser.
+        {t('privacy.device')}
       </Text>
 
       {/* The registry only knows about *downloads*, so a model whose bytes are
@@ -93,6 +96,7 @@ export function SpeechModelSettings() {
 /** Parakeet or Nemotron. Switching drops the loaded model; the entry below
  *  then describes the chosen family's download. */
 function SpeechModelPicker() {
+  const t = useT('models');
   const family = useSyncExternalStore(subscribeAsrModelFamily, getAsrModelFamily, getServerAsrModelFamily);
   const [refused, setRefused] = useState(false);
   const choose = (next: AsrModelFamily) => setRefused(!selectSpeechModel(next));
@@ -102,17 +106,17 @@ function SpeechModelPicker() {
         <Radio
           value="parakeet"
           label="Parakeet TDT 0.6B v3"
-          description="Most accurate on the meeting bench. About 530 MB."
+          description={t('model.parakeet.description')}
         />
         <Radio
           value="nemotron"
           label="Nemotron 3.5 ASR Streaming 0.6B"
-          description="Streaming model, 40 languages. About 790 MB."
+          description={t('model.nemotron.description')}
         />
       </RadioGroup>
       {refused && (
         <Alert variant="warning" layout="inline">
-          Stop the recording, or wait for the model to finish loading, before switching models.
+          {t('model.switchBlocked')}
         </Alert>
       )}
     </VStack>
@@ -145,6 +149,7 @@ function DeleteDownloadedModels({
   models: ModelEntry[];
   preparation: ModelPreparationState;
 }) {
+  const t = useT('models');
   const [busy, setBusy] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [result, setResult] = useState<DeleteModelCacheResult | null>(null);
@@ -185,10 +190,10 @@ function DeleteDownloadedModels({
       <HStack spacing="sm" justify="between" align="center" wrap>
         <Text size="xs" variant="muted">
           {anyCached
-            ? 'Downloaded models are stored in this browser.'
+            ? t('privacy.cached')
             : anyPartialBytes
-              ? 'Part of the model is downloaded and stored in this browser.'
-              : 'Nothing downloaded yet.'}
+              ? t('privacy.partial')
+              : t('privacy.empty')}
         </Text>
         <Button
           variant="secondary"
@@ -197,16 +202,15 @@ function DeleteDownloadedModels({
           disabled={busy}
           onClick={() => setConfirmOpen(true)}
         >
-          {busy ? 'Deleting…' : downloading ? 'Cancel and delete download' : 'Delete models'}
+          {busy ? t('action.deleting') : downloading ? t('action.cancelDelete') : t('action.delete')}
         </Button>
       </HStack>
 
       {result && (
         <Alert variant={result.deleted ? 'success' : 'danger'} layout="inline">
           {result.deleted
-            ? 'Models deleted. You can download them again any time.'
-            : "Some files couldn't be deleted because another Meeting Noter tab is using them. " +
-              'Close other tabs and try again.'}
+            ? t('delete.success')
+            : t('delete.conflict')}
         </Alert>
       )}
 
@@ -214,9 +218,9 @@ function DeleteDownloadedModels({
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
         onConfirm={deleteModels}
-        title="Delete downloaded models?"
-        description="You'll need to download them again before you can record."
-        confirmText="Delete models"
+        title={t('delete.title')}
+        description={t('delete.body')}
+        confirmText={t('delete.confirm')}
         variant="danger"
       />
     </VStack>
@@ -230,6 +234,7 @@ function ModelStatusRow({
   entry: ModelEntry;
   preparation: ModelPreparationState;
 }) {
+  const t = useT('models');
   const preparing = isPreparing(preparation) && (entry.kind ?? 'asr') === 'asr';
   return (
     <Card variant="bordered" padding="md" className="w-full">
@@ -272,7 +277,7 @@ function ModelStatusRow({
           onClick={openDialog}
           className="max-sm:w-full"
         >
-          Download model
+          {t('action.download')}
         </Button>
       )}
 
@@ -287,6 +292,7 @@ function ModelStatusRow({
 }
 
 function ProgressRow({ entry }: { entry: ModelEntry }) {
+  const t = useT('models');
   const { progress } = entry;
   const etaText =
     progress.etaSeconds > 0 && !isNaN(progress.etaSeconds)
@@ -300,9 +306,9 @@ function ProgressRow({ entry }: { entry: ModelEntry }) {
   if (progress.resuming) {
     return (
       <VStack spacing="xs" className="w-full">
-        <ProgressTrack value={null} label="Resuming model download" />
+        <ProgressTrack value={null} label={t('progress.resuming')} />
         <Text size="xs" variant="muted" font="mono">
-          Resuming download… {formatBytes(progress.loadedBytes)} saved so far
+          {t('progress.resumingText').replace('{bytes}', formatBytes(progress.loadedBytes))}
         </Text>
       </VStack>
     );
@@ -310,7 +316,7 @@ function ProgressRow({ entry }: { entry: ModelEntry }) {
 
   return (
     <VStack spacing="xs" className="w-full">
-      <ProgressTrack value={progress.percent} label="Model download progress" />
+      <ProgressTrack value={progress.percent} label={t('progress.download')} />
       <Text size="xs" variant="muted" font="mono" className="tabular-nums">
         {formatBytes(progress.loadedBytes)} / {formatBytes(progress.totalBytes)} ·{' '}
         {progress.percent}%{etaText}
@@ -324,30 +330,32 @@ const STATUS_BADGE: Record<
   { label: string; variant: 'neutral' | 'primary' | 'success' | 'warning' | 'danger' } | null
 > = {
   'not-downloaded': null,
-  downloading: { label: 'Downloading', variant: 'primary' },
-  cached: { label: 'Ready', variant: 'success' },
-  failed: { label: 'Failed', variant: 'danger' },
-  cancelled: { label: 'Cancelled', variant: 'warning' },
-  unavailable: { label: 'Not supported', variant: 'neutral' },
+  downloading: { label: 'badge.downloading', variant: 'primary' },
+  cached: { label: 'badge.cached', variant: 'success' },
+  failed: { label: 'badge.failed', variant: 'danger' },
+  cancelled: { label: 'badge.cancelled', variant: 'warning' },
+  unavailable: { label: 'badge.unavailable', variant: 'neutral' },
 };
 
 function StatusBadge({ status }: { status: ModelEntry['status'] }) {
+  const t = useT('models');
   const badge = STATUS_BADGE[status];
   if (!badge) return null;
   return (
     <Badge variant={badge.variant} size="sm" dot>
-      {badge.label}
+      {t(badge.label)}
     </Badge>
   );
 }
 
 /** Which backend this entry's files/quantisation target — see `model-manifest.ts`. */
 function BackendBadge({ backend }: { backend: AsrBackend }) {
+  const t = useT('models');
   const webgpu = backend === 'webgpu';
   const Icon = webgpu ? Zap : Cpu;
   return (
     <Tooltip
-      content={webgpu ? 'Runs on your graphics card (faster)' : 'Runs on your processor'}
+      content={t(webgpu ? 'tooltip.gpu' : 'tooltip.cpu')}
     >
       <Badge variant="neutral" size="sm">
         <Icon className="size-3" aria-hidden="true" />
@@ -382,7 +390,8 @@ function StatusIcon({ status, preparing }: { status: ModelEntry['status']; prepa
 /* ------------------------------------------------------------------ */
 
 function FailedRow({ entry }: { entry: ModelEntry }) {
-  const { summary, filename } = parseDownloadError(entry.error);
+  const t = useT('models');
+  const { summary, filename } = translatedDownloadError(entry.error, t);
 
   return (
     <HStack spacing="sm" justify="between" align="center" wrap className="w-full">
@@ -402,7 +411,7 @@ function FailedRow({ entry }: { entry: ModelEntry }) {
         onClick={() => void retryDownload(entry.key)}
         className="shrink-0"
       >
-        Try again
+        {t('action.retry')}
       </Button>
     </HStack>
   );

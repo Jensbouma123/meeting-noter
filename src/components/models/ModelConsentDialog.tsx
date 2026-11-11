@@ -26,6 +26,7 @@ import {
   describePreparation,
   isPreparing,
   parseDownloadError,
+  translatedDownloadError,
   useModelPreparation,
 } from './ModelPreparationProgress';
 import { ProgressTrack } from '@/components/common/ProgressTrack';
@@ -38,6 +39,7 @@ import {
   Text,
   VStack,
 } from '@jensbouma123/acciva-ui';
+import { useT } from '@/lib/i18n/useT';
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
@@ -67,6 +69,7 @@ const STATUS_BADGE: Record<
 /* ------------------------------------------------------------------ */
 
 export function ModelConsentDialog({ onDismiss }: ConsentDialogProps) {
+  const t = useT('models');
   // Read the store directly. getState()/getServerSnapshot() return stable
   // references, so this does not loop, and it avoids setState-in-effect.
   const { entries, consentState: consent, dialogVisible } = useSyncExternalStore(
@@ -158,20 +161,22 @@ export function ModelConsentDialog({ onDismiss }: ConsentDialogProps) {
   }
 
   const heading = anyFailed
-    ? "Download didn't finish"
+    ? t('dialog.failedTitle')
     : preparing
-      ? 'Preparing the speech model'
-      : 'Download speech model';
+      ? t('dialog.preparingTitle')
+      : t('dialog.downloadTitle');
 
   const subheading = anyFailed
-    ? 'Check your connection and try again. Anything already downloaded is kept.'
+    ? t('dialog.failedBody')
     : preparing
-      ? 'Keep this tab open until the model is ready.'
+      ? t('dialog.preparingBody')
       : neverPrompted
-        ? 'One-time download. After that, transcription works on this device.'
-        : 'Resume the download where it stopped.';
+        ? t('dialog.firstDownloadBody')
+        : t('dialog.resumeBody');
 
-  const primaryLabel = anyFailed ? 'Try again' : `Download ${formatBytes(totalBytes)}`;
+  const primaryLabel = anyFailed
+    ? t('action.retry')
+    : t('action.downloadSize').replace('{size}', formatBytes(totalBytes));
 
   return (
     <Modal
@@ -194,7 +199,7 @@ export function ModelConsentDialog({ onDismiss }: ConsentDialogProps) {
                 onDismiss?.();
               }}
             >
-              Continue in background
+              {t('action.continueBackground')}
             </Button>
           </div>
         ) : (
@@ -209,7 +214,7 @@ export function ModelConsentDialog({ onDismiss }: ConsentDialogProps) {
                     setDialogVisible(false);
                   }}
                 >
-                  Forget my choice
+                  {t('action.forgetChoice')}
                 </Button>
               )}
               <Button
@@ -224,7 +229,7 @@ export function ModelConsentDialog({ onDismiss }: ConsentDialogProps) {
                   onDismiss?.();
                 }}
               >
-                Not now
+                {t('action.notNow')}
               </Button>
             </div>
 
@@ -256,8 +261,8 @@ export function ModelConsentDialog({ onDismiss }: ConsentDialogProps) {
         <ModelPreparationBar state={preparation} />
 
         <Text size="xs" variant="muted">
-          Runs on your device. Your audio never leaves this browser.
-          {!sizeKnown && !preparing && !anyFailed && ' Checking download size…'}
+          {t('privacy.dialog')}
+          {!sizeKnown && !preparing && !anyFailed && ` ${t('dialog.checkingSize')}`}
         </Text>
 
         {/* Progress is announced politely; the count is in the title already. */}
@@ -274,6 +279,7 @@ export function ModelConsentDialog({ onDismiss }: ConsentDialogProps) {
 /* ------------------------------------------------------------------ */
 
 function ModelCard({ entry }: { entry: ModelEntry }) {
+  const t = useT('models');
   // The progress line (download progress or the error text) already states
   // the model's status, so the pill and size next to the name would just
   // repeat it. Only show them when nothing else on the card conveys status.
@@ -295,7 +301,7 @@ function ModelCard({ entry }: { entry: ModelEntry }) {
           <HStack spacing="xs" className="shrink-0">
             {badge && (
               <Badge variant={badge.variant} size="sm" dot>
-                {badge.label}
+                {t(`badge.${entry.status}`)}
               </Badge>
             )}
             {showSize && (
@@ -322,7 +328,7 @@ function ModelCard({ entry }: { entry: ModelEntry }) {
 
         {entry.status === 'cancelled' && (
           <Text size="sm" variant="muted">
-            Download cancelled. Nothing was saved.
+            {t('error.cancelled')}
           </Text>
         )}
       </VStack>
@@ -331,11 +337,12 @@ function ModelCard({ entry }: { entry: ModelEntry }) {
 }
 
 function FailedDetail({ error }: { error: string }) {
-  const { summary, filename } = parseDownloadError(error);
+  const t = useT('models');
+  const { summary, filename } = translatedDownloadError(error, t);
   return (
     <VStack spacing="none">
       <Text size="sm" variant="danger">
-        Couldn&apos;t download the model.
+        {t('error.download')}
       </Text>
       <Text size="xs" variant="muted">
         {summary}
@@ -371,6 +378,7 @@ function StatusIcon({ status }: { status: ModelStatus }) {
 /* ------------------------------------------------------------------ */
 
 function ProgressBar({ progress }: { progress: ModelProgress }) {
+  const t = useT('models');
   const throughputText =
     progress.throughputBytesPerSec > 0
       ? ` · ${formatBytes(progress.throughputBytesPerSec)}/s`
@@ -383,7 +391,7 @@ function ProgressBar({ progress }: { progress: ModelProgress }) {
 
   return (
     <VStack spacing="xs" className="w-full">
-      <ProgressTrack value={progress.percent} label="Model download progress" />
+      <ProgressTrack value={progress.percent} label={t('progress.download')} />
       <HStack spacing="xs" wrap>
         <Text size="xs" variant="muted" font="mono" className="tabular-nums">
           {formatBytes(progress.loadedBytes)} of {formatBytes(progress.totalBytes)}
