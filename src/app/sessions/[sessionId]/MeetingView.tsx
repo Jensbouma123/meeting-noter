@@ -798,7 +798,7 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
         </VStack>
 
         {/* Speaker sidebar — manages its own open/collapsed state. */}
-        <RightRail />
+        <RightRail sessionId={initialSessionId ?? getTranscriptSessionId() ?? 'active'} segments={segments} />
       </HStack>
 
       {/* Settings dialog */}

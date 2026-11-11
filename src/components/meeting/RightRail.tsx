@@ -8,6 +8,9 @@ import type { Speaker } from '@/lib/meeting';
 import { meeting } from './store';
 import { Check, ChevronLeft, ChevronRight, Pencil, Users } from 'lucide-react';
 import { ProgressTrack } from '@/components/common/ProgressTrack';
+import { NotesPanel } from '@/components/notes/NotesPanel';
+import type { Segment } from '@/lib/meeting/types';
+import { useT } from '@/lib/i18n/useT';
 import {
   Badge,
   Button,
@@ -172,7 +175,9 @@ function formatDuration(seconds: number): string {
 
 /** Speaker directory + talk-time sidebar. Reads live from the meeting store
  *  (via `useSpeakerStats`), so it takes no props — it's self-sufficient. */
-export function RightRail() {
+export function RightRail({ sessionId, segments = [] }: { sessionId: string; segments?: Segment[] }) {
+  const t = useT('rail');
+  const [activeTab, setActiveTab] = useState<'participants' | 'summary'>('participants');
   // Initial render must match the server (expanded); the real preference —
   // a saved choice, or the narrow-screen default — loads after mount.
   const [open, setOpen] = useState(true);
@@ -271,19 +276,15 @@ export function RightRail() {
       draggable
       swipeToDismiss
       showCloseOnTouch
-      aria-label="Speakers"
+      aria-label={t('participants')}
     >
       <VStack spacing="sm" className="h-full min-h-0 p-4">
-        <HStack spacing="sm">
-          <Heading as="h2" level={2} size="xs" weight="semibold">
-            Speakers
-          </Heading>
-          <Badge variant="neutral" size="sm">
-            {speakerStatRows.length}
-          </Badge>
+        <HStack spacing="sm" role="tablist" aria-label={t('tabs')}>
+          <Button role="tab" aria-selected={activeTab === 'participants'} size="sm" variant={activeTab === 'participants' ? 'primary' : 'ghost'} onClick={() => setActiveTab('participants')}>{t('participants')} <Badge variant="neutral" size="sm">{speakerStatRows.length}</Badge></Button>
+          <Button role="tab" aria-selected={activeTab === 'summary'} size="sm" variant={activeTab === 'summary' ? 'primary' : 'ghost'} onClick={() => setActiveTab('summary')}>{t('summary')}</Button>
         </HStack>
         <VStack spacing="sm" className="min-h-0 flex-1 overflow-y-auto pb-4">
-          {list}
+          {activeTab === 'participants' ? list : <NotesPanel sessionId={sessionId} speakers={speakerStatRows.map((row) => ({ id: row.id, label: row.label, colorIndex: row.colorIndex, source: row.source }))} segments={segments} />}
         </VStack>
       </VStack>
     </Drawer>
@@ -295,7 +296,7 @@ export function RightRail() {
         {drawer}
         <aside
           className="hidden w-12 shrink-0 select-none flex-col items-center gap-3 border-l border-border-subtle bg-surface/50 py-3 lg:flex"
-          aria-label="Speakers"
+          aria-label={t('participants')}
         >
           <Button
             variant="ghost"
@@ -303,8 +304,8 @@ export function RightRail() {
             iconOnly
             className="touch-target-44"
             onClick={toggleOpen}
-            tooltip="Show speakers"
-            aria-label="Show speakers"
+            tooltip={t('showRail')}
+            aria-label={t('showRail')}
             leadingIcon={<ChevronLeft className="size-4" />}
           />
           <Users className="size-4 text-muted-foreground" aria-hidden="true" />
@@ -323,13 +324,13 @@ export function RightRail() {
       {drawer}
       <aside
         className="hidden w-64 shrink-0 xl:w-72 select-none flex-col gap-3 border-l border-border-subtle bg-surface/50 lg:flex"
-        aria-label="Speakers and talk time"
+        aria-label={t('rail')}
       >
         <HStack spacing="sm" justify="between" className="shrink-0 px-4 pt-4">
           <HStack spacing="sm">
             <Users className="size-4 text-muted-foreground" aria-hidden="true" />
             <Heading as="h2" level={2} size="xs" variant="muted" weight="semibold">
-              Speakers
+              {activeTab === 'participants' ? t('participants') : t('summary')}
             </Heading>
             <Badge variant="neutral" size="sm">
               {speakerStatRows.length}
@@ -342,14 +343,18 @@ export function RightRail() {
             iconOnly
             className="touch-target-44"
             onClick={toggleOpen}
-            tooltip="Hide speakers"
-            aria-label="Hide speakers"
+            tooltip={t('hideRail')}
+            aria-label={t('hideRail')}
             leadingIcon={<ChevronRight className="size-4" />}
           />
         </HStack>
 
+        <HStack spacing="sm" role="tablist" aria-label={t('tabs')} className="shrink-0 px-4">
+          <Button role="tab" aria-selected={activeTab === 'participants'} size="sm" variant={activeTab === 'participants' ? 'primary' : 'ghost'} onClick={() => setActiveTab('participants')}>{t('participants')}</Button>
+          <Button role="tab" aria-selected={activeTab === 'summary'} size="sm" variant={activeTab === 'summary' ? 'primary' : 'ghost'} onClick={() => setActiveTab('summary')}>{t('summary')}</Button>
+        </HStack>
         <VStack spacing="sm" className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-          {list}
+          {activeTab === 'participants' ? list : <NotesPanel sessionId={sessionId} speakers={speakerStatRows.map((row) => ({ id: row.id, label: row.label, colorIndex: row.colorIndex, source: row.source }))} segments={segments} />}
         </VStack>
       </aside>
     </>
