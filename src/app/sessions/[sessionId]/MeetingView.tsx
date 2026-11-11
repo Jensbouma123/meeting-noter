@@ -78,7 +78,6 @@ import { useT } from '@/lib/i18n/useT';
 import { ShareDialog } from '@/components/share/ShareDialog';
 import { useUpdate } from '@/components/update/useUpdate';
 import { useServerHeartbeat } from '@/lib/lifecycle/useServerHeartbeat';
-import { getNotes, type Notes } from '@/lib/meeting/notes';
 
 const fill = (text: string, values: Record<string, string | number>): string =>
   text.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k] ?? ''));
@@ -644,27 +643,10 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
     else toast({ title: t('stopFirst'), variant: 'warning' });
   }, [initialSessionId, toast, t]);
 
-  // Share dialog: notes are read once when it opens (localStorage-backed).
+  // Share dialog uses the latest transcript segments.
   const [shareOpen, setShareOpen] = useState(false);
-  const [shareNotes, setShareNotes] = useState<Notes>({ actions: [], decisions: [] });
   const shareSessionId = initialSessionId ?? getTranscriptSessionId() ?? 'active';
-  const openShare = useCallback(() => {
-    setShareNotes(getNotes(shareSessionId));
-    setShareOpen(true);
-  }, [shareSessionId]);
-  const shareParticipants = useMemo(
-    () => Object.values(speakers).map((sp) => sp.label),
-    [speakers],
-  );
-  const shareDurationS = useMemo(() => {
-    const ends = segments.map((sg) => sg.end).filter((n) => Number.isFinite(n));
-    return ends.length ? Math.max(...ends) : 0;
-  }, [segments]);
-  const [mountedAt] = useState(() => Date.now());
-  const shareDate = useMemo(
-    () => new Date(startedAt ?? mountedAt).toLocaleDateString(),
-    [startedAt, mountedAt],
-  );
+  const openShare = useCallback(() => setShareOpen(true), []);
 
   const update = useUpdate(isRecording);
   const updateAvailable =
@@ -873,11 +855,6 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
         open={shareOpen}
         onClose={() => setShareOpen(false)}
         title={title}
-        date={shareDate}
-        durationS={shareDurationS}
-        participants={shareParticipants}
-        decisions={shareNotes.decisions}
-        actions={shareNotes.actions}
         segments={segments}
         speakers={speakers}
       />

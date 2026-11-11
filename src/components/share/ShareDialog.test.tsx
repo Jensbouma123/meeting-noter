@@ -17,39 +17,34 @@ vi.mock('@/lib/meeting/export', async (load) => {
 afterEach(cleanup);
 
 const seg = { id: '1', source: 'mic', speaker: 'sp1', text: 'Hello', start: 0, end: 1, final: true } as const;
-const base = { open: true, onClose: () => {}, title: 'Planning', date: '11 Nov', durationS: 60, participants: [], speakers: {} };
-const decisions = [{ id: 'd1', text: 'Ship Friday' }];
-const actions = [{ id: 'a1', text: 'Write notes', ownerName: 'Sam', due: 'Mon', done: false }];
+const base = { open: true, onClose: () => {}, title: 'Planning', speakers: {} };
 
 describe('ShareDialog', () => {
   it('shows an empty state and no actions when there is nothing to share', () => {
-    render(<ShareDialog {...base} decisions={[]} actions={[]} segments={[]} />);
+    render(<ShareDialog {...base} segments={[]} />);
     expect(screen.getByText(/Nothing to share yet/)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Copy summary' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Copy transcript' })).toBeNull();
   });
 
-  it('previews the summary and copies plain text with a confirmation', async () => {
+  it('previews and copies the transcript with a confirmation', async () => {
     const exp = await import('@/lib/meeting/export');
-    render(<ShareDialog {...base} decisions={decisions} actions={actions} segments={[]} />);
+    render(<ShareDialog {...base} segments={[seg]} />);
     const preview = screen.getByRole('region', { name: 'Preview of what you will share' });
     expect(preview).toHaveTextContent('Planning');
-    expect(preview).toHaveTextContent('Ship Friday');
-    expect(preview).toHaveTextContent('Write notes');
-    expect(preview).toHaveTextContent('Owner: Sam');
-    expect(preview).toHaveTextContent('Due: Mon');
-    fireEvent.click(screen.getByRole('button', { name: 'Copy summary' }));
+    expect(preview).toHaveTextContent('Hello');
+    fireEvent.click(screen.getByRole('button', { name: 'Copy transcript' }));
     expect(await screen.findByRole('status')).toHaveTextContent('Copied');
     const text = vi.mocked(exp.copyToClipboard).mock.calls.at(-1)![0];
-    expect(text).toContain('Ship Friday');
-    expect(text).not.toContain('# ');
+    expect(text).toContain('[00:00] Hello');
+    expect(text).not.toContain('Ship Friday');
   });
 
   it('offers email with subject and body, and download', async () => {
     const exp = await import('@/lib/meeting/export');
-    render(<ShareDialog {...base} decisions={decisions} actions={actions} segments={[]} />);
+    render(<ShareDialog {...base} segments={[seg]} />);
     const href = screen.getByRole('link', { name: 'Send by email' }).getAttribute('href')!;
-    expect(href).toContain('subject=Meeting%20summary%3A%20Planning');
-    expect(decodeURIComponent(href)).toContain('Ship Friday');
+    expect(href).toContain('subject=Meeting%20transcript%3A%20Planning');
+    expect(decodeURIComponent(href)).toContain('[00:00] Hello');
     fireEvent.click(screen.getByRole('button', { name: 'Download as document' }));
     expect(exp.downloadFile).toHaveBeenCalled();
   });
@@ -57,13 +52,13 @@ describe('ShareDialog', () => {
   it('keeps transcript formats under Advanced and reports clipboard failures', async () => {
     const exp = await import('@/lib/meeting/export');
     vi.mocked(exp.copyToClipboard).mockResolvedValueOnce(false);
-    render(<ShareDialog {...base} decisions={decisions} actions={[]} segments={[seg]} />);
+    render(<ShareDialog {...base} segments={[seg]} />);
     expect(screen.getByText('Advanced')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Copy: Subtitles (.srt)' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Copying did not work');
   });
 
-  it.each(['live', 'reopened saved'])('copies summary + full transcript with speakers and timestamps (%s session)', async () => {
+  it.each(['live', 'reopened saved'])('copies only the transcript with speakers and timestamps (%s session)', async () => {
     const exp = await import('@/lib/meeting/export');
     const segs = [
       { ...seg, id: 'a', text: 'We should ship on Friday', start: 5, end: 8 },
@@ -71,19 +66,18 @@ describe('ShareDialog', () => {
       { ...seg, id: 'c', text: 'interim words', start: 70, end: 71, final: false },
     ];
     const speakers = { sp1: { id: 'sp1', label: 'Anna' }, sp2: { id: 'sp2', label: 'Ben' } } as never;
-    render(<ShareDialog {...base} decisions={decisions} actions={actions} segments={segs} speakers={speakers} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Copy summary + full transcript' }));
+    render(<ShareDialog {...base} segments={segs} speakers={speakers} />);
+    const expected = (await import('@/lib/meeting/export')).formatExport('txt', segs.filter((s) => s.final), speakers, 'Planning');
+    fireEvent.click(screen.getByRole('button', { name: 'Copy transcript' }));
     await screen.findByRole('status');
     const text = vi.mocked(exp.copyToClipboard).mock.calls.at(-1)![0];
-    expect(text).toContain('Ship Friday');
-    expect(text).toContain('Transcript');
+    expect(text).toBe(expected);
     expect(text).toContain('Anna');
     expect(text).toContain('[00:05] We should ship on Friday');
     expect(text).toContain('Ben');
     expect(text).toContain('Agreed, Friday works');
     expect(text).not.toContain('interim words');
-    fireEvent.click(screen.getByRole('button', { name: 'Copy summary' }));
-    await screen.findByRole('status');
-    expect(vi.mocked(exp.copyToClipboard).mock.calls.at(-1)![0]).not.toContain('Agreed, Friday works');
+    expect(text).not.toContain('Ship Friday');
+    expect(text).not.toContain('interim words');
   });
 });
