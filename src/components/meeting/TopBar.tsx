@@ -1,19 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import type { LanguageInfo, Segment, Speaker, Status } from '@/lib/meeting';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useT } from '@/lib/i18n/useT';
+import type { LanguageInfo, Status } from '@/lib/meeting';
 import { useMeeting } from './store';
-import {
-  EXPORT_FORMATS,
-  copyToClipboard,
-  downloadFile,
-  exportFilename,
-  finalSegments,
-  formatExport,
-  formatMeta,
-  resolveSpeakerLabel,
-  type ExportFormat,
-} from '@/lib/meeting/export';
 import {
   Badge,
   Button,
@@ -27,25 +17,24 @@ import {
   HStack,
   Input,
   Text,
-  Tooltip,
-  useToast,
   VStack,
 } from '@jensbouma123/acciva-ui';
 import {
   Check,
-  Copy,
   Download,
   Eraser,
   Globe,
   MoreHorizontal,
   Pencil,
   PanelLeftOpen,
+  Search,
+  Share2,
   Settings,
   TriangleAlert,
   Users,
 } from 'lucide-react';
-import { ThemeSwitcher } from './ThemeSwitcher';
 import { SpeakerStatusChip } from './SpeakerStatusChip';
+import { ShortcutsHelp } from './ShortcutsHelp';
 import type { ModelProgressView, ModelReadiness } from './modelReadiness';
 import type { SettingsSectionId } from '@/components/settings/sections';
 
@@ -72,17 +61,20 @@ interface TopBarProps {
    * it is in rather than inventing a number.
    */
   modelProgress: ModelProgressView;
-  /** Final-segment source for export; falls back to the live store when omitted. */
-  segments?: Segment[];
-  speakers?: Record<string, Speaker>;
   /** Clears this session's transcript (after the confirm dialog); omit to hide the action. */
   onClearTranscript?: () => void;
   /** True while recording: the action stays visible but disabled. */
   clearDisabled?: boolean;
+  /** Opens the S4 share dialog; wired by MeetingView in S9. */
+  onOpenShare?: () => void;
+  /** Update availability is wired by MeetingView in S9. */
+  updateAvailable?: boolean;
+  /** Model failure attention is wired by MeetingView in S9. */
+  modelFailed?: boolean;
 }
 
 const LANG_PICK_OPTIONS = [
-  { value: 'auto', label: 'Auto-detect' },
+  { value: 'auto', label: 'autoDetect' },
   { value: 'en', label: 'English' },
   { value: 'nl', label: 'Nederlands' },
   { value: 'de', label: 'Deutsch' },
@@ -114,6 +106,7 @@ function formatMeetingDate(ms: number): string {
 }
 
 function statusBadge(
+  t: (key: string) => string,
   status: Status,
   modelReadiness: ModelReadiness,
   modelProgress: ModelProgressView,
@@ -123,37 +116,37 @@ function statusBadge(
     case 'live':
       return (
         <Badge variant="success" dot size="sm">
-          Recording
+          {t('recording')}
         </Badge>
       );
     case 'paused':
       return (
         <Badge variant="warning" dot size="sm">
-          Paused
+          {t('paused')}
         </Badge>
       );
     case 'requesting':
       return (
         <Badge variant="warning" size="sm">
-          Waiting for mic access…
+          {t('waiting')}
         </Badge>
       );
     case 'connecting':
       return (
         <Badge variant="warning" size="sm">
-          Starting…
+          {t('starting')}
         </Badge>
       );
     case 'stopping':
       return (
         <Badge variant="neutral" size="sm">
-          Stopping…
+          {t('stopping')}
         </Badge>
       );
     case 'error':
       return (
         <Badge variant="danger" size="sm">
-          Recording error
+          {t('recordingError')}
         </Badge>
       );
     case 'idle':
@@ -161,7 +154,7 @@ function statusBadge(
       if (modelReadiness === 'ready') {
         return (
           <Badge variant="neutral" size="sm">
-            Ready
+            {t('ready')}
           </Badge>
         );
       }
@@ -172,20 +165,20 @@ function statusBadge(
       // at a disabled Record button is guaranteed to be looking at.
       const label =
         modelReadiness === 'failed'
-          ? 'Speech model error'
+          ? t('modelFailed')
           : modelProgress.stage
             ? modelProgress.label
             : modelReadiness === 'downloading' || modelReadiness === 'loading'
-              ? 'Preparing speech model…'
-              : 'Download speech model';
+              ? t('modelPreparing')
+              : t('modelMissing');
 
       const failed = modelReadiness === 'failed';
       return (
         <Button
           variant={failed ? 'danger' : 'secondary'}
           size="xs"
-          onClick={() => onOpenSettings('speech-model')}
-          tooltip="Open speech model settings"
+          onClick={() => onOpenSettings('advanced')}
+          tooltip={t('openAdvanced')}
           leadingIcon={
             failed ? <TriangleAlert className="size-3.5" /> : <Download className="size-3.5" />
           }
@@ -203,57 +196,28 @@ export function TopBar({
   status,
   startedAt,
   meetingDate,
-  stats,
   language,
-  languageAuto,
   selectedLang,
   onPickLanguage,
   onOpenSettings,
   modelReadiness,
   modelProgress,
-  segments: segmentsProp,
-  speakers: speakersProp,
   onClearTranscript,
   clearDisabled = false,
+  onOpenShare,
+  updateAvailable = false,
+  modelFailed = false,
 }: TopBarProps) {
+  const t = useT('topbar');
   const [clearOpen, setClearOpen] = useState(false);
-  const { toast } = useToast();
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(title);
   const [now, setNow] = useState(() => Date.now());
   const titleInputRef = useRef<HTMLInputElement>(null);
 
-  // Export reads the live transcript; explicit props win (tests / embedding),
-  // otherwise fall back to the store so no caller wiring is required.
-  const storeSegments = useMeeting((s) => s.segments);
-  const storeSpeakers = useMeeting((s) => s.speakers);
-  const callAudioMissing = useMeeting((s) => s.callAudioMissing);
   const diarization = useMeeting((s) => s.diarization);
-  const segments = segmentsProp ?? storeSegments;
-  const speakers = speakersProp ?? storeSpeakers;
-  const exportableCount = finalSegments(segments).length;
   const dateMs = meetingDate ?? startedAt;
-  const [exportOpen, setExportOpen] = useState(false);
-
-  // Cover every speaker id in the transcript so the formatter never prints a raw id.
-  const exportSpeakers = useMemo(() => {
-    const map = { ...speakers };
-    for (const seg of segments) {
-      if (!map[seg.speaker]) {
-        map[seg.speaker] = {
-          id: seg.speaker,
-          source: seg.source,
-          label: resolveSpeakerLabel(seg, {}, callAudioMissing),
-          colorIndex: 0,
-        };
-      }
-    }
-    return map;
-  }, [segments, speakers, callAudioMissing]);
-  const exportOptions = useMemo(
-    () => ({ callAudioMissing, startedAt }),
-    [callAudioMissing, startedAt]
-  );
 
   // Focus input when editing starts
   useEffect(() => {
@@ -272,14 +236,6 @@ export function TopBar({
     return () => clearInterval(interval);
   }, [status]);
 
-  // Keyboard-shortcut contract: the global handler dispatches 'mn:export',
-  // which the export menu below listens for.
-  useEffect(() => {
-    const handler = () => setExportOpen(true);
-    window.addEventListener('mn:export', handler);
-    return () => window.removeEventListener('mn:export', handler);
-  }, []);
-
   const elapsedSeconds =
     (status === 'live' || status === 'paused') && startedAt
       ? Math.max(0, Math.floor((now - startedAt) / 1000))
@@ -287,49 +243,16 @@ export function TopBar({
 
   const commitTitle = useCallback(() => {
     const trimmed = titleDraft.trim();
-    const finalTitle = trimmed.length > 0 ? trimmed : 'Untitled meeting';
+    const finalTitle = trimmed.length > 0 ? trimmed : t('titleUntitled');
     setTitleDraft(finalTitle);
     onTitleChange(finalTitle);
     setIsEditingTitle(false);
-  }, [titleDraft, onTitleChange]);
+  }, [titleDraft, onTitleChange, t]);
 
   const cancelTitleEdit = useCallback(() => {
     setTitleDraft(title);
     setIsEditingTitle(false);
   }, [title]);
-
-  // Copy feedback is a toast, not a pair of `setState` timers: the menu closes
-  // the instant you click, so an inline "Copied" tick was invisible anyway.
-  const handleCopyExport = useCallback(
-    async (format: ExportFormat) => {
-      const meta = formatMeta(format);
-      const ok = await copyToClipboard(
-        formatExport(format, segments, exportSpeakers, title, exportOptions)
-      );
-      if (ok) {
-        toast.success(`Copied as ${meta.label}`, {
-          description: `${exportableCount} line${exportableCount === 1 ? '' : 's'} copied.`,
-        });
-      } else {
-        toast.danger("Couldn't copy", {
-          description: 'Your browser blocked the clipboard. Use Download instead.',
-        });
-      }
-    },
-    [segments, exportSpeakers, exportOptions, title, exportableCount, toast]
-  );
-
-  const handleDownloadExport = useCallback(
-    (format: ExportFormat) => {
-      const meta = formatMeta(format);
-      downloadFile(
-        exportFilename(title, meta.extension),
-        formatExport(format, segments, exportSpeakers, title, exportOptions),
-        meta.mime
-      );
-    },
-    [segments, exportSpeakers, exportOptions, title]
-  );
 
   return (
     <>
@@ -347,7 +270,7 @@ export function TopBar({
           variant="ghost"
           size="sm"
           iconOnly
-          tooltip="Show meetings"
+          tooltip={t('showMeetings')}
           leadingIcon={<PanelLeftOpen className="size-4" />}
           className="touch-target-44 shrink-0 lg:hidden"
           onClick={() => window.dispatchEvent(new Event('mn:open-sessions'))}
@@ -367,7 +290,7 @@ export function TopBar({
                 if (e.key === 'Escape') cancelTitleEdit();
               }}
               maxLength={80}
-              aria-label="Meeting title"
+              aria-label={t('meetingTitle')}
               className="min-w-0 flex-1 sm:max-w-xs"
             />
             <Button
@@ -375,7 +298,7 @@ export function TopBar({
               size="sm"
               iconOnly
               onClick={commitTitle}
-              tooltip="Save name"
+              tooltip={t('saveName')}
               leadingIcon={<Check className="size-4 text-success" />}
               className="touch-target-44 shrink-0"
             />
@@ -389,7 +312,7 @@ export function TopBar({
               setTitleDraft(title);
               setIsEditingTitle(true);
             }}
-            tooltip="Rename meeting"
+            tooltip={t('renameMeeting')}
             leadingIcon={<Pencil className="size-3 text-muted-foreground" />}
             className="group min-w-0 justify-start"
           >
@@ -415,7 +338,7 @@ export function TopBar({
           </Badge>
         )}
 
-        {statusBadge(status, modelReadiness, modelProgress, onOpenSettings)}
+        {statusBadge(t, status, modelReadiness, modelProgress, onOpenSettings)}
 
         <SpeakerStatusChip status={diarization} onOpenSettings={onOpenSettings} />
 
@@ -431,10 +354,10 @@ export function TopBar({
                 leadingIcon={<Globe className="size-3" />}
                 tooltip={
                   language.locked
-                    ? `Language: ${language.name}`
-                    : `Detecting language… (${language.name} so far)`
+                    ? t('languageTip').replace('{name}', language.name)
+                    : t('detectingLanguage').replace('{name}', language.name)
                 }
-                aria-label={`Meeting language: ${language.name}. Change language`}
+                aria-label={t('language').replace('{name}', language.name)}
                 className="touch-target-44 font-medium"
               >
                 <span
@@ -443,13 +366,13 @@ export function TopBar({
                 >
                   <span className="sm:hidden">{language.code.toUpperCase()}</span>
                   <span className="hidden sm:inline">
-                    {languageAuto ? `${language.name} (auto)` : language.name}
+                    {language.name}
                   </span>
                 </span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="center">
-              <DropdownMenuLabel>Spoken language</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('spokenLanguage')}</DropdownMenuLabel>
               {LANG_PICK_OPTIONS.map((opt) => {
                 const selected = selectedLang === opt.value;
                 return (
@@ -460,7 +383,7 @@ export function TopBar({
                     onClick={() => onPickLanguage(opt.value)}
                     className={selected ? 'font-semibold' : undefined}
                   >
-                    {opt.label}
+                    {opt.label === 'autoDetect' ? t(opt.label) : opt.label}
                   </DropdownMenuItem>
                 );
               })}
@@ -468,14 +391,6 @@ export function TopBar({
           </DropdownMenu>
         )}
 
-        {/* Realtime stats if active */}
-        {stats && (status === 'live' || status === 'paused') && (
-          <Tooltip content="How fast transcription keeps up with speech. Lower is better.">
-            <Badge variant="neutral" size="sm" className="hidden font-mono xl:inline-flex">
-              {`${stats.rtf}× speed · ${stats.lagMs} ms behind`}
-            </Badge>
-          </Tooltip>
-        )}
       </HStack>
 
       {/* Right: Controls */}
@@ -484,50 +399,21 @@ export function TopBar({
           variant="ghost"
           size="sm"
           iconOnly
-          tooltip="Show speakers"
+          tooltip={t('showSpeakers')}
           leadingIcon={<Users className="size-4" />}
           className="touch-target-44 lg:hidden"
           onClick={() => window.dispatchEvent(new Event('mn:open-speakers'))}
         />
 
-        {/* Export menu: copy / download final segments as Markdown, TXT, SRT */}
-        <DropdownMenu open={exportOpen} onOpenChange={setExportOpen}>
-          <DropdownMenuTrigger>
-            <Button
-              variant="ghost"
-              size="sm"
-              iconOnly
-              tooltip="Export transcript (⌘/Ctrl E)"
-              leadingIcon={<Download className="size-4" />}
-              aria-label="Export transcript"
-              className="touch-target-44"
-            />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-64">
-            <DropdownMenuLabel>Export transcript</DropdownMenuLabel>
-            {exportableCount === 0 ? (
-              <DropdownMenuItem disabled>Nothing to export yet — record first</DropdownMenuItem>
-            ) : (
-              EXPORT_FORMATS.map((f, i) => (
-                <VStack key={f.value} spacing="none" className="w-full">
-                  {i > 0 && <DropdownMenuSeparator />}
-                  <DropdownMenuItem
-                    icon={<Download className="size-4" />}
-                    onClick={() => handleDownloadExport(f.value)}
-                  >
-                    {`Download ${f.label} (.${f.extension})`}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    icon={<Copy className="size-4" />}
-                    onClick={() => void handleCopyExport(f.value)}
-                  >
-                    Copy as {f.label}
-                  </DropdownMenuItem>
-                </VStack>
-              ))
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button
+          variant="secondary"
+          size="sm"
+          leadingIcon={<Share2 className="size-4" />}
+          onClick={onOpenShare}
+          className="touch-target-44"
+        >
+          {t('share')}
+        </Button>
 
         {onClearTranscript && (
           <DropdownMenu>
@@ -536,39 +422,42 @@ export function TopBar({
                 variant="ghost"
                 size="sm"
                 iconOnly
-                tooltip="More actions"
-                aria-label="More actions"
+                tooltip={t('moreActions')}
+                aria-label={t('moreActions')}
                 leadingIcon={<MoreHorizontal className="size-4" />}
                 className="touch-target-44"
               />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem
-                variant="danger"
-                icon={<Eraser className="size-4" />}
-                disabled={clearDisabled}
-                onClick={() => setClearOpen(true)}
-              >
-                Clear transcript
+              <DropdownMenuItem icon={<Search className="size-4" />} onClick={() => window.dispatchEvent(new Event('mn:search'))}>
+                {t('search')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShortcutsOpen(true)}>
+                {t('shortcuts')}
+              </DropdownMenuItem>
+              {updateAvailable && <DropdownMenuItem onClick={() => onOpenSettings('about')}>
+                {t('installUpdate')} <Badge size="sm" variant="info">{t('new')}</Badge>
+              </DropdownMenuItem>}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="danger" icon={<Eraser className="size-4" />} disabled={clearDisabled} onClick={() => setClearOpen(true)}>
+                {t('clear')}
               </DropdownMenuItem>
               {clearDisabled && (
                 <Text size="xs" variant="muted" className="px-2 py-1">
-                  Stop the recording first
+                  {t('stopBeforeClear')}
                 </Text>
               )}
             </DropdownMenuContent>
           </DropdownMenu>
         )}
 
-        <ThemeSwitcher className="hidden sm:inline-flex" />
-
         <Button
           variant="ghost"
           size="sm"
           iconOnly
           onClick={() => onOpenSettings()}
-          tooltip="Settings"
-          leadingIcon={<Settings className="size-4" />}
+          tooltip={t('settings')}
+          leadingIcon={<span className="relative"><Settings className="size-4" />{(updateAvailable || modelFailed) && <span className="absolute -right-1 -top-1 size-2 rounded-full bg-danger" aria-label={t('new')} />}</span>}
           className="touch-target-44"
         />
       </HStack>
@@ -581,11 +470,12 @@ export function TopBar({
           onClearTranscript?.();
         }}
         variant="danger"
-        title="Clear this transcript?"
-        description="This permanently removes all transcript lines and speakers for this meeting. The meeting itself is kept and a new recording starts from 00:00. This can't be undone."
-        confirmText="Clear transcript"
-        cancelText="Cancel"
+        title={t('clearConfirmTitle')}
+        description={t('clearConfirmDescription')}
+        confirmText={t('clear')}
+        cancelText={t('cancel')}
       />
+      <ShortcutsHelp open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
     </>
   );
 }

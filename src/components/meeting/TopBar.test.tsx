@@ -1,13 +1,9 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { ToastProvider } from '@jensbouma123/acciva-ui';
 import { TopBar } from './TopBar';
-
-vi.mock('./ThemeSwitcher', () => ({
-  ThemeSwitcher: () => null,
-}));
 
 vi.mock('@/components/meeting/store', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/components/meeting/store')>();
@@ -30,9 +26,10 @@ function view(status: 'live' | 'idle' = 'live') {
           onOpenSettings={() => {}}
           modelReadiness="ready"
           modelProgress={{ stage: null, label: '', percent: null, detail: null }}
-          segments={[]}
-          speakers={{}}
           onClearTranscript={() => {}}
+          onOpenShare={() => {}}
+          updateAvailable
+          modelFailed
         />
     </ToastProvider>
   );
@@ -58,11 +55,25 @@ describe('TopBar phone layout (390px)', () => {
     expect(screen.getByTestId('topbar-actions').className).toMatch(/min-w-0/);
     // Settings (right-most) action is still mounted, not dropped.
     expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Share' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Settings' }).querySelector('[aria-label="New"]')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Export transcript' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Theme' })).not.toBeInTheDocument();
     void container;
   });
 
   it('renders the idle state without overflow classes regressing', () => {
     render(view('idle'));
     expect(screen.getByTestId('meeting-topbar').className).toMatch(/max-w-full/);
+  });
+
+  it('shows the redesigned menu items and update badge', () => {
+    render(view());
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }));
+    expect(screen.getByText('Search')).toBeInTheDocument();
+    expect(screen.getByText('Shortcuts')).toBeInTheDocument();
+    expect(screen.getByText('Install new version')).toBeInTheDocument();
+    expect(screen.getByText('New')).toBeInTheDocument();
+    expect(screen.getByText('Clear transcript')).toBeInTheDocument();
   });
 });
