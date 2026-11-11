@@ -409,6 +409,25 @@ export function toMarkdown(
   return lines.join('\n') + '\n';
 }
 
+/** Speaker-labelled, timestamped transcript lines (no title/header) for plain-text sharing. */
+function turnLines(turns: Turn[]): string[] {
+  const lines: string[] = [];
+  turns.forEach((t, i) => {
+    if (i > 0) lines.push('');
+    if (t.overlap) {
+      lines.push(...t.lines.map((l) => `[${formatClock(l.start)}] ${OVERLAP_MARK} ${l.label}: ${l.text}`));
+      return;
+    }
+    lines.push(t.label, ...t.lines.map((l) => `[${formatClock(l.start)}] ${l.text}`));
+  });
+  return lines;
+}
+
+/** Plain-text transcript body only, for embedding in a summary. */
+export function toTranscriptBody(segments: Segment[], speakers: Record<string, Speaker>, options: ExportOptions = {}): string {
+  return turnLines(groupTurns(segments, speakers, options.callAudioMissing)).join('\n');
+}
+
 export function toPlainText(
   segments: Segment[],
   speakers: Record<string, Speaker>,
@@ -420,14 +439,7 @@ export function toPlainText(
   const rows = headerRows(turns, options.startedAt);
   for (const [k, v] of rows) lines.push(`${k}: ${v}`);
   if (rows.length > 0) lines.push('');
-  turns.forEach((t, i) => {
-    if (i > 0) lines.push('');
-    if (t.overlap) {
-      lines.push(...t.lines.map((l) => `[${formatClock(l.start)}] ${OVERLAP_MARK} ${l.label}: ${l.text}`));
-      return;
-    }
-    lines.push(t.label, ...t.lines.map((l) => `[${formatClock(l.start)}] ${l.text}`));
-  });
+  lines.push(...turnLines(turns));
   return lines.join('\n') + '\n';
 }
 

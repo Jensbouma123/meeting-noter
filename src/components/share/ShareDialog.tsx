@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useT } from '@/lib/i18n/useT';
 import { buildSummary } from '@/lib/meeting/summary';
 import type { ActionItem, Decision } from '@/lib/meeting/notes';
-import { copyToClipboard, downloadFile, exportFilename, formatExport, formatMeta, finalSegments, type ExportFormat } from '@/lib/meeting/export';
+import { copyToClipboard, downloadFile, exportFilename, formatExport, formatMeta, finalSegments, toTranscriptBody, type ExportFormat } from '@/lib/meeting/export';
 import type { Segment, Speaker } from '@/lib/meeting/types';
 
 export interface ShareDialogProps {
@@ -28,7 +28,7 @@ export function ShareDialog({ open, onClose, title, date, durationS, participant
   const transcript = finalSegments(segments);
   const hasTranscript = transcript.length > 0;
   const hasContent = hasTranscript || decisions.length > 0 || actions.length > 0;
-  const build = (format: 'md' | 'txt') => buildSummary({ title, date, durationS, participants, decisions, actions, format, t: summaryT });
+  const build = (format: 'md' | 'txt', withTranscript = false) => buildSummary({ title, date, durationS, participants, decisions, actions, format, t: summaryT, transcript: withTranscript && hasTranscript ? toTranscriptBody(transcript, speakers) : undefined });
   const plain = build('txt');
   // Line 3 of the summary is "date · duration"; reuse it so the preview matches what is shared.
   const dateLine = plain.split('\n')[2] ?? date;
@@ -60,6 +60,7 @@ export function ShareDialog({ open, onClose, title, date, durationS, participant
         {decisions.length === 0 && actions.length === 0 && <p className="mt-3 text-muted-foreground">{t('noItems')}</p>}
       </section>
       <Button variant="primary" size="lg" className="w-full" onClick={() => void copy(plain)}>{t('copySummary')}</Button>
+      <Button variant="secondary" className="w-full" disabled={!hasTranscript} onClick={() => void copy(build('txt', true))}>{t('copySummaryTranscript')}</Button>
       <div aria-live="polite">
         {message === 'copied' && <p role="status" className="text-sm">{t('copied')}</p>}
         {message === 'failed' && <Alert variant="danger" layout="inline">{t('copyFailed')}</Alert>}

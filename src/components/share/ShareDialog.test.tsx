@@ -62,4 +62,28 @@ describe('ShareDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Copy: Subtitles (.srt)' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Copying did not work');
   });
+
+  it.each(['live', 'reopened saved'])('copies summary + full transcript with speakers and timestamps (%s session)', async () => {
+    const exp = await import('@/lib/meeting/export');
+    const segs = [
+      { ...seg, id: 'a', text: 'We should ship on Friday', start: 5, end: 8 },
+      { ...seg, id: 'b', speaker: 'sp2', text: 'Agreed, Friday works', start: 65, end: 68 },
+      { ...seg, id: 'c', text: 'interim words', start: 70, end: 71, final: false },
+    ];
+    const speakers = { sp1: { id: 'sp1', label: 'Anna' }, sp2: { id: 'sp2', label: 'Ben' } } as never;
+    render(<ShareDialog {...base} decisions={decisions} actions={actions} segments={segs} speakers={speakers} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Copy summary + full transcript' }));
+    await screen.findByRole('status');
+    const text = vi.mocked(exp.copyToClipboard).mock.calls.at(-1)![0];
+    expect(text).toContain('Ship Friday');
+    expect(text).toContain('Transcript');
+    expect(text).toContain('Anna');
+    expect(text).toContain('[00:05] We should ship on Friday');
+    expect(text).toContain('Ben');
+    expect(text).toContain('Agreed, Friday works');
+    expect(text).not.toContain('interim words');
+    fireEvent.click(screen.getByRole('button', { name: 'Copy summary' }));
+    await screen.findByRole('status');
+    expect(vi.mocked(exp.copyToClipboard).mock.calls.at(-1)![0]).not.toContain('Agreed, Friday works');
+  });
 });
