@@ -266,7 +266,6 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
   // Record pressed in a session that already has a transcript: ask first.
   const [targetPrompt, setTargetPrompt] = useState<{
     title: string;
-    segmentCount: number;
     durationSeconds: number;
   } | null>(null);
 
@@ -333,10 +332,8 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
     }
     if (initialSessionId && status === 'idle' && sessionHasTranscript(initialSessionId)) {
       const meta = getSessionMetadata(initialSessionId);
-      const live = getTranscriptSessionId() === initialSessionId ? getState() : null;
       setTargetPrompt({
         title: meta?.title ?? title,
-        segmentCount: meta?.segmentCount ?? live?.segments.length ?? 0,
         durationSeconds: meta?.durationSeconds ?? 0,
       });
       return;

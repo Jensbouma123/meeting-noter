@@ -6,7 +6,6 @@ import { useT } from '@/lib/i18n/useT';
 export interface RecordTargetDialogProps {
   open: boolean;
   title: string;
-  segmentCount: number;
   durationSeconds: number;
   /** Escape, backdrop click and the Cancel button. Changes nothing. */
   onCancel: () => void;
@@ -28,18 +27,14 @@ export function formatDuration(totalSeconds: number): string {
 export function RecordTargetDialog({
   open,
   title,
-  segmentCount,
   durationSeconds,
   onCancel,
   onAppend,
   onStartNew,
 }: RecordTargetDialogProps) {
   const t = useT('dialogs');
-  const noun = t(segmentCount === 1 ? 'recordTarget.segment' : 'recordTarget.segments');
   const description = t('recordTarget.description')
     .replace('{title}', title)
-    .replace('{count}', String(segmentCount))
-    .replace('{segmentWord}', noun)
     .replace('{duration}', formatDuration(durationSeconds));
   return (
     <Modal
@@ -47,13 +42,13 @@ export function RecordTargetDialog({
       onClose={onCancel}
       title={t('recordTarget.title')}
       description={description}
-      size="sm"
+      size="md"
       footer={
-        <div className="flex w-full flex-col gap-2 sm:flex-row-reverse sm:justify-start">
+        <div className="dialog-actions flex w-full flex-col gap-2 sm:flex-row-reverse sm:justify-start">
           <Button variant="primary" className="min-h-11 w-full sm:w-auto" onClick={onAppend}>
             {t('recordTarget.append')}
           </Button>
-          <Button variant="secondary" className="min-h-11 w-full sm:w-auto" onClick={onStartNew}>
+          <Button variant="outline" className="min-h-11 w-full sm:w-auto" onClick={onStartNew}>
             {t('recordTarget.newSession')}
           </Button>
           <Button variant="ghost" className="min-h-11 w-full sm:w-auto" onClick={onCancel}>

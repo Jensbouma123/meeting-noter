@@ -120,7 +120,7 @@ function OnboardingSteps({
       title={t(`${stepId}.title`)}
       description={fill(t('step'), { n: step, total: STEPS.length })}
       footer={
-        <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="dialog-actions flex w-full flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
           {isLast ? (
             <span />
           ) : (
@@ -128,7 +128,7 @@ function OnboardingSteps({
               {t('skip')}
             </Button>
           )}
-          <div className="flex flex-col-reverse gap-2 sm:flex-row">
+          <div className="dialog-actions flex flex-col-reverse gap-2 sm:flex-row">
             {step > 1 && !isLast && (
               <Button variant="outline" size={{ base: 'md', md: 'sm' }} onClick={back}>
                 {t('back')}

@@ -223,3 +223,18 @@ body {
     position-try-fallbacks: flip-inline, flip-block, flip-block flip-inline, --menu-span-up, --menu-span;
   }
 }
+
+/* Dialog footer actions: the library fixes control height, so long (e.g. Dutch)
+   labels overflow. Opt-in via the `dialog-actions` class on a footer wrapper;
+   buttons grow with their text and the row wraps when they do not fit. */
+.dialog-actions {
+  flex-wrap: wrap;
+}
+.dialog-actions > button {
+  height: auto;
+  min-height: 2.5rem;
+  padding-block: 0.5rem;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.25;
+}
