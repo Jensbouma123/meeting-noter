@@ -32,7 +32,7 @@ afterEach(() => {
 
 const ui = (value: string, onChange = vi.fn(), locked = false) => (
   <LanguageContext.Provider value="en">
-    <MicPicker value={value} onChange={onChange} locked={locked} />
+    <MicPicker value={value} onChange={onChange} locked={locked} mode="both" active={false} />
   </LanguageContext.Provider>
 );
 
@@ -72,6 +72,19 @@ describe('MicPicker', () => {
     expect(menu).toHaveClass('mic-menu');
     expect(menu).toHaveAttribute('data-align', 'end');
     expect(menu.style.getPropertyValue('--dropdown-offset')).toBe('8px');
+  });
+
+  it('stacks mic over call rows in one pill, mic only when call is not recorded', () => {
+    stubDevices(DEVICES);
+    const { rerender } = render(ui('default'));
+    const pill = screen.getByRole('button', { name: 'Choose microphone' });
+    expect(pill.querySelectorAll('svg')).toHaveLength(2);
+    rerender(
+      <LanguageContext.Provider value="en">
+        <MicPicker value="default" onChange={vi.fn()} locked={false} mode="mic" active={false} />
+      </LanguageContext.Provider>,
+    );
+    expect(screen.getByRole('button', { name: 'Choose microphone' }).querySelectorAll('svg')).toHaveLength(1);
   });
 
   it('refreshes the list on devicechange', async () => {

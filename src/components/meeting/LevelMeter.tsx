@@ -12,9 +12,15 @@ interface LevelMeterProps {
   active: boolean;
   /** No call source is attached (declined, unsupported, Safari): the call meter shows "none". */
   callMissing?: boolean;
+  /**
+   * Two compact rows (mic over call) with the icons in one column, for use
+   * inside the dock's microphone button: no tooltips or focus stops, since
+   * the surrounding button is the only interactive element.
+   */
+  stacked?: boolean;
 }
 
-export function LevelMeter({ mode, active, callMissing = false }: LevelMeterProps) {
+export function LevelMeter({ mode, active, callMissing = false, stacked = false }: LevelMeterProps) {
   const t = useT('dock');
   const micBarRef = useRef<HTMLDivElement>(null);
   const sysBarRef = useRef<HTMLDivElement>(null);
@@ -70,6 +76,35 @@ export function LevelMeter({ mode, active, callMissing = false }: LevelMeterProp
 
   const showMic = mode === 'mic' || mode === 'both';
   const showSystem = mode === 'system' || mode === 'both';
+
+  if (stacked) {
+    return (
+      <div className="grid grid-cols-[auto_3rem] items-center gap-x-1.5 gap-y-1" aria-hidden="true">
+        {showMic && (
+          <>
+            <Mic className={`size-3 transition-colors ${active ? 'text-primary-400' : 'text-muted-foreground'}`} />
+            <div className="relative h-1 overflow-hidden rounded-full bg-foreground/15">
+              <div ref={micBarRef} className="h-full rounded-full bg-primary-400" style={{ width: '8%', opacity: 0.2 }} />
+            </div>
+          </>
+        )}
+        {showSystem && callMissing && (
+          <>
+            <VolumeX className="size-3 text-warning" />
+            <span className="text-[10px] font-medium leading-none text-muted-foreground">{t('none')}</span>
+          </>
+        )}
+        {showSystem && !callMissing && (
+          <>
+            <Volume2 className={`size-3 transition-colors ${active ? 'text-secondary-400' : 'text-muted-foreground'}`} />
+            <div className="relative h-1 overflow-hidden rounded-full bg-foreground/15">
+              <div ref={sysBarRef} className="h-full rounded-full bg-secondary-400" style={{ width: '8%', opacity: 0.2 }} />
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
 
   return (
     <HStack

@@ -3,11 +3,10 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { getCallAudioMissing, getMeetingDiagnostics, subscribeCallAudio, type CaptureMode, type Status } from '@/lib/meeting';
 import { callAudioHint } from '@/lib/meeting/call-audio-hint';
-import { LevelMeter } from './LevelMeter';
 import { MicPicker } from './MicPicker';
 import { useReleaseOnUnmount } from './useReleaseOnUnmount';
 import type { ModelProgressView, ModelReadiness } from './modelReadiness';
-import { Activity, Download, Mic, Pause, Play, Square, VolumeX, PhoneCall } from 'lucide-react';
+import { Download, Mic, Pause, Play, Square, VolumeX, PhoneCall } from 'lucide-react';
 import {
   Button,
   Divider,
@@ -67,7 +66,6 @@ export function BottomDock({
   onMicDeviceChange = () => {},
 }: BottomDockProps) {
   const t = useT('dock');
-  const [metersOpen, setMetersOpen] = useState(false);
   const dockRef = useRef<HTMLElement>(null);
   // The dock owns the Record control, so it lives exactly as long as the
   // meeting view: leaving that view ends the recording.
@@ -93,10 +91,6 @@ export function BottomDock({
   // Read when the indicator shows: whether the share failed or attached
   // silent, and which surface was shared, decide what the user should fix.
   const callAudioMissingReason = showCallAudioMissing ? callAudioHint(getMeetingDiagnostics()?.capture ?? null) : '';
-  // The meters have nothing to show outside an active recording (no signal
-  // flowing yet during "connecting"/"stopping"), so keep the pill hidden
-  // until there's actually live/paused audio to visualize.
-  const showMeters = isLive || isPaused;
   const modelReady = modelReadiness === 'ready';
   // Only a model that is actively downloading/loading disables Record. When it
   // is missing or failed, the button becomes the way to get it: clicking it
@@ -147,38 +141,12 @@ export function BottomDock({
     return () => clearInterval(id);
   }, [isLive]);
 
-  // Auto-close meters popover on outside click or Escape
-  useEffect(() => {
-    if (!metersOpen) return;
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMetersOpen(false);
-    };
-    document.addEventListener('keydown', handleKey);
-    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      if (dockRef.current && !dockRef.current.contains(e.target as Node)) {
-        setMetersOpen(false);
-      }
-    };
-    document.addEventListener('pointerdown', handleClickOutside);
-    return () => {
-      document.removeEventListener('pointerdown', handleClickOutside);
-      document.removeEventListener('keydown', handleKey);
-    };
-  }, [metersOpen]);
-
   return (
     <nav
       ref={dockRef}
       className="absolute bottom-[calc(1.25rem+env(safe-area-inset-bottom))] left-1/2 z-40 w-max max-w-[calc(100%-32px)] -translate-x-1/2 select-none sm:bottom-6"
       aria-label={t('recordingControls')}
     >
-      {/* Floating meters popover on mobile behind tap */}
-      {showMeters && metersOpen && (
-        <div className="absolute bottom-[calc(100%+8px)] left-1/2 z-50 -translate-x-1/2 animate-fade-in">
-          <LevelMeter mode={mode} active={isLive} callMissing={showCallAudioMissing} />
-        </div>
-      )}
-
       <HStack
         spacing="sm"
         align="center"
@@ -282,7 +250,14 @@ export function BottomDock({
         })()}
 
         {/* The capture pipeline opens the microphone once at start, so the choice is locked while recording. */}
-        <MicPicker value={micDeviceId} onChange={onMicDeviceChange} locked={isRecordingActive} />
+        <MicPicker
+          value={micDeviceId}
+          onChange={onMicDeviceChange}
+          locked={isRecordingActive}
+          mode={mode}
+          active={isLive}
+          callMissing={showCallAudioMissing}
+        />
 
         {showCallAudioMissing && (
           <HStack spacing="xs" align="center" className="shrink-0 gap-1">
@@ -301,26 +276,6 @@ export function BottomDock({
           </HStack>
         )}
 
-        {showMeters && (
-          <>
-            {/* Desktop inline level meters */}
-            <div className="hidden shrink-0 lg:block">
-              <LevelMeter mode={mode} active={isLive} callMissing={showCallAudioMissing} />
-            </div>
-
-            {/* Mobile tap trigger for meters */}
-            <Button
-              variant="secondary"
-              size={{ base: 'md', md: 'sm' }}
-              iconOnly
-              onClick={() => setMetersOpen((prev) => !prev)}
-              tooltip={metersOpen ? t('hideLevels') : t('showLevels')}
-              leadingIcon={<Activity className="size-3.5" />}
-              aria-expanded={metersOpen}
-              className="touch-target-44 shrink-0 !rounded-full lg:hidden"
-            />
-          </>
-        )}
       </HStack>
     </nav>
   );

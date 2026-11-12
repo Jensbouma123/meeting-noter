@@ -1,9 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Check, ChevronDown, Mic } from 'lucide-react';
+import { Check } from 'lucide-react';
 import {
-  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -12,6 +11,8 @@ import {
 } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { meeting } from './store';
+import { LevelMeter } from './LevelMeter';
+import type { CaptureMode } from '@/lib/meeting';
 
 interface MicPickerProps {
   /** `AppSettings.micDeviceId`; `'default'` means the system default. */
@@ -19,13 +20,18 @@ interface MicPickerProps {
   onChange: (deviceId: string) => void;
   /** Recording is active: the pipeline reads the device once at start, so it cannot change live. */
   locked: boolean;
+  /** Drives the level rows inside the button. */
+  mode: CaptureMode;
+  /** Audio is flowing (live), so the bars move. */
+  active: boolean;
+  callMissing?: boolean;
 }
 
 /** Gap between the button and the menu that opens above it. */
 export const MENU_GAP_PX = 8;
 
 /** Microphone menu for the dock; shares its setting with Settings › Microphone. */
-export function MicPicker({ value, onChange, locked }: MicPickerProps) {
+export function MicPicker({ value, onChange, locked, mode, active, callMissing = false }: MicPickerProps) {
   const t = useT('dock');
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
 
@@ -46,16 +52,16 @@ export function MicPicker({ value, onChange, locked }: MicPickerProps) {
   }, [refresh]);
 
   const label = t('chooseMic');
+  // The level pill is the button: icons in one column, mic row over call row.
   const trigger = (
-    <Button
-      variant="secondary"
-      size={{ base: 'md', md: 'sm' }}
+    <button
+      type="button"
       disabled={locked}
       aria-label={label}
-      leadingIcon={<Mic className="size-3.5" />}
-      trailingIcon={<ChevronDown className="size-3" />}
-      className="touch-target-44 shrink-0 !rounded-full"
-    />
+      className="touch-target-44 inline-flex h-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border-subtle bg-surface px-3 transition-colors hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-70 md:h-8"
+    >
+      <LevelMeter stacked mode={mode} active={active} callMissing={callMissing} />
+    </button>
   );
 
   if (locked) {
