@@ -28,7 +28,6 @@ function listItem(m: MeetingSummaryRow) {
     durationSeconds: m.durationSeconds,
     speakers: m.speakers,
     lines: m.segmentCount,
-    ...(m.isDraft ? { draft: true } : {}),
   };
 }
 
@@ -54,7 +53,7 @@ export function createMeetingsMcpServer(openDb: () => MeetingsDb | null, version
     {
       title: 'List meetings',
       description:
-        'List recorded meetings, newest first: id, title, date (ISO), duration, speakers and line count. ' +
+        'List recorded meetings (not empty drafts), newest first: id, title, date (ISO), duration, speakers and line count. ' +
         'Use get_meeting with an id to read one.',
       inputSchema: {
         limit: z.number().int().min(1).max(200).optional().describe('How many to return (default 50).'),
@@ -63,7 +62,7 @@ export function createMeetingsMcpServer(openDb: () => MeetingsDb | null, version
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
     ({ limit, offset }) =>
-      withDb((db) => text(JSON.stringify(db.list({ limit: limit ?? 50, offset }).map(listItem), null, 2))),
+      withDb((db) => text(JSON.stringify(db.list({ limit: limit ?? 50, offset, includeDrafts: false }).map(listItem), null, 2))),
   );
 
   server.registerTool(

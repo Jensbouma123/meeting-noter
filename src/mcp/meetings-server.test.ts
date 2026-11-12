@@ -53,10 +53,11 @@ describe('meetings MCP server', () => {
     expect(res.text).toMatch(/No meetings saved yet/);
   });
 
-  it('list_meetings returns id, title, ISO date and speakers, newest first, with paging', async () => {
+  it('list_meetings returns id, title, ISO date and speakers, newest first, without drafts, with paging', async () => {
     const { call } = await connect((db) => {
       db.upsert(sampleMeeting());
       db.upsert(sampleMeeting({ id: 'later', title: 'Later', startedAt: Date.UTC(2026, 10, 5) }));
+      db.upsert(sampleMeeting({ id: 'draft', title: 'Draft', startedAt: Date.UTC(2026, 10, 6), isDraft: true, segments: [] }));
     });
     const all = JSON.parse((await call('list_meetings')).text);
     expect(all.map((m: { id: string }) => m.id)).toEqual(['later', 'meeting-1']);
