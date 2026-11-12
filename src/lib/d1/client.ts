@@ -8,6 +8,7 @@
  * with no answer after 90 s rejects with `d1:timeout` and kills the worker.
  */
 
+import { debugEnabled } from '../asr/browser/quiet-console';
 import { D1_MAX_BATCH_SIZE, D1_MAX_TOKENS } from './manifest';
 import { escapeD1Text, type D1Answer, type D1Question } from './prompt';
 import type {
@@ -197,6 +198,11 @@ interface PendingRequest {
 /** No `boot` message this long after the worker was created: its script never ran. */
 export const D1_BOOT_TIMEOUT_MS = 10_000;
 /** Message of the error a worker that never booted rejects with. */
+/** Verbose client tracing: only with the shared `asr-debug` flag. */
+function clientDebug(...args: unknown[]): void {
+  if (debugEnabled()) console.info(...args);
+}
+
 export const D1_BOOT_ERROR = "D1 worker didn't start";
 
 export function createD1Client(options: D1ClientOptions = {}): D1Client {
@@ -223,7 +229,7 @@ export function createD1Client(options: D1ClientOptions = {}): D1Client {
     // Any message proves the worker script ran (`boot` is always the first).
     clearSilentTimer();
     if (msg.type === 'boot') {
-      console.info('[D1] client: worker booted');
+      clientDebug('[D1] client: worker booted');
       return;
     }
     if (msg.type === 'fatal') {
@@ -234,12 +240,14 @@ export function createD1Client(options: D1ClientOptions = {}): D1Client {
     // Any sign of life means the worker is working (a model load is slow, not hung).
     for (const entry of pending.values()) entry.touch?.();
     if (msg.type === 'log') {
-      // Worker-side [D1] lines: Safari shows a worker's console apart from the page's.
-      console.info(...msg.args);
+      // Worker-side [D1] lines: Safari shows a worker's console apart from the page's, and the
+      // worker prints nothing itself, so each line appears once. Debug lines need `asr-debug`.
+      if (msg.level === 'warn') console.warn(...msg.args);
+      else if (msg.level === 'info' || debugEnabled()) console.info(...msg.args);
       return;
     }
     if (!msg.id) return;
-    console.info('[D1] client: message in', { type: msg.type, id: msg.id });
+    clientDebug('[D1] client: message in', { type: msg.type, id: msg.id });
     if (msg.type === 'stage') {
       if (pending.has(msg.id)) setD1Stage(msg.stage);
       return;
@@ -278,7 +286,7 @@ export function createD1Client(options: D1ClientOptions = {}): D1Client {
   const killWorker = (reason: string) => {
     const active = worker;
     worker = null;
-    console.info('[D1] client: kill', { reason, hadWorker: active !== null });
+    clientDebug('[D1] client: kill', { reason, hadWorker: active !== null });
     setD1Stage(null);
     clearSilentTimer();
     if (active) {
@@ -301,7 +309,7 @@ export function createD1Client(options: D1ClientOptions = {}): D1Client {
 
   function ensureWorker(): WorkerLike {
     if (!worker) {
-      console.info('[D1] client: ensureWorker creates worker');
+      clientDebug('[D1] client: ensureWorker creates worker');
       const created = workerFactory();
       created.addEventListener('message', onMessage);
       created.addEventListener('error', onError);
@@ -346,7 +354,7 @@ export function createD1Client(options: D1ClientOptions = {}): D1Client {
           timer = setTimeout(onTimeout, decideTimeoutMs);
         },
       });
-      console.info('[D1] client: post batch', { id, size: requests.length, maxTokens });
+      clientDebug('[D1] client: post batch', { id, size: requests.length, maxTokens });
       try {
         activeWorker.postMessage({
           type: 'decide',

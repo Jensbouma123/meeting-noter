@@ -1,14 +1,13 @@
 /**
- * onnxruntime-web session creation for LiquidAI D1: WebGPU first, WASM fallback.
+ * onnxruntime-web session creation for LiquidAI D1: one backend per call (WebGPU or WASM).
+ * The worker picks the model variant per backend and owns the fallback order.
  *
  * Follows `src/lib/diarization/browser/onnx-session.ts` with single-threaded
  * WASM (`numThreads = 1`, `proxy = false`) and `logSeverityLevel: 3`.
  */
 
 import * as ort from 'onnxruntime-web';
-import { d1Log } from './log';
-
-const ORT_VERSION = '1.24.1';
+import { d1Debug } from './log';
 
 let wasmPathsConfigured = false;
 
@@ -20,18 +19,28 @@ function silenceBenignOrtWarnings(): void {
   }
 }
 
+/**
+ * The ORT wasm/mjs files are served by the app from `public/ort/` (copied from the installed
+ * `onnxruntime-web` by `scripts/sync-ort.mjs`), never from a CDN. An absolute URL: the runtime
+ * `import()`s the `.mjs` from inside a worker, where a bare `/ort/` has no document base.
+ */
+export function ortAssetBase(): string {
+  const origin = (globalThis as { location?: { origin?: string } }).location?.origin;
+  return origin && origin !== 'null' ? `${origin}/ort/` : '/ort/';
+}
+
 function ensureWasmPaths(): void {
   if (wasmPathsConfigured) return;
   wasmPathsConfigured = true;
   silenceBenignOrtWarnings();
   if (!ort.env.wasm.wasmPaths) {
-    ort.env.wasm.wasmPaths = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VERSION}/dist/`;
+    ort.env.wasm.wasmPaths = ortAssetBase();
   }
   // One thread always: multi-threaded WASM needs SharedArrayBuffer, which needs a cross-origin
   // isolated page (COOP/COEP) that this app does not serve, and Safari gains nothing from a pool.
   ort.env.wasm.numThreads = 1;
   ort.env.wasm.proxy = false;
-  d1Log('[D1] session: wasm config', {
+  d1Debug('[D1] session: wasm config', {
     wasmPaths: ort.env.wasm.wasmPaths,
     numThreads: ort.env.wasm.numThreads,
     crossOriginIsolated: (globalThis as { crossOriginIsolated?: boolean }).crossOriginIsolated ?? false,
@@ -47,12 +56,12 @@ const WEBGPU_ADAPTER_TIMEOUT_MS = 5_000;
  * when `requestAdapter()` resolves `null` (or never settles inside a worker), and a
  * WebGPU session on such a browser stalls or fails. Asks for an adapter, with a deadline.
  */
-async function hasWebGpuAdapter(): Promise<boolean> {
+export async function hasWebGpuAdapter(): Promise<boolean> {
   const gpu = typeof navigator === 'undefined'
     ? undefined
     : (navigator as Navigator & { gpu?: { requestAdapter?: () => Promise<unknown> } }).gpu;
   if (!gpu?.requestAdapter) {
-    d1Log('[D1] session: no navigator.gpu');
+    d1Debug('[D1] session: no navigator.gpu');
     return false;
   }
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -63,10 +72,10 @@ async function hasWebGpuAdapter(): Promise<boolean> {
         timer = setTimeout(() => resolve(null), WEBGPU_ADAPTER_TIMEOUT_MS);
       }),
     ]);
-    d1Log('[D1] session: webgpu adapter', adapter ? 'found' : 'none (or timed out)');
+    d1Debug('[D1] session: webgpu adapter', adapter ? 'found' : 'none (or timed out)');
     return adapter !== null && adapter !== undefined;
   } catch (err) {
-    d1Log('[D1] session: webgpu requestAdapter failed', err instanceof Error ? err.message : String(err));
+    d1Debug('[D1] session: webgpu requestAdapter failed', err instanceof Error ? err.message : String(err));
     return false;
   } finally {
     clearTimeout(timer);
@@ -121,10 +130,14 @@ async function createWithDeadline(
   }
 }
 
-/** Create an ONNX inference session, preferring WebGPU with clean WASM fallback. */
+/**
+ * Create an ONNX inference session on exactly one backend. Rejects when that backend cannot
+ * run the model or does not start in time; the caller decides what to try next.
+ */
 export async function createSession(
   model: string | Uint8Array,
   externalData?: ExternalDataFile[],
+  backend: SessionBackend = 'wasm',
 ): Promise<{ session: ort.InferenceSession; backend: SessionBackend }> {
   ensureWasmPaths();
   const create = ort.InferenceSession.create as (
@@ -133,34 +146,16 @@ export async function createSession(
   ) => Promise<ort.InferenceSession>;
   const base: ort.InferenceSession.SessionOptions = externalData ? { externalData } : {};
 
-  if (await hasWebGpuAdapter()) {
-    try {
-      d1Log('[D1] session: webgpu attempt');
-      const session = await createWithDeadline(
-        create,
-        model,
-        { ...base, executionProviders: ['webgpu'], logSeverityLevel: 3 },
-        WEBGPU_SESSION_TIMEOUT_MS,
-        'webgpu',
-      );
-      d1Log('[D1] session: backend webgpu (GPU) ready');
-      return { session, backend: 'webgpu' };
-    } catch (err) {
-      // Fall through to WASM when WebGPU session initialization fails or stalls.
-      d1Log('[D1] session: webgpu failed, falling back to wasm', err instanceof Error ? err.message : String(err));
-    }
-  }
-
-  d1Log('[D1] session: wasm attempt (CPU)');
+  d1Debug(`[D1] session: ${backend} attempt`);
   const session = await createWithDeadline(
     create,
     model,
-    { ...base, executionProviders: ['wasm'], logSeverityLevel: 3 },
-    WASM_SESSION_TIMEOUT_MS,
-    'wasm',
+    { ...base, executionProviders: [backend], logSeverityLevel: 3 },
+    backend === 'webgpu' ? WEBGPU_SESSION_TIMEOUT_MS : WASM_SESSION_TIMEOUT_MS,
+    backend,
   );
-  d1Log('[D1] session: backend wasm (CPU) ready');
-  return { session, backend: 'wasm' };
+  d1Debug(`[D1] session: ${backend} ready`);
+  return { session, backend };
 }
 
 export type { InferenceSession } from 'onnxruntime-web';

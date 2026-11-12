@@ -11,16 +11,20 @@ import {
   takeBlobUrlBytes,
   type DownloadProgress,
 } from '../asr/browser/resumable-download';
-import { D1_OMNI_REVISION, D1_TEXT_FILES, type D1ModelFile } from './manifest';
+import { D1_OMNI_REVISION, D1_TEXT_FILES, d1VariantFiles, type D1ModelFile, type D1ModelVariant } from './manifest';
 
 export type { DownloadProgress } from '../asr/browser/resumable-download';
 
-/** Download or reuse every D1 text-only file from IndexedDB, returning `blob:` URLs keyed by filename. */
+/**
+ * Download or reuse every file of one D1 variant (default: the 8-bit set the consent flow
+ * caches) from IndexedDB, returning `blob:` URLs keyed by filename.
+ */
 export async function downloadD1Models(
   onProgress?: (file: D1ModelFile, progress: DownloadProgress) => void,
+  variant: D1ModelVariant = 'int8',
 ): Promise<Record<string, string>> {
   const urls: Record<string, string> = {};
-  for (const file of D1_TEXT_FILES) {
+  for (const file of d1VariantFiles(variant)) {
     urls[file.filename] = await downloadHfFileResumable(file.repo, file.filename, D1_OMNI_REVISION, {
       onProgress: (p) => onProgress?.(file, p),
     });

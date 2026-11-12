@@ -38,7 +38,7 @@ export type D1WorkerOutMessage =
   | { type: 'disposed'; id: string }
   | { type: 'stage'; id: string; stage: D1Stage }
   /** A `[D1]` diagnostic line from inside the worker; the client prints it in the page console. */
-  | { type: 'log'; id?: string; args: unknown[] }
+  | { type: 'log'; id?: string; level: 'debug' | 'info' | 'warn'; args: unknown[] }
   | { type: 'error'; id: string; message: string; code: D1WorkerErrorCode };
 
 /** Segment shape accepted by the D1 client (compatible with `Segment`). */

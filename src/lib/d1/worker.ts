@@ -15,19 +15,20 @@ import {
   readModelJson,
   revokeModelUrls,
 } from './downloader';
-import { d1Log, setD1LogSink } from './log';
+import { d1Debug, d1Info, d1Warn, setD1LogSink } from './log';
 import {
   D1_CONFIG_FILE,
-  D1_GRAPH_FILE,
   D1_MAX_BATCH_SIZE,
   D1_MAX_TOKENS,
   D1_TOKENIZER_CONFIG_FILE,
   D1_TOKENIZER_FILE,
-  D1_WEIGHTS_FILE,
+  d1VariantModelFiles,
   externalDataPath,
+  type D1ModelVariant,
 } from './manifest';
 import {
   createSession,
+  hasWebGpuAdapter,
   Tensor,
   type ExternalDataFile,
   type InferenceSession,
@@ -78,7 +79,9 @@ export interface D1WorkerRuntime {
 
 export interface D1WorkerDeps {
   assertCached?: () => Promise<void>;
-  downloadModels?: () => Promise<Record<string, string>>;
+  downloadModels?: (variant: D1ModelVariant) => Promise<Record<string, string>>;
+  /** Whether a usable WebGPU adapter exists; WebGPU runs the 4-bit variant, WASM the 8-bit one. */
+  detectWebGpu?: () => Promise<boolean>;
   readJson?: <T = unknown>(url: string) => Promise<T>;
   getModelSource?: (url: string) => string | Uint8Array;
   revokeUrls?: (urls: Record<string, string | undefined>) => void;
@@ -86,6 +89,7 @@ export interface D1WorkerDeps {
   createOrtSession?: (
     model: string | Uint8Array,
     externalData?: ExternalDataFile[],
+    backend?: SessionBackend,
   ) => Promise<{ session: InferenceSession; backend: SessionBackend }>;
   createTensor?: (type: 'int64', data: BigInt64Array, dims: readonly number[]) => Tensor;
 }
@@ -117,12 +121,13 @@ export function createD1WorkerHandler(
   deps: D1WorkerDeps = {},
 ): (msg: D1WorkerInMessage) => Promise<void> {
   const assertCached = deps.assertCached ?? assertD1ModelsCached;
-  const downloadModels = deps.downloadModels ?? (() => downloadD1Models());
+  const downloadModels = deps.downloadModels ?? ((variant) => downloadD1Models(undefined, variant));
   const readJson = deps.readJson ?? (<T = unknown>(url: string) => readModelJson<T>(url));
   const getModelSource = deps.getModelSource ?? modelSource;
   const revokeUrls = deps.revokeUrls ?? revokeModelUrls;
   const createTokenizer = deps.createTokenizer ?? defaultCreateTokenizer;
   const createOrtSession = deps.createOrtSession ?? createSession;
+  const detectWebGpu = deps.detectWebGpu ?? hasWebGpuAdapter;
   const createTensor = deps.createTensor ?? defaultCreateTensor;
 
   const mutex = new Mutex();
@@ -137,72 +142,97 @@ export function createD1WorkerHandler(
     // proof of life, so a slow session start is not mistaken for a hung worker.
     const startedAt = Date.now();
     const heartbeat = setInterval(() => {
-      d1Log('[D1] worker: still loading', { seconds: Math.round((Date.now() - startedAt) / 1000) });
+      d1Debug('[D1] worker: still loading', { seconds: Math.round((Date.now() - startedAt) / 1000) });
     }, 10_000);
 
     const loading = (async () => {
       post({ type: 'stage', id, stage: { kind: 'loading' } });
       try {
         await assertCached();
-        d1Log('[D1] worker: assertCached ok');
+        d1Debug('[D1] worker: assertCached ok');
       } catch (err) {
-        d1Log('[D1] worker: assertCached failed', err instanceof Error ? err.message : String(err));
+        d1Debug('[D1] worker: assertCached failed', err instanceof Error ? err.message : String(err));
         runtimePromise = null;
         throw new NotCachedError(err instanceof Error ? err.message : String(err));
       }
 
-      let urls: Record<string, string>;
-      try {
-        d1Log('[D1] worker: download start');
-        urls = await downloadModels();
-        d1Log('[D1] worker: download urls ready');
-      } catch (err) {
-        runtimePromise = null;
-        throw err;
-      }
+      // WebGPU runs the 4-bit variant (its MatMulNBits kernel rejects the 8-bit graph), WASM the
+      // 8-bit one. A WebGPU failure falls back to WASM and fetches the 8-bit files then.
+      const attempts: Array<{ backend: SessionBackend; variant: D1ModelVariant }> = (await detectWebGpu())
+        ? [
+            { backend: 'webgpu', variant: 'q4' },
+            { backend: 'wasm', variant: 'int8' },
+          ]
+        : [{ backend: 'wasm', variant: 'int8' }];
 
-      let createdSession: InferenceSession | null = null;
-      try {
-        const config = await readJson<D1ConfigLike>(urls[D1_CONFIG_FILE.filename]);
-        const tokenizerJson = await readJson<unknown>(urls[D1_TOKENIZER_FILE.filename]);
-        const tokenizerConfig = await readJson<unknown>(urls[D1_TOKENIZER_CONFIG_FILE.filename]);
-        d1Log('[D1] worker: config and tokenizer files read');
+      let shared: { config: D1ConfigLike; tokenizer: D1Tokenizer; tokens: D1ResolvedTokens; temperatures: Record<string, number> } | null =
+        null;
 
-        const tokenizer = createTokenizer(tokenizerJson, tokenizerConfig);
-        const tokens = assertD1TokenizerSelfTest(tokenizer, config);
-        const temperatures = extractD1Temperatures(config);
-        d1Log('[D1] worker: tokenizer ready');
-
-        post({ type: 'stage', id, stage: { kind: 'session' } });
-        const { session, backend } = await createOrtSession(
-          getModelSource(urls[D1_GRAPH_FILE.filename]),
-          [
-            {
-              path: externalDataPath(D1_WEIGHTS_FILE),
-              data: getModelSource(urls[D1_WEIGHTS_FILE.filename]),
-            },
-          ],
-        );
-        createdSession = session;
-        d1Log('[D1] worker: session backend', { backend });
-
-        // If dispose() ran while loading was in flight, release immediately and abort.
-        if (loadGeneration !== generation) {
-          await session.release().catch(() => {});
-          createdSession = null;
-          throw new Error('D1 worker disposed during load');
+      for (let n = 0; n < attempts.length; n++) {
+        const { backend: want, variant } = attempts[n];
+        const isLast = n === attempts.length - 1;
+        let urls: Record<string, string>;
+        try {
+          d1Debug('[D1] worker: download start', { variant });
+          urls = await downloadModels(variant);
+          d1Debug('[D1] worker: download urls ready', { variant });
+        } catch (err) {
+          if (!isLast) {
+            d1Warn(`[D1] ${variant} model unavailable, falling back to wasm`, err instanceof Error ? err.message : String(err));
+            continue;
+          }
+          runtimePromise = null;
+          throw err;
         }
 
-        return { session, backend, tokenizer, tokens, temperatures, config };
-      } catch (err) {
-        if (createdSession) {
-          await createdSession.release().catch(() => {});
+        let createdSession: InferenceSession | null = null;
+        try {
+          if (!shared) {
+            const config = await readJson<D1ConfigLike>(urls[D1_CONFIG_FILE.filename]);
+            const tokenizerJson = await readJson<unknown>(urls[D1_TOKENIZER_FILE.filename]);
+            const tokenizerConfig = await readJson<unknown>(urls[D1_TOKENIZER_CONFIG_FILE.filename]);
+            d1Debug('[D1] worker: config and tokenizer files read');
+            const tokenizer = createTokenizer(tokenizerJson, tokenizerConfig);
+            const tokens = assertD1TokenizerSelfTest(tokenizer, config);
+            const temperatures = extractD1Temperatures(config);
+            d1Debug('[D1] worker: tokenizer ready');
+            shared = { config, tokenizer, tokens, temperatures };
+          }
+
+          post({ type: 'stage', id, stage: { kind: 'session' } });
+          const { graph, weights } = d1VariantModelFiles(variant);
+          const { session, backend } = await createOrtSession(
+            getModelSource(urls[graph.filename]),
+            [{ path: externalDataPath(weights), data: getModelSource(urls[weights.filename]) }],
+            want,
+          );
+          createdSession = session;
+          d1Info(`[D1] backend: ${backend === 'webgpu' ? 'webgpu (GPU)' : 'wasm (CPU)'}, ${variant === 'q4' ? '4-bit (q4)' : '8-bit'} model`);
+
+          // If dispose() ran while loading was in flight, release immediately and abort.
+          if (loadGeneration !== generation) {
+            await session.release().catch(() => {});
+            createdSession = null;
+            throw new Error('D1 worker disposed during load');
+          }
+
+          return { session, backend, ...shared };
+        } catch (err) {
+          if (createdSession) {
+            await createdSession.release().catch(() => {});
+          }
+          if (!isLast && loadGeneration === generation) {
+            d1Warn(`[D1] ${want} failed, falling back to wasm`, err instanceof Error ? err.message : String(err));
+            continue;
+          }
+          runtimePromise = null;
+          throw err;
+        } finally {
+          revokeUrls(urls);
         }
-        runtimePromise = null;
-        throw err;
-      } finally {
-        revokeUrls(urls);
       }
+      runtimePromise = null;
+      throw new Error('D1 has no usable backend');
     })();
     runtimePromise = loading;
     const stopHeartbeat = () => clearInterval(heartbeat);
@@ -286,13 +316,14 @@ export function createD1WorkerHandler(
           for (let i = 0; i < requests.length; i += D1_MAX_BATCH_SIZE) {
             const chunk = requests.slice(i, i + D1_MAX_BATCH_SIZE);
             const batch = Math.floor(i / D1_MAX_BATCH_SIZE) + 1;
+            const batchStart = performance.now();
             post({ type: 'stage', id: msg.id, stage: { kind: 'sending', batch } });
-            d1Log('[D1] worker: batch', { id: msg.id, batch, size: chunk.length, maxTokens });
+            const batches = Math.ceil(requests.length / D1_MAX_BATCH_SIZE);
             const chunkAnswers = await mutex.run(() => {
               post({ type: 'stage', id: msg.id, stage: { kind: 'waiting' } });
               return runBatch(rt, chunk, maxTokens);
             });
-            d1Log('[D1] worker: batch done', { id: msg.id, batch, answers: chunkAnswers.length });
+            d1Info(`[D1] batch ${batch}/${batches}: ${chunk.length} prompts, ${Math.round(performance.now() - batchStart)} ms (${rt.backend})`);
             answers.push(...chunkAnswers);
           }
           post({ type: 'result', id: msg.id, answers, backend: rt.backend });
@@ -318,7 +349,7 @@ export function createD1WorkerHandler(
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       const code: D1WorkerErrorCode = err instanceof NotCachedError ? 'not-cached' : 'failed';
-      d1Log('[D1] worker: error', { id: msg.id, code, message });
+      d1Warn('[D1] worker: error', { id: msg.id, code, message });
       post({ type: 'error', id: msg.id, message, code });
     }
   };
@@ -341,9 +372,9 @@ export interface D1WorkerScope {
  */
 export function startD1Worker(ctx: D1WorkerScope): (msg: D1WorkerInMessage) => Promise<void> {
   // Safari lists a worker's console apart from the page's: forward every [D1] line to the page.
-  setD1LogSink((args) => ctx.postMessage({ type: 'log', args }));
+  setD1LogSink((level, args) => ctx.postMessage({ type: 'log', level, args }));
   const nav = (self as unknown as { navigator?: Navigator & { gpu?: unknown } }).navigator;
-  d1Log('[D1] worker: booted', {
+  d1Debug('[D1] worker: booted', {
     userAgent: nav?.userAgent,
     crossOriginIsolated: (self as { crossOriginIsolated?: boolean }).crossOriginIsolated ?? false,
     sharedArrayBuffer: typeof SharedArrayBuffer !== 'undefined',
@@ -353,7 +384,7 @@ export function startD1Worker(ctx: D1WorkerScope): (msg: D1WorkerInMessage) => P
   const handle = createD1WorkerHandler((msg) => ctx.postMessage(msg));
   // A throw outside any handled message would otherwise vanish in the worker's own console.
   self.addEventListener('unhandledrejection', (ev) => {
-    d1Log('[D1] worker: unhandled rejection', (ev as PromiseRejectionEvent).reason);
+    d1Warn('[D1] worker: unhandled rejection', (ev as PromiseRejectionEvent).reason);
   });
   return handle;
 }

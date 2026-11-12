@@ -527,7 +527,7 @@ describe('d1 client', () => {
       const info = vi.spyOn(console, 'info').mockImplementation(() => {});
       try {
         const { createdWorkers } = startHung();
-        createdWorkers[0].emitMessage({ type: 'log', args: ['[D1] worker: booted', { crossOriginIsolated: false }] });
+        createdWorkers[0].emitMessage({ type: 'log', level: 'info', args: ['[D1] worker: booted', { crossOriginIsolated: false }] });
         expect(info).toHaveBeenCalledWith('[D1] worker: booted', { crossOriginIsolated: false });
       } finally {
         info.mockRestore();
@@ -594,7 +594,7 @@ describe('d1 client', () => {
       worker.emitMessage({ type: 'boot' });
 
       await vi.advanceTimersByTimeAsync(D1_DECIDE_TIMEOUT_MS - 1000);
-      worker.emitMessage({ type: 'log', args: ['[D1] worker: still loading'] });
+      worker.emitMessage({ type: 'log', level: 'debug', args: ['[D1] worker: still loading'] });
       await vi.advanceTimersByTimeAsync(D1_DECIDE_TIMEOUT_MS - 1000);
       expect(worker.terminated).toBe(false);
 

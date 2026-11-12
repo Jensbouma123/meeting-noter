@@ -8,6 +8,7 @@ export {
   D1_DEFAULT_TEMPERATURES,
   D1_DELIMITERS,
   D1_GRAPH_FILE,
+  D1_GRAPH_Q4_FILE,
   D1_MARKER_TOKEN,
   D1_MAX_BATCH_SIZE,
   D1_MAX_TOKENS,
@@ -19,6 +20,10 @@ export {
   D1_TOKENIZER_FILE,
   D1_TOTAL_SIZE_BYTES,
   D1_WEIGHTS_FILE,
+  D1_WEIGHTS_Q4_FILE,
+  d1VariantFiles,
+  d1VariantModelFiles,
+  type D1ModelVariant,
   externalDataPath,
   type D1ModelFile,
 } from './manifest';
