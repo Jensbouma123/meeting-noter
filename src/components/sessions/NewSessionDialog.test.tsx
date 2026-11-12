@@ -28,6 +28,28 @@ function start(language: 'en' | 'nl' = 'en') {
 }
 
 describe('NewSessionDialog', () => {
+  it('puts initial focus on the name input when the dialog opens, not on Annuleren', () => {
+    const ui = (open: boolean) => (
+      <LanguageContext.Provider value="en">
+        <NewSessionDialog open={open} onClose={() => {}} onCreate={() => {}} />
+      </LanguageContext.Provider>
+    );
+    const { rerender } = render(ui(false));
+    rerender(ui(true));
+    expect(screen.getByRole('textbox')).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'Cancel' })).not.toHaveFocus();
+  });
+
+  it('starts the Starten button text-only, without an icon', () => {
+    render(
+      <LanguageContext.Provider value="nl">
+        <NewSessionDialog open onClose={() => {}} onCreate={() => {}} />
+      </LanguageContext.Provider>,
+    );
+    const start = screen.getByRole('button', { name: 'Starten' });
+    expect(start.querySelector('svg')).toBeNull();
+  });
+
   it('starts a meeting with a localized default name when left blank', () => {
     vi.stubGlobal('navigator', { language: 'en-US' });
     const onCreate = start('en');
