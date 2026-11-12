@@ -2,73 +2,13 @@
    `position-area` puts it on `data-side`, a margin away from the trigger and `--overlay-gutter`
    (popovers.css) from the viewport. Only the cross axis is centred on the trigger
    (`anchor-center`); the main axis keeps `normal`, i.e. toward the trigger, so it never covers it.
-   Chromium keeps the base placement when every fallback overflows and does not shift a
-   `safe anchor-center` box back inside, so a centred box near an edge overflows every centred
-   fallback. The edge-aligned tries (`span-inline-start|end`, as dropdown-menu.css)
-   start at the trigger's start or end edge, so one of them fits at every edge. Each try lists
-   its full alignment and margins: a left/right box falls back to the top/bottom ones.
-   Left/right align toward the trigger with an explicit `safe right|left`, not `normal`: with
-   `normal`, Chromium shifts an inline-overflowing box back into the viewport, counts that as a
-   fit, and so keeps it beside a trigger with no room, on top of the trigger.
-   Chromium evaluates only the first 5 `position-try-fallbacks` entries (a fitting 6th is never
-   reached), so every list below is capped at 5. Left/right fall back to the centred top/bottom
-   tries plus `-end` only: Chromium's `safe anchor-center` rescues only start-side overflow (a
-   trigger near the left edge), so `-end` covers the right edge, and the centred try is the one
-   that fits a wide card under a mid-screen trigger, where both edge-aligned tries overflow. */
+   No custom try blocks: Lightning CSS (Next.js/Turbopack) rejects them. Fallbacks are the
+   built-in tactics (`flip-*`, which also flip margins and alignment) and inline `position-area`
+   values, which keep the base margins and `justify-self`. Top/bottom try the edge-aligned areas
+   (`span-inline-start|end`) first; left/right flip to the other side, then to the top/bottom
+   (`flip-start` swaps the axes, keeping the toward-the-trigger alignment).
+   Chromium evaluates only the first 5 `position-try-fallbacks` entries, so every list is capped. */
 @supports (anchor-name: --a) {
-  @position-try --overlay-top {
-    position-area: block-start span-all;
-    justify-self: safe anchor-center;
-    align-self: normal;
-    margin-block: calc(var(--spacing) * 2);
-    margin-inline: var(--overlay-gutter);
-  }
-  @position-try --overlay-top-start {
-    position-area: block-start span-inline-end;
-    justify-self: normal;
-    align-self: normal;
-    margin-block: calc(var(--spacing) * 2);
-    margin-inline: var(--overlay-gutter);
-  }
-  @position-try --overlay-top-end {
-    position-area: block-start span-inline-start;
-    justify-self: normal;
-    align-self: normal;
-    margin-block: calc(var(--spacing) * 2);
-    margin-inline: var(--overlay-gutter);
-  }
-  @position-try --overlay-bottom {
-    position-area: block-end span-all;
-    justify-self: safe anchor-center;
-    align-self: normal;
-    margin-block: calc(var(--spacing) * 2);
-    margin-inline: var(--overlay-gutter);
-  }
-  @position-try --overlay-bottom-start {
-    position-area: block-end span-inline-end;
-    justify-self: normal;
-    align-self: normal;
-    margin-block: calc(var(--spacing) * 2);
-    margin-inline: var(--overlay-gutter);
-  }
-  @position-try --overlay-bottom-end {
-    position-area: block-end span-inline-start;
-    justify-self: normal;
-    align-self: normal;
-    margin-block: calc(var(--spacing) * 2);
-    margin-inline: var(--overlay-gutter);
-  }
-  /* Beside the trigger, centred on it: the opposite-side fallback for left/right. */
-  @position-try --overlay-left {
-    position-area: left span-all;
-    justify-self: safe right;
-    align-self: safe anchor-center;
-  }
-  @position-try --overlay-right {
-    position-area: right span-all;
-    justify-self: safe left;
-    align-self: safe anchor-center;
-  }
   :is(.tooltip, .popover-card) {
     margin-block: calc(var(--spacing) * 2);
     margin-inline: var(--overlay-gutter);
@@ -78,12 +18,12 @@
   :is(.tooltip, .popover-card)[data-side="top"] {
     position-area: block-start span-all;
     position-try-fallbacks:
-      --overlay-top-start, --overlay-top-end, flip-block, --overlay-bottom-start, --overlay-bottom-end;
+      block-start span-inline-end, block-start span-inline-start, flip-block, block-end span-inline-end, block-end span-inline-start;
   }
   :is(.tooltip, .popover-card)[data-side="bottom"] {
     position-area: block-end span-all;
     position-try-fallbacks:
-      --overlay-bottom-start, --overlay-bottom-end, flip-block, --overlay-top-start, --overlay-top-end;
+      block-end span-inline-end, block-end span-inline-start, flip-block, block-start span-inline-end, block-start span-inline-start;
   }
   :is(.tooltip, .popover-card):is([data-side="left"], [data-side="right"]) {
     margin-block: var(--overlay-gutter);
@@ -93,12 +33,12 @@
     position-area: left span-all;
     justify-self: safe right;
     position-try-fallbacks:
-      --overlay-right, --overlay-bottom, --overlay-bottom-end, --overlay-top, --overlay-top-end;
+      flip-inline, flip-start, flip-inline flip-start;
   }
   :is(.tooltip, .popover-card)[data-side="right"] {
     position-area: right span-all;
     justify-self: safe left;
     position-try-fallbacks:
-      --overlay-left, --overlay-bottom, --overlay-bottom-end, --overlay-top, --overlay-top-end;
+      flip-inline, flip-start, flip-inline flip-start;
   }
 }
