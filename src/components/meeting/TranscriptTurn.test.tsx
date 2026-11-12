@@ -15,6 +15,8 @@ afterEach(() => {
   window.localStorage.removeItem(notesKey(sessionId));
 });
 
+const openMenu = () => fireEvent.click(screen.getByRole('button', { name: 'Line actions' }));
+
 describe('TranscriptTurn note actions', () => {
   it('runs the handlers from real buttons and shows feedback', () => {
     const createAction = vi.fn();
@@ -23,16 +25,17 @@ describe('TranscriptTurn note actions', () => {
       <TranscriptTurn segment={seg} speakerLabel="Ann" speakerColorIndex={0} actions={{ createAction, markDecision }} />,
     );
 
-    const action = screen.getByRole('button', { name: 'Create action item' });
-    const decision = screen.getByRole('button', { name: 'Mark as decision' });
-    expect(action.tagName).toBe('BUTTON');
+    expect(screen.queryByText('Create action item')).toBeNull();
+    openMenu();
+    expect(screen.getByText('Create action item')).toBeTruthy();
     expect(screen.getByRole('status').textContent).toBe('');
 
-    fireEvent.click(action);
+    fireEvent.click(screen.getByText('Create action item'));
     expect(createAction).toHaveBeenCalledTimes(1);
     expect(screen.getByRole('status').textContent).toBe('Added to action items');
 
-    fireEvent.click(decision);
+    openMenu();
+    fireEvent.click(screen.getByText('Mark as decision'));
     expect(markDecision).toHaveBeenCalledTimes(1);
     expect(screen.getByRole('status').textContent).toBe('Added to decisions');
   });
@@ -46,7 +49,7 @@ describe('TranscriptTurn note actions', () => {
         actions={{ createAction: vi.fn(), markDecision: vi.fn() }}
       />,
     );
-    expect(screen.queryByRole('button', { name: 'Create action item' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Line actions' })).toBeNull();
   });
 });
 
@@ -66,7 +69,8 @@ describe('transcript to Summary panel', () => {
 
   it('clicking Create action item stores it and the notes panel lists it', () => {
     render(live());
-    fireEvent.click(screen.getByRole('button', { name: 'Create action item' }));
+    openMenu();
+    fireEvent.click(screen.getByText('Create action item'));
     expect(getNotes(sessionId).actions).toMatchObject([{ text: seg.text, sourceSegmentId: 's1', done: false }]);
 
     render(<NotesPanel sessionId={sessionId} />);
@@ -75,7 +79,8 @@ describe('transcript to Summary panel', () => {
 
   it('clicking Mark as decision stores it and the notes panel lists it', () => {
     render(live());
-    fireEvent.click(screen.getByRole('button', { name: 'Mark as decision' }));
+    openMenu();
+    fireEvent.click(screen.getByText('Mark as decision'));
     expect(getNotes(sessionId).decisions).toMatchObject([{ text: seg.text, sourceSegmentId: 's1' }]);
 
     render(<NotesPanel sessionId={sessionId} />);

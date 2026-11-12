@@ -436,20 +436,22 @@ describe('LiveTranscript line actions', () => {
   it('creates an action item from a line, linked to its segment', async () => {
     const { getNotes } = await import('@/lib/meeting/notes');
     render(withSession([seg('a', 'mic:0', 0, 'Send the report')]));
-    fireEvent.click(screen.getByRole('button', { name: 'Create action item' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Line actions' }));
+    fireEvent.click(screen.getByText('Create action item'));
     expect(getNotes('s1').actions).toMatchObject([{ text: 'Send the report', sourceSegmentId: 'a', done: false }]);
   });
 
   it('marks a line as a decision, linked to its segment', async () => {
     const { getNotes } = await import('@/lib/meeting/notes');
     render(withSession([seg('a', 'mic:0', 0, 'We ship Friday')]));
-    fireEvent.click(screen.getByRole('button', { name: 'Mark as decision' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Line actions' }));
+    fireEvent.click(screen.getByText('Mark as decision'));
     expect(getNotes('s1').decisions).toMatchObject([{ text: 'We ship Friday', sourceSegmentId: 'a' }]);
   });
 
   it('offers no actions without a sessionId', () => {
     render(view([seg('a', 'mic:0', 0)]));
-    expect(screen.queryByRole('button', { name: 'Create action item' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Line actions' })).toBeNull();
   });
 });
 

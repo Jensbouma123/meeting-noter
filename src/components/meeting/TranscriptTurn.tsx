@@ -1,10 +1,19 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Check } from 'lucide-react';
+import { Check, MoreHorizontal } from 'lucide-react';
 import type { Segment } from '@/lib/meeting';
 import { getSpeakerColor } from './speaker-theme';
-import { Badge, Button, HStack, Text } from '@jensbouma123/acciva-ui';
+import {
+  Badge,
+  Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  HStack,
+  Text,
+} from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 
 interface TranscriptTurnProps {
@@ -47,6 +56,7 @@ export const TranscriptTurn = React.memo(
     const isFinal = segment.final;
     // Which note this line was saved as, so the click gives visible feedback.
     const [added, setAdded] = useState<'action' | 'decision' | null>(null);
+    const [menuOpen, setMenuOpen] = useState(false);
 
     const tokens = useMemo(() => tokenize(segment.text), [segment.text]);
     // Number of tokens shown on the previous commit; only the tail past
@@ -90,11 +100,11 @@ export const TranscriptTurn = React.memo(
 
         {/* Spoken content: interim text renders in the same node, dimmed,
             and finalizing only fades opacity — no layout change. */}
-        <div className="border-l-2 border-border-subtle/40 pl-4.5 transition-colors group-hover:border-border-subtle">
+        <div className="flex items-start gap-2 border-l-2 border-border-subtle/40 pl-4.5 transition-colors group-hover:border-border-subtle">
           <Text
             as="p"
             size="md"
-            className={`font-sans tracking-normal transition-opacity duration-200 ${
+            className={`min-w-0 flex-1 font-sans tracking-normal transition-opacity duration-200 ${
               isFinal ? 'opacity-100' : 'opacity-60'
             }`}
           >
@@ -117,23 +127,11 @@ export const TranscriptTurn = React.memo(
             />
           </Text>
           {actions && segment.final && (
-            <div className="flex flex-wrap items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => { actions.createAction(); setAdded('action'); }}
-              >
-                {t('createAction')}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => { actions.markDecision(); setAdded('decision'); }}
-              >
-                {t('markDecision')}
-              </Button>
+            <div
+              className={`ml-auto flex shrink-0 items-center gap-1 transition-opacity group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100 ${
+                menuOpen ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
               <span role="status" aria-live="polite" className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                 {added && (
                   <>
@@ -142,6 +140,26 @@ export const TranscriptTurn = React.memo(
                   </>
                 )}
               </span>
+              <DropdownMenu onOpenChange={setMenuOpen}>
+                <DropdownMenuTrigger>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    iconOnly
+                    aria-label={t('lineActions')}
+                    leadingIcon={<MoreHorizontal className="size-4" />}
+                  />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => { actions.createAction(); setAdded('action'); }}>
+                    {t('createAction')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { actions.markDecision(); setAdded('decision'); }}>
+                    {t('markDecision')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           )}
         </div>
