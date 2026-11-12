@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { useCallback, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react';
 import {
   Button, Checkbox, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
   EmptyState, HStack, Heading, Input, Popover, Text, VStack,
@@ -13,6 +13,11 @@ import {
 } from '@/lib/meeting/notes';
 import type { Segment, Speaker } from '@/lib/meeting/types';
 import { useT } from '@/lib/i18n/useT';
+import { useSessionIntelligence } from '@/lib/d1/store';
+import { isD1ModelCached, runD1AnalysisForSession, D1_REGISTRY_KEY } from '@/lib/meeting/d1-bridge';
+import { isCaptureActive } from '@/lib/meeting/store';
+import { retryDownload, subscribeRegistry } from '@/lib/asr/browser';
+import { dispatchFixWord, dispatchJumpToSegment, flaggedWords, formatStamp, indexD1 } from '@/components/meeting/d1-view';
 
 interface NotesPanelProps {
   sessionId: string;
@@ -80,11 +85,137 @@ export function NotesPanel({ sessionId, speakers = [], segments = [] }: NotesPan
         </ul>}
       </section>}
 
+      <D1Insights sessionId={sessionId} speakers={speakers} segments={segments} t={t} />
+
       {parsedNotes.actions.length === 0 && parsedNotes.decisions.length === 0 && suggestions.length === 0 && (
         <EmptyState size="sm" compact title={t('emptyTitle')} description={t('empty')} />
       )}
     </VStack>
   );
+}
+
+/**
+ * Local D1 analysis of a finished session: model status, scan, the decisions
+ * and action items it found, uncertain words to review, and speaker hints.
+ * Every mark is advisory; saving a result adds a note, nothing else changes.
+ */
+function D1Insights({ sessionId, speakers, segments, t }: {
+  sessionId: string; speakers: Speaker[]; segments: Segment[]; t: T;
+}) {
+  const [open, setOpen] = useState(false);
+  const intelligence = useSessionIntelligence(sessionId);
+  const modelCached = useSyncExternalStore(subscribeRegistry, isD1ModelCached, () => false);
+  const index = useMemo(() => indexD1(intelligence, segments), [intelligence, segments]);
+  const speakerLabel = useMemo(() => new Map(speakers.map((s) => [s.id, s.label])), [speakers]);
+  const flagged = useMemo(
+    () => segments.flatMap((seg) => flaggedWords(seg, index.get(seg.id)?.triage).map((word) => ({ key: `${seg.id}:${word}`, word, seg }))),
+    [segments, index],
+  );
+  const hints = useMemo(() => segments.filter((seg) => index.get(seg.id)?.triage?.suspectSpeaker), [segments, index]);
+
+  const recording = isCaptureActive();
+  const running = intelligence.status === 'running';
+  const hasResults = Object.keys(intelligence.triageBySegment).length > 0
+    || intelligence.decisions.length > 0 || intelligence.actionItems.length > 0;
+  const count = intelligence.decisions.length + intelligence.actionItems.length + flagged.length + hints.length;
+
+  const scan = () => {
+    const byId = Object.fromEntries(speakers.map((s) => [s.id, s]));
+    void runD1AnalysisForSession(sessionId, segments, byId, { force: true }).catch(() => {});
+  };
+  const download = () => { void retryDownload(D1_REGISTRY_KEY).catch(() => {}); };
+  const jump = (segmentId: string | undefined) => { if (segmentId) dispatchJumpToSegment(segmentId); };
+  const jumpButton = (start: number, segmentId: string | undefined) => (
+    <button type="button" disabled={!segmentId} onClick={() => jump(segmentId)}
+      aria-label={t('d1Jump').replace('{time}', formatStamp(start))}
+      className="shrink-0 rounded-md px-1 font-mono text-xs tabular-nums text-muted-foreground hover:text-foreground disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-1">
+      [{formatStamp(start)}]
+    </button>
+  );
+
+  return <section aria-label={t('d1Title')} className="w-full min-w-0 rounded-md border border-border-subtle p-2">
+    <button type="button" aria-expanded={open} aria-controls="notes-d1-body" onClick={() => setOpen((v) => !v)}
+      className="flex w-full min-w-0 items-center gap-1 rounded-md py-1 text-left text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1">
+      {open ? <ChevronDown aria-hidden="true" className="size-4 shrink-0" /> : <ChevronRight aria-hidden="true" className="size-4 shrink-0" />}
+      <span className="truncate">{t('d1Title')} ({count})</span>
+    </button>
+    {open && <VStack id="notes-d1-body" spacing="sm" className="mt-2 w-full min-w-0">
+      <Text size="xs" variant="muted">{modelCached ? t('d1ModelReady') : t('d1ModelMissing')}</Text>
+      {!modelCached && <Button size="sm" variant="outline" onClick={download}>{t('d1Download')}</Button>}
+      {intelligence.progress.total > 0 && <Text size="xs" variant="muted">
+        {t('d1Progress').replace('{done}', String(intelligence.progress.done)).replace('{total}', String(intelligence.progress.total))}
+      </Text>}
+      {running && <Text size="xs" variant="muted" role="status">{t('d1Running')}</Text>}
+      {intelligence.status === 'error' && <Text size="xs" role="alert">{t('d1Error')}{intelligence.error ? ` ${intelligence.error}` : ''}</Text>}
+      <HStack spacing="sm" align="center" className="flex-wrap">
+        <Button size="sm" variant="primary" disabled={recording || !modelCached || running} onClick={scan}>
+          {hasResults ? t('d1Rescan') : t('d1Scan')}
+        </Button>
+        {recording && <Text size="xs" variant="muted">{t('d1Recording')}</Text>}
+      </HStack>
+
+      <D1List title={t('d1Decisions')} empty={t('d1Empty')} count={intelligence.decisions.length} t={t}>
+        {intelligence.decisions.map((d) => (
+          <li key={d.id} className="flex min-w-0 items-start gap-1">
+            {jumpButton(d.start, d.segmentIds[0])}
+            <Text size="sm" className="min-w-0 flex-1 break-words py-0.5">{d.text}</Text>
+            <Button iconOnly size="sm" variant="ghost" tooltip={t('d1Save')} aria-label={`${t('d1Save')}: ${d.text}`}
+              leadingIcon={<Plus aria-hidden="true" className="size-4" />}
+              onClick={() => { addDecision(sessionId, d.text, d.segmentIds[0]); }} />
+          </li>
+        ))}
+      </D1List>
+
+      <D1List title={t('d1ActionItems')} empty={t('d1Empty')} count={intelligence.actionItems.length} t={t}>
+        {intelligence.actionItems.map((a) => (
+          <li key={a.id} className="flex min-w-0 items-start gap-1">
+            {jumpButton(a.start, a.segmentIds[0])}
+            <Text size="sm" className="min-w-0 flex-1 break-words py-0.5">
+              {a.text}{a.owner ? ` (${a.owner})` : ''}
+            </Text>
+            <Button iconOnly size="sm" variant="ghost" tooltip={t('d1Save')} aria-label={`${t('d1Save')}: ${a.text}`}
+              leadingIcon={<Plus aria-hidden="true" className="size-4" />}
+              onClick={() => { addAction(sessionId, a.text, a.segmentIds[0] ? { sourceSegmentId: a.segmentIds[0] } : {}); }} />
+          </li>
+        ))}
+      </D1List>
+
+      <D1List title={t('d1Flagged')} empty={t('d1Empty')} count={flagged.length} t={t}>
+        {flagged.map(({ key, word, seg }) => (
+          <li key={key} className="flex min-w-0 items-center gap-1">
+            {jumpButton(seg.start, seg.id)}
+            <Text size="sm" className="min-w-0 flex-1 truncate" title={word}>{word}</Text>
+            <Button size="sm" variant="ghost" aria-label={`${t('d1ReviewWord')}: ${word}`} onClick={() => dispatchFixWord(word)}>
+              {t('d1ReviewWord')}
+            </Button>
+          </li>
+        ))}
+      </D1List>
+
+      <D1List title={t('d1SpeakerHints')} empty={t('d1Empty')} count={hints.length} t={t}>
+        {hints.map((seg) => (
+          <li key={seg.id} className="flex min-w-0 items-start gap-1">
+            {jumpButton(seg.start, seg.id)}
+            <Text size="sm" className="min-w-0 flex-1 break-words py-0.5">
+              {speakerLabel.get(seg.speaker) ?? seg.speaker}: <span className="text-muted-foreground">{t('d1CheckSpeaker')}</span>
+            </Text>
+          </li>
+        ))}
+        {hints.length > 0 && <li><Text size="xs" variant="muted">{t('d1SpeakerNote')}</Text></li>}
+      </D1List>
+    </VStack>}
+  </section>;
+}
+
+function D1List({ title, empty, count, t, children }: {
+  title: string; empty: string; count: number; t: T; children: ReactNode;
+}) {
+  return <section aria-label={title} className="w-full min-w-0">
+    <Heading level={4} size="xs" className="min-w-0 truncate">{title} ({count})</Heading>
+    {count === 0
+      ? <Text size="xs" variant="muted" className="mt-1">{empty}</Text>
+      : <ul className="mt-1 flex w-full min-w-0 flex-col gap-2">{children}</ul>}
+  </section>;
 }
 
 function NoteSection({ id, title, count, addLabel, placeholder, empty, onSave, t, children }: {

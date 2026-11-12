@@ -210,8 +210,8 @@ export interface SessionSidebarProps {
   activeSessionId?: string | null;
   /** Navigate to a session in the main content. */
   onOpenSession: (sessionId: string) => void;
-  /** Open the "create new session" dialog (empty string triggers dialog). */
-  onNewSession: () => void;
+  /** Open the "create new session" dialog; a folder id files the new meeting in that folder. */
+  onNewSession: (folderId?: string) => void;
   /** Whether the sidebar is visible/expanded. */
   open: boolean;
   /** Toggle sidebar open/close. */
@@ -315,7 +315,7 @@ export function SessionSidebar({
             variant="ghost"
             size="sm"
             iconOnly
-            onClick={onNewSession}
+            onClick={() => onNewSession()}
             tooltip={t('new')}
             aria-label={t('new')}
             leadingIcon={<Plus className="size-4" />}
@@ -354,7 +354,7 @@ export function SessionSidebar({
       <VStack spacing="none" fill className="flex-1 scroll-pt-10 overflow-y-auto">
         {sessions.length === 0 ? (
           <>
-            {!searching && <FolderTree controller={folderCtl} sessions={sessions} renderSession={(session) => renderRow(session)} />}
+            {!searching && <FolderTree controller={folderCtl} sessions={sessions} renderSession={(session) => renderRow(session)} onNewSession={onNewSession} />}
             <EmptyState
               size="sm"
               icon={<Video className="size-5" />}
@@ -365,7 +365,7 @@ export function SessionSidebar({
                   size="sm"
                   variant="outline"
                   leadingIcon={<Plus className="size-4" />}
-                  onClick={onNewSession}
+                  onClick={() => onNewSession()}
                 >
                   {t('new')}
                 </Button>
@@ -382,6 +382,7 @@ export function SessionSidebar({
               controller={folderCtl}
               sessions={sessions}
               renderSession={(session) => renderRow(session)}
+              onNewSession={onNewSession}
             />
           )}
           {groups.map((group) => (
@@ -459,7 +460,7 @@ export function SessionSidebar({
               variant="ghost"
               size="sm"
               iconOnly
-              onClick={onNewSession}
+              onClick={() => onNewSession()}
               tooltip={t('new')}
               aria-label={t('new')}
               leadingIcon={<Plus className="size-4" />}

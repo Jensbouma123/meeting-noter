@@ -25,7 +25,8 @@ import { resetDiarization } from './diarization-bridge';
 import { requestPersistentStorage } from './persistent-storage';
 import { adoptNotes, hasLocalNotes, notesKey } from './notes';
 import { adoptParticipants, hasAskedParticipants, isSessionParticipantsKey, removeParticipants, sessionParticipantsKey } from './participants';
-import { queueMeetingDelete, queueMeetingSync } from './server-sync';
+import { flushServerSync, queueMeetingDelete, queueMeetingSync } from './server-sync';
+import { moveMeeting } from '@/lib/folders/folders-api';
 import { indexKey, removeIndex } from '@/lib/semantic-search/store';
 import type { MeetingSummaryRow, StoredMeeting } from '@/lib/meeting-db/types';
 
@@ -253,6 +254,20 @@ export function createDraftSession(title: string): string {
   writeSessionIndex(index);
   queueMeetingSync(sessionId);
   notifySessionsChanged();
+  return sessionId;
+}
+
+/**
+ * Create a draft and file it in `folderId` (null: unfiled). The server's
+ * folder route answers 404 until a sync has sent the meeting, so the queue is
+ * flushed first. Offline the draft stays unfiled until the next change.
+ */
+export async function createDraftSessionInFolder(title: string, folderId: string | null): Promise<string> {
+  const sessionId = createDraftSession(title);
+  if (folderId) {
+    await flushServerSync();
+    await moveMeeting(sessionId, folderId);
+  }
   return sessionId;
 }
 

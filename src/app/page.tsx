@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Plus, Video } from 'lucide-react';
 import { Button, Heading, Text, VStack } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
-import { createDraftSession, listSessions } from '@/lib/meeting/session-store';
+import { createDraftSessionInFolder, listSessions } from '@/lib/meeting/session-store';
 import { clearIdleSession } from '@/lib/meeting/store';
 import { NewSessionDialog, HomeLayout } from '@/components/sessions';
 
@@ -17,6 +17,18 @@ export default function Home() {
   const router = useRouter();
   const [empty, setEmpty] = useState(false);
   const [newDialogOpen, setNewDialogOpen] = useState(false);
+  // Folder the dialog's meeting is filed in; cleared on close.
+  const [newDialogFolderId, setNewDialogFolderId] = useState<string | null>(null);
+
+  const openNewSession = useCallback((folderId?: string) => {
+    setNewDialogFolderId(folderId ?? null);
+    setNewDialogOpen(true);
+  }, []);
+
+  const closeNewSession = useCallback(() => {
+    setNewDialogOpen(false);
+    setNewDialogFolderId(null);
+  }, []);
 
   useEffect(() => {
     const latest = listSessions()[0];
@@ -27,22 +39,22 @@ export default function Home() {
 
   const handleOpenSession = useCallback(
     (sessionId: string) => {
-      if (!sessionId) setNewDialogOpen(true);
+      if (!sessionId) openNewSession();
       else router.push(sessionPath(sessionId));
     },
-    [router],
+    [router, openNewSession],
   );
 
   const handleCreated = useCallback(
-    (_id: string, title: string) => {
-      setNewDialogOpen(false);
+    async (_id: string, title: string) => {
+      closeNewSession();
       try {
-        const draftId = createDraftSession(title);
+        const draftId = await createDraftSessionInFolder(title, newDialogFolderId);
         clearIdleSession();
         router.push(sessionPath(draftId));
       } catch { /* best-effort */ }
     },
-    [router],
+    [router, newDialogFolderId, closeNewSession],
   );
 
   if (!empty) return null;
@@ -52,7 +64,7 @@ export default function Home() {
       <HomeLayout
         activeSessionId={null}
         onOpenSession={handleOpenSession}
-        onNewSession={() => setNewDialogOpen(true)}
+        onNewSession={openNewSession}
       >
         <div className="flex flex-1 items-center justify-center px-4 py-6 md:px-8">
           <VStack spacing="lg" align="center" className="w-full max-w-md text-center">
@@ -77,7 +89,7 @@ export default function Home() {
           </VStack>
         </div>
       </HomeLayout>
-      <NewSessionDialog open={newDialogOpen} onClose={() => setNewDialogOpen(false)} onCreate={handleCreated} />
+      <NewSessionDialog open={newDialogOpen} onClose={closeNewSession} onCreate={handleCreated} />
     </>
   );
 }

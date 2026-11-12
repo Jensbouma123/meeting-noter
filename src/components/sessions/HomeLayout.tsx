@@ -15,8 +15,8 @@ export interface HomeLayoutProps {
   activeSessionId?: string | null;
   /** Navigate to a specific session (empty string signals "new session" dialog). */
   onOpenSession: (sessionId: string) => void;
-  /** Trigger the "create new session" dialog. */
-  onNewSession: () => void;
+  /** Trigger the "create new session" dialog; a folder id files the new meeting in that folder. */
+  onNewSession: (folderId?: string) => void;
   /** The main content rendered when a session is open. */
   children?: React.ReactNode;
   /** Optional controlled rail state; when absent the layout owns (and persists) it. */

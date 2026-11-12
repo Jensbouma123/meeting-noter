@@ -15,7 +15,7 @@ import {
   VStack,
   useToast,
 } from '@jensbouma123/acciva-ui';
-import { ChevronRight, Folder, FolderInput, FolderOpen, FolderPlus, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { ChevronRight, Folder, FolderInput, FolderOpen, FolderPlus, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react';
 import type { FolderRow } from '@/lib/meeting-db/types';
 import type { SessionMetadata } from '@/lib/meeting/session-store';
 import { deleteSession } from '@/lib/meeting/session-store';
@@ -29,6 +29,7 @@ import {
   moveFolder,
   moveMeeting,
   renameFolder,
+  reorderFolder,
   type ApiResult,
   type FolderDeleteMode,
 } from '@/lib/folders/folders-api';
@@ -50,6 +51,8 @@ const FOCUS = 'focus-visible:outline-2 focus-visible:outline-offset-1';
 const MEETING_MIME = 'application/x-mn-meeting';
 const FOLDER_MIME = 'application/x-mn-folder';
 const PLAIN_PREFIX = 'mn-folder-item:';
+const INITIAL_VISIBLE = 5;
+const SHOW_MORE_STEP = 10;
 
 function readDragItem(dataTransfer: DataTransfer): { kind: 'meeting' | 'folder'; id: string } | null {
   const meeting = dataTransfer.getData(MEETING_MIME);
@@ -77,6 +80,13 @@ export interface FolderController {
   rename: (id: string, name: string) => Promise<void>;
   dropMeeting: (meetingId: string, folderId: string | null) => Promise<void>;
   dropFolder: (folderId: string, parentId: string | null) => Promise<void>;
+  /** Folder drag started: remember it so sibling rows can reorder live. */
+  isSibling: (folderId: string, otherId: string) => boolean;
+  beginFolderDrag: (folderId: string) => void;
+  /** While dragging: move the dragged folder to the hovered sibling's position (local only). */
+  previewReorder: (targetId: string) => void;
+  /** Drag ended: persist the live order, if it changed. */
+  commitReorder: () => void;
   requestMove: (target: MoveTarget) => void;
   requestDelete: (folder: FolderRow) => void;
   /** Mount once: the move picker and the delete dialog. */
@@ -92,6 +102,8 @@ export function useFolderController(sessions: readonly SessionMetadata[]): Folde
   const [moveTarget, setMoveTarget] = useState<MoveTarget | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<FolderRow | null>(null);
   const [createParentId, setCreateParentId] = useState<string | null | undefined>(undefined);
+  const dragFolderId = useRef<string | null>(null);
+  const reordered = useRef(false);
 
   const refresh = useCallback(async () => {
     const [f, m] = await Promise.all([fetchFolders(), fetchMeetingFolders()]);
@@ -158,6 +170,45 @@ export function useFolderController(sessions: readonly SessionMetadata[]): Folde
     [folders, report],
   );
 
+  const beginFolderDrag = useCallback((folderId: string) => {
+    dragFolderId.current = folderId;
+    reordered.current = false;
+  }, []);
+  const isSibling = useCallback(
+    (a: string, b: string) => {
+      const fa = folders.find((f) => f.id === a);
+      const fb = folders.find((f) => f.id === b);
+      return !!fa && !!fb && fa.parentId === fb.parentId;
+    },
+    [folders],
+  );
+  const previewReorder = useCallback((targetId: string) => {
+    const dragId = dragFolderId.current;
+    if (!dragId || dragId === targetId) return;
+    setFolders((prev) => {
+      const dragged = prev.find((f) => f.id === dragId);
+      const target = prev.find((f) => f.id === targetId);
+      if (!dragged || !target || dragged.parentId !== target.parentId) return prev;
+      const from = prev.indexOf(dragged);
+      const rest = prev.filter((f) => f !== dragged);
+      const at = rest.indexOf(target) + (from < prev.indexOf(target) ? 1 : 0);
+      reordered.current = true;
+      return [...rest.slice(0, at), dragged, ...rest.slice(at)];
+    });
+  }, []);
+  const commitReorder = useCallback(() => {
+    const dragId = dragFolderId.current;
+    dragFolderId.current = null;
+    if (!dragId || !reordered.current) return;
+    reordered.current = false;
+    const dragged = folders.find((f) => f.id === dragId);
+    if (!dragged) return;
+    const index = folders.filter((f) => f.parentId === dragged.parentId).findIndex((f) => f.id === dragId);
+    void reorderFolder(dragId, index).then((r) => {
+      if (!report(r)) void refresh();
+    });
+  }, [folders, report, refresh]);
+
   const confirmDelete = useCallback(
     async (mode: FolderDeleteMode) => {
       const target = deleteTarget;
@@ -216,6 +267,10 @@ export function useFolderController(sessions: readonly SessionMetadata[]): Folde
     rename,
     dropMeeting,
     dropFolder,
+    isSibling,
+    beginFolderDrag,
+    previewReorder,
+    commitReorder,
     requestMove: setMoveTarget,
     requestDelete: setDeleteTarget,
     dialogs,
@@ -408,9 +463,11 @@ interface FolderTreeProps {
   sessions: readonly SessionMetadata[];
   /** Renders one meeting row; `draggable` props are applied by the tree. */
   renderSession: (session: SessionMetadata) => ReactNode;
+  /** Start a new meeting filed in this folder. Omit to hide the per-folder "+" button. */
+  onNewSession?: (folderId: string) => void;
 }
 
-function dragProps(mime: string, id: string) {
+function dragProps(mime: string, id: string, onStart?: () => void) {
   return {
     draggable: true,
     onDragStart: (e: React.DragEvent) => {
@@ -421,6 +478,7 @@ function dragProps(mime: string, id: string) {
       // Safari needs a text/plain payload before it starts a native drag.
       e.dataTransfer.setData('text/plain', `${PLAIN_PREFIX}${mime === MEETING_MIME ? 'meeting' : 'folder'}:${id}`);
       e.dataTransfer.effectAllowed = 'move';
+      onStart?.();
     },
   };
 }
@@ -430,7 +488,7 @@ export function DraggableMeeting({ sessionId, children }: { sessionId: string; c
   return <div {...dragProps(MEETING_MIME, sessionId)}>{children}</div>;
 }
 
-export function FolderTree({ controller, sessions, renderSession }: FolderTreeProps) {
+export function FolderTree({ controller, sessions, renderSession, onNewSession }: FolderTreeProps) {
   const t = useFoldersT();
   const { folders, meetingFolders, addFolder } = controller;
   const tree = useMemo(() => buildFolderTree(folders), [folders]);
@@ -441,8 +499,15 @@ export function FolderTree({ controller, sessions, renderSession }: FolderTreePr
       const fid = meetingFolders[s.sessionId];
       if (fid) m.set(fid, [...(m.get(fid) ?? []), s]);
     }
+    for (const list of m.values()) list.sort((a, b) => b.createdAt - a.createdAt);
     return m;
   }, [sessions, meetingFolders]);
+  // Meetings shown per folder: first page, then SHOW_MORE_STEP more per click.
+  const [visible, setVisible] = useState<Record<string, number>>({});
+  const showMore = useCallback(
+    (id: string) => setVisible((prev) => ({ ...prev, [id]: (prev[id] ?? INITIAL_VISIBLE) + SHOW_MORE_STEP })),
+    [],
+  );
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   // A folder being renamed (e.g. just created) must be visible: expand its ancestors.
   const [seenRenamingId, setSeenRenamingId] = useState<string | null>(null);
@@ -476,7 +541,6 @@ export function FolderTree({ controller, sessions, renderSession }: FolderTreePr
           onClick={() => void addFolder(null)}
         />
       </HStack>
-      <RootDropZone controller={controller} label={t('topLevel')} />
       {tree.length === 0 ? (
         <Text size="xs" variant="muted" className="px-3 py-1">{t('empty')}</Text>
       ) : (
@@ -491,45 +555,15 @@ export function FolderTree({ controller, sessions, renderSession }: FolderTreePr
               byFolder={byFolder}
               collapsed={collapsed}
               onToggle={toggle}
+              visible={visible}
+              onShowMore={showMore}
               renderSession={renderSession}
+              onNewSession={onNewSession}
             />
           ))}
         </ul>
       )}
     </section>
-  );
-}
-
-/** Appears while something is dragged: drop here to take it out of its folder. */
-function RootDropZone({ controller, label }: { controller: FolderController; label: string }) {
-  const [over, setOver] = useState(false);
-  useEffect(() => {
-    const clear = () => setOver(false);
-    window.addEventListener('dragend', clear);
-    window.addEventListener('drop', clear);
-    return () => {
-      window.removeEventListener('dragend', clear);
-      window.removeEventListener('drop', clear);
-    };
-  }, []);
-  return (
-    <div
-      onDragOver={(e) => {
-        e.preventDefault();
-        setOver(true);
-      }}
-      onDragLeave={() => setOver(false)}
-      onDrop={(e) => {
-        e.preventDefault();
-        setOver(false);
-        const item = readDragItem(e.dataTransfer);
-        if (item?.kind === 'meeting') void controller.dropMeeting(item.id, null);
-        else if (item?.kind === 'folder') void controller.dropFolder(item.id, null);
-      }}
-      className={`mx-2 mb-1 rounded-md border border-dashed px-2 py-1.5 text-xs text-muted-foreground ${over ? 'border-primary-500 bg-surface-hover' : 'border-border-subtle'}`}
-    >
-      {label}
-    </div>
   );
 }
 
@@ -541,18 +575,23 @@ interface FolderItemProps {
   byFolder: Map<string, SessionMetadata[]>;
   collapsed: Set<string>;
   onToggle: (id: string) => void;
+  visible: Record<string, number>;
+  onShowMore: (id: string) => void;
   renderSession: (session: SessionMetadata) => ReactNode;
+  onNewSession?: (folderId: string) => void;
 }
 
-function FolderItem({ node, depth, controller, counts, byFolder, collapsed, onToggle, renderSession }: FolderItemProps) {
+function FolderItem({ node, depth, controller, counts, byFolder, collapsed, onToggle, visible, onShowMore, renderSession, onNewSession }: FolderItemProps) {
   const t = useFoldersT();
   const { folder } = node;
   const expanded = !collapsed.has(folder.id);
-  const meetings = byFolder.get(folder.id) ?? [];
+  const allMeetings = byFolder.get(folder.id) ?? [];
+  const limit = visible[folder.id] ?? INITIAL_VISIBLE;
+  const meetings = allMeetings.slice(0, limit);
   const [over, setOver] = useState(false);
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const renaming = controller.renamingId === folder.id;
-  const hasContent = node.children.length > 0 || meetings.length > 0;
+  const hasContent = node.children.length > 0 || allMeetings.length > 0;
   const clearHoverTimer = () => {
     if (hoverTimer.current) clearTimeout(hoverTimer.current);
     hoverTimer.current = null;
@@ -564,10 +603,11 @@ function FolderItem({ node, depth, controller, counts, byFolder, collapsed, onTo
   return (
     <li>
       <div
-        {...dragProps(FOLDER_MIME, folder.id)}
+        {...dragProps(FOLDER_MIME, folder.id, () => controller.beginFolderDrag(folder.id))}
         onDragOver={(e) => {
           e.preventDefault();
           e.stopPropagation();
+          controller.previewReorder(folder.id);
           setOver(true);
           if (!expanded && hasContent && !hoverTimer.current) {
             hoverTimer.current = setTimeout(() => {
@@ -584,6 +624,7 @@ function FolderItem({ node, depth, controller, counts, byFolder, collapsed, onTo
         onDragEnd={() => {
           clearHoverTimer();
           setOver(false);
+          controller.commitReorder();
         }}
         onDrop={(e) => {
           e.preventDefault();
@@ -592,7 +633,7 @@ function FolderItem({ node, depth, controller, counts, byFolder, collapsed, onTo
           setOver(false);
           const item = readDragItem(e.dataTransfer);
           if (item?.kind === 'meeting') void controller.dropMeeting(item.id, folder.id);
-          else if (item?.kind === 'folder') void controller.dropFolder(item.id, folder.id);
+          else if (item?.kind === 'folder' && !controller.isSibling(item.id, folder.id)) void controller.dropFolder(item.id, folder.id);
         }}
         style={{ paddingLeft: `${depth * 0.75}rem` }}
         className={`group flex items-center gap-1 rounded-md pr-1 ${over ? 'bg-surface-hover outline outline-2 -outline-offset-2 outline-primary-500' : 'hover:bg-surface-hover'}`}
@@ -620,6 +661,17 @@ function FolderItem({ node, depth, controller, counts, byFolder, collapsed, onTo
             <span className="truncate">{folder.name}</span>
             {(counts.get(folder.id) ?? 0) > 0 && <Badge variant="neutral" size="xs">{counts.get(folder.id)}</Badge>}
           </button>
+        )}
+        {onNewSession && (
+          <Button
+            variant="ghost"
+            size="sm"
+            iconOnly
+            onClick={() => onNewSession(folder.id)}
+            tooltip={t('newMeetingIn').replace('{name}', folder.name)}
+            aria-label={t('newMeetingIn').replace('{name}', folder.name)}
+            leadingIcon={<Plus className="size-4" />}
+          />
         )}
         <DropdownMenu>
           <DropdownMenuTrigger>
@@ -660,7 +712,10 @@ function FolderItem({ node, depth, controller, counts, byFolder, collapsed, onTo
               byFolder={byFolder}
               collapsed={collapsed}
               onToggle={onToggle}
+              visible={visible}
+              onShowMore={onShowMore}
               renderSession={renderSession}
+              onNewSession={onNewSession}
             />
           ))}
           {meetings.map((s) => (
@@ -668,6 +723,11 @@ function FolderItem({ node, depth, controller, counts, byFolder, collapsed, onTo
               <DraggableMeeting sessionId={s.sessionId}>{renderSession(s)}</DraggableMeeting>
             </li>
           ))}
+          {allMeetings.length > meetings.length && (
+            <li style={{ paddingLeft: `${(depth + 1) * 0.75 + 0.5}rem` }}>
+              <Button variant="ghost" size="sm" onClick={() => onShowMore(folder.id)}>{t('showMore')}</Button>
+            </li>
+          )}
         </ul>
       )}
     </li>
