@@ -163,7 +163,7 @@ export function BottomDock({
   return (
     <nav
       ref={dockRef}
-      className="absolute bottom-[calc(1.25rem+env(safe-area-inset-bottom))] left-1/2 z-40 max-w-[calc(100%-32px)] -translate-x-1/2 select-none sm:bottom-6"
+      className="absolute bottom-[calc(1.25rem+env(safe-area-inset-bottom))] left-1/2 z-40 w-max max-w-[calc(100%-32px)] -translate-x-1/2 select-none sm:bottom-6"
       aria-label={t('recordingControls')}
     >
       {/* Floating meters popover on mobile behind tap */}
@@ -176,7 +176,7 @@ export function BottomDock({
       <HStack
         spacing="sm"
         align="center"
-        className="gap-2 rounded-full border border-border bg-surface/90 px-3 py-2 shadow-elevation-3 backdrop-blur-md transition-transform duration-180 sm:gap-4 sm:px-5 sm:py-2.5"
+        className="flex-wrap justify-center gap-x-2 gap-y-2 rounded-[28px] border border-border bg-surface/90 px-3 py-2 shadow-elevation-3 backdrop-blur-md transition-transform duration-180 sm:gap-x-4 sm:px-5 sm:py-2.5"
       >
         {/* Record / Stop Button */}
         <div className="relative flex shrink-0 items-center">
@@ -233,11 +233,11 @@ export function BottomDock({
                 <Pause className="size-4 fill-current" />
               )
             }
-            className="touch-target-44 !rounded-full active:scale-95"
+            className="touch-target-44 shrink-0 !rounded-full active:scale-95"
           />
         )}
 
-        <Divider orientation="vertical" className="hidden h-5 w-px shrink-0 sm:block" />
+        <Divider orientation="vertical" className="hidden h-5 w-px shrink-0 md:block" />
 
         {/* Source selector (Mic / Mic + gesprek; call-only stays in lib but is not selectable) — a segmented control, locked while
             a recording is active since the capture pipeline reads `mode` once at
@@ -253,7 +253,7 @@ export function BottomDock({
                   <Tab value="mic" disabled={isRecordingActive} className="touch-target-44">
                     <HStack as="span" spacing="xs" className="items-center">
                       <Mic className="size-3.5" />
-                      <span className="sr-only sm:not-sr-only">{t('mic')}</span>
+                      <span className="sr-only md:not-sr-only">{t('mic')}</span>
                     </HStack>
                   </Tab>
                   </span>
@@ -263,7 +263,7 @@ export function BottomDock({
                   <Tab value="both" disabled={isRecordingActive} className="touch-target-44">
                     <HStack as="span" spacing="xs" className="items-center">
                       <PhoneCall className="size-3.5" />
-                      <span className="sr-only sm:not-sr-only">{t('micCall')}</span>
+                      <span className="sr-only md:not-sr-only">{t('micCall')}</span>
                     </HStack>
                   </Tab>
                   </span>
@@ -273,10 +273,10 @@ export function BottomDock({
           );
           return isRecordingActive ? (
             <Tooltip content={t('changeSourceTip')}>
-              <div>{tabs}</div>
+              <div className="shrink-0">{tabs}</div>
             </Tooltip>
           ) : (
-            tabs
+            <div className="shrink-0">{tabs}</div>
           );
         })()}
 
@@ -288,10 +288,10 @@ export function BottomDock({
                 role="alert"
                 aria-label={`${t('noCallAudio')}. ${callAudioMissingReason}`}
                 onClick={onOpenAdvanced}
-                className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-warning/50 bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning transition-colors hover:bg-warning/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-warning"
+                className="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-warning/50 bg-warning/10 px-2.5 py-1 text-xs min-h-11 min-w-11 md:min-h-0 md:min-w-0 font-medium text-warning transition-colors hover:bg-warning/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-warning"
               >
                 <VolumeX className="size-3.5" />
-                {t('noCallAudio')}
+                <span className="sr-only md:not-sr-only">{t('noCallAudio')}</span>
               </button>
             </Tooltip>
           </HStack>
@@ -300,7 +300,7 @@ export function BottomDock({
         {showMeters && (
           <>
             {/* Desktop inline level meters */}
-            <div className="hidden shrink-0 sm:block">
+            <div className="hidden shrink-0 lg:block">
               <LevelMeter mode={mode} active={isLive} callMissing={showCallAudioMissing} />
             </div>
 
@@ -313,7 +313,7 @@ export function BottomDock({
               tooltip={metersOpen ? t('hideLevels') : t('showLevels')}
               leadingIcon={<Activity className="size-3.5" />}
               aria-expanded={metersOpen}
-              className="touch-target-44 !rounded-full sm:hidden"
+              className="touch-target-44 shrink-0 !rounded-full lg:hidden"
             />
           </>
         )}
