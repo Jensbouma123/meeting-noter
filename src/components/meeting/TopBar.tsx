@@ -402,7 +402,7 @@ export function TopBar({
         />
 
         <Button
-          variant="secondary"
+          variant="outline"
           size="sm"
           leadingIcon={<Share2 className="size-4" />}
           onClick={onOpenShare}
