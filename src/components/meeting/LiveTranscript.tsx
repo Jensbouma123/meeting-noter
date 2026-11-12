@@ -5,6 +5,8 @@ import type { Segment, Speaker, Status, SystemVia } from '@/lib/meeting';
 import { formatClock, splitTranscript } from '@/lib/meeting/export';
 import { TranscriptTurn } from './TranscriptTurn';
 import { TranscriptSearch } from './TranscriptSearch';
+import { FixWordAction } from './FixWordAction';
+import { meeting } from './store';
 import { getSpeakerColor } from './speaker-theme';
 import {
   Button,
@@ -123,6 +125,8 @@ export function LiveTranscript({
   const [windowVersion, setWindowVersion] = useState(0);
   const pendingSegRef = useRef<string | null>(null);
   const ringRef = useRef<Element | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const fixWord = useCallback((heard: string, word: string) => meeting.fixWord(heard, word), []);
 
   useEffect(() => {
     autoScrollRef.current = autoScrollEnabled;
@@ -535,7 +539,8 @@ export function LiveTranscript({
   };
 
   return (
-    <div className="relative flex h-full flex-1 flex-col overflow-hidden">
+    <div ref={rootRef} className="relative flex h-full flex-1 flex-col overflow-hidden">
+      <FixWordAction containerRef={rootRef} segments={segments} onFix={fixWord} />
       {/* In-app transcript search overlay */}
       {searchOpen && (
         <div className="pointer-events-none absolute inset-x-0 top-2 z-30 flex justify-center px-4">

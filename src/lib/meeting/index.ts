@@ -9,11 +9,13 @@ import {
   subscribe,
   subscribeLevels as storeSubscribeLevels,
   renameSpeaker as storeRenameSpeaker,
+  applyVocabularyToTranscript,
   confirmAllSegments,
   getTranscriptSessionId,
   isAppendActive,
 } from './store';
 import { loadSpeakerState, saveSpeakerState } from './persist';
+import { addFixedWord } from '@/lib/vocabulary/store';
 import { seedSpeakerStates, takeReportedSpeakerStates } from '@/lib/diarization/browser/speaker-state';
 import {
   INITIAL_STATE,
@@ -587,6 +589,15 @@ export const meeting = {
 
   renameSpeaker(id: string, label: string): void {
     storeRenameSpeaker(id, label);
+  },
+
+  /**
+   * "Fix this word": add `word` to the word list with `heard` (what the
+   * transcript shows) as how it was misheard, and correct the open
+   * transcript straight away. Later lines get it from the store.
+   */
+  fixWord(heard: string, word: string): void {
+    if (addFixedWord(heard, word)) applyVocabularyToTranscript();
   },
 
   /**

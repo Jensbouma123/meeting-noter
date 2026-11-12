@@ -285,4 +285,37 @@ describe('createBrowserASREngine', () => {
     expect(warn).toHaveBeenCalled();
     warn.mockRestore();
   });
+
+  it('gives the worker the word list at start and on every change, until disable()', async () => {
+    const vocab = await import('@/lib/vocabulary/store');
+    vocab.resetVocabularyForTests();
+    vocab.addVocabularyEntries([{ word: 'Framna', variants: [] }]);
+    const { createBrowserASREngine } = await import('./engine-client');
+    const engine = createBrowserASREngine(WASM, recorder().events);
+    void engine.ensureLoaded();
+    const worker = FakeWorker.instances[0];
+    await started(worker);
+
+    expect(worker.calls('setVocabulary').map((c) => c.args)).toEqual([
+      { words: ['Framna'], strength: vocab.getVocabulary().strength },
+    ]);
+    vocab.addVocabularyEntries([{ word: 'Hezelaer', variants: [] }]);
+    expect(worker.calls('setVocabulary').at(-1)?.args).toMatchObject({ words: ['Framna', 'Hezelaer'] });
+
+    engine.disable();
+    const sent = worker.calls('setVocabulary').length;
+    vocab.addVocabularyEntries([{ word: 'Acme', variants: [] }]);
+    expect(worker.calls('setVocabulary')).toHaveLength(sent);
+    vocab.resetVocabularyForTests();
+  });
+
+  it('sends no word list to a worker when the list is empty', async () => {
+    const vocab = await import('@/lib/vocabulary/store');
+    vocab.resetVocabularyForTests();
+    const { createBrowserASREngine } = await import('./engine-client');
+    void createBrowserASREngine(WASM, recorder().events).ensureLoaded();
+    const worker = FakeWorker.instances[0];
+    await started(worker);
+    expect(worker.calls('setVocabulary')).toEqual([]);
+  });
 });

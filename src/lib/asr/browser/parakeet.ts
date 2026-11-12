@@ -19,6 +19,9 @@ import type {
 } from './types';
 import { DEFAULT_BROWSER_ASR_CONFIG, BROWSER_ASR_LANGUAGE_NAMES } from './types';
 import { debugEnabled, installQuietAsrConsole } from './quiet-console';
+import { BiaserSlot } from '@/lib/vocabulary/bias';
+import type { VocabularyBiasConfig } from '@/lib/vocabulary/types';
+import { canHookParakeet, hookParakeetVocabulary, type HookableParakeetModel } from './vocabulary-hook';
 import {
   LOAD_STALL_MS,
   SESSION_STALL_MS,
@@ -230,6 +233,7 @@ export class BrowserASREngine {
   private currentSegmentId = '';
   private decoderState: DecoderState = undefined;
   private languageLocked = false;
+  private readonly vocabulary = new BiaserSlot();
 
   constructor(config: Partial<BrowserASRConfig> = {}, events: BrowserASREvents) {
     this.config = { ...DEFAULT_BROWSER_ASR_CONFIG, ...config };
@@ -297,6 +301,14 @@ export class BrowserASREngine {
       // the only signal ORT gives — and it is a real one.
       this._reportLoadProgress({ stage: 'session', done: 1, total: 1 });
       this.model = model;
+      const hookable = model as unknown as Partial<HookableParakeetModel>;
+      if (canHookParakeet(hookable)) {
+        hookParakeetVocabulary(hookable, () => this.vocabulary.get());
+        this.vocabulary.setVocab(hookable.tokenizer.id2token);
+      } else {
+        // The word list still fixes the spelling afterwards; only decoding ignores it.
+        console.warn('[asr] This parakeet.js has no decoder step to hook; the word list only fixes spelling afterwards');
+      }
       // The warm-up is one real inference: a hang here is a hung session, not
       // a slow one, and without the race the load would sit short of `ready`
       // forever with the bar parked at its last stage.
@@ -610,8 +622,14 @@ export class BrowserASREngine {
    * Disable browser ASR and release the model. This is the only path that
    * lets the sessions go.
    */
+  /** The user's word list, favoured while decoding from the next inference on. */
+  setVocabulary(config: VocabularyBiasConfig): void {
+    this.vocabulary.setWords(config.words, config.strength);
+  }
+
   disable(): void {
     this.model = null;
+    this.vocabulary.setVocab(null);
     this.decoderState = undefined;
     this.status = 'disabled';
     this.loadingPromise = null;

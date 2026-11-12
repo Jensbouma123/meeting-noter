@@ -38,6 +38,8 @@ import type {
 } from './types';
 import { DEFAULT_BROWSER_ASR_CONFIG } from './types';
 import { installQuietAsrConsole } from './quiet-console';
+import { BiaserSlot } from '@/lib/vocabulary/bias';
+import type { VocabularyBiasConfig } from '@/lib/vocabulary/types';
 
 installQuietAsrConsole();
 
@@ -77,6 +79,7 @@ export class NemotronASREngine {
   private languageLocked = false;
   /** ORT sessions take one `run()` at a time; calls queue here. */
   private queue: Promise<unknown> = Promise.resolve();
+  private readonly vocabulary = new BiaserSlot();
 
   constructor(config: Partial<BrowserASRConfig> = {}, events: BrowserASREvents) {
     this.config = { ...DEFAULT_BROWSER_ASR_CONFIG, ...config };
@@ -110,6 +113,7 @@ export class NemotronASREngine {
       const recognizer = await this._createRecognizer();
       this._reportLoadProgress({ stage: 'session', done: 1, total: 1 });
       this.recognizer = recognizer;
+      this.vocabulary.setVocab(recognizer.pieces);
       const warmupWatchdog = startStallWatchdog(SESSION_STALL_MS, describeSessionStall);
       try {
         await Promise.race([this._warmUp(), warmupWatchdog.stall]);
@@ -261,7 +265,7 @@ export class NemotronASREngine {
     this.status = 'transcribing';
     this.events.onStatusChange('transcribing');
     try {
-      const result = await this._serial(() => recognizer.recognize(audio, { langId: PROMPT_LANG_ID }));
+      const result = await this._serial(() => recognizer.recognize(audio, { langId: PROMPT_LANG_ID, biaser: this.vocabulary.get() }));
       const segments = this._buildSegments(result.text, result.words, audio.length, source, speakerLabel, isFinal);
       for (const seg of segments) this.events.onSegment(seg);
       return { segments, language: this._buildLanguageInfo(), error: null };
@@ -281,7 +285,7 @@ export class NemotronASREngine {
     const recognizer = this.recognizer;
     if (!recognizer || !this.isReady) return { text: '', words: [], error: 'Model not ready' };
     try {
-      const result = await this._serial(() => recognizer.recognize(audio, { langId: PROMPT_LANG_ID }));
+      const result = await this._serial(() => recognizer.recognize(audio, { langId: PROMPT_LANG_ID, biaser: this.vocabulary.get() }));
       return { text: result.text, words: result.words, error: null };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -299,8 +303,14 @@ export class NemotronASREngine {
     segmentCounter = 0;
   }
 
+  /** The user's word list, favoured while decoding from the next inference on. */
+  setVocabulary(config: VocabularyBiasConfig): void {
+    this.vocabulary.setWords(config.words, config.strength);
+  }
+
   disable(): void {
     this.recognizer = null;
+    this.vocabulary.setVocab(null);
     this.status = 'disabled';
     this.loadingPromise = null;
     this.events.onStatusChange('disabled');
