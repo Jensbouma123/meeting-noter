@@ -72,3 +72,56 @@ describe('mergeEntries', () => {
     ]);
   });
 });
+
+describe('import and export edge cases', () => {
+  it('reads a CSV with a blank first line and still skips the header', () => {
+    expect(parseWordCsv('\nword,heard as\nFramna,from now\n')).toEqual([{ word: 'Framna', variants: ['from now'] }]);
+  });
+
+  it('reads CRLF line endings and empty cells', () => {
+    expect(parseWordCsv('word,heard as\r\nFramna,\r\nJira,;;\r\n')).toEqual([
+      { word: 'Framna', variants: [] },
+      { word: 'Jira', variants: [] },
+    ]);
+  });
+
+  it('does not throw on an unclosed quote; the rest of the line is the cell', () => {
+    expect(parseWordCsv('"Acme, Inc,x\nJira')).toEqual([
+      { word: 'Acme, Inc,x', variants: [] },
+      { word: 'Jira', variants: [] },
+    ]);
+  });
+
+  it('reads an empty or whitespace-only file as no words', () => {
+    expect(parseWordCsv('')).toEqual([]);
+    expect(parseWordCsv('word,heard as\n\n   \n')).toEqual([]);
+    expect(parseWordFile('x.txt', '')).toEqual([]);
+  });
+
+  it('keeps a word with a comma through a .txt export and re-import (the import reads it from .csv)', () => {
+    const entries = [{ word: 'Acme, Inc', variants: [] }];
+    expect(parseWordList(formatWordList(entries))).toEqual(entries);
+  });
+
+  it('keeps a word with an "=" through a .txt export and re-import', () => {
+    const entries = [{ word: 'A=B', variants: [] }];
+    expect(parseWordList(formatWordList(entries))).toEqual(entries);
+  });
+
+  it('keeps a word with a semicolon through a .txt export and re-import', () => {
+    const entries = [{ word: 'Q;A', variants: [] }];
+    expect(parseWordList(formatWordList(entries))).toEqual(entries);
+  });
+
+  it('exports a .csv with quotes, commas and semicolons in the word losslessly', () => {
+    const entries = [{ word: 'O\'Brien "Bo"; Jr', variants: ['o brien bo', 'a,b'] }];
+    expect(parseWordCsv(formatWordCsv(entries))).toEqual(entries);
+  });
+
+  it('a header-looking first word that is a real word is still read when it is not the header', () => {
+    expect(parseWordCsv('Framna,x\nword,y')).toEqual([
+      { word: 'Framna', variants: ['x'] },
+      { word: 'word', variants: ['y'] },
+    ]);
+  });
+});
