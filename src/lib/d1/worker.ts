@@ -328,12 +328,18 @@ function logitsDataOf(tensor: Tensor): ArrayLike<number> {
   return tensor.data as ArrayLike<number>;
 }
 
-// Only attach `self.onmessage` in an actual Web Worker context.
-if (typeof self !== 'undefined' && typeof window === 'undefined') {
-  const ctx = self as unknown as {
-    postMessage(message: D1WorkerOutMessage): void;
-    onmessage: ((ev: MessageEvent<D1WorkerInMessage>) => void) | null;
-  };
+/** What `worker-entry.ts` hands over once the heavy modules have loaded. */
+export interface D1WorkerScope {
+  postMessage(message: D1WorkerOutMessage): void;
+  onmessage: ((ev: MessageEvent<D1WorkerInMessage>) => void) | null;
+}
+
+/**
+ * Wire the handler to the worker scope. `worker-entry.ts` calls this after its
+ * dynamic import of this module, so a throw while evaluating the static imports
+ * above (onnxruntime-web, transformers) is catchable there instead of vanishing.
+ */
+export function startD1Worker(ctx: D1WorkerScope): (msg: D1WorkerInMessage) => Promise<void> {
   // Safari lists a worker's console apart from the page's: forward every [D1] line to the page.
   setD1LogSink((args) => ctx.postMessage({ type: 'log', args }));
   const nav = (self as unknown as { navigator?: Navigator & { gpu?: unknown } }).navigator;
@@ -345,11 +351,9 @@ if (typeof self !== 'undefined' && typeof window === 'undefined') {
     indexedDB: typeof indexedDB !== 'undefined',
   });
   const handle = createD1WorkerHandler((msg) => ctx.postMessage(msg));
-  ctx.onmessage = (ev) => {
-    void handle(ev.data);
-  };
   // A throw outside any handled message would otherwise vanish in the worker's own console.
   self.addEventListener('unhandledrejection', (ev) => {
     d1Log('[D1] worker: unhandled rejection', (ev as PromiseRejectionEvent).reason);
   });
+  return handle;
 }

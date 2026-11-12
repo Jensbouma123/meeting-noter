@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createD1Client, D1_DECIDE_TIMEOUT_MS, type WorkerLike } from './client';
+import { createD1Client, D1_BOOT_ERROR, D1_BOOT_TIMEOUT_MS, D1_DECIDE_TIMEOUT_MS, type WorkerLike } from './client';
 import { getD1StageSnapshot } from './stage';
 import {
   D1_CONFIG_FILE,
@@ -446,6 +446,7 @@ describe('d1 client', () => {
         (err: Error) => err.message,
       );
 
+      createdWorkers[0].emitMessage({ type: 'boot' });
       await vi.advanceTimersByTimeAsync(D1_DECIDE_TIMEOUT_MS - 1);
       expect(createdWorkers[0].terminated).toBe(false);
 
@@ -552,10 +553,45 @@ describe('d1 client', () => {
       expect(createdWorkers[0].terminated).toBe(true);
     });
 
+    it('a worker that never posts boot is killed with "D1 worker didn\'t start"', async () => {
+      vi.useFakeTimers();
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        const { createdWorkers, outcome } = startHung();
+        await vi.advanceTimersByTimeAsync(D1_BOOT_TIMEOUT_MS);
+        expect(await outcome).toBe(D1_BOOT_ERROR);
+        expect(createdWorkers[0].terminated).toBe(true);
+      } finally {
+        error.mockRestore();
+      }
+    });
+
+    it('a boot message disarms the boot deadline', async () => {
+      vi.useFakeTimers();
+      const { createdWorkers } = startHung();
+      createdWorkers[0].emitMessage({ type: 'boot' });
+      await vi.advanceTimersByTimeAsync(D1_BOOT_TIMEOUT_MS * 2);
+      expect(createdWorkers[0].terminated).toBe(false);
+    });
+
+    it('a fatal message (heavy modules failed to load) rejects with its reason and kills the worker', async () => {
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        const { createdWorkers, outcome } = startHung();
+        createdWorkers[0].emitMessage({ type: 'boot' });
+        createdWorkers[0].emitMessage({ type: 'fatal', message: 'TypeError: x is not a function' });
+        expect(await outcome).toBe('D1 worker failed to load: TypeError: x is not a function');
+        expect(createdWorkers[0].terminated).toBe(true);
+      } finally {
+        error.mockRestore();
+      }
+    });
+
     it('worker activity restarts the timeout; only a silent worker times out', async () => {
       vi.useFakeTimers();
       const { createdWorkers, outcome } = startHung();
       const worker = createdWorkers[0];
+      worker.emitMessage({ type: 'boot' });
 
       await vi.advanceTimersByTimeAsync(D1_DECIDE_TIMEOUT_MS - 1000);
       worker.emitMessage({ type: 'log', args: ['[D1] worker: still loading'] });

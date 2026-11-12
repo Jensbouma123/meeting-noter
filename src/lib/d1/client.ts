@@ -55,6 +55,7 @@ export interface D1ClientOptions {
   disposeTimeoutMs?: number;
   decideTimeoutMs?: number;
   maxTokens?: number;
+  bootTimeoutMs?: number;
 }
 
 export interface TriageOptions {
@@ -104,7 +105,7 @@ function defaultCreateWorker(): WorkerLike {
   if (typeof Worker === 'undefined') {
     throw new Error('Web Workers are unavailable in this environment');
   }
-  return new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
+  return new Worker(new URL('./worker-entry.ts', import.meta.url), { type: 'module' });
 }
 
 function clipText(text: string, maxChars: number = MAX_STATE_CHARS): string {
@@ -193,13 +194,16 @@ interface PendingRequest {
   touch?: () => void;
 }
 
-/** No message at all this long after the worker was created: its module likely failed to load. */
-const WORKER_SILENT_WARN_MS = 15_000;
+/** No `boot` message this long after the worker was created: its script never ran. */
+export const D1_BOOT_TIMEOUT_MS = 10_000;
+/** Message of the error a worker that never booted rejects with. */
+export const D1_BOOT_ERROR = "D1 worker didn't start";
 
 export function createD1Client(options: D1ClientOptions = {}): D1Client {
   const workerFactory = options.createWorker ?? defaultCreateWorker;
   const disposeTimeoutMs = options.disposeTimeoutMs ?? D1_DISPOSE_TIMEOUT_MS;
   const decideTimeoutMs = options.decideTimeoutMs ?? D1_DECIDE_TIMEOUT_MS;
+  const bootTimeoutMs = options.bootTimeoutMs ?? D1_BOOT_TIMEOUT_MS;
   const maxTokens = Math.min(options.maxTokens ?? D1_MAX_TOKENS, D1_MAX_TOKENS);
 
   let worker: WorkerLike | null = null;
@@ -216,7 +220,17 @@ export function createD1Client(options: D1ClientOptions = {}): D1Client {
   const onMessage = (ev: MessageEvent<D1WorkerOutMessage>) => {
     const msg = ev.data;
     if (!msg) return;
+    // Any message proves the worker script ran (`boot` is always the first).
     clearSilentTimer();
+    if (msg.type === 'boot') {
+      console.info('[D1] client: worker booted');
+      return;
+    }
+    if (msg.type === 'fatal') {
+      console.error('[D1] client: worker failed to load its modules', msg.message);
+      killWorker(`D1 worker failed to load: ${msg.message}`);
+      return;
+    }
     // Any sign of life means the worker is working (a model load is slow, not hung).
     for (const entry of pending.values()) entry.touch?.();
     if (msg.type === 'log') {
@@ -295,10 +309,11 @@ export function createD1Client(options: D1ClientOptions = {}): D1Client {
       worker = created;
       silentTimer = setTimeout(() => {
         silentTimer = null;
-        console.warn(
-          `[D1] client: worker silent for ${WORKER_SILENT_WARN_MS / 1000} s after start. Its module probably failed to load; look for a failed script request in the Network tab.`,
+        console.error(
+          `[D1] client: no boot message ${bootTimeoutMs / 1000} s after start; the worker script did not run. Look for a failed script request in the Network tab.`,
         );
-      }, WORKER_SILENT_WARN_MS);
+        killWorker(D1_BOOT_ERROR);
+      }, bootTimeoutMs);
     }
     return worker;
   }

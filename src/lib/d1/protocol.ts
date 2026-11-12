@@ -29,6 +29,10 @@ export type D1Stage =
   | { kind: 'waiting' };
 
 export type D1WorkerOutMessage =
+  /** The entry script ran (before the heavy modules load). */
+  | { type: 'boot' }
+  /** The heavy modules failed to load; the worker is unusable. */
+  | { type: 'fatal'; message: string }
   | { type: 'ready'; id: string; backend: SessionBackend }
   | { type: 'result'; id: string; answers: D1Answer[]; backend: SessionBackend }
   | { type: 'disposed'; id: string }
