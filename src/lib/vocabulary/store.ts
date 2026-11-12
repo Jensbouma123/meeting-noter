@@ -98,6 +98,48 @@ export function addFixedWord(heard: string, word: string): boolean {
   return true;
 }
 
+export type VocabularyEditResult = 'ok' | 'empty' | 'duplicate';
+
+/** Rename a word in place. Refuses empty text or another entry's spelling (any case); a case-only change is fine. */
+export function renameVocabularyEntry(word: string, next: string): VocabularyEditResult {
+  const text = next.trim().replace(/\s+/g, ' ');
+  if (!text) return 'empty';
+  const { entries } = getVocabulary();
+  if (entries.some((e) => e.word !== word && e.word.toLowerCase() === text.toLowerCase())) return 'duplicate';
+  save({
+    ...getVocabulary(),
+    entries: entries.map((e) =>
+      e.word === word ? { ...e, word: text, variants: e.variants.filter((v) => v.toLowerCase() !== text.toLowerCase()) } : e,
+    ),
+  });
+  return 'ok';
+}
+
+/** Add a misheard version to a word. Refuses empty text, the word itself, or one it already has. */
+export function addVocabularyVariant(word: string, variant: string): VocabularyEditResult {
+  const text = variant.trim().replace(/\s+/g, ' ');
+  if (!text) return 'empty';
+  const entry = getVocabulary().entries.find((e) => e.word === word);
+  if (!entry) return 'empty';
+  if (text.toLowerCase() === word.toLowerCase() || entry.variants.some((v) => v.toLowerCase() === text.toLowerCase())) {
+    return 'duplicate';
+  }
+  save({
+    ...getVocabulary(),
+    entries: getVocabulary().entries.map((e) => (e.word === word ? { ...e, variants: [...e.variants, text] } : e)),
+  });
+  return 'ok';
+}
+
+export function removeVocabularyVariant(word: string, variant: string): void {
+  save({
+    ...getVocabulary(),
+    entries: getVocabulary().entries.map((e) =>
+      e.word === word ? { ...e, variants: e.variants.filter((v) => v !== variant) } : e,
+    ),
+  });
+}
+
 export function removeVocabularyEntry(word: string): void {
   const state = getVocabulary();
   save({ ...state, entries: state.entries.filter((e) => e.word !== word) });

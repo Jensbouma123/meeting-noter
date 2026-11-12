@@ -55,7 +55,7 @@ describe('VocabularySection', () => {
     act(() => {
       addFixedWord('Fromna', 'Framna');
     });
-    expect(screen.getByText('Also fixes: Fromna')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove Fromna' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Remove Framna' }));
     expect(getVocabulary().entries).toEqual([]);
   });

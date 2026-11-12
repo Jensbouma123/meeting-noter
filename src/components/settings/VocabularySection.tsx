@@ -11,18 +11,18 @@ import {
   Text,
   VStack,
 } from '@jensbouma123/acciva-ui';
-import { Download, MoreHorizontal, Upload, X } from 'lucide-react';
+import { Download, MoreHorizontal, Upload } from 'lucide-react';
 import { useT } from '@/lib/i18n/useT';
 import { downloadFile } from '@/lib/meeting/export';
 import { DEFAULT_BIAS_STRENGTH } from '@/lib/vocabulary/bias';
 import {
   addVocabularyEntries,
-  removeVocabularyEntry,
   setVocabularyStrength,
   useVocabulary,
 } from '@/lib/vocabulary/store';
 import { formatWordCsv, formatWordList, parseWordFile } from '@/lib/vocabulary/text-format';
 import { VocabularyAddField, vocabularyFill as fill, vocabularyWordCount } from './VocabularyAddField';
+import { VocabularyRow } from './VocabularyRow';
 import { SettingsGroup, SettingsRow, SettingsStackedRow } from './SettingsRow';
 
 /**
@@ -116,32 +116,7 @@ export function VocabularySection() {
         ) : (
           <ul className="flex w-full flex-col divide-y divide-border-subtle" aria-label={t('vocab.title')}>
             {entries.map((entry) => (
-              <li key={entry.word} className="flex items-center justify-between gap-3 py-1.5">
-                <VStack spacing="none" className="min-w-0">
-                  <Text size="sm" weight="medium" className="truncate">
-                    {entry.word}
-                  </Text>
-                  {entry.source === 'meeting' && (
-                    <Text size="xs" variant="muted" className="truncate text-text-muted">
-                      {t('vocab.fromMeeting')}
-                    </Text>
-                  )}
-                  {entry.variants.length > 0 && (
-                    <Text size="xs" variant="muted" className="truncate">
-                      {fill(t('vocab.alsoFixes'), { list: entry.variants.join(', ') })}
-                    </Text>
-                  )}
-                </VStack>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  iconOnly
-                  tooltip={fill(t('vocab.remove'), { word: entry.word })}
-                  leadingIcon={<X className="size-4" />}
-                  onClick={() => removeVocabularyEntry(entry.word)}
-                  className="touch-target-44 shrink-0"
-                />
-              </li>
+              <VocabularyRow key={entry.word} entry={entry} />
             ))}
           </ul>
         )}
