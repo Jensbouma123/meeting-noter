@@ -483,4 +483,17 @@ describe('a mic that delivers only digital silence', () => {
     expect(onWarning).not.toHaveBeenCalled();
     await cap.dispose();
   });
+
+  // Chrome's noise suppression (and echo cancellation while the call plays)
+  // gates a working mic to exact zero while the user is quiet, so a pause of
+  // a few seconds raised the warning on a mic that had already recorded.
+  it('stays quiet when a mic that has delivered sound later falls silent', async () => {
+    const onWarning = vi.fn();
+    const cap = new Capture({ ...handler, onWarning });
+    await cap.start('both');
+    post(0.05);
+    for (let i = 0; i < SILENT_MIC_FRAMES * 3; i += 1) post(0);
+    expect(onWarning).not.toHaveBeenCalled();
+    await cap.dispose();
+  });
 });

@@ -32,10 +32,12 @@ export const SHARE_SOUND_RMS = 1e-4;
  *  takes over hearing the call. */
 export const SILENT_SHARE_FRAMES = 100;
 /**
- * Capture frames (100 ms each) of exact digital zero after which the mic is
- * reported as recording nothing. A working mic always has a noise floor;
- * only a muted input, a track the OS gives no sound (no Microphone
- * permission) or a device that went away delivers zeros.
+ * Capture frames (100 ms each) of exact digital zero, from the start, after
+ * which the mic is reported as recording nothing. A working mic delivers its
+ * noise floor when it opens; only a muted input, a track the OS gives no
+ * sound (no Microphone permission) or a device that went away delivers only
+ * zeros. Later zeros from a mic that has delivered sound are its processing
+ * gating quiet, not a dead input (`watchMic`).
  */
 export const SILENT_MIC_FRAMES = 30;
 
@@ -249,8 +251,8 @@ export class Capture {
   private callAudioUnsupported = false;
   private systemVia: 'share' | 'helper' | null = null;
   private micReopens = 0;
-  /** Zero frames in a row from the attached mic track, or `null` once
-   *  reported (`SILENT_MIC_FRAMES`). */
+  /** Zero frames from the mic since the session started, or `null` once it
+   *  delivered sound or was reported (`SILENT_MIC_FRAMES`). */
   private micZeroFrames: number | null = 0;
   /** Non-blocking guidance for browser-specific capture limitations. */
   warning: string | null = null;
@@ -589,11 +591,13 @@ export class Capture {
    * A mic track can be live and unmuted yet deliver exact zeros (a muted
    * input, the OS withholding the Microphone permission): frames flow, the
    * transcript just never gets the user's voice. Reported once per session.
+   * One frame of sound ends the watch: Chrome's noise suppression and echo
+   * cancellation gate a working mic to exact zero while the user is quiet.
    */
   private watchMic(rms: number): void {
     if (this.micZeroFrames === null) return;
     if (rms !== 0) {
-      this.micZeroFrames = 0;
+      this.micZeroFrames = null;
       return;
     }
     this.micZeroFrames += 1;
