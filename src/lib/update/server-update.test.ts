@@ -135,6 +135,13 @@ describe('deriveStatus', () => {
       code: 'failed',
       detail: 'Download mislukt.',
     });
+    const rolledBack = 'x\n❌ Meeting Noter 0.3.0 startte niet. Logbestand: l\n   ↩️  Vorige versie 0.2.3 teruggezet / Previous version restored.\n   Er ging iets mis';
+    expect(deriveStatus(meta(), rolledBack, exit(1), false)).toMatchObject({
+      state: 'failed',
+      code: 'rolled-back',
+      detail: 'Meeting Noter 0.3.0 startte niet. Logbestand: l',
+    });
+    expect(deriveStatus(meta(), 'x\n❌ Download mislukt.\n   Er ging iets mis', exit(1), false).code).toBe('failed');
     expect(deriveStatus(meta('git'), 'Bijgewerkt naar 0.3.0 (git pull).', exit(0), false)).toMatchObject({
       state: 'done',
       code: 'updated-restart-required',

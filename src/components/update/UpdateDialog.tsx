@@ -61,6 +61,7 @@ export function UpdateDialog({ open, onClose, isRecording = false }: { open: boo
   }, [confirmed, open, status?.toVersion]);
 
   const info = update.info;
+  const failedText = status?.code === 'rolled-back' ? t('rolledBack').replace('{version}', status.fromVersion ?? '') : t('failed');
   const phaseKey = status?.phase === 'downloading' ? 'phaseDownloading' : status?.phase === 'installing' ? 'phaseInstalling' : status?.phase === 'restarting' ? 'phaseRestarting' : status?.phase === 'model' ? 'phaseModel' : 'phaseStarting';
 
   return (
@@ -69,14 +70,15 @@ export function UpdateDialog({ open, onClose, isRecording = false }: { open: boo
       onClose={onClose}
       onConfirm={() => setConfirmed(true)}
       title={t('confirmTitle').replace('{version}', info?.latest ?? '')}
-      description={update.blockedRecording ? t('blockedRecording') : failed ? t('failed') : status?.state === 'done' ? t(status.restartRequired ? 'restartRequired' : 'done').replace('{version}', status.toVersion ?? '') : confirmed ? t(phaseKey) : t('confirmBody')}
+      description={update.blockedRecording ? t('blockedRecording') : failed ? failedText : status?.state === 'done' ? t(status.restartRequired ? 'restartRequired' : 'done').replace('{version}', status.toVersion ?? '') : confirmed ? t(phaseKey) : t('confirmBody')}
       confirmText={confirmed ? t('updating') : t('confirm')}
       cancelText={t('cancel')}
       variant="primary"
       loading={confirmed}
     >
       {confirmed && <VStack spacing="sm" className="w-full">
-        {failed && <Alert variant="danger" layout="inline">{t('failed')}</Alert>}
+        {failed && <Alert variant="danger" layout="inline">{failedText}</Alert>}
+        {failed && status?.detail && <Text size="sm">{status.detail}</Text>}
         {status?.percent !== null && status?.percent !== undefined && <Text size="sm">{status.percent}%</Text>}
         {(failed || status?.state === 'done') && <Button variant="secondary" onClick={() => { setConfirmed(false); setFailed(false); setStatus(null); }}>{failed ? t('retry') : t('cancel')}</Button>}
       </VStack>}
