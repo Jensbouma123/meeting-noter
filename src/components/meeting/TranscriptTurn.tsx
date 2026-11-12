@@ -147,6 +147,7 @@ export const TranscriptTurn = React.memo(
                     variant="ghost"
                     size="sm"
                     iconOnly
+                    tooltip={t('lineActions')}
                     aria-label={t('lineActions')}
                     leadingIcon={<MoreHorizontal className="size-4" />}
                   />
