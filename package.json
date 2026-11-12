@@ -45,7 +45,7 @@
     "vitest": "^4.1.11"
   },
   "engines": {
-    "node": ">=20.9"
+    "node": ">=22.13"
   },
   "license": "MIT",
   "description": "On-device, browser-native meeting transcription (ASR, diarization, language ID)."
