@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useToast } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { MIGRATED_EVENT, startServerSync, type MigrationResult } from '@/lib/meeting/server-sync';
@@ -12,15 +12,12 @@ import { MIGRATED_EVENT, startServerSync, type MigrationResult } from '@/lib/mee
 export function MeetingsSync() {
   const { toast } = useToast();
   const t = useT('lifecycle');
-  // `toast` and `t` change identity across renders; the listener must stay put.
-  const ui = useRef({ toast, t });
   useEffect(() => {
-    ui.current = { toast, t };
-  });
+    void startServerSync();
+  }, []);
 
   useEffect(() => {
     const onMigrated = (event: Event) => {
-      const { toast, t } = ui.current;
       const { imported, skipped, dataDir } = (event as CustomEvent<MigrationResult>).detail;
       const count = imported + skipped;
       toast({
@@ -33,9 +30,8 @@ export function MeetingsSync() {
       });
     };
     window.addEventListener(MIGRATED_EVENT, onMigrated);
-    void startServerSync();
     return () => window.removeEventListener(MIGRATED_EVENT, onMigrated);
-  }, []);
+  }, [toast, t]);
 
   return null;
 }

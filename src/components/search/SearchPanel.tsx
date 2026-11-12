@@ -47,6 +47,8 @@ type State =
   | { status: 'done'; query: string; hits: Hit[] }
   | { status: 'error'; message: string };
 
+const IDLE: State = { status: 'idle' };
+
 export function SearchPanel({
   search,
   meetingTitles,
@@ -60,15 +62,15 @@ export function SearchPanel({
   // Only the newest request may write state; older results are dropped.
   const requestId = useRef(0);
 
+  // A blank query shows the idle view by derivation; the effect below only runs the debounced request.
+  const view: State = query.trim() === '' ? IDLE : state;
+
   useEffect(() => {
     const q = query.trim();
     const id = ++requestId.current;
-    if (q === '') {
-      // The effect resets state when the query changes; the debounced request below is the external sync.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setState({ status: 'idle' });
-      return;
-    }
+    if (q === '') return;
+    // Loading is shown as soon as a non-blank query changes; the debounced request below is the external sync.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setState({ status: 'loading' });
     const timer = setTimeout(() => {
       search(q, limit).then(
@@ -95,19 +97,19 @@ export function SearchPanel({
         aria-label={t('queryLabel')}
       />
 
-      {state.status === 'loading' && <Text>{t('searching')}</Text>}
+      {view.status === 'loading' && <Text>{t('searching')}</Text>}
 
-      {state.status === 'error' && (
-        <Text role="alert">{t('failed').replace('{message}', state.message)}</Text>
+      {view.status === 'error' && (
+        <Text role="alert">{t('failed').replace('{message}', view.message)}</Text>
       )}
 
-      {state.status === 'done' && state.hits.length === 0 && (
+      {view.status === 'done' && view.hits.length === 0 && (
         <EmptyState title={t('noMatches')} description={t('noMatchesHint')} />
       )}
 
-      {state.status === 'done' && state.hits.length > 0 && (
+      {view.status === 'done' && view.hits.length > 0 && (
         <ul aria-label={t('resultsLabel')} style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-          {state.hits.map((hit) => {
+          {view.hits.map((hit) => {
             const title = meetingTitles?.[hit.meetingId] ?? hit.meetingId;
             const start = hit.window.start;
             return (
@@ -120,7 +122,7 @@ export function SearchPanel({
                     <Text>
                       {formatClock(start)} · {formatClock(hit.window.end)}
                     </Text>
-                    <Text>{makeSnippet(hit.window.text, state.query)}</Text>
+                    <Text>{makeSnippet(hit.window.text, view.query)}</Text>
                   </VStack>
                 </Card>
               </li>
