@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { CaptureMode } from '@/lib/meeting';
 import { BottomDock } from './BottomDock';
 import { NO_MODEL_PROGRESS } from './modelReadiness';
@@ -41,12 +41,14 @@ describe('capture mode toggle', () => {
     expect(tabs.map((t) => t.getAttribute('aria-selected'))).toEqual(['false', 'true']);
   });
 
-  it('shows a tooltip on hover and on keyboard focus', () => {
+  it('shows a tooltip on hover and on keyboard focus', async () => {
     renderDock('both');
     const [mic, both] = screen.getAllByRole('tab');
     fireEvent.mouseEnter(mic);
     expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent('Neemt alleen je microfoon op.');
     fireEvent.mouseLeave(mic);
+    // ACCIVA 0.17.9 closes a hover tooltip after a short delay, not immediately.
+    await waitFor(() => expect(screen.queryByRole('tooltip', { hidden: true })).toBeNull());
     fireEvent.focus(both);
     expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent('Neemt je microfoon en het geluid van je gesprek op (Teams, Zoom, Meet).');
   });
