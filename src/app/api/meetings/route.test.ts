@@ -57,6 +57,17 @@ describe('/api/meetings', () => {
     expect(found.meetings[0].snippet).toContain('[quarterly]');
   });
 
+  it('lists in pages with limit and offset', async () => {
+    for (const [id, day] of [['m1', 1], ['m2', 2], ['m3', 3]] as const) {
+      const m = sampleMeeting({ id, startedAt: Date.UTC(2026, 10, day) });
+      await put(json('PUT', `/${id}`, m), ctx(id));
+    }
+    const page = async (q: string) =>
+      ((await (await list(req(q))).json()).meetings as { id: string }[]).map((x) => x.id);
+    expect(await page('?limit=2')).toEqual(['m3', 'm2']);
+    expect(await page('?limit=2&offset=2')).toEqual(['m1']);
+  });
+
   it('answers an older copy with 409 and the stored meeting', async () => {
     const m = sampleMeeting();
     await put(json('PUT', `/${m.id}`, m), ctx(m.id));

@@ -1,6 +1,7 @@
 /**
  * `GET /api/meetings` — every stored meeting without its transcript, newest
- * first; `?q=words` searches titles, summaries and transcripts instead.
+ * first, a page of `?limit=` (at most 1000, the default) from `?offset=`;
+ * `?q=words` searches titles, summaries and transcripts instead.
  */
 import { refuseForeign } from '@/lib/lifecycle/request-guard';
 import { storageFailure } from '@/lib/meeting-db/http';
@@ -15,8 +16,13 @@ export function GET(request: Request): Response {
   if (refused) return refused;
   try {
     const { db } = meetingStore();
-    const q = new URL(request.url).searchParams.get('q');
-    const meetings = q ? db.search(q, { limit: 100 }) : db.list();
+    const params = new URL(request.url).searchParams;
+    const q = params.get('q');
+    const int = (name: string) => {
+      const n = Number.parseInt(params.get(name) ?? '', 10);
+      return Number.isNaN(n) ? undefined : n;
+    };
+    const meetings = q ? db.search(q, { limit: 100 }) : db.list({ limit: int('limit'), offset: int('offset') });
     return Response.json({ ok: true, dataDir: meetingsDataDir(), meetings });
   } catch (err) {
     return storageFailure(err);

@@ -16,7 +16,9 @@ import { getTranscriptSessionId, isCaptureActive } from './store';
  * `startServerSync` (called once by the app shell) also:
  * - moves the browser's existing meetings and autosave into the DB once
  *   (`migrateBrowserMeetings`), telling the UI through `mn:meetings-migrated`;
- * - pulls meetings the DB has and this browser lacks, or has older.
+ * - pulls meetings the DB has and this browser lacks, or has older, so a
+ *   browser with cleared site data gets every saved meeting back, and sends
+ *   any meeting the DB lacks. It pulls again whenever the browser is back online.
  * Nothing is sent before it runs, so unit tests never touch the network.
  */
 
@@ -27,6 +29,8 @@ export const MIGRATED_KEY = 'mn.db-migrated.v1';
 export const MIGRATED_EVENT = 'mn:meetings-migrated';
 const SYNC_DELAY_MS = 1000;
 const RETRY_MS = 30_000;
+/** The most `/api/meetings` returns at once. */
+const LIST_PAGE = 1000;
 
 export interface MigrationResult {
   imported: number;
@@ -43,6 +47,7 @@ interface Pending {
 let enabled = false;
 let timer: ReturnType<typeof setTimeout> | null = null;
 let retryTimer: ReturnType<typeof setInterval> | null = null;
+let onOnline: (() => void) | null = null;
 let flushing: Promise<void> | null = null;
 /** Bumped by every queued change, so a flush knows whether the id changed while it was in flight. */
 const generation = new Map<string, number>();
@@ -239,13 +244,24 @@ export async function migrateBrowserMeetings(): Promise<MigrationResult | null> 
  * session being recorded, are never overwritten. Returns how many it adopted.
  */
 export async function pullFromServer(): Promise<number> {
-  let list: { id: string; updatedAt: number }[];
+  const list: { id: string; updatedAt: number }[] = [];
   try {
-    const res = await fetch('/api/meetings', { cache: 'no-store' });
-    if (!res.ok) return 0;
-    list = ((await res.json()) as { meetings: { id: string; updatedAt: number }[] }).meetings;
+    for (;;) {
+      const res = await fetch(`/api/meetings?limit=${LIST_PAGE}&offset=${list.length}`, { cache: 'no-store' });
+      if (!res.ok) return 0;
+      const page = ((await res.json()) as { meetings: { id: string; updatedAt: number }[] }).meetings;
+      list.push(...page);
+      if (page.length < LIST_PAGE) break;
+    }
   } catch {
     return 0;
+  }
+  // A meeting only this browser has (its queue entry lost to a full or
+  // edited localStorage, or the DB restored from an older copy) goes up now,
+  // so the DB never misses a meeting the browser still shows.
+  const onServer = new Set(list.map((row) => row.id));
+  for (const s of listSessions()) {
+    if (!onServer.has(s.sessionId)) queueMeetingSync(s.sessionId);
   }
   const pending = readPending();
   const synced = readJson<Record<string, number>>(SYNCED_KEY, {});
@@ -275,7 +291,9 @@ export async function startServerSync(): Promise<void> {
   if (enabled) return;
   enabled = true;
   if (typeof window !== 'undefined') {
-    window.addEventListener('online', () => void flushServerSync());
+    // Back online: send what waited, then take what the DB gained meanwhile.
+    onOnline = () => void flushServerSync().then(pullFromServer);
+    window.addEventListener('online', onOnline);
     retryTimer = setInterval(() => {
       const p = readPending();
       if (p.save.length > 0 || p.remove.length > 0) void flushServerSync();
@@ -291,6 +309,8 @@ export function stopServerSyncForTests(): void {
   enabled = false;
   if (timer !== null) clearTimeout(timer);
   if (retryTimer !== null) clearInterval(retryTimer);
+  if (onOnline) window.removeEventListener('online', onOnline);
+  onOnline = null;
   timer = null;
   retryTimer = null;
   flushing = null;

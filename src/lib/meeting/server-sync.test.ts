@@ -159,7 +159,87 @@ describe('server sync', () => {
     // Adopting is not a local change: nothing goes back.
     expect(JSON.parse(localStorage.getItem('mn.sync.pending.v1') ?? '{"save":[]}').save).toEqual([]);
   });
+
+  it('loads every saved meeting back from the DB after the browser data is cleared', async () => {
+    let sync = await import('./server-sync');
+    await sync.startServerSync();
+    const store = await import('./session-store');
+    const { addDecision } = await import('./notes');
+    const id = store.persistSession({ title: 'Budget', segments: [line('a', 'cut the travel line', 0)], speakers: {} });
+    addDecision(id, 'No travel in Q1');
+    await sync.flushServerSync();
+
+    await reload({ clear: true });
+    sync = await import('./server-sync');
+    await sync.startServerSync();
+    const after = await import('./session-store');
+    const { getNotes } = await import('./notes');
+    expect(after.listSessions().map((s) => s.sessionId)).toEqual([id]);
+    expect(after.openSession(id)?.segments.map((s) => s.text)).toEqual(['cut the travel line']);
+    expect(getNotes(id).decisions.map((d) => d.text)).toEqual(['No travel in Q1']);
+  });
+
+  it('replays edits made offline once the browser is back online, without duplicates', async () => {
+    let sync = await import('./server-sync');
+    await sync.startServerSync();
+    let store = await import('./session-store');
+    online = false;
+    const a = store.persistSession({ title: 'Standup', segments: [line('a', 'yesterday I', 0)], speakers: {} });
+    const b = store.createDraftSession('Planning');
+    store.renameSession(a, 'Standup Monday');
+    await sync.flushServerSync();
+
+    // A reload while still offline keeps the queue and sends nothing.
+    await reload();
+    sync = await import('./server-sync');
+    await sync.startServerSync();
+    store = await import('./session-store');
+    expect(JSON.parse(localStorage.getItem('mn.sync.pending.v1')!).save.sort()).toEqual([a, b].sort());
+    store.renameSession(b, 'Planning Q1');
+
+    online = true;
+    window.dispatchEvent(new Event('online'));
+    await vi.waitFor(() => expect(JSON.parse(localStorage.getItem('mn.sync.pending.v1')!).save).toEqual([]));
+    await sync.flushServerSync();
+    const db = readDb();
+    expect(db.list().map((m) => [m.id, m.title]).sort()).toEqual([[a, 'Standup Monday'], [b, 'Planning Q1']].sort());
+    db.close();
+  });
+
+  it('sends a meeting the server lacks even when its queue entry was lost', async () => {
+    const sync = await import('./server-sync');
+    await sync.startServerSync();
+    const store = await import('./session-store');
+    online = false;
+    const id = store.persistSession({ title: 'Orphan', segments: [line('a', 'only here', 0)], speakers: {} });
+    localStorage.removeItem('mn.sync.pending.v1');
+    online = true;
+    await sync.pullFromServer();
+    await sync.flushServerSync();
+    const db = readDb();
+    expect(db.get(id)?.title).toBe('Orphan');
+    db.close();
+  });
+
+  it('pulls what the DB gained while the browser was offline when it comes back', async () => {
+    const sync = await import('./server-sync');
+    await sync.startServerSync();
+    online = false;
+    const { meetingStore } = await import('@/lib/meeting-db/store');
+    meetingStore().save(sampleMeeting({ id: 'other-browser' }));
+    online = true;
+    window.dispatchEvent(new Event('online'));
+    const { listSessions } = await import('./session-store');
+    await vi.waitFor(() => expect(listSessions().map((s) => s.sessionId)).toContain('other-browser'));
+  });
 });
+
+/** A page reload: the modules start over; with `clear`, so does localStorage. */
+async function reload({ clear = false } = {}): Promise<void> {
+  (await import('./server-sync')).stopServerSyncForTests();
+  vi.resetModules();
+  if (clear) localStorage.clear();
+}
 
 describe('end to end: the app saves, the MCP server finds it', () => {
   it('a meeting saved through the session store is returned by search_meetings over stdio', async () => {
