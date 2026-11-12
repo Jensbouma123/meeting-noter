@@ -134,7 +134,11 @@ server_stop() {
   local pid n=0 pids=""
   pid=$(cat "$ROOT/server.pid" 2>/dev/null) || pid=""
   case $pid in ''|*[!0-9]*) ;; *) pids=$pid ;; esac
-  pids="$pids $(lsof -nP -iTCP:"$PORT" -sTCP:LISTEN -t 2>/dev/null || true)"
+  # lsof walks every open file on the machine (seconds on a busy Mac), so only ask
+  # it when a connect shows that something listens; a refused connect is instant.
+  if nc -z localhost "$PORT" >/dev/null 2>&1; then
+    pids="$pids $(lsof -nP -iTCP:"$PORT" -sTCP:LISTEN -t 2>/dev/null || true)"
+  fi
   local live=""
   for pid in $pids; do ours "$pid" && live="$live $pid"; done
   for pid in $live; do kill "$pid" 2>/dev/null || true; done

@@ -341,6 +341,9 @@ describe.skipIf(process.platform !== 'darwin')('install.sh', () => {
   });
 
   // Starts `node` (reached through `link`, so ps shows that path) listening on a free port.
+  // The node process is detached through a shell that exits at once, so launchd
+  // (not this test process) reaps it. A direct child would stay a zombie while
+  // spawnSync blocks the event loop, and install.sh's `kill -0` would keep seeing it alive.
   async function listener(link: string, cwd: string) {
     const free = createServer();
     await new Promise<void>((r) => free.listen(0, '127.0.0.1', r));
@@ -348,14 +351,18 @@ describe.skipIf(process.platform !== 'darwin')('install.sh', () => {
     await new Promise((r) => free.close(r));
     mkdirSync(path.dirname(link), { recursive: true });
     symlinkSync(process.execPath, link);
-    const child = spawn(link, ['-e', `require('net').createServer().listen(${port}, '127.0.0.1')`], { stdio: 'ignore', cwd });
+    const script = `require('net').createServer().listen(${port}, '127.0.0.1')`;
+    const pid = Number(execFileSync('/bin/sh', ['-c', '"$0" -e "$1" </dev/null >/dev/null 2>&1 & echo $!', link, script], { cwd, encoding: 'utf8' }).trim());
     for (let i = 0; i < 100; i++) {
       if (await new Promise<boolean>((r) => { const c = createConnection(port, '127.0.0.1').once('connect', () => { c.destroy(); r(true); }).once('error', () => r(false)); })) break;
       await new Promise((r) => setTimeout(r, 50));
     }
-    return { child, port };
+    return { pid, port };
   }
   const alive = (pid: number) => { try { process.kill(pid, 0); return true; } catch { return false; } };
+  async function waitGone(pid: number) {
+    for (let i = 0; i < 100 && alive(pid); i++) await new Promise((r) => setTimeout(r, 50));
+  }
 
   it('update stops the on-demand server on the port even without a pid file, and spares foreign listeners', async () => {
     release('0.2.0');
@@ -366,17 +373,17 @@ describe.skipIf(process.platform !== 'darwin')('install.sh', () => {
       release('0.2.1');
       const r = run(INSTALL, env);
       expect(r.code, r.out).toBe(0);
-      await new Promise((res) => (ours.child.exitCode !== null || ours.child.signalCode ? res(0) : ours.child.once('exit', res)));
-      expect(alive(ours.child.pid!)).toBe(false);
-    } finally { ours.child.kill('SIGKILL'); }
+      await waitGone(ours.pid);
+      expect(alive(ours.pid)).toBe(false);
+    } finally { try { process.kill(ours.pid, 'SIGKILL'); } catch { /* already gone */ } }
 
     const foreign = await listener(path.join(dir, 'elsewhere/node'), dir);
     try {
       release('0.2.2');
       const r = run(INSTALL, { MEETING_NOTER_PORT: String(foreign.port) });
       expect(r.code, r.out).toBe(0);
-      expect(alive(foreign.child.pid!)).toBe(true);
-    } finally { foreign.child.kill('SIGKILL'); }
+      expect(alive(foreign.pid)).toBe(true);
+    } finally { try { process.kill(foreign.pid, 'SIGKILL'); } catch { /* already gone */ } }
   }, 60_000);
 
   it('fails clearly when the release has no tarball yet', () => {
