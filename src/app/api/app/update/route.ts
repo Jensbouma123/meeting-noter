@@ -22,6 +22,8 @@ async function release(refresh: boolean) {
 }
 
 export async function GET(request: Request): Promise<Response> {
+  const refused = refuseForeign(request);
+  if (refused) return refused;
   const { install } = lifecycle();
   const refresh = new URL(request.url).searchParams.get('refresh') === '1';
   return Response.json(buildCheck(install, await release(refresh), updateRunning(install.stateDir)));

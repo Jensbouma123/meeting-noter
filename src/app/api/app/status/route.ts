@@ -1,11 +1,14 @@
 /** `GET /api/app/status` — identifies this server (launcher.sh tells "ours" from another program on the port). */
+import { refuseForeign } from '@/lib/lifecycle/request-guard';
 import { lifecycle } from '@/lib/lifecycle/server-lifecycle';
 import { updateRunning } from '@/lib/update/server-update';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export function GET(): Response {
+export function GET(request: Request): Response {
+  const refused = refuseForeign(request);
+  if (refused) return refused;
   const lc = lifecycle();
   return Response.json({
     app: 'meeting-noter',
