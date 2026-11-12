@@ -12,6 +12,10 @@ import { NotesPanel } from '@/components/notes/NotesPanel';
 import type { Segment } from '@/lib/meeting/types';
 import { useT } from '@/lib/i18n/useT';
 import { addNameToVocabulary } from '@/lib/vocabulary/names';
+import { setParticipants, useParticipants, useRecentParticipants } from '@/lib/meeting/participants';
+import { ParticipantsEditor, CHIP_CLASS } from './ParticipantsEditor';
+import { SpeakerAssign } from './SpeakerAssign';
+import { isUnnamedSpeakerLabel, unassignedParticipants } from '@/lib/meeting/participants';
 import {
   Badge,
   Button,
@@ -41,6 +45,10 @@ interface SpeakerListProps {
   onStartEditing: (speaker: SpeakerRow) => void;
   onCommit: () => void;
   onCancel: () => void;
+  /** People named for this meeting, offered as one-tap names while renaming. */
+  participants: string[];
+  onPick: (name: string) => void;
+  sessionId: string;
 }
 
 function SpeakerList({
@@ -52,7 +60,11 @@ function SpeakerList({
   onStartEditing,
   onCommit,
   onCancel,
+  participants,
+  onPick,
+  sessionId,
 }: SpeakerListProps) {
+  const tp = useT('participants');
   if (rows.length === 0) {
     return (
       <EmptyState
@@ -110,6 +122,17 @@ function SpeakerList({
                       />
                     </HStack>
                   ) : (
+                    <>
+                    {isUnnamedSpeakerLabel(spk.label) && (
+                      <SpeakerAssign
+                        sessionId={sessionId}
+                        speakerId={spk.id}
+                        label={spk.label}
+                        source={spk.source}
+                        otherLabels={rows.filter((r) => r.id !== spk.id).map((r) => r.label)}
+                        textClassName={`text-xs font-semibold ${colorStyle.textClass}`}
+                      />
+                    )}
                     <Button
                       variant="ghost"
                       size={{ base: 'md', md: 'sm' }}
@@ -130,12 +153,30 @@ function SpeakerList({
                         {spk.label}
                       </Text>
                     </Button>
+                    </>
                   )}
                 </HStack>
                 <Text size="xs" variant="muted" font="mono" className="shrink-0 tabular-nums">
                   {formatDuration(spk.time)}
                 </Text>
               </HStack>
+
+              {isEditing && participants.length > 0 && (
+                <div className="flex flex-wrap gap-1.5" role="group" aria-label={tp('quickPicks')}>
+                  {participants.map((name) => (
+                    <button
+                      key={name}
+                      type="button"
+                      className={`${CHIP_CLASS} hover:bg-surface-hover`}
+                      // Keep focus in the field so picking does not first save the half-typed text.
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => onPick(name)}
+                    >
+                      {name}
+                    </button>
+                  ))}
+                </div>
+              )}
 
               <HStack spacing="sm">
                 <ProgressTrack
@@ -249,6 +290,7 @@ const notedSessions = new Set<string>();
 
 export function RightRail({ sessionId, segments = [] }: { sessionId: string; segments?: Segment[] }) {
   const t = useT('rail');
+  const tp = useT('participants');
   const ts = useT('settings');
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<RailTab>('participants');
@@ -314,6 +356,17 @@ export function RightRail({ sessionId, segments = [] }: { sessionId: string; seg
     setEditingSpeakerId(null);
   };
 
+  const pickName = (name: string) => {
+    if (!editingSpeakerId) return;
+    meeting.renameSpeaker(editingSpeakerId, name);
+    addNameToVocabulary(name);
+    setEditingSpeakerId(null);
+  };
+
+  const participants = useParticipants(sessionId);
+  const recentParticipants = useRecentParticipants();
+  const unmatched = unassignedParticipants(participants, speakerStatRows.map((r) => r.label));
+
   const isMdUp = useMediaQuery('(min-width: 768px)');
   const isLgUp = useMediaQuery('(min-width: 1024px)');
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -331,6 +384,23 @@ export function RightRail({ sessionId, segments = [] }: { sessionId: string; seg
   }, [isLgUp]);
 
   const list = (
+    <>
+    <VStack spacing="xs" className="w-full" data-testid="participants-editor">
+      <Text size="xs" weight="semibold">
+        {tp('heading')}
+      </Text>
+      <ParticipantsEditor
+        id="rail-participants-add"
+        names={participants}
+        suggestions={recentParticipants}
+        onChange={(names) => setParticipants(sessionId, names)}
+      />
+      {unmatched.length > 0 && (
+        <Text size="xs" variant="muted" data-testid="participants-unassigned">
+          {tp('unassigned').replace('{names}', unmatched.join(', '))}
+        </Text>
+      )}
+    </VStack>
     <SpeakerList
       rows={speakerStatRows}
       editingSpeakerId={editingSpeakerId}
@@ -340,7 +410,11 @@ export function RightRail({ sessionId, segments = [] }: { sessionId: string; seg
       onStartEditing={startEditing}
       onCommit={commitEdit}
       onCancel={() => setEditingSpeakerId(null)}
+      participants={participants}
+      onPick={pickName}
+      sessionId={sessionId}
     />
+    </>
   );
 
   const drawer = !isLgUp && (

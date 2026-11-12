@@ -6,6 +6,7 @@ import { formatClock, splitTranscript } from '@/lib/meeting/export';
 import { TranscriptTurn } from './TranscriptTurn';
 import { TranscriptSearch } from './TranscriptSearch';
 import { FixWordAction } from './FixWordAction';
+import { SpeakerAssign } from './SpeakerAssign';
 import { meeting } from './store';
 import { getSpeakerColor } from './speaker-theme';
 import {
@@ -419,9 +420,20 @@ export function LiveTranscript({
                       />
                       <span className="flex min-w-0 items-baseline gap-1.5 select-none">
                         <span className={`inline-block size-2 shrink-0 self-center rounded-full ${color.dotClass}`} aria-hidden="true" />
-                        <Text as="span" size="sm" weight="semibold" className={`truncate ${color.textClass}`}>
-                          {label}
-                        </Text>
+                        {sessionId ? (
+                          <SpeakerAssign
+                            sessionId={sessionId}
+                            speakerId={id}
+                            label={label}
+                            source={segs[0].source}
+                            otherLabels={Object.values(speakers).filter((sp) => sp.id !== id).map((sp) => sp.label)}
+                            textClassName={`text-sm font-semibold ${color.textClass}`}
+                          />
+                        ) : (
+                          <Text as="span" size="sm" weight="semibold" className={`truncate ${color.textClass}`}>
+                            {label}
+                          </Text>
+                        )}
                       </span>
                       {segs.map((seg) => (
                         <div key={seg.id} data-seg-id={seg.id} className="min-w-0">
@@ -512,6 +524,16 @@ export function LiveTranscript({
               />
               {/* Kept, invisible, on a continuation line so its baseline and
                   width match a turn's first line. */}
+              {sessionId && turnStart ? (
+                <SpeakerAssign
+                  sessionId={sessionId}
+                  speakerId={seg.speaker}
+                  label={speakerLabel}
+                  source={seg.source}
+                  otherLabels={Object.values(speakers).filter((sp) => sp.id !== seg.speaker).map((sp) => sp.label)}
+                  textClassName={`text-sm font-semibold ${colorStyle.textClass}`}
+                />
+              ) : (
               <Text
                 as="span"
                 size="sm"
@@ -520,6 +542,7 @@ export function LiveTranscript({
               >
                 {speakerLabel}
               </Text>
+              )}
               {turnStart && <span className="sr-only">({sourceLabel})</span>}
             </span>
             )}

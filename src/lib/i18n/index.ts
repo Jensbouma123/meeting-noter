@@ -7,6 +7,7 @@ import { meeting } from './ns/meeting';
 import { models } from './ns/models';
 import { notes } from './ns/notes';
 import { onboarding } from './ns/onboarding';
+import { participants } from './ns/participants';
 import { rail } from './ns/rail';
 import { settings } from './ns/settings';
 import { share } from './ns/share';
@@ -27,6 +28,7 @@ export const translations = {
   models,
   notes,
   onboarding,
+  participants,
   rail,
   settings,
   share,

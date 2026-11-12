@@ -50,6 +50,8 @@ import {
   type AppSettings,
 } from '@/components/meeting';
 import { RecordTargetDialog } from '@/components/meeting/RecordTargetDialog';
+import { ParticipantsDialog } from '@/components/meeting/ParticipantsDialog';
+import { getParticipants, hasAskedParticipants, setParticipants, skipParticipants } from '@/lib/meeting/participants';
 import { CaptureDiagnostics } from '@/components/meeting/CaptureDiagnostics';
 import { ShortcutsHelp } from '@/components/meeting/ShortcutsHelp';
 import type { SettingsSectionId } from '@/components/settings/sections';
@@ -269,6 +271,10 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
     durationSeconds: number;
   } | null>(null);
 
+  // "Who is in this meeting?" before a new recording; answered once per meeting.
+  const [participantsPrompt, setParticipantsPrompt] = useState(false);
+  const participantsAnswered = useRef(false);
+
   const startOptions = useMemo(
     () => ({
       mode: settings.mode,
@@ -338,6 +344,19 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
       });
       return;
     }
+    if (initialSessionId && !participantsAnswered.current && !hasAskedParticipants(initialSessionId)) {
+      let demo = false;
+      try {
+        demo = new URLSearchParams(window.location.search).get('demo') === '1';
+      } catch {
+        // Not a demo.
+      }
+      if (!demo) {
+        setParticipantsPrompt(true);
+        return;
+      }
+    }
+    participantsAnswered.current = false;
     setLangOverride(null);
     // A brand-new session replaces any crash-recovery snapshot.
     setResumeCandidate(null);
@@ -841,6 +860,25 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
         onSettingsChange={handleSettingsChange}
         section={settingsSection}
       />
+
+      {participantsPrompt && initialSessionId && (
+        <ParticipantsDialog
+          ownerName={settings.ownerName}
+          initial={getParticipants(initialSessionId)}
+          onSkip={() => {
+            skipParticipants(initialSessionId);
+            participantsAnswered.current = true;
+            setParticipantsPrompt(false);
+            void startRecording();
+          }}
+          onStart={(names) => {
+            setParticipants(initialSessionId, names);
+            participantsAnswered.current = true;
+            setParticipantsPrompt(false);
+            void startRecording();
+          }}
+        />
+      )}
 
       {targetPrompt && (
         <RecordTargetDialog
