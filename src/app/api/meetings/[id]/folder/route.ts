@@ -23,7 +23,7 @@ export async function PUT(request: Request, { params }: Ctx): Promise<Response> 
   const folderId = body && typeof body === 'object' ? (body as { folderId?: unknown }).folderId : undefined;
   if (folderId !== null && !isMeetingId(folderId)) return failure('bad-parent', 400);
   try {
-    meetingStore().db.moveMeeting(id, folderId);
+    meetingStore().moveMeeting(id, folderId);
     return Response.json({ ok: true });
   } catch (err) {
     return folderFailure(err);

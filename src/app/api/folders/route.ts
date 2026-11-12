@@ -33,7 +33,7 @@ export async function POST(request: Request): Promise<Response> {
   if (typeof name !== 'string') return failure('bad-name', 400);
   if (parentId !== undefined && parentId !== null && !isMeetingId(parentId)) return failure('bad-parent', 400);
   try {
-    const folder = meetingStore().db.createFolder(name, (parentId as string | null | undefined) ?? null);
+    const folder = meetingStore().createFolder(name, (parentId as string | null | undefined) ?? null);
     return Response.json({ ok: true, folder }, { status: 201 });
   } catch (err) {
     return folderFailure(err);

@@ -4,6 +4,7 @@ import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { FolderError, MeetingsDb } from './db';
 import { MeetingStore } from './store';
+import { markdownFolderPath } from './markdown';
 import { sampleMeeting } from './test-meeting';
 
 const dirs: string[] = [];
@@ -105,6 +106,25 @@ describe('folders', () => {
     expect(store.save(sampleMeeting())).toBe('deleted');
     expect(store.db.search('budget')).toEqual([]);
     expect(fs.readFileSync(path.join(dir, 'meetings.db')).includes('quarterly budget')).toBe(false);
+  });
+
+  it('mirrors folder names and moves meeting Markdown files with safe paths', () => {
+    const dir = tmpDir();
+    const store = new MeetingStore(new MeetingsDb(path.join(dir, 'meetings.db')), path.join(dir, 'meetings'));
+    const parent = store.createFolder('../Planning');
+    const child = store.createFolder('Weekly sync', parent.id);
+    store.save(sampleMeeting());
+    store.moveMeeting('meeting-1', child.id);
+    const oldPath = path.join(dir, 'meetings', markdownFolderPath(store.db.listFolders(), child.id), store.db.markdownFile('meeting-1')!.split('/').at(-1)!);
+    expect(fs.existsSync(oldPath)).toBe(true);
+
+    store.renameFolder(parent.id, 'Roadmap');
+    const renamedPath = path.join(dir, 'meetings', markdownFolderPath(store.db.listFolders(), child.id), store.db.markdownFile('meeting-1')!.split('/').at(-1)!);
+    expect(fs.existsSync(oldPath)).toBe(false);
+    expect(fs.existsSync(renamedPath)).toBe(true);
+    store.moveMeeting('meeting-1', null);
+    expect(fs.existsSync(renamedPath)).toBe(false);
+    expect(fs.existsSync(path.join(dir, 'meetings', store.db.markdownFile('meeting-1')!))).toBe(true);
   });
 
   it('migrates a v3 database', () => {

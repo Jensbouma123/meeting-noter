@@ -1,6 +1,7 @@
 import { formatClock, resolveSpeakerLabel, tidyText } from '../meeting/export';
 import type { Segment } from '../meeting/types';
 import type { StoredMeeting, StoredSegment } from './types';
+import type { FolderRow } from './types';
 
 /**
  * Text renderings of a stored meeting: the summary and transcript the DB
@@ -90,6 +91,25 @@ export function markdownFileName(meeting: StoredMeeting): string {
     .slice(0, 60);
   const id = meeting.id.replace(/[^A-Za-z0-9]/g, '').slice(0, 8) || 'meeting';
   return `${meetingDate(meeting)}-${slug || 'meeting'}-${id}.md`;
+}
+
+/** A safe relative directory for a folder and all of its ancestors. */
+export function markdownFolderPath(folders: FolderRow[], folderId: string | null | undefined): string {
+  if (!folderId) return '';
+  const byId = new Map(folders.map((folder) => [folder.id, folder]));
+  const parts: string[] = [];
+  const seen = new Set<string>();
+  let folder = byId.get(folderId);
+  while (folder) {
+    if (seen.has(folder.id)) return '';
+    seen.add(folder.id);
+    const slug = folder.name.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'folder';
+    const id = folder.id.replace(/[^A-Za-z0-9]/g, '').slice(0, 8) || 'folder';
+    parts.unshift(`${slug}-${id}`);
+    folder = folder.parentId ? byId.get(folder.parentId) : undefined;
+  }
+  return parts.join('/');
 }
 
 /** The Markdown file: title, date, participants, speakers, summary and transcript. */

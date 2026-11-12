@@ -28,11 +28,12 @@ export async function PATCH(request: Request, { params }: Ctx): Promise<Response
   if (name !== undefined && typeof name !== 'string') return failure('bad-name', 400);
   if (parentId !== undefined && parentId !== null && !isMeetingId(parentId)) return failure('bad-parent', 400);
   try {
-    const { db } = meetingStore();
+    const store = meetingStore();
+    const { db } = store;
     let folder = db.listFolders().find((f) => f.id === id);
     if (!folder) return failure('not-found', 404);
-    if (name !== undefined) folder = db.renameFolder(id, name as string);
-    if (parentId !== undefined) folder = db.moveFolder(id, parentId as string | null);
+    if (name !== undefined) folder = store.renameFolder(id, name as string);
+    if (parentId !== undefined) folder = store.moveFolder(id, parentId as string | null);
     return Response.json({ ok: true, folder });
   } catch (err) {
     return folderFailure(err);
