@@ -13,9 +13,9 @@ interface LevelMeterProps {
   /** No call source is attached (declined, unsupported, Safari): the call meter shows "none". */
   callMissing?: boolean;
   /**
-   * Two compact rows (mic over call) with the icons in one column, for use
-   * inside the dock's microphone button: no tooltips or focus stops, since
-   * the surrounding button is the only interactive element.
+   * Two slim vertical VU bars (mic, then call) side by side with the icon
+   * under each, for use inside the dock's microphone button: no tooltips or
+   * focus stops, since the surrounding button is the only interactive element.
    */
   stacked?: boolean;
 }
@@ -35,6 +35,15 @@ export function LevelMeter({ mode, active, callMissing = false, stacked = false 
       targetsRef.current.system = active ? l.system : 0;
     });
 
+    // Stacked bars fill upward (height); the inline layout fills rightward (width).
+    const dim = stacked ? 'height' : 'width';
+    // The fill sits inside the role=meter track; mirror the level onto it for assistive tech.
+    const setNow = (fill: HTMLElement, v: number) => {
+      const track = fill.parentElement;
+      const pct = String(Math.round(v * 100));
+      if (track && track.getAttribute('aria-valuenow') !== pct) track.setAttribute('aria-valuenow', pct);
+    };
+
     const attack = 0.5;
     const release = 0.08;
 
@@ -50,13 +59,15 @@ export function LevelMeter({ mode, active, callMissing = false, stacked = false 
 
       if (micBarRef.current) {
         const scaleMic = Math.max(0.08, Math.min(1, smoothed.mic));
-        micBarRef.current.style.width = `${(scaleMic * 100).toFixed(1)}%`;
+        micBarRef.current.style[dim] = `${(scaleMic * 100).toFixed(1)}%`;
+        setNow(micBarRef.current, scaleMic);
         micBarRef.current.style.opacity = active ? `${0.45 + scaleMic * 0.55}` : '0.2';
       }
 
       if (sysBarRef.current) {
         const scaleSys = Math.max(0.08, Math.min(1, smoothed.system));
-        sysBarRef.current.style.width = `${(scaleSys * 100).toFixed(1)}%`;
+        sysBarRef.current.style[dim] = `${(scaleSys * 100).toFixed(1)}%`;
+        setNow(sysBarRef.current, scaleSys);
         sysBarRef.current.style.opacity = active ? `${0.45 + scaleSys * 0.55}` : '0.2';
       }
 
@@ -72,35 +83,50 @@ export function LevelMeter({ mode, active, callMissing = false, stacked = false 
         rafIdRef.current = null;
       }
     };
-  }, [active, callMissing]);
+  }, [active, callMissing, stacked]);
 
   const showMic = mode === 'mic' || mode === 'both';
   const showSystem = mode === 'system' || mode === 'both';
 
   if (stacked) {
+    const track = 'relative flex h-5 w-1.5 items-end overflow-hidden rounded-full bg-foreground/15';
     return (
-      <div className="grid grid-cols-[auto_3rem] items-center gap-x-1.5 gap-y-1" aria-hidden="true">
+      <div className="flex items-end gap-2" role="group" aria-label={t('audioLevels')}>
         {showMic && (
-          <>
-            <Mic className={`size-3 transition-colors ${active ? 'text-primary-400' : 'text-muted-foreground'}`} />
-            <div className="relative h-1 overflow-hidden rounded-full bg-foreground/15">
-              <div ref={micBarRef} className="h-full rounded-full bg-primary-400" style={{ width: '8%', opacity: 0.2 }} />
+          <div className="flex flex-col items-center gap-0.5">
+            <div
+              role="meter"
+              aria-label={t('micLevel')}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={0}
+              className={track}
+            >
+              <div ref={micBarRef} className="w-full rounded-full bg-primary-400" style={{ height: '8%', opacity: 0.2 }} />
             </div>
-          </>
+            <Mic className={`size-3 transition-colors ${active ? 'text-primary-400' : 'text-muted-foreground'}`} aria-hidden="true" />
+          </div>
         )}
         {showSystem && callMissing && (
-          <>
-            <VolumeX className="size-3 text-warning" />
-            <span className="text-[10px] font-medium leading-none text-muted-foreground">{t('none')}</span>
-          </>
+          <div className="flex flex-col items-center gap-0.5" aria-label={t('noCallLevel')}>
+            <span className="flex h-5 items-center text-[10px] font-medium leading-none text-muted-foreground">{t('none')}</span>
+            <VolumeX className="size-3 text-warning" aria-hidden="true" />
+          </div>
         )}
         {showSystem && !callMissing && (
-          <>
-            <Volume2 className={`size-3 transition-colors ${active ? 'text-secondary-400' : 'text-muted-foreground'}`} />
-            <div className="relative h-1 overflow-hidden rounded-full bg-foreground/15">
-              <div ref={sysBarRef} className="h-full rounded-full bg-secondary-400" style={{ width: '8%', opacity: 0.2 }} />
+          <div className="flex flex-col items-center gap-0.5">
+            <div
+              role="meter"
+              aria-label={t('callLevel')}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={0}
+              className={track}
+            >
+              <div ref={sysBarRef} className="w-full rounded-full bg-secondary-400" style={{ height: '8%', opacity: 0.2 }} />
             </div>
-          </>
+            <Volume2 className={`size-3 transition-colors ${active ? 'text-secondary-400' : 'text-muted-foreground'}`} aria-hidden="true" />
+          </div>
         )}
       </div>
     );

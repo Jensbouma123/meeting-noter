@@ -20,7 +20,7 @@ interface MicPickerProps {
   onChange: (deviceId: string) => void;
   /** Recording is active: the pipeline reads the device once at start, so it cannot change live. */
   locked: boolean;
-  /** Drives the level rows inside the button. */
+  /** Drives the level bars inside the button. */
   mode: CaptureMode;
   /** Audio is flowing (live), so the bars move. */
   active: boolean;
@@ -52,13 +52,13 @@ export function MicPicker({ value, onChange, locked, mode, active, callMissing =
   }, [refresh]);
 
   const label = t('chooseMic');
-  // The level pill is the button: icons in one column, mic row over call row.
+  // The level pill is the button: two vertical bars (mic, call) with their icons below.
   const trigger = (
     <button
       type="button"
       disabled={locked}
       aria-label={label}
-      className="touch-target-44 inline-flex h-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border-subtle bg-surface px-3 transition-colors hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-70 md:h-8"
+      className="touch-target-44 inline-flex h-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border-subtle bg-surface px-3.5 transition-colors hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-70"
     >
       <LevelMeter stacked mode={mode} active={active} callMissing={callMissing} />
     </button>

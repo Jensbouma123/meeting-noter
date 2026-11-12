@@ -36,6 +36,33 @@ const ui = (value: string, onChange = vi.fn(), locked = false) => (
   </LanguageContext.Provider>
 );
 
+describe('MicPicker level bars', () => {
+  const withMode = (mode: 'mic' | 'both') => (
+    <LanguageContext.Provider value="en">
+      <MicPicker value="default" onChange={vi.fn()} locked={false} mode={mode} active={false} />
+    </LanguageContext.Provider>
+  );
+
+  it('shows a vertical mic bar and a call bar in both mode', () => {
+    stubDevices(DEVICES);
+    render(withMode('both'));
+    const meters = screen.getAllByRole('meter', { hidden: true });
+    expect(meters.map((m) => m.getAttribute('aria-label'))).toEqual(['Mic level', 'Call audio level']);
+    for (const m of meters) {
+      expect(m).toHaveAttribute('aria-valuemin', '0');
+      expect(m).toHaveAttribute('aria-valuemax', '100');
+      // Fill grows by height (bottom to top), never by width.
+      expect((m.firstElementChild as HTMLElement).style.height).toBe('8%');
+    }
+  });
+
+  it('shows only the mic bar in mic-only mode', () => {
+    stubDevices(DEVICES);
+    render(withMode('mic'));
+    expect(screen.getAllByRole('meter', { hidden: true })).toHaveLength(1);
+  });
+});
+
 async function open() {
   const btn = screen.getByRole('button', { name: 'Choose microphone' });
   await waitFor(() => expect(navigator.mediaDevices.enumerateDevices).toHaveBeenCalled());
