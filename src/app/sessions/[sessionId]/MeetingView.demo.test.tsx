@@ -1,0 +1,163 @@
+// @vitest-environment jsdom
+import '@testing-library/jest-dom/vitest';
+import { cleanup, render, waitFor } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+const h = vi.hoisted(() => ({
+  start: vi.fn(async () => {}),
+  state: {
+    status: 'idle',
+    error: null,
+    warning: null,
+    startedAt: null,
+    segments: [],
+    speakers: [],
+    stats: {},
+    language: 'auto',
+  } as Record<string, unknown>,
+  browserASR: { enabled: true, phase: 'ready' },
+  registry: { entries: {} },
+}));
+
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }) }));
+vi.mock('@/components/meeting', () => ({
+  useMeeting: (sel: (s: Record<string, unknown>) => unknown) => sel(h.state),
+  meeting: { start: h.start, stop: vi.fn() },
+  TopBar: () => null,
+  RightRail: () => null,
+  LiveTranscript: () => null,
+  BottomDock: () => null,
+  SettingsSheet: () => null,
+  DEFAULT_SETTINGS: {
+    mode: 'both',
+    systemVia: 'browser',
+    micDeviceId: 'default',
+    language: 'auto',
+    autoScroll: true,
+    retention: 'forever',
+    ownerName: '',
+  },
+  loadSettings: () => ({
+    mode: 'both',
+    systemVia: 'browser',
+    micDeviceId: 'default',
+    language: 'auto',
+    autoScroll: true,
+    retention: 'forever',
+    ownerName: '',
+  }),
+  saveSettings: vi.fn(),
+  loadSavedTitle: () => 'Untitled meeting',
+  saveTitle: vi.fn(),
+}));
+vi.mock('@/components/meeting/modelReadiness', () => ({
+  deriveModelProgress: () => ({ stage: null, percent: null }),
+  deriveModelReadiness: () => 'ready',
+}));
+vi.mock('@/lib/meeting', () => ({
+  getBrowserASRProgress: () => h.browserASR,
+  getBrowserASRStatusMessage: () => null,
+  getServerBrowserASRProgress: () => h.browserASR,
+  enableBrowserASR: vi.fn(),
+  subscribeBrowserASR: () => () => {},
+  warmBrowserASR: vi.fn(),
+  promptBrowserASRDownload: vi.fn(),
+  getPostStopTranscriptionProgress: () => null,
+  getServerPostStopProgress: () => null,
+  subscribePostStopTranscription: () => () => {},
+}));
+vi.mock('@/components/models', () => ({
+  ModelRegistryProvider: ({ children }: { children: unknown }) => children,
+  subscribeRegistry: () => () => {},
+  getState: () => h.registry,
+  getServerSnapshot: () => h.registry,
+}));
+vi.mock('@/lib/meeting/store', () => ({
+  restoreSnapshot: vi.fn(),
+  bindTranscriptSession: vi.fn(),
+  getTranscriptSessionId: () => null,
+  loadIdleSession: () => false,
+  getState: () => h.state,
+  cancelAppend: vi.fn(),
+}));
+vi.mock('@/lib/meeting/session-store', () => ({
+  sessionExists: () => false,
+  openSession: () => null,
+  unmarkDraft: vi.fn(),
+  setSessionCaptureMode: vi.fn(),
+  persistSession: vi.fn(),
+  archiveAutosavedSession: vi.fn(),
+  renameSession: vi.fn(),
+  getSessionMetadata: () => null,
+  sessionHasTranscript: () => false,
+  startRecordingInSession: vi.fn(),
+  clearSessionTranscript: vi.fn(),
+}));
+vi.mock('@/lib/meeting/persist', () => ({
+  loadAutosavedSession: () => null,
+  scheduleAutosave: vi.fn(),
+  clearAutosavedSession: vi.fn(),
+  flushAutosave: vi.fn(),
+  getClientSessionId: () => 'client-1',
+}));
+vi.mock('@/lib/meeting/server-sync', () => ({ ensureMeetingLoaded: () => Promise.resolve() }));
+vi.mock('@/lib/meeting/participants', () => ({
+  getParticipants: () => [],
+  hasAskedParticipants: () => true,
+  setParticipants: vi.fn(),
+  skipParticipants: vi.fn(),
+}));
+vi.mock('@/components/onboarding/OnboardingDialog', () => ({ OnboardingDialog: () => null }));
+vi.mock('@/components/meeting/RecordTargetDialog', () => ({ RecordTargetDialog: () => null }));
+vi.mock('@/components/meeting/ParticipantsDialog', () => ({ ParticipantsDialog: () => null }));
+vi.mock('@/components/meeting/CaptureDiagnostics', () => ({ CaptureDiagnostics: () => null }));
+vi.mock('@/components/meeting/ShortcutsHelp', () => ({ ShortcutsHelp: () => null }));
+vi.mock('@/components/share/ShareDialog', () => ({ ShareDialog: () => null }));
+vi.mock('@/components/update/useUpdate', () => ({ useUpdate: () => ({}) }));
+vi.mock('@/lib/lifecycle/useServerHeartbeat', () => ({ useServerHeartbeat: () => {} }));
+vi.mock('@/lib/i18n/useT', () => ({ useT: () => (key: string) => key }));
+vi.mock('lucide-react', () => ({ MicOff: () => null }));
+vi.mock('@jensbouma123/acciva-ui', () => {
+  const toast = Object.assign(vi.fn(), { danger: vi.fn(), warning: vi.fn(), success: vi.fn() });
+  return {
+    useToast: () => ({ toast, dismiss: vi.fn() }),
+    Alert: () => null,
+    Button: () => null,
+    HStack: () => null,
+    Text: () => null,
+    VStack: () => null,
+  };
+});
+
+import MeetingView from './MeetingView';
+
+afterEach(() => {
+  cleanup();
+  h.start.mockClear();
+  h.state.status = 'idle';
+  window.history.replaceState(null, '', '/');
+});
+
+describe('MeetingView ?demo=1 auto-start', () => {
+  it('starts the recording once, and not again when the recording state changes', async () => {
+    window.history.replaceState(null, '', '/sessions/s1?demo=1');
+    const { rerender } = render(<MeetingView initialSessionId="s1" />);
+    await waitFor(() => expect(h.start).toHaveBeenCalledTimes(1));
+
+    // `status` is a dependency of startRecording, so this re-render hands the
+    // old effect a new callback identity.
+    h.state.status = 'live';
+    rerender(<MeetingView initialSessionId="s1" />);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(h.start).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not start a recording without ?demo=1', async () => {
+    window.history.replaceState(null, '', '/sessions/s1');
+    render(<MeetingView initialSessionId="s1" />);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(h.start).not.toHaveBeenCalled();
+  });
+});
