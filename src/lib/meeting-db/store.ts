@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { MeetingsDb, type UpsertResult } from './db';
+import { MeetingsDb, type FolderDeleteMode, type UpsertResult } from './db';
 import { markdownFileName, renderMeetingMarkdown } from './markdown';
 import { meetingsDbPath, meetingsMarkdownDir } from './paths';
 import type { StoredMeeting } from './types';
@@ -31,6 +31,13 @@ export class MeetingStore {
     const { deleted, markdownFile } = this.db.delete(id);
     if (markdownFile) this.removeFile(markdownFile);
     return deleted;
+  }
+
+  /** Delete a folder; with `delete-contents` also its meetings' Markdown files. */
+  deleteFolder(id: string, mode: FolderDeleteMode): { folders: number; meetings: number } {
+    const { markdownFiles, ...counts } = this.db.deleteFolder(id, mode);
+    for (const name of markdownFiles) this.removeFile(name);
+    return counts;
   }
 
   /** Delete every meeting, every Markdown file in `meetings/` (also stray ones and temp files). */

@@ -30,6 +30,11 @@ export interface StoredMeeting {
   notes: Notes;
   /** Who was in the meeting; null when nobody was ever asked (an empty list is a skipped question). */
   participants: string[] | null;
+  /**
+   * The folder it is filed in; null is unfiled. Absent on a PUT means "leave the filing
+   * as stored" (a client that knows no folders); `get` always sets it.
+   */
+  folderId?: string | null;
 }
 
 /** A meeting's row without its transcript, for lists. */
@@ -44,9 +49,22 @@ export interface MeetingSummaryRow {
   captureMode: CaptureMode | null;
   isDraft: boolean;
   speakers: string[];
+  /** The folder it is filed in; null is unfiled. */
+  folderId: string | null;
 }
 
 export interface MeetingSearchHit extends MeetingSummaryRow {
   /** Matching text with the hits wrapped in `[` `]`. */
   snippet: string;
+}
+
+/** One node of the folder tree; build the tree from `parentId` (null at the root). */
+export interface FolderRow {
+  id: string;
+  parentId: string | null;
+  name: string;
+  /** Order among siblings, ascending. */
+  sort: number;
+  createdAt: number;
+  updatedAt: number;
 }
