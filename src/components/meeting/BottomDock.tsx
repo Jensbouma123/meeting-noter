@@ -13,12 +13,14 @@ import { useT } from '@/lib/i18n/useT';
 /*
  * One shape system for the whole bar: every control is 40px tall (`md`) and
  * fully round, inside a 6px-padded shell whose 26px radius is concentric with
- * them. The primary action is the only tinted control; everything else is a
- * quiet ghost or the segmented track. `!` beats the variant's own fill, since
- * the library joins classes without merging them.
+ * them. Record is the only solid control; once recording, the same button
+ * turns into Stop in a translucent red so it no longer shouts. Everything else
+ * is a quiet ghost or the segmented track. `!` beats the variant's own fill,
+ * since the library joins classes without merging them. Both reds hold AA:
+ * `danger` with its own foreground, and `text-danger` on a 10% `danger` wash.
  */
 const ROUND = '!rounded-full';
-const RECORD_TINT = '!bg-danger/10 !text-danger hover:!bg-danger/15 active:!bg-danger/20';
+const STOP_TINT = '!bg-danger/10 !text-danger hover:!bg-danger/15 active:!bg-danger/20';
 const MODEL_TINT =
   '!bg-primary-500/10 !text-primary-800 hover:!bg-primary-500/15 active:!bg-primary-500/20 dark:!bg-primary-400/15 dark:!text-primary-300';
 
@@ -152,18 +154,23 @@ export function BottomDock({
       aria-label={t('recordingControls')}
     >
       <div className="flex flex-wrap items-center justify-center gap-1.5 rounded-[26px] border border-border-subtle bg-surface/90 p-1.5 shadow-elevation-3 backdrop-blur-md">
-        {/* Recording group: the primary action, plus the clock and pause once it runs. */}
+        {/* Recording group: Record, which becomes Stop + clock, then pause once it runs. */}
         <div className="flex shrink-0 items-center gap-1">
           {isRecordingActive ? (
             <>
-              <span role="timer" className="flex h-10 items-center gap-2 pl-2.5 pr-1.5 text-sm font-medium tabular-nums">
-                <span className="relative flex size-2" aria-hidden="true">
-                  {isLive && <span className="animate-breathing-ring absolute inset-0 rounded-full bg-danger" />}
-                  <span className={`relative size-2 rounded-full ${isPaused ? 'bg-muted-foreground' : 'bg-danger'}`} />
-                </span>
-                <span className={isPaused ? 'text-muted-foreground' : 'text-foreground'}>{formatElapsed(elapsedSeconds)}</span>
-                {isPaused && <span className="sr-only">{t('paused')}</span>}
-              </span>
+              <Button
+                variant="ghost"
+                size="md"
+                onClick={onStop}
+                disabled={isStopping}
+                loading={isStopping}
+                tooltip={t('stopTip')}
+                aria-label={`${t('stop')}, ${formatElapsed(elapsedSeconds)}${isPaused ? `, ${t('paused')}` : ''}`}
+                leadingIcon={<Square className="!size-3.5 fill-current" />}
+                className={`btn-record-spring shrink-0 tabular-nums ${ROUND} ${STOP_TINT}`}
+              >
+                <span role="timer">{formatElapsed(elapsedSeconds)}</span>
+              </Button>
               <Button
                 variant="ghost"
                 size="md"
@@ -180,30 +187,17 @@ export function BottomDock({
                 }
                 className={`shrink-0 ${ROUND}`}
               />
-              <Button
-                variant="ghost"
-                size="md"
-                onClick={onStop}
-                disabled={isStopping}
-                loading={isStopping}
-                tooltip={t('stopTip')}
-                aria-label={t('stop')}
-                leadingIcon={<Square className="!size-3.5 fill-current" />}
-                className={`btn-record-spring shrink-0 max-sm:!px-3 ${ROUND} ${RECORD_TINT}`}
-              >
-                <span className="sr-only sm:not-sr-only">{t('stopShort')}</span>
-              </Button>
             </>
           ) : (
             <Button
-              variant="ghost"
+              variant={needsModel ? 'ghost' : 'danger'}
               size="md"
               onClick={onStart}
               disabled={recordDisabled}
               tooltip={recordTooltip}
               aria-label={needsModel ? t('downloadModel') : recordTooltip}
               leadingIcon={needsModel ? <Download /> : <Circle className="!size-3 fill-current" />}
-              className={`btn-record-spring shrink-0 whitespace-nowrap ${ROUND} ${needsModel ? MODEL_TINT : RECORD_TINT}`}
+              className={`btn-record-spring shrink-0 whitespace-nowrap ${ROUND} ${needsModel ? MODEL_TINT : ''}`}
             >
               {needsModel ? t('downloadModel') : t('record')}
             </Button>

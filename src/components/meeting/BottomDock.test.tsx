@@ -110,13 +110,14 @@ describe('dock states', () => {
     return handlers;
   }
 
-  it('idle: one Record action, no clock, pause or stop', () => {
+  it('idle: one solid red Record action, no clock, pause or stop', () => {
     const h = renderState('idle');
     const record = screen.getByRole('button', { name: 'Opnemen (R).' });
     expect(record).toHaveTextContent('Opnemen');
+    expect(record).toHaveClass('bg-danger', 'text-danger-foreground');
     expect(screen.queryByRole('timer')).toBeNull();
     expect(screen.queryByRole('button', { name: 'Pauzeren' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Opname stoppen' })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Opname stoppen/ })).toBeNull();
     fireEvent.click(record);
     expect(h.onStart).toHaveBeenCalledOnce();
     expect(screen.getAllByRole('tab').every((tab) => !(tab as HTMLButtonElement).disabled)).toBe(true);
@@ -128,12 +129,14 @@ describe('dock states', () => {
     expect(screen.queryByRole('button', { name: 'Opnemen (R).' })).toBeNull();
   });
 
-  it('recording: clock, pause and a labelled Stop; source and microphone locked', () => {
+  it('recording: Record becomes a translucent red Stop with the clock; source and microphone locked', () => {
     const h = renderState('live');
-    expect(screen.getByRole('timer')).toHaveTextContent('0:00');
     expect(screen.queryByRole('button', { name: 'Opnemen (R).' })).toBeNull();
-    const stop = screen.getByRole('button', { name: 'Opname stoppen' });
-    expect(stop).toHaveTextContent('Stoppen');
+    const stop = screen.getByRole('button', { name: 'Opname stoppen, 0:00' });
+    expect(stop).toContainElement(screen.getByRole('timer'));
+    expect(screen.getByRole('timer')).toHaveTextContent('0:00');
+    expect(stop).toHaveClass('!bg-danger/10', '!text-danger');
+    expect(stop).not.toHaveClass('bg-danger');
     fireEvent.click(stop);
     expect(h.onStop).toHaveBeenCalledOnce();
     fireEvent.click(screen.getByRole('button', { name: 'Pauzeren' }));
@@ -142,9 +145,9 @@ describe('dock states', () => {
     expect(screen.getByRole('button', { name: 'Microfoon kiezen' })).toBeDisabled();
   });
 
-  it('paused: the clock says so and the pause control resumes', () => {
+  it('paused: Stop announces the pause and the pause control resumes', () => {
     const h = renderState('paused');
-    expect(screen.getByRole('timer')).toHaveTextContent('Gepauzeerd');
+    expect(screen.getByRole('button', { name: 'Opname stoppen, 0:00, Gepauzeerd' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Hervatten' }));
     expect(h.onResume).toHaveBeenCalledOnce();
     expect(screen.queryByRole('button', { name: 'Pauzeren' })).toBeNull();
@@ -152,7 +155,7 @@ describe('dock states', () => {
 
   it('shows exactly one tooltip for Stop', () => {
     renderState('live');
-    const stop = screen.getByRole('button', { name: 'Opname stoppen' });
+    const stop = screen.getByRole('button', { name: /^Opname stoppen/ });
     fireEvent.mouseEnter(stop);
     const tips = screen.getAllByRole('tooltip', { hidden: true });
     expect(tips).toHaveLength(1);
