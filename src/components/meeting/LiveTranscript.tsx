@@ -9,6 +9,7 @@ import { FixWordAction } from './FixWordAction';
 import { meeting } from './store';
 import { getSpeakerColor } from './speaker-theme';
 import {
+  Badge,
   Button,
   EmptyState,
   Text,
@@ -16,7 +17,7 @@ import {
   type VirtualListHandle,
   type VirtualListRange,
 } from '@jensbouma123/acciva-ui';
-import { ArrowDown, Mic } from 'lucide-react';
+import { ArrowDown, Info, Mic } from 'lucide-react';
 import type { ModelReadiness } from './modelReadiness';
 import type { SettingsSectionId } from '@/components/settings/sections';
 import { useT } from '@/lib/i18n/useT';
@@ -104,6 +105,7 @@ export function LiveTranscript({
   speakers,
   status,
   autoScrollEnabled,
+  onStartRecording,
   modelReady,
   modelReadiness,
   onOpenSettings,
@@ -561,32 +563,40 @@ export function LiveTranscript({
           aria-label={t('transcriptLabel')}
           className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto px-4 py-6 md:px-8"
         >
-          <EmptyState
-            size="md"
-            icon={<Mic className="size-6" aria-hidden="true" />}
-            title={modelReady ? t('ready') : emptyTitle}
-            description={
-              modelReady
-                ? t('readyDescription')
-                : emptyBody
-            }
-            action={
-              !modelReady && !preparing ? (
-                <Button
-                  variant="secondary"
-                  size={{ base: 'md', md: 'sm' }}
-                  onClick={() => onOpenSettings('advanced')}
-                >
-                  {failed ? t('openSettings') : t('setupModel')}
-                </Button>
-              ) : undefined
-            }
-            secondaryAction={
-              <Text size="xs" variant="muted" className="max-w-[40ch] text-center">
+          <div className="flex w-full max-w-sm flex-col items-center gap-5">
+            <EmptyState
+              size="md"
+              icon={<Mic className="size-6" aria-hidden="true" />}
+              title={modelReady ? t('ready') : emptyTitle}
+              description={modelReady ? t('readyDescription') : emptyBody}
+              action={
+                modelReady ? (
+                  <Button variant="primary" size={{ base: 'md', md: 'sm' }} onClick={onStartRecording}>
+                    {t('record')}
+                    <kbd className="contents">
+                      <Badge variant="neutral" size="sm" className="ml-2 font-mono" aria-hidden="true">
+                        R
+                      </Badge>
+                    </kbd>
+                  </Button>
+                ) : !preparing ? (
+                  <Button
+                    variant="secondary"
+                    size={{ base: 'md', md: 'sm' }}
+                    onClick={() => onOpenSettings('advanced')}
+                  >
+                    {failed ? t('openSettings') : t('setupModel')}
+                  </Button>
+                ) : undefined
+              }
+            />
+            <div className="flex w-full items-start justify-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2.5 text-center">
+              <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <Text size="xs" variant="muted">
                 {t('callTip')}
               </Text>
-            }
-          />
+            </div>
+          </div>
         </div>
       ) : listening ? (
         <div

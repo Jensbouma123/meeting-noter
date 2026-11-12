@@ -1,7 +1,8 @@
 export const transcript = {
   en: {
     ready: 'Ready to record',
-    readyDescription: 'Press Record (or R) to start. What people say shows up here, labelled by speaker.',
+    readyDescription: 'What people say shows up here, labelled by speaker.',
+    record: 'Record',
     listening: 'Listening…',
     listeningDescription: 'Words appear here as people talk.',
     identifying: 'Identifying…',
@@ -34,7 +35,7 @@ export const transcript = {
     you: 'You',
     unknownSpeaker: 'Unknown speaker',
     transcriptLabel: 'Meeting transcript',
-    callTip: 'Recording a call? Choose Mic + call, then share the meeting tab with audio turned on.',
+    callTip: 'Recording a call? Choose Mic + call, then share the meeting tab with audio.',
     'fixWord.button': 'Fix this word',
     'fixWord.title': 'Fix this word',
     'fixWord.description': 'Type how it should be spelled. It is corrected here, and future meetings will get it right too.',
@@ -46,7 +47,8 @@ export const transcript = {
   },
   nl: {
     ready: 'Klaar om op te nemen',
-    readyDescription: 'Druk op Opnemen (of R) om te starten. Wat mensen zeggen verschijnt hier met de spreker erbij.',
+    readyDescription: 'Wat mensen zeggen verschijnt hier met de spreker erbij.',
+    record: 'Opnemen',
     listening: 'Luisteren…',
     listeningDescription: 'Woorden verschijnen hier zodra mensen praten.',
     identifying: 'Spreker herkennen…',
@@ -79,7 +81,7 @@ export const transcript = {
     you: 'Jij',
     unknownSpeaker: 'Onbekende spreker',
     transcriptLabel: 'Meetingtranscript',
-    callTip: 'Neem je een gesprek op? Kies Mic + gesprek en deel daarna het meetingtabblad met audio ingeschakeld.',
+    callTip: 'Een gesprek opnemen? Kies Mic + gesprek en deel het meetingtabblad met audio.',
     'fixWord.button': 'Woord corrigeren',
     'fixWord.title': 'Woord corrigeren',
     'fixWord.description': 'Typ hoe het gespeld moet worden. Het wordt hier verbeterd en volgende meetings krijgen het ook goed.',
