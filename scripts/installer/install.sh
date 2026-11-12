@@ -72,6 +72,8 @@ swapped=
 say() { printf '%s\n' "$*"; }
 fail() {
   printf '\n❌ %s\n' "$1" >&2
+  # A failed unpack or Node.js check leaves the half-installed app.new behind.
+  [ -z "$ROOT" ] || rm -rf "$ROOT/app.new"
   if rollback; then
     # server-update.ts matches "Vorige versie" to tell the app it was rolled back.
     printf '   ↩️  Vorige versie %s teruggezet / Previous version restored.\n' "$(cat "$ROOT/app/VERSION" 2>/dev/null)" >&2

@@ -26,10 +26,10 @@ function exe(file: string, body: string) {
 }
 
 /** Writes meeting-noter-macos-<arch>.tar.gz and its .sha256 into `base`. */
-function release(version: string, { arch = 'arm64', helper = 'helper-v1', launcher = '' } = {}) {
+function release(version: string, { arch = 'arm64', helper = 'helper-v1', launcher = '', node = 'exit 0' } = {}) {
   const stage = path.join(dir, `stage-${arch}`, 'meeting-noter');
   rmSync(path.dirname(stage), { recursive: true, force: true });
-  exe(path.join(stage, 'node/bin/node'), '#!/bin/sh\nexit 0\n');
+  exe(path.join(stage, 'node/bin/node'), `#!/bin/sh\n${node}\n`);
   exe(path.join(stage, 'helper/meeting-noter-audio-helper'), `#!/bin/sh\n# ${helper}\n`);
   mkdirSync(path.join(stage, 'server'), { recursive: true });
   writeFileSync(path.join(stage, 'server/server.js'), '');
@@ -200,6 +200,58 @@ describe.skipIf(process.platform !== 'darwin')('install.sh', () => {
     for (const d of ['app.old', 'app.new', 'app.failed']) expect(existsSync(path.join(root(), d)), d).toBe(false);
     // Not marked installed, so a retry downloads 0.3.0 again.
     expect(readFileSync(path.join(root(), 'installed.sha256'), 'utf8')).toBe(sum);
+  });
+
+  const leftovers = () => ['app.old', 'app.new', 'app.failed'].filter((d) => existsSync(path.join(root(), d)));
+
+  it('keeps the old install when the tarball is corrupt but its checksum matches', () => {
+    release('0.2.0');
+    expect(run(INSTALL).code).toBe(0);
+    const sum = readFileSync(path.join(root(), 'installed.sha256'), 'utf8');
+    const asset = 'meeting-noter-macos-arm64.tar.gz';
+    writeFileSync(path.join(base, asset), 'this is not a gzip');
+    execFileSync('/bin/sh', ['-c', `shasum -a 256 ${asset} > ${asset}.sha256`], { cwd: base });
+    const r = run(INSTALL);
+    expect(r.code).not.toBe(0);
+    expect(r.out).toContain('Uitpakken mislukt');
+    expect(readFileSync(path.join(root(), 'app/VERSION'), 'utf8').trim()).toBe('0.2.0');
+    expect(readFileSync(path.join(root(), 'installed.sha256'), 'utf8')).toBe(sum);
+    expect(leftovers()).toEqual([]);
+  });
+
+  it('keeps the old install when the bundled Node.js does not run', () => {
+    release('0.2.0');
+    expect(run(INSTALL).code).toBe(0);
+    release('0.3.0', { node: 'exit 1' });
+    const r = run(INSTALL);
+    expect(r.code).not.toBe(0);
+    expect(r.out).toContain('De meegeleverde Node.js start niet');
+    expect(readFileSync(path.join(root(), 'app/VERSION'), 'utf8').trim()).toBe('0.2.0');
+    expect(leftovers()).toEqual([]);
+  });
+
+  it('a first install whose server does not start is retried, not called up to date', () => {
+    release('0.2.0', { launcher: 'exit 1' });
+    const r = run(INSTALL, { MEETING_NOTER_RUN_SERVER: '1' });
+    expect(r.code).not.toBe(0);
+    expect(r.out).toContain('startte niet');
+    expect(existsSync(path.join(root(), 'installed.sha256'))).toBe(false);
+    release('0.2.0');
+    const again = run(INSTALL, { MEETING_NOTER_RUN_SERVER: '1' });
+    expect(again.code, again.out).toBe(0);
+    expect(again.out).not.toContain('al de nieuwste versie');
+    expect(existsSync(path.join(root(), 'installed.sha256'))).toBe(true);
+    expect(leftovers()).toEqual([]);
+  });
+
+  it('MEETING_NOTER_FORCE reinstalls the same version; a plain re-run does not', () => {
+    release('0.2.0');
+    expect(run(INSTALL, { MEETING_NOTER_RUN_SERVER: '1' }).code).toBe(0);
+    expect(run(INSTALL, { MEETING_NOTER_RUN_SERVER: '1' }).out).toContain('al de nieuwste versie');
+    const r = run(INSTALL, { MEETING_NOTER_RUN_SERVER: '1', MEETING_NOTER_FORCE: '1' });
+    expect(r.code, r.out).toBe(0);
+    expect(r.out).toContain('Downloaden');
+    expect(readFileSync(path.join(home, 'starts'), 'utf8').trim().split('\n')).toEqual(['0.2.0', '0.2.0', '0.2.0']);
   });
 
   it('restores app.old left behind by an update cut off mid-swap', () => {
