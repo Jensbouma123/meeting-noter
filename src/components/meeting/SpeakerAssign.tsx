@@ -154,7 +154,7 @@ export function SpeakerAssign({
     </Button>
   );
 
-  return (
+  const menu = (
     <DropdownMenu>
       <DropdownMenuTrigger>{trigger}</DropdownMenuTrigger>
       <DropdownMenuContent align="start">
@@ -176,5 +176,15 @@ export function SpeakerAssign({
         {!unnamed && <DropdownMenuItem onClick={clear}>{t('clearName')}</DropdownMenuItem>}
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+  // acciva-ui's DropdownMenu wraps the trigger in `div.relative.inline-block`
+  // (not styleable), which shrink-wraps the button so `w-full` has nothing to
+  // fill. In the rail, force that wrapper to a full-width block.
+  return rail && !unnamed ? (
+    <div data-testid="speaker-assign-wrap" className="min-w-0 w-full [&>div]:block [&>div]:w-full">
+      {menu}
+    </div>
+  ) : (
+    menu
   );
 }
