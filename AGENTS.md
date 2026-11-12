@@ -7,3 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Effects
+
+Avoid needless `useEffect`: derive values during render, use `useSyncExternalStore` for external stores, and prefer the custom hooks in `src/hooks` (e.g. `useMediaQuery`); the lint guard warns on these.
