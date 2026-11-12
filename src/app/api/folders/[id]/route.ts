@@ -21,7 +21,9 @@ export async function PATCH(request: Request, { params }: Ctx): Promise<Response
   if (refused) return refused;
   const { id } = await params;
   if (!isMeetingId(id)) return failure('bad-id', 400);
-  const body = await readJson(request, 10_000);
+  const parsed = await readJson(request, 10_000);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.value;
   if (!body || typeof body !== 'object' || Array.isArray(body)) return failure('bad-folder', 400);
   const { name, parentId } = body as { name?: unknown; parentId?: unknown };
   if (name === undefined && parentId === undefined) return failure('bad-folder', 400);

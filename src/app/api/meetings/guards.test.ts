@@ -98,8 +98,32 @@ describe('body checks', () => {
     const m = sampleMeeting();
     return put(request('PUT', `/${m.id}`, { ...LOCAL, ...headers }, body), ctx(m.id));
   };
-  it('rejects a declared oversize body, malformed JSON and non-objects with 400', async () => {
-    expect((await put1({ 'content-length': String(MAX_MEETING_BODY_BYTES + 1) }, '{}')).status).toBe(400);
+  it('rejects a declared oversize body with 413', async () => {
+    expect((await put1({ 'content-length': String(MAX_MEETING_BODY_BYTES + 1) }, '{}')).status).toBe(413);
+  });
+
+  it('rejects a chunked oversize body with 413 while streaming it', async () => {
+    const m = sampleMeeting();
+    const chunk = 'x'.repeat(1_000_000);
+    const body = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        controller.enqueue(new TextEncoder().encode(chunk));
+      },
+    });
+    const res = await put(
+      new Request(`http://localhost:3000/api/meetings/${m.id}`, {
+        method: 'PUT',
+        headers: { ...LOCAL, 'content-type': 'application/json' },
+        body,
+        duplex: 'half',
+      } as RequestInit),
+      ctx(m.id),
+    );
+    expect(res.status).toBe(413);
+    expect(files()).toEqual([]);
+  });
+
+  it('rejects malformed JSON and non-objects with 400', async () => {
     expect((await put1({}, '{not json')).status).toBe(400);
     expect((await put1({}, 'null')).status).toBe(400);
     expect((await put1({}, '[]')).status).toBe(400);
@@ -112,7 +136,7 @@ describe('body checks', () => {
     expect((await post({}, JSON.stringify({ meetings: 'x' }))).status).toBe(400);
     expect((await post({}, 'nope')).status).toBe(400);
     expect((await post({}, JSON.stringify([]))).status).toBe(400);
-    expect((await post({ 'content-length': '200000001' }, JSON.stringify({ meetings: [] }))).status).toBe(400);
+    expect((await post({ 'content-length': '200000001' }, JSON.stringify({ meetings: [] }))).status).toBe(413);
   });
 
   it('import counts hostile ids as invalid and writes nothing for them', async () => {

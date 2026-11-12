@@ -19,7 +19,9 @@ export async function PUT(request: Request, { params }: Ctx): Promise<Response> 
   if (refused) return refused;
   const { id } = await params;
   if (!isMeetingId(id)) return failure('bad-id', 400);
-  const body = await readJson(request, 10_000);
+  const parsed = await readJson(request, 10_000);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.value;
   const folderId = body && typeof body === 'object' ? (body as { folderId?: unknown }).folderId : undefined;
   if (folderId !== null && !isMeetingId(folderId)) return failure('bad-parent', 400);
   try {

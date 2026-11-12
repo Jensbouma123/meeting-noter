@@ -27,7 +27,9 @@ export function GET(request: Request): Response {
 export async function POST(request: Request): Promise<Response> {
   const refused = refuseForeign(request);
   if (refused) return refused;
-  const body = await readJson(request, MAX_BODY_BYTES);
+  const parsed = await readJson(request, MAX_BODY_BYTES);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.value;
   if (!body || typeof body !== 'object' || Array.isArray(body)) return failure('bad-folder', 400);
   const { name, parentId } = body as { name?: unknown; parentId?: unknown };
   if (typeof name !== 'string') return failure('bad-name', 400);
