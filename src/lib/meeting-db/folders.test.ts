@@ -116,15 +116,39 @@ describe('folders', () => {
     store.save(sampleMeeting());
     store.moveMeeting('meeting-1', child.id);
     const oldPath = path.join(dir, 'meetings', markdownFolderPath(store.db.listFolders(), child.id), store.db.markdownFile('meeting-1')!.split('/').at(-1)!);
+    expect(path.relative(path.join(dir, 'meetings'), oldPath).startsWith('..')).toBe(false);
     expect(fs.existsSync(oldPath)).toBe(true);
 
     store.renameFolder(parent.id, 'Roadmap');
     const renamedPath = path.join(dir, 'meetings', markdownFolderPath(store.db.listFolders(), child.id), store.db.markdownFile('meeting-1')!.split('/').at(-1)!);
     expect(fs.existsSync(oldPath)).toBe(false);
     expect(fs.existsSync(renamedPath)).toBe(true);
+    expect(path.relative(path.join(dir, 'meetings'), renamedPath).startsWith('..')).toBe(false);
     store.moveMeeting('meeting-1', null);
     expect(fs.existsSync(renamedPath)).toBe(false);
     expect(fs.existsSync(path.join(dir, 'meetings', store.db.markdownFile('meeting-1')!))).toBe(true);
+  });
+
+  it('moves markdown files when a folder itself moves and keeps traversal names inside the root', () => {
+    const dir = tmpDir();
+    const store = new MeetingStore(new MeetingsDb(path.join(dir, 'meetings.db')), path.join(dir, 'meetings'));
+    const a = store.createFolder('../../outside');
+    const b = store.createFolder('B');
+    const child = store.createFolder('child', a.id);
+    store.save(sampleMeeting());
+    store.moveMeeting('meeting-1', child.id);
+    const markdown = store.db.markdownFile('meeting-1')!;
+    const root = path.resolve(dir, 'meetings');
+    const before = path.resolve(root, markdown);
+    expect(path.relative(root, before).startsWith('..')).toBe(false);
+    expect(fs.existsSync(before)).toBe(true);
+
+    store.moveFolder(a.id, b.id);
+    const after = path.resolve(root, store.db.markdownFile('meeting-1')!);
+    expect(after).not.toBe(before);
+    expect(path.relative(root, after).startsWith('..')).toBe(false);
+    expect(fs.existsSync(before)).toBe(false);
+    expect(fs.existsSync(after)).toBe(true);
   });
 
   it('migrates a v3 database', () => {

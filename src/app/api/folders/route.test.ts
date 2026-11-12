@@ -5,6 +5,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { sampleMeeting } from '@/lib/meeting-db/test-meeting';
 import { PUT as put } from '../meetings/[id]/route';
 import { PUT as fileMeeting } from '../meetings/[id]/folder/route';
+import { GET as getMeeting } from '../meetings/[id]/route';
+import { GET as getMeetings } from '../meetings/route';
 import { GET as getFolders, POST as post } from './route';
 import { DELETE as del, PATCH as patch } from './[id]/route';
 
@@ -63,5 +65,28 @@ describe('/api/folders', () => {
     const res = await del(req('DELETE', `/folders/${a}?mode=delete-contents`), ctx(a));
     expect(await res.json()).toEqual({ ok: true, deleted: { folders: 1, meetings: 1 } });
     expect((await del(req('DELETE', `/folders/${a}`), ctx(a))).status).toBe(404);
+  });
+
+  it('validates route ids and bodies and exposes folderId through meeting reads', async () => {
+    expect((await patch(req('PATCH', '/folders/bad%2Fid', {}), ctx('bad/id'))).status).toBe(400);
+    expect((await del(req('DELETE', '/folders/bad%2Fid'), ctx('bad/id'))).status).toBe(400);
+    expect((await patch(req('PATCH', '/folders/x', {}), ctx('x'))).status).toBe(400);
+    expect((await patch(req('PATCH', '/folders/x', { parentId: 7 }), ctx('x'))).status).toBe(400);
+    expect((await fileMeeting(req('PUT', '/meetings/x/folder', {}), ctx('x'))).status).toBe(400);
+    expect((await fileMeeting(req('PUT', '/meetings/x/folder', { folderId: 7 }), ctx('x'))).status).toBe(400);
+    expect((await fileMeeting(req('PUT', '/meetings/x/folder', { folderId: null }), ctx('bad/id'))).status).toBe(400);
+
+    const folder = ((await (await post(req('POST', '/folders', { name: 'Filed' }))).json()) as { folder: { id: string } }).folder;
+    const meeting = sampleMeeting({ updatedAt: 10 });
+    expect((await put(req('PUT', `/meetings/${meeting.id}`, meeting), ctx(meeting.id))).status).toBe(200);
+    expect((await fileMeeting(req('PUT', `/meetings/${meeting.id}/folder`, { folderId: folder.id }), ctx(meeting.id))).status).toBe(200);
+
+    const list = (await (await getMeetings(req('GET', '/meetings'))).json()) as { meetings: Array<{ id: string; folderId: string | null; updatedAt: number }> };
+    const row = list.meetings.find((item) => item.id === meeting.id)!;
+    expect(row.folderId).toBe(folder.id);
+    expect(row.updatedAt).toBeGreaterThan(meeting.updatedAt);
+    const detailResponse = await getMeeting(req('GET', `/meetings/${meeting.id}`), ctx(meeting.id));
+    const detail = (await detailResponse.json()) as { meeting: { folderId: string | null } };
+    expect(detail.meeting.folderId).toBe(folder.id);
   });
 });
