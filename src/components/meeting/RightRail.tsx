@@ -247,17 +247,32 @@ export function RightRail({ sessionId, segments = [] }: { sessionId: string; seg
     /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
+  const asideRef = useRef<HTMLElement>(null);
+  // Which toggle button should take focus after the next open/close render.
+  const pendingFocus = useRef<'show' | 'hide' | null>(null);
+
   const toggleOpen = useCallback(() => {
-    setOpen((prev) => {
-      const next = !prev;
-      try {
-        window.localStorage.setItem(RAIL_OPEN_KEY, next ? '1' : '0');
-      } catch {
-        // Best-effort only.
-      }
-      return next;
-    });
-  }, []);
+    const next = !open;
+    pendingFocus.current = next ? 'hide' : 'show';
+    try {
+      window.localStorage.setItem(RAIL_OPEN_KEY, next ? '1' : '0');
+    } catch {
+      // Best-effort only.
+    }
+    setOpen(next);
+  }, [open]);
+
+  // Focus moves to the button that now exists after a toggle (not on mount).
+  useEffect(() => {
+    const target = pendingFocus.current;
+    if (!target) return;
+    pendingFocus.current = null;
+    const label = target === 'show' ? t('showRail') : t('hideRail');
+    const button = Array.from(asideRef.current?.querySelectorAll('button') ?? []).find(
+      (b) => b.getAttribute('aria-label') === label,
+    );
+    button?.focus();
+  }, [open, t]);
 
   const onAssigned = (added: number) => {
     if (added > 0 && !notedSessions.has(sessionId)) {
@@ -363,42 +378,41 @@ export function RightRail({ sessionId, segments = [] }: { sessionId: string; seg
     </Drawer>
   );
 
-  if (!open) {
-    return (
-      <>
-        {drawer}
-        <aside
-          className="hidden w-12 shrink-0 select-none flex-col items-center gap-3 border-l border-border-subtle bg-surface/50 py-3 lg:flex"
-          aria-label={t('participants')}
-        >
-          <Button
-            variant="ghost"
-            size="sm"
-            iconOnly
-            className="touch-target-44"
-            onClick={toggleOpen}
-            tooltip={t('showRail')}
-            aria-label={t('showRail')}
-            leadingIcon={<PanelRightOpen className="size-4" aria-hidden="true" />}
-          />
-          <Users className="size-4 text-muted-foreground" aria-hidden="true" />
-          {speakerStatRows.length > 0 && (
-            <Badge variant="neutral" size="xs">
-              {speakerStatRows.length}
-            </Badge>
-          )}
-        </aside>
-      </>
-    );
-  }
-
+  // One aside for both states: only its width animates (same transition as the
+  // left sidebar); the bodies keep a fixed width so content is clipped, not reflowed.
   return (
     <>
       {drawer}
       <aside
-        className="hidden w-64 shrink-0 xl:w-72 select-none flex-col gap-3 border-l border-border-subtle bg-surface/50 lg:flex"
-        aria-label={t('rail')}
+        ref={asideRef}
+        className={[
+          'hidden shrink-0 select-none flex-col overflow-hidden border-l border-border-subtle bg-surface/50 transition-[width] duration-200 ease-in-out motion-reduce:transition-none lg:flex',
+          open ? 'w-64 xl:w-72' : 'w-12',
+        ].join(' ')}
+        aria-label={open ? t('rail') : t('participants')}
       >
+        {!open && (
+          <div className="flex h-full w-12 flex-col items-center gap-3 py-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              iconOnly
+              className="touch-target-44"
+              onClick={toggleOpen}
+              tooltip={t('showRail')}
+              aria-label={t('showRail')}
+              leadingIcon={<PanelRightOpen className="size-4" aria-hidden="true" />}
+            />
+            <Users className="size-4 text-muted-foreground" aria-hidden="true" />
+            {speakerStatRows.length > 0 && (
+              <Badge variant="neutral" size="xs">
+                {speakerStatRows.length}
+              </Badge>
+            )}
+          </div>
+        )}
+        {open && (
+      <div className="flex min-h-0 w-64 flex-1 shrink-0 flex-col gap-3 xl:w-72">
         <RailTabs
           active={activeTab}
           onChange={setActiveTab}
@@ -419,6 +433,8 @@ export function RightRail({ sessionId, segments = [] }: { sessionId: string; seg
         <VStack spacing="sm" role="tabpanel" id={`rail-panel-${activeTab}`} aria-labelledby={`rail-tab-${activeTab}`} className="min-h-0 flex-1 overflow-y-auto px-4 pt-1 pb-4">
           {activeTab === 'participants' ? list : <NotesPanel sessionId={sessionId} speakers={speakerStatRows.map((row) => ({ id: row.id, label: row.label, colorIndex: row.colorIndex, source: row.source }))} segments={segments} />}
         </VStack>
+      </div>
+        )}
       </aside>
     </>
   );

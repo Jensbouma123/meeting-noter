@@ -57,6 +57,28 @@ describe('RightRail header tabs', () => {
     expect(screen.getAllByRole('tab')).toHaveLength(2);
   });
 
+  it('animates its width with the left sidebar transition, honouring reduced motion', () => {
+    const { container } = view();
+    const rail = container.querySelector('aside') as HTMLElement;
+    for (const cls of ['transition-[width]', 'duration-200', 'ease-in-out', 'motion-reduce:transition-none']) {
+      expect(rail.className).toContain(cls);
+    }
+    fireEvent.click(screen.getByRole('button', { name: 'Hide panel' }));
+    // Same element stays mounted and animates from w-64 to w-12.
+    expect(container.querySelector('aside')).toBe(rail);
+    expect(rail.className).toContain('w-12');
+    expect(rail.className).toContain('transition-[width]');
+    expect(rail.className).toContain('motion-reduce:transition-none');
+  });
+
+  it('moves focus to the reopen button after hiding and to the hide button after showing', () => {
+    view();
+    fireEvent.click(screen.getByRole('button', { name: 'Hide panel' }));
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Show panel' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Show panel' }));
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Hide panel' }));
+  });
+
   it('is labelled in Dutch', () => {
     view('nl');
     expect(screen.getByRole('button', { name: 'Paneel verbergen' })).toBeTruthy();
