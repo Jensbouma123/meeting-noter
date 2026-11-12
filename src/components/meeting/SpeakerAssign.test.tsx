@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SpeakerAssign } from './SpeakerAssign';
 import { getParticipants, setParticipants } from '@/lib/meeting/participants';
+import { resetVocabularyForTests } from '@/lib/vocabulary/store';
 import { LanguageContext } from '@/lib/i18n/LanguageContext';
 
 const renameSpeaker = vi.fn();
@@ -20,6 +21,8 @@ const open = () => fireEvent.click(screen.getByTestId('speaker-assign'));
 
 beforeEach(() => {
   localStorage.clear();
+  // The word list is cached in memory: reset it so names from an earlier test do not count as known.
+  resetVocabularyForTests();
   renameSpeaker.mockClear();
   setParticipants('s1', ['Anna', 'Jan']);
 });
@@ -72,6 +75,68 @@ describe('SpeakerAssign', () => {
     expect(renameSpeaker).toHaveBeenCalledWith('2', 'Jann');
   });
 
+  it('Enter renames once, not again when the field closes', () => {
+    view('Speaker 2');
+    open();
+    fireEvent.click(screen.getByText('Someone else…'));
+    const input = screen.getByLabelText('Someone else…');
+    fireEvent.change(input, { target: { value: 'Noor' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(renameSpeaker).toHaveBeenCalledTimes(1);
+  });
+
+  it('Escape cancels the typed name without renaming', () => {
+    view('Speaker 2');
+    open();
+    fireEvent.click(screen.getByText('Someone else…'));
+    const input = screen.getByLabelText('Someone else…');
+    fireEvent.change(input, { target: { value: 'Noor' } });
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(renameSpeaker).not.toHaveBeenCalled();
+    expect(screen.queryByLabelText('Someone else…')).toBeNull();
+    expect(getParticipants('s1')).toEqual(['Anna', 'Jan']);
+  });
+
+  it('a blank name is not assigned, on Enter or on blur', () => {
+    view('Speaker 2');
+    open();
+    fireEvent.click(screen.getByText('Someone else…'));
+    const input = screen.getByLabelText('Someone else…');
+    fireEvent.change(input, { target: { value: '   ' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(renameSpeaker).not.toHaveBeenCalled();
+    fireEvent.blur(input);
+    expect(renameSpeaker).not.toHaveBeenCalled();
+    expect(screen.queryByLabelText('Someone else…')).toBeNull();
+  });
+
+  it('a typed name that is a participant in another case does not add a second entry', () => {
+    view('Speaker 2');
+    open();
+    fireEvent.click(screen.getByText('Someone else…'));
+    const input = screen.getByLabelText('Someone else…');
+    fireEvent.change(input, { target: { value: 'anna' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(getParticipants('s1')).toEqual(['Anna', 'Jan']);
+  });
+
+  it('blur with a typed name assigns it', () => {
+    view('Speaker 2');
+    open();
+    fireEvent.click(screen.getByText('Someone else…'));
+    const input = screen.getByLabelText('Someone else…');
+    fireEvent.change(input, { target: { value: 'Noor' } });
+    fireEvent.blur(input);
+    expect(renameSpeaker).toHaveBeenCalledWith('2', 'Noor');
+  });
+
+  it('an unnamed speaker has no Clear or Edit entries', () => {
+    view('Speaker 2');
+    open();
+    expect(screen.queryByText('Clear name')).toBeNull();
+    expect(screen.queryByText('Edit name…')).toBeNull();
+  });
+
   it('rail appearance shows a neutral "Who is this?" button for an unnamed speaker', () => {
     view('Speaker 2', { appearance: 'rail' });
     const trigger = screen.getByTestId('speaker-assign');
@@ -79,11 +144,27 @@ describe('SpeakerAssign', () => {
     expect(trigger.className).not.toMatch(/text-primary/);
   });
 
-  it('reports how many names were added to the vocabulary', () => {
+  it('rail appearance shows a named speaker as a change trigger with its name', () => {
+    view('Jan', { appearance: 'rail' });
+    expect(screen.getByRole('button', { name: 'Change who this is: Jan' })).toBeInTheDocument();
+  });
+
+  it('reports how many names were newly added to the word list', () => {
     const onAssigned = vi.fn();
     view('Speaker 2', { onAssigned });
     open();
+    fireEvent.click(screen.getByText('Someone else…'));
+    const input = screen.getByLabelText('Someone else…');
+    fireEvent.change(input, { target: { value: 'Noor' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onAssigned).toHaveBeenLastCalledWith(1);
+  });
+
+  it('reports 0 when the assigned name is already on the word list', () => {
+    const onAssigned = vi.fn();
+    view('Speaker 2', { onAssigned }); // "Jan" was added to the word list by beforeEach
+    open();
     fireEvent.click(screen.getByText('Jan'));
-    expect(onAssigned).toHaveBeenCalledWith(expect.any(Number));
+    expect(onAssigned).toHaveBeenLastCalledWith(0);
   });
 });
