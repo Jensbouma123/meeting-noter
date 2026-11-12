@@ -112,7 +112,7 @@ describe('/api/meetings', () => {
     expect(await (await removeAll(req('', { method: 'DELETE' }))).json()).toEqual({ ok: true, deleted: 2 });
     const all = await (await list(req(''))).json();
     expect(all.meetings).toEqual([]);
-    expect(all.deleted.sort()).toEqual([a.id, 'b']);
+    expect(all.deleted.sort()).toEqual(['b', a.id].sort());
     expect(fs.readdirSync(path.join(dir, 'meetings'))).toEqual([]);
     const raw = ['', '-wal'].map((x) => (fs.existsSync(path.join(dir, 'meetings.db') + x) ? fs.readFileSync(path.join(dir, 'meetings.db') + x, 'latin1') : '')).join('');
     expect(raw).not.toContain('quarterly budget');
