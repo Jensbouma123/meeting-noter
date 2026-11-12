@@ -121,3 +121,19 @@ describe('RailSessionRow recording badge', () => {
     expect(screen.getByText(/· 01:05$/)).toBeInTheDocument();
   });
 });
+
+describe('RailSessionRow folder path in search', () => {
+  it('shows the folder path ahead of the time and duration', () => {
+    render(
+      <RailSessionRow session={draft({ isDraft: false, segmentCount: 2, durationSeconds: 65 })} isActive={false} onOpen={noop} onClear={noop} onDelete={noop} pathLabel="Work / Q1" />,
+    );
+    expect(screen.getByText(/^Work \/ Q1 · /)).toBeInTheDocument();
+  });
+
+  it('shows no path when the meeting is unfiled', () => {
+    render(
+      <RailSessionRow session={draft({ isDraft: false, segmentCount: 2, durationSeconds: 65 })} isActive={false} onOpen={noop} onClear={noop} onDelete={noop} />,
+    );
+    expect(screen.queryByText(/\//)).toBeNull();
+  });
+});

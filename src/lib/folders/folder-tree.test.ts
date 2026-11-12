@@ -33,4 +33,30 @@ describe('folder tree helpers', () => {
   it('counts meetings per folder', () => {
     expect(countByFolder({ m1: 'a', m2: 'a', m3: null }).get('a')).toBe(2);
   });
+  it('shows a folder whose parent is unknown at the root', () => {
+    const tree = buildFolderTree([f('x', 'missing', 'Orphan'), f('y', null, 'Home')]);
+    expect(tree.map((n) => n.folder.id)).toEqual(['x', 'y']);
+    expect(folderPickerOptions([f('x', 'missing', 'Orphan')]).map((o) => `${o.depth}${o.id}`)).toEqual(['0x']);
+  });
+  it('keeps the folder order it was given among siblings', () => {
+    const tree = buildFolderTree([f('z', null, 'Zeta'), f('a', null, 'Alpha')]);
+    expect(tree.map((n) => n.folder.name)).toEqual(['Zeta', 'Alpha']);
+  });
+  it('gives an empty path when a folder id is missing from the rows', () => {
+    expect(folderPath([], 'a')).toEqual([]);
+  });
+  it('stops a corrupt parent loop instead of hanging', () => {
+    const looped = [f('p', 'q', 'P'), f('q', 'p', 'Q')];
+    expect(folderPath(looped, 'p')).toEqual(['Q', 'P']);
+  });
+  it('rejects moving a folder into its own child, and unknown folders', () => {
+    expect(canMoveFolder(rows, 'zzz', null)).toBe(false);
+    expect(canMoveFolder(rows, 'a', 'b')).toBe(false);
+  });
+  it('excludes nothing from the picker when no subtree is given', () => {
+    expect(folderPickerOptions(rows).length).toBe(rows.length);
+  });
+  it('counts nothing for unfiled meetings only', () => {
+    expect(countByFolder({ m1: null, m2: null }).size).toBe(0);
+  });
 });
