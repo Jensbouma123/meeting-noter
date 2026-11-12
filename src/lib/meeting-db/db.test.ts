@@ -200,7 +200,8 @@ describe('parseStoredMeeting', () => {
   it('cleans participants and reads a missing list as never asked', () => {
     expect(parseStoredMeeting({ ...sampleMeeting(), participants: [' Anna ', 'anna', 3, '', 'Jan'] })!.participants)
       .toEqual(['Anna', 'Jan']);
-    const { participants: _omit, ...older } = sampleMeeting();
+    const older: Partial<ReturnType<typeof sampleMeeting>> = sampleMeeting();
+    delete older.participants;
     expect(parseStoredMeeting(older)!.participants).toBeNull();
     expect(parseStoredMeeting({ ...sampleMeeting(), participants: [] })!.participants).toEqual([]);
   });
