@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import type { SessionMetadata } from '@/lib/meeting/session-store';
 import { getRailBadgeState, RailSessionRow } from './SessionList';
 import {
@@ -59,6 +59,28 @@ describe('getRailBadgeState', () => {
     expect(
       getRailBadgeState(draft({ isDraft: false, segmentCount: 2, durationSeconds: 65 }), false),
     ).toBe('none');
+  });
+});
+
+describe('RailSessionRow more menu', () => {
+  function openMenu(sessionTitle: string) {
+    fireEvent.click(screen.getByRole('button', { name: `More actions for “${sessionTitle}”` }));
+  }
+
+  it('hides "Open" for the meeting that is currently open', () => {
+    render(row(draft()));
+    openMenu('Standup');
+    expect(screen.getByRole('menuitem', { name: 'Clear transcript', hidden: true })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Delete meeting', hidden: true })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Open', hidden: true })).toBeNull();
+  });
+
+  it('keeps "Open" for a meeting that is not currently open', () => {
+    render(
+      <RailSessionRow session={draft()} isActive={false} onOpen={noop} onClear={noop} onDelete={noop} />,
+    );
+    openMenu('Standup');
+    expect(screen.getByRole('menuitem', { name: 'Open', hidden: true })).toBeInTheDocument();
   });
 });
 

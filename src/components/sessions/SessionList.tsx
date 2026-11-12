@@ -532,9 +532,11 @@ export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete }:
             />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem icon={<ArrowRight className="size-4" />} onClick={onOpen}>
-              {t('open')}
-            </DropdownMenuItem>
+            {!isActive && (
+              <DropdownMenuItem icon={<ArrowRight className="size-4" />} onClick={onOpen}>
+                {t('open')}
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem variant="danger" icon={<Eraser className="size-4" />} disabled={locked} onClick={onClear}>
               {t('clear')}
             </DropdownMenuItem>
