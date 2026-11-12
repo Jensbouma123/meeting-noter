@@ -79,7 +79,7 @@ export function ParticipantsEditor({
               </span>
               <button
                 type="button"
-                className="touch-target-44 inline-flex size-5 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
+                className="focus-ring touch-target-44 inline-flex size-5 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
                 aria-label={t('remove').replace('{name}', name)}
                 onClick={() => onChange(names.filter((n) => n !== name))}
               >

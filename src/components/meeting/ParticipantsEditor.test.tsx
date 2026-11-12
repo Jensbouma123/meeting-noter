@@ -45,4 +45,9 @@ describe('ParticipantsEditor combobox', () => {
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(onChange).toHaveBeenLastCalledWith(['Piet']);
   });
+
+  it('gives the remove button the app focus ring', () => {
+    show(vi.fn(), ['Anna']);
+    expect(screen.getByRole('button', { name: 'Remove Anna' })).toHaveClass('focus-ring');
+  });
 });
