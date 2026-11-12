@@ -20,6 +20,15 @@ const words = () => getVocabulary().entries.map((e) => e.word);
 const startEdit = (word: string) => fireEvent.click(screen.getByRole('button', { name: `Edit ${word}` }));
 
 describe('VocabularyRow editing', () => {
+  it('focuses the field and selects the word when editing starts', () => {
+    render(<VocabularySection />);
+    startEdit('Framna');
+    const field = screen.getByLabelText('Word') as HTMLInputElement;
+    expect(document.activeElement).toBe(field);
+    expect(field.selectionStart).toBe(0);
+    expect(field.selectionEnd).toBe('Framna'.length);
+  });
+
   it('edits a word inline with Enter', () => {
     render(<VocabularySection />);
     startEdit('Framna');
