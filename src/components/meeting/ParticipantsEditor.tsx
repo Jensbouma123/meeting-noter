@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { Button, HStack, Input, Text, VStack } from '@jensbouma123/acciva-ui';
-import { Plus, X } from 'lucide-react';
+import { useId, useState } from 'react';
+import { Input, Text, VStack } from '@jensbouma123/acciva-ui';
+import { X } from 'lucide-react';
 import { useT } from '@/lib/i18n/useT';
 import { parseParticipantNames, uniqueNames } from '@/lib/meeting/participants';
+import { useVocabulary } from '@/lib/vocabulary/store';
 
 export const CHIP_CLASS =
   'inline-flex min-h-8 items-center gap-1 rounded-full border border-border-subtle bg-surface px-3 text-sm text-foreground';
@@ -12,11 +13,7 @@ export const CHIP_CLASS =
 const COMPACT_CHIP_CLASS =
   'inline-flex min-h-7 items-center gap-1 rounded-full border border-border-subtle bg-surface pl-2.5 pr-1 text-xs text-foreground';
 
-/**
- * Chips for the people in a meeting, one add field (Enter adds, commas split)
- * and recently used names as one-click suggestions. Controlled: the owner
- * decides when the list is saved. `compact` is the narrow right-rail layout.
- */
+/** People chips and a searchable, keyboard accessible combobox for adding names. */
 export function ParticipantsEditor({
   id,
   names,
@@ -35,6 +32,10 @@ export function ParticipantsEditor({
 }) {
   const t = useT('participants');
   const [draft, setDraft] = useState('');
+  const [focused, setFocused] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const listId = useId();
+  const { entries } = useVocabulary();
 
   const add = (incoming: string[]) => {
     if (incoming.length > 0) onChange(uniqueNames([...names, ...incoming]));
@@ -44,35 +45,25 @@ export function ParticipantsEditor({
     setDraft('');
   };
   const taken = new Set(names.map((n) => n.toLowerCase()));
-  const open = suggestions.filter((n) => !taken.has(n.toLowerCase()));
-
-  const field = (
-    <Input
-      id={id}
-      size={compact ? 'sm' : undefined}
-      aria-label={t('addLabel')}
-      placeholder={compact ? t('placeholderShort') : t('placeholder')}
-      value={draft}
-      autoComplete="off"
-      onChange={(e) => {
-        const value = e.target.value;
-        if (value.includes(',')) {
-          const parts = value.split(',');
-          const rest = parts.pop() ?? '';
-          add(parseParticipantNames(parts.join(',')));
-          setDraft(rest);
-        } else {
-          setDraft(value);
-        }
-      }}
-      onKeyDown={(e) => {
-        if (e.key !== 'Enter') return;
-        e.preventDefault();
-        if (draft.trim()) commitDraft();
-        else onEmptyEnter?.();
-      }}
-    />
-  );
+  const known = uniqueNames([
+    ...suggestions,
+    ...entries.filter((entry) => entry.source === 'meeting').map((entry) => entry.word),
+  ]).filter((name) => !taken.has(name.toLowerCase()));
+  const query = draft.trim().toLowerCase();
+  const matches = query ? known.filter((name) => name.toLowerCase().includes(query)) : known;
+  const exactMatch = query && known.some((name) => name.toLowerCase() === query);
+  const options = [
+    ...matches.map((name) => ({ name, addNew: false })),
+    ...(query && !exactMatch
+      ? [{ name: draft.trim().replace(/\s+/g, ' ').slice(0, 40), addNew: true }]
+      : []),
+  ];
+  const menuOpen = focused && options.length > 0;
+  const select = (name: string) => {
+    add([name]);
+    setDraft('');
+    setActiveIndex(-1);
+  };
 
   return (
     <VStack spacing="sm" className="w-full">
@@ -81,104 +72,95 @@ export function ParticipantsEditor({
           className={`m-0 flex list-none flex-wrap p-0 ${compact ? 'gap-1.5' : 'gap-2'}`}
           aria-label={t('listLabel')}
         >
-          {names.map((name) =>
-            compact ? (
-              <li key={name} className={COMPACT_CHIP_CLASS}>
-                <span className="max-w-36 truncate" title={name}>
-                  {name}
-                </span>
-                <button
-                  type="button"
-                  className="touch-target-44 inline-flex size-5 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
-                  aria-label={t('remove').replace('{name}', name)}
-                  onClick={() => onChange(names.filter((n) => n !== name))}
-                >
-                  <X className="size-3" aria-hidden="true" />
-                </button>
-              </li>
-            ) : (
-              <li key={name} className={CHIP_CLASS}>
-                <span className="max-w-48 truncate">{name}</span>
-                <button
-                  type="button"
-                  className="touch-target-44 inline-flex size-5 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
-                  aria-label={t('remove').replace('{name}', name)}
-                  onClick={() => onChange(names.filter((n) => n !== name))}
-                >
-                  <X className="size-3.5" aria-hidden="true" />
-                </button>
-              </li>
-            ),
-          )}
+          {names.map((name) => (
+            <li key={name} className={compact ? COMPACT_CHIP_CLASS : CHIP_CLASS}>
+              <span className={`${compact ? 'max-w-36' : 'max-w-48'} truncate`} title={compact ? name : undefined}>
+                {name}
+              </span>
+              <button
+                type="button"
+                className="touch-target-44 inline-flex size-5 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
+                aria-label={t('remove').replace('{name}', name)}
+                onClick={() => onChange(names.filter((n) => n !== name))}
+              >
+                <X className={compact ? 'size-3' : 'size-3.5'} aria-hidden="true" />
+              </button>
+            </li>
+          ))}
         </ul>
       )}
-      {compact ? (
-        <HStack spacing="xs" className="w-full">
-          <div className="min-w-0 flex-1">{field}</div>
-          <Button
-            variant="outline"
-            size="sm"
-            iconOnly
-            tooltip={t('add')}
-            aria-label={t('add')}
-            className="shrink-0"
-            leadingIcon={<Plus className="size-4" aria-hidden="true" />}
-            disabled={draft.trim().length === 0}
-            onClick={commitDraft}
-          />
-        </HStack>
-      ) : (
-        <HStack spacing="sm" className="w-full">
-          <div className="min-w-0 flex-1">{field}</div>
-          <Button
-            variant="outline"
-            size={{ base: 'md', md: 'sm' }}
-            leadingIcon={<Plus className="size-3.5" aria-hidden="true" />}
-            disabled={draft.trim().length === 0}
-            onClick={commitDraft}
+      <div className="relative w-full">
+        <Input
+          id={id}
+          size={compact ? 'sm' : undefined}
+          aria-label={t('addLabel')}
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={menuOpen}
+          aria-controls={listId}
+      aria-activedescendant={menuOpen && activeIndex >= 0 ? `${listId}-option-${activeIndex}` : undefined}
+          placeholder={compact ? t('placeholderShort') : t('placeholder')}
+          value={draft}
+          autoComplete="off"
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value.includes(',')) {
+              const parts = value.split(',');
+              const rest = parts.pop() ?? '';
+              add(parseParticipantNames(parts.join(',')));
+              setDraft(rest);
+            } else {
+              setDraft(value);
+            }
+            setActiveIndex(-1);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowDown' && options.length > 0) {
+              e.preventDefault();
+              setActiveIndex((current) => (current + 1) % options.length);
+            } else if (e.key === 'ArrowUp' && options.length > 0) {
+              e.preventDefault();
+              setActiveIndex((current) => (current < 0 ? options.length - 1 : (current - 1 + options.length) % options.length));
+            } else if (e.key === 'Escape') {
+              setFocused(false);
+            } else if (e.key === 'Enter') {
+              e.preventDefault();
+              if (draft.trim() && options.length > 0) select(options[activeIndex]?.name ?? options[0].name);
+              else if (draft.trim()) commitDraft();
+              else onEmptyEnter?.();
+            }
+          }}
+        />
+        {menuOpen && (
+          <ul
+            id={listId}
+            role="listbox"
+            className="absolute left-0 top-full z-50 mt-1 max-h-56 w-full overflow-auto rounded-md border border-border-subtle bg-surface p-1 shadow-lg"
           >
-            {t('add')}
-          </Button>
-        </HStack>
-      )}
-      {open.length > 0 &&
-        (compact ? (
-          <div className="flex flex-wrap items-center gap-1.5">
-            <Text as="span" size="xs" variant="muted">
-              {t('recent')}:
-            </Text>
-            {open.map((name) => (
-              <button
-                key={name}
-                type="button"
-                className={`${COMPACT_CHIP_CLASS} border-dashed hover:bg-surface-hover`}
-                onClick={() => add([name])}
+            {options.map((option, index) => (
+              <li
+                key={`${option.addNew ? 'add' : 'known'}-${option.name}`}
+                id={`${listId}-option-${index}`}
+                role="option"
+                aria-selected={activeIndex === index}
+                className={`cursor-pointer rounded px-2 py-1.5 text-sm ${activeIndex === index ? 'bg-surface-hover' : ''}`}
+                onMouseDown={(event) => event.preventDefault()}
+                onMouseEnter={() => setActiveIndex(index)}
+                onClick={() => select(option.name)}
               >
-                <Plus className="size-3 text-muted-foreground" aria-hidden="true" />
-                {name}
-              </button>
+                {option.addNew ? t('addOption').replace('{name}', option.name) : option.name}
+              </li>
             ))}
-          </div>
-        ) : (
-          <VStack spacing="xs" className="w-full">
-            <Text size="xs" variant="muted">
-              {t('recent')}
-            </Text>
-            <div className="flex flex-wrap gap-2">
-              {open.map((name) => (
-                <button
-                  key={name}
-                  type="button"
-                  className={`${CHIP_CLASS} border-dashed hover:bg-surface-hover`}
-                  onClick={() => add([name])}
-                >
-                  <Plus className="size-3.5 text-muted-foreground" aria-hidden="true" />
-                  {name}
-                </button>
-              ))}
-            </div>
-          </VStack>
-        ))}
+          </ul>
+        )}
+      </div>
+      {focused && !draft && matches.length > 0 && (
+        <Text size="xs" variant="muted">
+          {t('recent')}
+        </Text>
+      )}
     </VStack>
   );
 }

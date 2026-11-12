@@ -58,9 +58,10 @@ describe('ParticipantsDialog', () => {
   it('offers recently used people as one-click suggestions', () => {
     setParticipants('old', ['Marieke', 'Jens']);
     const { onStart } = show();
+    fireEvent.focus(field());
     expect(screen.getByText('Recently used')).toBeInTheDocument();
     // The owner is already a chip, so only Marieke is offered.
-    fireEvent.click(screen.getByRole('button', { name: 'Marieke' }));
+    fireEvent.click(screen.getByRole('option', { name: 'Marieke' }));
     expect(screen.getByRole('list', { name: 'People in this meeting' })).toHaveTextContent('JensMarieke');
     fireEvent.click(screen.getByRole('button', { name: 'Start' }));
     expect(onStart).toHaveBeenCalledWith(['Jens', 'Marieke']);

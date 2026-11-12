@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Button,
   DropdownMenu,
@@ -58,9 +58,22 @@ export function SpeakerAssign({
   const participants = useParticipants(sessionId);
   const [typing, setTyping] = useState(false);
   const [draft, setDraft] = useState('');
+  const nameRef = useRef<HTMLSpanElement>(null);
+  const [nameTruncated, setNameTruncated] = useState(false);
   const unnamed = isUnnamedSpeakerLabel(label);
   const rail = appearance === 'rail';
   const free = new Set(unassignedParticipants(participants, otherLabels).map((n) => n.toLowerCase()));
+
+  useEffect(() => {
+    const element = nameRef.current;
+    if (!element) return;
+    const measure = () => setNameTruncated(element.scrollWidth > element.clientWidth);
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [label, rail]);
 
   const assign = (name: string) => {
     const clean = name.trim().replace(/\s+/g, ' ');
@@ -120,12 +133,11 @@ export function SpeakerAssign({
         variant="ghost"
         size="xs"
         data-testid="speaker-assign"
-        title={label}
         aria-label={`${t('change')}: ${label}`}
         trailingIcon={<ChevronDown className="size-3 shrink-0 text-muted-foreground" aria-hidden="true" />}
-        className="-ml-1.5 max-w-full justify-start px-1.5"
+        className="-ml-1.5 min-w-0 w-full max-w-none flex-1 justify-start px-1.5"
       >
-        <span className="truncate text-sm font-medium text-foreground">{label}</span>
+        <span ref={nameRef} title={nameTruncated ? label : undefined} className="min-w-0 flex-1 truncate text-left text-sm font-medium text-foreground">{label}</span>
       </Button>
     )
   ) : (

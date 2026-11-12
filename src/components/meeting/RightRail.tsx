@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { getSpeakerColor } from './speaker-theme';
 import { useSpeakerStats } from '@/lib/meeting';
 import { PanelRightClose, PanelRightOpen, Info, Users } from 'lucide-react';
@@ -29,6 +29,26 @@ const RAIL_OPEN_KEY = 'mn.speakerRailOpen';
 const NARROW_BREAKPOINT_PX = 1024;
 
 type SpeakerRow = ReturnType<typeof useSpeakerStats>[number];
+
+function SpeakerLabel({ label }: { label: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [truncated, setTruncated] = useState(false);
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const measure = () => setTruncated(element.scrollWidth > element.clientWidth);
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [label]);
+  return (
+    <Text as="span" size="sm" variant="muted" truncate className="block min-w-0" title={truncated ? label : undefined}>
+      <span ref={ref} className="block min-w-0 truncate">{label}</span>
+    </Text>
+  );
+}
 
 interface SpeakerListProps {
   rows: SpeakerRow[];
@@ -77,9 +97,7 @@ function SpeakerList({ rows, sessionId, onAssigned }: SpeakerListProps) {
                 {named ? (
                   assign
                 ) : (
-                  <Text as="span" size="sm" variant="muted" truncate title={spk.label}>
-                    {spk.label}
-                  </Text>
+                  <SpeakerLabel label={spk.label} />
                 )}
               </div>
               <Text size="xs" variant="muted" font="mono" className="shrink-0 tabular-nums">
