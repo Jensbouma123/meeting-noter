@@ -1,0 +1,56 @@
+/**
+ * `/api/meetings/:id` — one meeting. `GET` reads it with its transcript,
+ * `PUT` stores it (the newer `updatedAt` wins: an older copy gets 409 and the
+ * stored one), `DELETE` removes it and its Markdown file.
+ */
+import { refuseForeign } from '@/lib/lifecycle/request-guard';
+import { MAX_MEETING_BODY_BYTES, failure, readJson, storageFailure } from '@/lib/meeting-db/http';
+import { meetingStore } from '@/lib/meeting-db/store';
+import { isMeetingId, parseStoredMeeting } from '@/lib/meeting-db/validate';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+type Ctx = { params: Promise<{ id: string }> };
+
+export async function GET(request: Request, { params }: Ctx): Promise<Response> {
+  const refused = refuseForeign(request);
+  if (refused) return refused;
+  const { id } = await params;
+  if (!isMeetingId(id)) return failure('bad-id', 400);
+  try {
+    const meeting = meetingStore().db.get(id);
+    return meeting ? Response.json({ ok: true, meeting }) : failure('not-found', 404);
+  } catch (err) {
+    return storageFailure(err);
+  }
+}
+
+export async function PUT(request: Request, { params }: Ctx): Promise<Response> {
+  const refused = refuseForeign(request);
+  if (refused) return refused;
+  const { id } = await params;
+  const meeting = parseStoredMeeting(await readJson(request, MAX_MEETING_BODY_BYTES));
+  if (!meeting || meeting.id !== id) return failure('bad-meeting', 400);
+  try {
+    const store = meetingStore();
+    if (store.save(meeting) === 'stale') {
+      return Response.json({ ok: false, error: 'stale', meeting: store.db.get(id) }, { status: 409 });
+    }
+    return Response.json({ ok: true });
+  } catch (err) {
+    return storageFailure(err);
+  }
+}
+
+export async function DELETE(request: Request, { params }: Ctx): Promise<Response> {
+  const refused = refuseForeign(request);
+  if (refused) return refused;
+  const { id } = await params;
+  if (!isMeetingId(id)) return failure('bad-id', 400);
+  try {
+    return Response.json({ ok: true, deleted: meetingStore().delete(id) });
+  } catch (err) {
+    return storageFailure(err);
+  }
+}

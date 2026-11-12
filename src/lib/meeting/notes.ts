@@ -1,4 +1,5 @@
 import type { Segment } from './types';
+import { queueMeetingSync } from './server-sync';
 
 export interface ActionItem {
   id: string;
@@ -74,6 +75,7 @@ function writeNotes(sessionId: string, notes: Notes): void {
   } catch {
     // Notes are best-effort when storage is unavailable or full.
   }
+  queueMeetingSync(sessionId);
   notify(sessionId);
 }
 

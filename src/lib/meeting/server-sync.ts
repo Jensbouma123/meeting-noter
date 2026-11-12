@@ -1,0 +1,295 @@
+import type { StoredMeeting } from '@/lib/meeting-db/types';
+import { getNotes } from './notes';
+import { loadAutosavedSession, loadSessionTranscript } from './persist';
+import { adoptStoredMeeting, archiveAutosavedSession, getSessionMetadata, listSessions } from './session-store';
+import { getTranscriptSessionId, isCaptureActive } from './store';
+
+/**
+ * Keeps the server's meetings DB (`/api/meetings`, see `src/lib/meeting-db`)
+ * in step with this browser. The session store still works on localStorage
+ * synchronously; every change it makes is queued here and written to the
+ * server a second later, so the DB on disk holds every meeting. When the
+ * server cannot be reached the ids wait in `mn.sync.pending.v1` and go out on
+ * the next change, the next start or when the browser is back online, so
+ * localStorage is the crash- and offline-safe copy, not the archive.
+ *
+ * `startServerSync` (called once by the app shell) also:
+ * - moves the browser's existing meetings and autosave into the DB once
+ *   (`migrateBrowserMeetings`), telling the UI through `mn:meetings-migrated`;
+ * - pulls meetings the DB has and this browser lacks, or has older.
+ * Nothing is sent before it runs, so unit tests never touch the network.
+ */
+
+const PENDING_KEY = 'mn.sync.pending.v1';
+/** id -> the `updatedAt` the server last accepted from or sent to us. */
+const SYNCED_KEY = 'mn.sync.synced.v1';
+export const MIGRATED_KEY = 'mn.db-migrated.v1';
+export const MIGRATED_EVENT = 'mn:meetings-migrated';
+const SYNC_DELAY_MS = 1000;
+const RETRY_MS = 30_000;
+
+export interface MigrationResult {
+  imported: number;
+  skipped: number;
+  invalid: number;
+  dataDir: string;
+}
+
+interface Pending {
+  save: string[];
+  remove: string[];
+}
+
+let enabled = false;
+let timer: ReturnType<typeof setTimeout> | null = null;
+let retryTimer: ReturnType<typeof setInterval> | null = null;
+let flushing: Promise<void> | null = null;
+/** Bumped by every queued change, so a flush knows whether the id changed while it was in flight. */
+const generation = new Map<string, number>();
+
+function storage(): Storage | null {
+  try {
+    return typeof window !== 'undefined' && window.localStorage ? window.localStorage : null;
+  } catch {
+    return null;
+  }
+}
+
+function readJson<T>(key: string, fallback: T): T {
+  try {
+    const raw = storage()?.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeJson(key: string, value: unknown): void {
+  try {
+    storage()?.setItem(key, JSON.stringify(value));
+  } catch {
+    // Quota: the change still reaches the server on the next successful flush of that id.
+  }
+}
+
+function readPending(): Pending {
+  const p = readJson<Partial<Pending>>(PENDING_KEY, {});
+  return {
+    save: Array.isArray(p.save) ? p.save.filter((x) => typeof x === 'string') : [],
+    remove: Array.isArray(p.remove) ? p.remove.filter((x) => typeof x === 'string') : [],
+  };
+}
+
+function markSynced(id: string, updatedAt: number | null): void {
+  const synced = readJson<Record<string, number>>(SYNCED_KEY, {});
+  if (updatedAt === null) delete synced[id];
+  else synced[id] = updatedAt;
+  writeJson(SYNCED_KEY, synced);
+}
+
+function schedule(): void {
+  if (!enabled || timer !== null) return;
+  timer = setTimeout(() => {
+    timer = null;
+    void flushServerSync();
+  }, SYNC_DELAY_MS);
+}
+
+/** Queue a session's current local state for the server. Called by every session-store and notes write. */
+export function queueMeetingSync(sessionId: string): void {
+  if (!sessionId) return;
+  generation.set(sessionId, (generation.get(sessionId) ?? 0) + 1);
+  const pending = readPending();
+  if (!pending.save.includes(sessionId)) pending.save.push(sessionId);
+  pending.remove = pending.remove.filter((id) => id !== sessionId);
+  writeJson(PENDING_KEY, pending);
+  schedule();
+}
+
+/** Queue a session's removal from the server. */
+export function queueMeetingDelete(sessionId: string): void {
+  if (!sessionId) return;
+  const pending = readPending();
+  pending.save = pending.save.filter((id) => id !== sessionId);
+  if (!pending.remove.includes(sessionId)) pending.remove.push(sessionId);
+  writeJson(PENDING_KEY, pending);
+  schedule();
+}
+
+/**
+ * A session as the DB stores it, built from localStorage: the index entry,
+ * the session's own transcript (or the autosave slot when it is the newer
+ * copy of this session) and its notes. Null for an unknown session.
+ */
+export function buildStoredMeeting(sessionId: string, now = Date.now()): StoredMeeting | null {
+  const meta = getSessionMetadata(sessionId);
+  if (!meta) return null;
+  let transcript = loadSessionTranscript(sessionId);
+  const autosaved = loadAutosavedSession();
+  if (autosaved && autosaved.sessionId === sessionId && (!transcript || autosaved.savedAt > transcript.savedAt)) {
+    transcript = autosaved;
+  }
+  const segments = (transcript?.segments ?? []).map(({ id, source, speaker, text, start, end, overlap }) => ({
+    id, source, speaker, text, start, end, ...(overlap ? { overlap } : {}),
+  }));
+  return {
+    id: sessionId,
+    title: meta.title,
+    createdAt: meta.createdAt,
+    // The send time, not the index's: notes change without touching the index.
+    updatedAt: Math.max(now, meta.updatedAt),
+    startedAt: transcript?.startedAt ?? null,
+    durationSeconds: meta.durationSeconds,
+    captureMode: meta.captureMode ?? null,
+    isDraft: segments.length === 0,
+    segments,
+    speakers: transcript?.speakers ?? {},
+    notes: getNotes(sessionId),
+  };
+}
+
+async function send(method: 'PUT' | 'DELETE', id: string, body?: StoredMeeting): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/meetings/${encodeURIComponent(id)}`, {
+      method,
+      headers: body ? { 'content-type': 'application/json' } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (res.ok) return true;
+    // 409: the server holds a newer copy, which the next pull brings in; 400:
+    // the server will never take it. Either way retrying cannot help.
+    return res.status === 409 || res.status === 400;
+  } catch {
+    return false;
+  }
+}
+
+/** Send every queued change now. Ids that fail stay queued. */
+export function flushServerSync(): Promise<void> {
+  if (!enabled) return Promise.resolve();
+  if (flushing) return flushing.then(() => flushServerSync());
+  flushing = (async () => {
+    const pending = readPending();
+    for (const id of pending.remove) {
+      if (await send('DELETE', id)) {
+        markSynced(id, null);
+        const now = readPending();
+        writeJson(PENDING_KEY, { ...now, remove: now.remove.filter((x) => x !== id) });
+      }
+    }
+    for (const id of pending.save) {
+      const gen = generation.get(id) ?? 0;
+      const meeting = buildStoredMeeting(id);
+      const ok = meeting ? await send('PUT', id, meeting) : true;
+      if (!ok) continue;
+      if (meeting) markSynced(id, meeting.updatedAt);
+      // A change queued while this one was in flight keeps the id queued.
+      if ((generation.get(id) ?? 0) !== gen) continue;
+      const now = readPending();
+      writeJson(PENDING_KEY, { ...now, save: now.save.filter((x) => x !== id) });
+    }
+  })().finally(() => {
+    flushing = null;
+  });
+  return flushing;
+}
+
+/**
+ * One-time move of this browser's meetings (and an autosave not yet filed
+ * under its session) into the DB. Idempotent on both sides: the flag stops a
+ * second run here, and the server skips meetings it already has. Returns the
+ * counts, or null when it already ran or the server is unreachable (it then
+ * runs again on the next start).
+ */
+export async function migrateBrowserMeetings(): Promise<MigrationResult | null> {
+  if (readJson<unknown>(MIGRATED_KEY, null)) return null;
+  // Only when nothing records: archiving would otherwise file a live transcript.
+  if (!isCaptureActive()) archiveAutosavedSession();
+  // Each keeps its index time as `updatedAt`, so importing it twice is a no-op.
+  const meetings = listSessions()
+    .map((s) => buildStoredMeeting(s.sessionId, s.updatedAt))
+    .filter((m): m is StoredMeeting => m !== null);
+  let result: MigrationResult;
+  try {
+    const res = await fetch('/api/meetings/import', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ meetings }),
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as MigrationResult & { ok: boolean };
+    result = { imported: body.imported, skipped: body.skipped, invalid: body.invalid, dataDir: body.dataDir };
+  } catch {
+    return null;
+  }
+  for (const m of meetings) markSynced(m.id, m.updatedAt);
+  writeJson(MIGRATED_KEY, { at: Date.now(), ...result });
+  if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+    window.dispatchEvent(new CustomEvent<MigrationResult>(MIGRATED_EVENT, { detail: result }));
+  }
+  return result;
+}
+
+/**
+ * Bring in meetings the DB has that this browser lacks or holds an older copy
+ * of (another browser, cleared site data). Local changes still queued, and the
+ * session being recorded, are never overwritten. Returns how many it adopted.
+ */
+export async function pullFromServer(): Promise<number> {
+  let list: { id: string; updatedAt: number }[];
+  try {
+    const res = await fetch('/api/meetings', { cache: 'no-store' });
+    if (!res.ok) return 0;
+    list = ((await res.json()) as { meetings: { id: string; updatedAt: number }[] }).meetings;
+  } catch {
+    return 0;
+  }
+  const pending = readPending();
+  const synced = readJson<Record<string, number>>(SYNCED_KEY, {});
+  let adopted = 0;
+  for (const row of list) {
+    if (pending.save.includes(row.id) || pending.remove.includes(row.id)) continue;
+    if (isCaptureActive() && getTranscriptSessionId() === row.id) continue;
+    const local = getSessionMetadata(row.id);
+    if (local && (synced[row.id] ?? local.updatedAt) >= row.updatedAt) continue;
+    try {
+      const res = await fetch(`/api/meetings/${encodeURIComponent(row.id)}`, { cache: 'no-store' });
+      if (!res.ok) continue;
+      const { meeting } = (await res.json()) as { meeting: StoredMeeting };
+      adoptStoredMeeting(meeting);
+      markSynced(meeting.id, meeting.updatedAt);
+      adopted += 1;
+    } catch {
+      // Next start tries again.
+    }
+  }
+  if (adopted > 0 && typeof window !== 'undefined') window.dispatchEvent(new Event('mn:sessions-changed'));
+  return adopted;
+}
+
+/** Turn syncing on: migrate once, push what is queued, pull what is missing, and retry while offline. */
+export async function startServerSync(): Promise<void> {
+  if (enabled) return;
+  enabled = true;
+  if (typeof window !== 'undefined') {
+    window.addEventListener('online', () => void flushServerSync());
+    retryTimer = setInterval(() => {
+      const p = readPending();
+      if (p.save.length > 0 || p.remove.length > 0) void flushServerSync();
+    }, RETRY_MS);
+  }
+  await migrateBrowserMeetings();
+  await flushServerSync();
+  await pullFromServer();
+}
+
+/** Tests: back to the state before `startServerSync`. */
+export function stopServerSyncForTests(): void {
+  enabled = false;
+  if (timer !== null) clearTimeout(timer);
+  if (retryTimer !== null) clearInterval(retryTimer);
+  timer = null;
+  retryTimer = null;
+  flushing = null;
+  generation.clear();
+}

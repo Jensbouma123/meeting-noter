@@ -55,14 +55,18 @@ export class MeetingStore {
   }
 }
 
-let shared: MeetingStore | null = null;
+let shared: { file: string; store: MeetingStore } | null = null;
 
-/** The process-wide store for the API routes, opened (and the folder made) on first use. */
+/**
+ * The process-wide store for the API routes, opened (and the folder made) on
+ * first use; reopened when MEETING_NOTER_DATA_DIR points somewhere else (tests).
+ */
 export function meetingStore(): MeetingStore {
-  if (!shared) {
-    const file = meetingsDbPath();
+  const file = meetingsDbPath();
+  if (shared?.file !== file) {
+    shared?.store.db.close();
     fs.mkdirSync(path.dirname(file), { recursive: true });
-    shared = new MeetingStore(new MeetingsDb(file), meetingsMarkdownDir());
+    shared = { file, store: new MeetingStore(new MeetingsDb(file), meetingsMarkdownDir()) };
   }
-  return shared;
+  return shared.store;
 }
