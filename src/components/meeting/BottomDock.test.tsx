@@ -90,6 +90,76 @@ describe('capture mode toggle', () => {
 
 });
 
+describe('dock states', () => {
+  function renderState(status: Status, extra: Partial<Parameters<typeof BottomDock>[0]> = {}) {
+    const handlers = { onStart: vi.fn(), onStop: vi.fn(), onPause: vi.fn(), onResume: vi.fn() };
+    render(
+      <LanguageContext.Provider value="nl">
+        <BottomDock
+          status={status}
+          mode="both"
+          modelReadiness="ready"
+          modelProgress={NO_MODEL_PROGRESS}
+          onModeChange={() => {}}
+          onOpenAdvanced={() => {}}
+          {...handlers}
+          {...extra}
+        />
+      </LanguageContext.Provider>,
+    );
+    return handlers;
+  }
+
+  it('idle: one Record action, no clock, pause or stop', () => {
+    const h = renderState('idle');
+    const record = screen.getByRole('button', { name: 'Opnemen (R).' });
+    expect(record).toHaveTextContent('Opnemen');
+    expect(screen.queryByRole('timer')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Pauzeren' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Opname stoppen' })).toBeNull();
+    fireEvent.click(record);
+    expect(h.onStart).toHaveBeenCalledOnce();
+    expect(screen.getAllByRole('tab').every((tab) => !(tab as HTMLButtonElement).disabled)).toBe(true);
+  });
+
+  it('without a model: the primary action offers the download', () => {
+    renderState('idle', { modelReadiness: 'not-downloaded' });
+    expect(screen.getByRole('button', { name: 'Model downloaden' })).toBeEnabled();
+    expect(screen.queryByRole('button', { name: 'Opnemen (R).' })).toBeNull();
+  });
+
+  it('recording: clock, pause and a labelled Stop; source and microphone locked', () => {
+    const h = renderState('live');
+    expect(screen.getByRole('timer')).toHaveTextContent('0:00');
+    expect(screen.queryByRole('button', { name: 'Opnemen (R).' })).toBeNull();
+    const stop = screen.getByRole('button', { name: 'Opname stoppen' });
+    expect(stop).toHaveTextContent('Stoppen');
+    fireEvent.click(stop);
+    expect(h.onStop).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getByRole('button', { name: 'Pauzeren' }));
+    expect(h.onPause).toHaveBeenCalledOnce();
+    expect(screen.getAllByRole('tab').every((tab) => (tab as HTMLButtonElement).disabled)).toBe(true);
+    expect(screen.getByRole('button', { name: 'Microfoon kiezen' })).toBeDisabled();
+  });
+
+  it('paused: the clock says so and the pause control resumes', () => {
+    const h = renderState('paused');
+    expect(screen.getByRole('timer')).toHaveTextContent('Gepauzeerd');
+    fireEvent.click(screen.getByRole('button', { name: 'Hervatten' }));
+    expect(h.onResume).toHaveBeenCalledOnce();
+    expect(screen.queryByRole('button', { name: 'Pauzeren' })).toBeNull();
+  });
+
+  it('shows exactly one tooltip for Stop', () => {
+    renderState('live');
+    const stop = screen.getByRole('button', { name: 'Opname stoppen' });
+    fireEvent.mouseEnter(stop);
+    const tips = screen.getAllByRole('tooltip', { hidden: true });
+    expect(tips).toHaveLength(1);
+    expect(tips[0]).toHaveTextContent('Opname stoppen (R).');
+  });
+});
+
 describe('saved mode migration', () => {
   it("turns a saved 'system' preference into 'both'", () => {
     localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({ ...DEFAULT_SETTINGS, mode: 'system' }));

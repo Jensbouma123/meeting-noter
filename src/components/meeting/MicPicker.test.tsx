@@ -101,17 +101,31 @@ describe('MicPicker', () => {
     expect(menu.style.getPropertyValue('--dropdown-offset')).toBe('8px');
   });
 
-  it('stacks mic over call rows in one pill, mic only when call is not recorded', () => {
+  it('shows one icon per recorded source plus a menu chevron, and drops the chevron while locked', () => {
     stubDevices(DEVICES);
-    const { rerender } = render(ui('default'));
-    const pill = screen.getByRole('button', { name: 'Choose microphone' });
-    expect(pill.querySelectorAll('svg')).toHaveLength(2);
-    rerender(
+    const picker = (mode: 'mic' | 'both', locked: boolean) => (
       <LanguageContext.Provider value="en">
-        <MicPicker value="default" onChange={vi.fn()} locked={false} mode="mic" active={false} />
+        <MicPicker value="default" onChange={vi.fn()} locked={locked} mode={mode} active={false} />
+      </LanguageContext.Provider>
+    );
+    const icons = () => screen.getByRole('button', { name: 'Choose microphone' }).querySelectorAll('svg');
+    const { rerender } = render(picker('both', false));
+    expect(icons()).toHaveLength(3);
+    rerender(picker('mic', false));
+    expect(icons()).toHaveLength(2);
+    rerender(picker('mic', true));
+    expect(icons()).toHaveLength(1);
+  });
+
+  it('marks missing call audio instead of drawing an empty call bar', () => {
+    stubDevices(DEVICES);
+    render(
+      <LanguageContext.Provider value="en">
+        <MicPicker value="default" onChange={vi.fn()} locked mode="both" active callMissing />
       </LanguageContext.Provider>,
     );
-    expect(screen.getByRole('button', { name: 'Choose microphone' }).querySelectorAll('svg')).toHaveLength(1);
+    expect(screen.getAllByRole('meter', { hidden: true }).map((m) => m.getAttribute('aria-label'))).toEqual(['Mic level']);
+    expect(screen.getByRole('img', { name: 'Call audio level: none', hidden: true })).toBeInTheDocument();
   });
 
   it('refreshes the list on devicechange', async () => {

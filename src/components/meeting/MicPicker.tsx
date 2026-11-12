@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Check } from 'lucide-react';
+import { Check, ChevronUp } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,15 +52,18 @@ export function MicPicker({ value, onChange, locked, mode, active, callMissing =
   }, [refresh]);
 
   const label = t('chooseMic');
-  // The level pill is the button: two vertical bars (mic, call) with their icons below.
+  // The level bars are the button. Same height, radius and quiet ghost fill as the
+  // dock's other secondary controls; the chevron only shows while the menu can open.
+  // Locked is not dimmed: the bars are live audio feedback during a recording.
   const trigger = (
     <button
       type="button"
       disabled={locked}
       aria-label={label}
-      className="touch-target-44 inline-flex h-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border-subtle bg-surface px-3.5 transition-colors hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-70"
+      className="focus-ring touch-target-44 inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-3 text-foreground transition-colors enabled:cursor-pointer enabled:hover:bg-elevation-2 enabled:active:bg-elevation-3 aria-expanded:bg-elevation-2 disabled:cursor-default dark:enabled:hover:bg-elevation-3 dark:enabled:active:bg-elevation-4 dark:aria-expanded:bg-elevation-3"
     >
-      <LevelMeter stacked mode={mode} active={active} callMissing={callMissing} />
+      <LevelMeter mode={mode} active={active} callMissing={callMissing} />
+      {!locked && <ChevronUp className="hidden size-4 text-muted-foreground sm:block" aria-hidden="true" />}
     </button>
   );
 
