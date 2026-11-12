@@ -1,0 +1,69 @@
+import type { HTMLAttributes } from "react";
+import { cn } from "@/lib/utils";
+
+export interface DiffStatProps extends HTMLAttributes<HTMLSpanElement> {
+  /** Lines added. Negative values clamp to zero. */
+  additions: number;
+  /** Lines removed. Negative values clamp to zero. */
+  deletions: number;
+}
+
+/** GitHub-style strip length: 5 blocks per stat, split by share of additions. */
+export const DIFF_STAT_BLOCKS = 5;
+
+/**
+ * How many of the 5 strip blocks use the additions (success) fill. The rest use the
+ * deletions (danger) fill; with no changes at all every block uses the neutral track.
+ * Shared with Swift `AccivaDiffStat.filledBlocks` — keep the two in sync.
+ */
+export function diffStatAddedBlocks(additions: number, deletions: number): number {
+  const total = Math.max(0, additions) + Math.max(0, deletions);
+  if (total === 0) return 0;
+  return Math.round((DIFF_STAT_BLOCKS * Math.max(0, additions)) / total);
+}
+
+function pluralize(count: number, singular: string): string {
+  return `${count} ${singular}${count === 1 ? "" : "s"}`;
+}
+
+/**
+ * GitHub-style `+additions / -deletions` counts plus a 5-block strip. Read-only: the
+ * counts are text so the strip's colour is never the only channel (SC 1.4.1), the strip
+ * is `aria-hidden`, and the whole stat carries one `role="img"` name (SC 4.1.2, 1.1.1).
+ */
+export function DiffStat({ additions, deletions, className, ...props }: DiffStatProps) {
+  const safeAdditions = Math.max(0, Math.floor(additions));
+  const safeDeletions = Math.max(0, Math.floor(deletions));
+  const total = safeAdditions + safeDeletions;
+  const addedBlocks = diffStatAddedBlocks(safeAdditions, safeDeletions);
+
+  return (
+    <span
+      role="img"
+      aria-label={`${pluralize(safeAdditions, "addition")}, ${pluralize(safeDeletions, "deletion")}`}
+      className={cn("inline-flex shrink-0 items-center gap-1.5", className)}
+      {...props}
+    >
+      <span className="font-medium tabular-nums">
+        <span className="text-success">+{safeAdditions}</span>
+        {"\u2009/\u2009"}
+        <span className="text-danger">−{safeDeletions}</span>
+      </span>
+      <span aria-hidden="true" className="inline-flex items-center gap-0.5">
+        {Array.from({ length: DIFF_STAT_BLOCKS }, (_, index) => (
+          <span
+            key={index}
+            className={cn(
+              "size-2 rounded-sm",
+              total === 0
+                ? "bg-border-control"
+                : index < addedBlocks
+                  ? "bg-success"
+                  : "bg-danger",
+            )}
+          />
+        ))}
+      </span>
+    </span>
+  );
+}

@@ -1,5 +1,7 @@
 import type { KeyboardEvent, ReactNode, RefObject } from "react";
 import type { SearchableSelectOption } from "./types.js";
+/** The trigger's `anchor-name`, which the top-layer panel positions against. */
+export declare const anchorNameFor: (listboxId: string) => string;
 export declare function OptionAdornment({ icon }: {
     icon: ReactNode;
 }): import("react").JSX.Element | null;

@@ -59,5 +59,5 @@ export function SearchableSelect({ id, options, value, onChange, label, placehol
                             onChange("");
                             setQuery("");
                             inputRef.current?.focus({ preventScroll: true });
-                        } }), _jsx("span", { id: statusId, role: "status", "aria-live": "polite", className: "sr-only", children: open ? `${filteredOptions.length} options available` : "" }), open ? (_jsx(SearchableSelectPanel, { items: filteredOptions, value: value, query: normalizedQuery, activeIndex: activeIndex, optionHeight: optionHeight, maxListHeight: maxListHeight, listRef: listHandle, labelId: label ? labelId : undefined, optionId: optionId, emptyMessage: emptyMessage, onCommit: commit, onHover: setActiveIndex })) : null] })] }));
+                        } }), _jsx("span", { id: statusId, role: "status", "aria-live": "polite", className: "sr-only", children: open ? `${filteredOptions.length} options available` : "" }), open ? (_jsx(SearchableSelectPanel, { items: filteredOptions, value: value, query: normalizedQuery, activeIndex: activeIndex, optionHeight: optionHeight, maxListHeight: maxListHeight, listRef: listHandle, listboxId: listboxId, labelId: label ? labelId : undefined, optionId: optionId, emptyMessage: emptyMessage, onCommit: commit, onHover: setActiveIndex })) : null] })] }));
 }

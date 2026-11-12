@@ -1,15 +1,12 @@
 /* Popover card (WCAG 2.2 SC 1.4.13, 2.1.2, 1.4.10). A `popover` element (`auto` when
-   `dismissOnOutsideClick`, else `manual`) in the top layer, anchored to its
-   trigger (`anchor-name` set per instance on the trigger, `position-anchor`
-   inline on the card). `position-area` places it on `data-side`; the
-   `position-try-fallbacks` flip moves it to the opposite side on collision.
-   `justify-self`/`align-self: safe anchor-center` centres it on the trigger but
-   shifts it back inside the area when it would overflow (trigger at a screen edge);
-   `max-inline-size` keeps it inside the viewport gutter (`--overlay-gutter`, safe-area
-   aware, popovers.css). Entry uses @starting-style; exit is the `data-state="closed"`
-   state, held open by JS until its transition ends. Without anchor positioning it
-   docks to the bottom edge. The arrow follows the trigger centre along the active
-   edge, clamped off the corners. */
+   `dismissOnOutsideClick`, else `manual`) in the top layer, anchored to its trigger
+   (`anchor-name` set per instance on the trigger while the card is mounted, `position-anchor`
+   inline on the card). Placement and collision fallbacks are shared with the Tooltip:
+   overlay-placement.css. `max-inline-size` keeps it inside the viewport gutter
+   (`--overlay-gutter`, safe-area aware, popovers.css). Entry uses @starting-style; exit is the
+   `data-state="closed"` state, held open (and anchored) by JS until its transition ends.
+   Without anchor positioning it docks to the bottom edge. The arrow follows the trigger centre
+   along the active edge, clamped off the corners. */
 .popover-card {
   position: fixed;
   inset: auto;
@@ -46,31 +43,19 @@
 
 @supports (anchor-name: --a) {
   .popover-card {
-    inset: auto;
-    margin: calc(var(--spacing) * 2);
-    margin-inline: var(--overlay-gutter);
-    position-try-fallbacks: flip-block;
-    justify-self: safe anchor-center;
-    align-self: safe anchor-center;
     /* Trigger centre from the card's top/left (JS, `--popover-arrow`), clamped off the corners. */
     --popover-tip: clamp(calc(var(--spacing) * 3), var(--popover-arrow, 50%), calc(100% - var(--spacing) * 3));
   }
   .popover-card[data-side="top"] {
-    position-area: top;
     transform-origin: center bottom;
   }
   .popover-card[data-side="bottom"] {
-    position-area: bottom;
     transform-origin: center top;
   }
   .popover-card[data-side="left"] {
-    position-area: left;
-    position-try-fallbacks: flip-inline;
     transform-origin: right center;
   }
   .popover-card[data-side="right"] {
-    position-area: right;
-    position-try-fallbacks: flip-inline;
     transform-origin: left center;
   }
   .popover-card::after {

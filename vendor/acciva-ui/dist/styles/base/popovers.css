@@ -1,12 +1,10 @@
-/* Tooltip bubble (WCAG 2.2 SC 1.4.13). A `popover="manual"` element in the top
-   layer, anchored to its trigger (`anchor-name` set inline per instance, so
-   `position-anchor` is the only link). `position-area` places it on `data-side`;
-   `flip-*` moves it to the opposite side on viewport collision. Without anchor
-   positioning it docks to the bottom edge instead. The `::before` bridges the
-   gap to the trigger so the pointer can cross onto the bubble (hoverable).
-   `safe anchor-center` centres it on the trigger but shifts it back inside the area near a
-   screen edge; `max-inline-size` bounds it to the viewport minus `--overlay-gutter`
-   (SC 1.4.10, 2.5.8: never clipped by the notch/edge on iPhone). */
+/* Tooltip bubble (WCAG 2.2 SC 1.4.13). A `popover="manual"` element in the top layer, anchored
+   to its trigger (`anchor-name` set inline per instance, so `position-anchor` is the only link).
+   Placement and collision fallbacks are shared with the Popover card: overlay-placement.css.
+   Without anchor positioning it docks to the bottom edge instead. The bubble is
+   `pointer-events: none` so it never swallows a click on a neighbouring control (JS keeps it
+   open ~100ms after hover-out, SC 1.4.13). `max-inline-size` bounds it to the viewport minus
+   `--overlay-gutter` (SC 1.4.10, 2.5.8: never clipped by the notch/edge on iPhone). */
 :root {
   --overlay-gutter: max(calc(var(--spacing) * 2), var(--safe-left), var(--safe-right));
 }
@@ -18,6 +16,7 @@
   max-inline-size: calc(100dvw - var(--overlay-gutter) * 2);
   margin: 0;
   overflow: visible;
+  pointer-events: none;
   transition: opacity var(--motion-feedback) var(--motion-ease-standard);
 }
 
@@ -32,36 +31,6 @@
     inset-inline: 0;
     inset-block-end: calc(var(--spacing) * 4 + var(--safe-bottom));
     margin-inline: auto;
-  }
-}
-
-@supports (anchor-name: --a) {
-  .tooltip {
-    margin: calc(var(--spacing) * 2);
-    margin-inline: var(--overlay-gutter);
-    justify-self: safe anchor-center;
-    align-self: safe anchor-center;
-    position-try-fallbacks: flip-block;
-  }
-  .tooltip[data-side="bottom"] {
-    position-area: bottom;
-  }
-  .tooltip[data-side="top"] {
-    position-area: top;
-  }
-  .tooltip[data-side="left"] {
-    position-area: left;
-    position-try-fallbacks: flip-inline;
-  }
-  .tooltip[data-side="right"] {
-    position-area: right;
-    position-try-fallbacks: flip-inline;
-  }
-  .tooltip::before {
-    content: "";
-    position: absolute;
-    inset: calc(var(--spacing) * -2);
-    z-index: -1;
   }
 }
 

@@ -1,0 +1,43 @@
+import { Search, X } from "lucide-react";
+
+interface DataListSearchFieldProps {
+  inputId: string;
+  query: string;
+  placeholder: string;
+  statusRegionId: string;
+  onQueryChange: (query: string) => void;
+}
+
+export function DataListSearchField({
+  inputId,
+  query,
+  placeholder,
+  statusRegionId,
+  onQueryChange,
+}: DataListSearchFieldProps) {
+  return (
+    <div className="relative flex-1 min-w-44 max-w-sm">
+      <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+      <input
+        id={inputId}
+        type="search"
+        value={query}
+        onChange={(e) => onQueryChange(e.target.value)}
+        placeholder={placeholder}
+        aria-label={placeholder}
+        aria-describedby={statusRegionId}
+        className="focus-ring h-9 w-full pointer-coarse:min-h-11 rounded-lg border border-border bg-background pl-9 pr-8 text-xs text-foreground transition-colors hover:border-muted-foreground/60 placeholder:text-muted-foreground"
+      />
+      {query && (
+        <button
+          type="button"
+          onClick={() => onQueryChange("")}
+          aria-label="Clear search"
+          className="focus-ring absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:text-foreground"
+        >
+          <X className="size-3.5" />
+        </button>
+      )}
+    </div>
+  );
+}

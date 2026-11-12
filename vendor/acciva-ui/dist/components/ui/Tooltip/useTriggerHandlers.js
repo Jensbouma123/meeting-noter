@@ -2,7 +2,7 @@
  * Chains the trigger's own handlers in front of the tooltip's: hover/focus reveal it, and any
  * interaction that moves attention away (click, key, pointer down) hides it.
  */
-export function useTriggerHandlers(childProps, tooltipRef, show, hide, touch) {
+export function useTriggerHandlers(childProps, show, hide, leave, touch) {
     const own = {
         onMouseEnter: show,
         onFocus: show,
@@ -15,12 +15,8 @@ export function useTriggerHandlers(childProps, tooltipRef, show, hide, touch) {
         onPointerUp: () => touch.onPointerUp(),
         onPointerCancel: () => touch.onPointerCancel(),
         onContextMenu: touch.onContextMenu,
-        // Moving onto the bubble keeps it open: hoverable content (SC 1.4.13).
-        onMouseLeave: (e) => {
-            const next = e.relatedTarget;
-            if (!(next instanceof Node && tooltipRef.current?.contains(next)))
-                hide();
-        },
+        // The bubble is pointer-events: none (never blocks a neighbour); a short delay closes it (SC 1.4.13).
+        onMouseLeave: leave,
         onKeyDown: (e) => {
             if (e.key === "Escape" || e.key === "Enter" || e.key === " " || e.key.startsWith("Arrow"))
                 hide();

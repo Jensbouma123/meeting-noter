@@ -6,12 +6,14 @@ import { Input } from "../../ui/Input/index.js";
 import { SURFACE_FILL, SURFACE_RADIUS, SURFACE_SHADOW } from "../../../lib/surface-tokens.js";
 import { cn } from "../../../lib/utils.js";
 import { MAX_SEARCH_RESULTS, NAV_IDLE, docHref } from "./NavHeaderData.js";
+import { useScrollActiveOption } from "./useScrollActiveOption.js";
 export function NavHeaderSearch({ items }) {
     const router = useRouter();
     const [query, setQuery] = useState("");
     const [searchOpen, setSearchOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
     const searchRef = useRef(null);
+    const listRef = useRef(null);
     const baseId = useId();
     const listboxId = `${baseId}-search-listbox`;
     const optionId = (index) => `${baseId}-search-option-${index}`;
@@ -66,6 +68,7 @@ export function NavHeaderSearch({ items }) {
             default:
         }
     };
+    useScrollActiveOption(listRef, searchOpen, activeIndex);
     useEffect(() => {
         if (!searchOpen)
             return;
@@ -82,7 +85,7 @@ export function NavHeaderSearch({ items }) {
                 }, onFocus: () => {
                     if (query.trim())
                         setSearchOpen(true);
-                }, onKeyDown: handleSearchKeyDown, leadingIcon: _jsx(Search, { className: "size-4" }), role: "combobox", "aria-expanded": searchOpen && results.length > 0, "aria-controls": listboxId, "aria-autocomplete": "list", "aria-activedescendant": searchOpen && results.length > 0 ? optionId(activeIndex) : undefined, autoComplete: "off" }), searchOpen && query.trim() ? (_jsx("div", { id: listboxId, role: "listbox", "aria-label": "Search results", className: cn("absolute right-0 top-full z-40 mt-1 w-full overflow-hidden p-1 animate-fade-in", SURFACE_RADIUS.overlay, SURFACE_FILL.overlay, SURFACE_SHADOW.overlay), children: results.length === 0 ? (_jsxs("p", { className: "px-2.5 py-2 text-sm text-muted-foreground", children: ["No components match \u201C", query, "\u201D"] })) : (results.map((section, index) => (_jsx("div", { id: optionId(index), role: "option", "aria-selected": index === activeIndex, onMouseEnter: () => setActiveIndex(index), onClick: () => commitSearch(index), className: cn("cursor-pointer rounded-md px-2.5 py-2 text-sm transition-colors motion-feedback", index === activeIndex
+                }, onKeyDown: handleSearchKeyDown, leadingIcon: _jsx(Search, { className: "size-4" }), role: "combobox", "aria-expanded": searchOpen && results.length > 0, "aria-controls": listboxId, "aria-autocomplete": "list", "aria-activedescendant": searchOpen && results.length > 0 ? optionId(activeIndex) : undefined, autoComplete: "off" }), searchOpen && query.trim() ? (_jsx("div", { ref: listRef, id: listboxId, role: "listbox", "aria-label": "Search results", className: cn("absolute right-0 top-full z-40 mt-1 max-h-nav-search w-full overflow-y-auto overscroll-contain p-1 animate-fade-in", SURFACE_RADIUS.overlay, SURFACE_FILL.overlay, SURFACE_SHADOW.overlay), children: results.length === 0 ? (_jsxs("p", { className: "px-2.5 py-2 text-sm text-muted-foreground", children: ["No components match \u201C", query, "\u201D"] })) : (results.map((section, index) => (_jsx("div", { id: optionId(index), role: "option", "aria-selected": index === activeIndex, onMouseEnter: () => setActiveIndex(index), onClick: () => commitSearch(index), className: cn("cursor-pointer rounded-md px-2.5 py-2 text-sm transition-colors motion-feedback", index === activeIndex
                         ? "bg-primary-100 text-primary-900"
                         : NAV_IDLE), children: section.title }, section.slug)))) })) : null] }));
 }

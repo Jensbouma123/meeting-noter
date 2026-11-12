@@ -16,11 +16,11 @@ export function Tooltip({ content, children, side = "top", delay = 0, maxWidth =
     const anchorName = `--tooltip-${tooltipId.replace(/[^\w-]/g, "")}`;
     const triggerRef = useRef(null);
     const tooltipRef = useRef(null);
-    const [open, show, hide, touch, touchOpenRef] = useTooltipOpen(delay, longPress, triggerRef);
+    const [open, show, hide, leave, touch, touchOpenRef] = useTooltipOpen(delay, longPress, triggerRef);
     const placed = useTooltipBubble(open, side, triggerRef, tooltipRef, hide, touchOpenRef);
     // Read before the early return so the hook runs on every render; the handlers are unused when `children` is not an element.
     const childProps = (isValidElement(children) ? children.props : {});
-    const eventHandlers = useTriggerHandlers(childProps, tooltipRef, show, hide, touch);
+    const eventHandlers = useTriggerHandlers(childProps, show, hide, leave, touch);
     if (!isValidElement(children))
         return children;
     const child = children;
@@ -44,10 +44,5 @@ export function Tooltip({ content, children, side = "top", delay = 0, maxWidth =
     return (_jsxs(_Fragment, { children: [trigger, open ? (_jsx("div", { ref: tooltipRef, role: "tooltip", id: tooltipId, popover: "manual", "data-side": side, "data-placed": placed, style: {
                     positionAnchor: anchorName,
                     maxWidth: typeof maxWidth === "number" ? `${maxWidth}px` : maxWidth,
-                }, 
-                // Hoverable (SC 1.4.13): leaving the bubble for anywhere but the trigger closes it.
-                onMouseLeave: (e) => {
-                    if (e.relatedTarget !== triggerRef.current)
-                        hide();
                 }, className: cn("tooltip rounded-lg border border-solid px-3 py-2 font-medium text-foreground break-words whitespace-normal leading-relaxed", TEXT_SIZE.xs, TOOLTIP_FILL, SURFACE_SHADOW.overlay), children: content })) : null] }));
 }

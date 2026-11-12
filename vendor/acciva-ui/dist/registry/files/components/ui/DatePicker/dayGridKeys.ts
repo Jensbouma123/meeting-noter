@@ -1,0 +1,81 @@
+import type { KeyboardEvent } from "react";
+import { addDays, addMonths, addYears, isSameMonth } from "@/lib/date-utils/index";
+
+export interface DayGridKeyContext {
+  focusedDate: Date;
+  viewDate: Date;
+  isDateDisabled: (date: Date) => boolean;
+  handleSelectDate: (date: Date) => void;
+  moveFocusRef: { current: boolean };
+  setFocusedDate: (date: Date) => void;
+  setViewDate: (date: Date) => void;
+  close: () => void;
+}
+
+export function handleDayGridKey(event: KeyboardEvent<HTMLDivElement>, ctx: DayGridKeyContext): void {
+  const { focusedDate, viewDate, isDateDisabled, handleSelectDate, moveFocusRef, setFocusedDate, setViewDate, close } =
+    ctx;
+  let nextDate = new Date(focusedDate);
+  let handled = false;
+
+  switch (event.key) {
+    case "ArrowLeft":
+      nextDate = addDays(focusedDate, -1);
+      handled = true;
+      break;
+    case "ArrowRight":
+      nextDate = addDays(focusedDate, 1);
+      handled = true;
+      break;
+    case "ArrowUp":
+      nextDate = addDays(focusedDate, -7);
+      handled = true;
+      break;
+    case "ArrowDown":
+      nextDate = addDays(focusedDate, 7);
+      handled = true;
+      break;
+    case "PageUp":
+      nextDate = event.shiftKey ? addYears(focusedDate, -1) : addMonths(focusedDate, -1);
+      handled = true;
+      break;
+    case "PageDown":
+      nextDate = event.shiftKey ? addYears(focusedDate, 1) : addMonths(focusedDate, 1);
+      handled = true;
+      break;
+    case "Home":
+      nextDate = addDays(focusedDate, -focusedDate.getDay());
+      handled = true;
+      break;
+    case "End":
+      nextDate = addDays(focusedDate, 6 - focusedDate.getDay());
+      handled = true;
+      break;
+    case "Enter":
+    case " ":
+      event.preventDefault();
+      if (!isDateDisabled(focusedDate)) {
+        handleSelectDate(focusedDate);
+      }
+      return;
+    case "Escape":
+      event.preventDefault();
+      close();
+      return;
+    case "Tab":
+      return;
+  }
+
+  if (handled) {
+    event.preventDefault();
+    // Disabled days cannot take focus: step past them along the arrow's own direction, else stay put.
+    const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[event.key];
+    for (let guard = 0; step && guard < 400 && isDateDisabled(nextDate); guard++) nextDate = addDays(nextDate, step);
+    if (isDateDisabled(nextDate)) return;
+    moveFocusRef.current = true;
+    setFocusedDate(nextDate);
+    if (!isSameMonth(nextDate, viewDate)) {
+      setViewDate(nextDate);
+    }
+  }
+}

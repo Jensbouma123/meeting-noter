@@ -5,15 +5,22 @@
    to the bottom edge like a sheet. When neither inline side of the trigger fits the menu, the
    `--menu-span*` tries use the full-width row centred on the trigger (`safe`: shifted back
    inside near an edge); `max-inline-size` bounds it to the viewport minus the safe-area-aware
-   `--overlay-gutter` (popovers.css), SC 1.4.10. */
+   `--overlay-gutter` (popovers.css), SC 1.4.10.
+   Block size: `max-block-size` is a percentage of the `position-area` containing block, i.e. the
+   space on the side it opened, minus the offset and the gutter, so a tall menu scrolls inside
+   instead of running off a short viewport (SC 1.4.10, 2.4.11). Since that always fits, the side
+   comes from `position-try-order: most-block-size` (as the UA `::picker(select)`): it opens
+   where there is more room; ties keep the list order. The far margin is the gutter, the near one
+   the offset: `flip-block` swaps them, `--menu-span-up` states them. */
 .dropdown-menu {
   position: fixed;
   inset: auto;
   margin: 0;
   width: max-content;
   max-inline-size: calc(100dvw - var(--overlay-gutter) * 2);
-  max-block-size: calc(100dvh - var(--spacing) * 4);
+  max-block-size: calc(100dvh - var(--spacing) * 8 - var(--safe-top) - var(--safe-bottom));
   overflow-y: auto;
+  overscroll-behavior: contain;
   transition:
     opacity var(--motion-feedback) var(--motion-ease-standard),
     translate var(--motion-feedback) var(--motion-ease-standard);
@@ -53,11 +60,14 @@
   @position-try --menu-span-up {
     position-area: block-start span-all;
     justify-self: safe anchor-center;
+    margin-block: var(--overlay-gutter) var(--dropdown-offset, calc(var(--spacing) * 1));
   }
   .dropdown-menu {
-    margin-block: var(--dropdown-offset, calc(var(--spacing) * 1));
+    margin-block: var(--dropdown-offset, calc(var(--spacing) * 1)) var(--overlay-gutter);
     margin-inline: var(--overlay-gutter);
+    max-block-size: calc(100% - var(--dropdown-offset, calc(var(--spacing) * 1)) - var(--overlay-gutter));
     position-area: block-end span-inline-end;
+    position-try-order: most-block-size;
     position-try-fallbacks:
       flip-block, flip-inline, flip-block flip-inline, --menu-span, --menu-span-up;
   }
@@ -67,23 +77,5 @@
   .dropdown-menu[data-align="center"] {
     position-area: block-end;
     justify-self: safe anchor-center;
-  }
-}
-
-/* Select listbox: a `popover="manual"` anchored below its trigger (`position-anchor` inline). Without
-   anchor positioning it docks to the bottom edge like a sheet. */
-.select-list {
-  position: fixed;
-  margin: 0;
-  inset-inline: calc(var(--spacing) * 2);
-  inset-block: auto calc(var(--spacing) * 4);
-  width: auto;
-}
-
-@supports (anchor-name: --a) {
-  .select-list {
-    inset: auto;
-    margin-block-start: var(--spacing);
-    width: max-content;
   }
 }

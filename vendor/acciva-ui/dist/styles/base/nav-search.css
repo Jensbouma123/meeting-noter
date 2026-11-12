@@ -1,0 +1,7 @@
+/* NavHeader search results. The panel hangs `absolute top-full` off the search input in the
+   `h-16` sticky header, so its top sits 14 spacing steps down (centred `h-10` input + `mt-1`).
+   Not anchor-positioned, so the bound is dvh-based: the space below that, minus the
+   safe-area-aware `--overlay-gutter` (popovers.css). Results past it scroll inside (SC 1.4.10). */
+@utility max-h-nav-search {
+  max-height: calc(100dvh - var(--spacing) * 14 - var(--overlay-gutter));
+}

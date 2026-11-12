@@ -8,6 +8,9 @@ export function useDropdownMenuKeyboard(menuRef) {
             return;
         const enabled = menuRef.current.querySelectorAll('[role="menuitem"]:not([aria-disabled="true"]), [role="menuitemcheckbox"]:not([aria-disabled="true"]), [role="menuitemradio"]:not([aria-disabled="true"])');
         (openLastRef.current ? enabled[enabled.length - 1] : enabled[0])?.focus({ preventScroll: true });
+        // A menu taller than its side scrolls inside: opened on its last item, show the end of it.
+        if (openLastRef.current)
+            menuRef.current.scrollTop = menuRef.current.scrollHeight;
         openLastRef.current = false;
     }, [open, openLastRef, menuRef]);
     const handleKeyDown = (event) => {

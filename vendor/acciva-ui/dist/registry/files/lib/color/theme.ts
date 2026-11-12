@@ -1,0 +1,108 @@
+import {
+  auditTokenGraph,
+  type RolePath,
+  type ThemeAudit,
+} from "@/lib/color/audit/index";
+import { type DualModeReason } from "@/lib/color/constrain/index";
+import { exportDtcgJson } from "@/lib/color/export/dtcg";
+import { exportTailwindTheme } from "@/lib/color/export/tailwind";
+import type { ModeTokenOverrides } from "@/lib/color/export/resolve/index";
+import {
+  applyRoleOverrides,
+  arrivalRoles,
+  baselineRoleHexes,
+  resolveRoles,
+  roleOverridesFrom,
+  splitIntent,
+  tokenOverridesFrom,
+  type RoleIntent,
+  type RoleIntentMap,
+} from "@/lib/color/studio/index";
+import type { HarmonyMode, Hex } from "@/lib/color/types";
+import { buildAppPalette, buildThemeStylesheet, DEFAULT_HARMONY } from "@/lib/theme-tokens/index";
+
+export type UnresolvableRole = {
+  readonly role: RolePath;
+  readonly reason: DualModeReason;
+  readonly required: number;
+};
+
+export type GeneratedTheme = {
+  readonly seed: Hex;
+  readonly harmony: HarmonyMode;
+  /**
+   * The complete drop-in stylesheet: the three colour blocks, the app-facing
+   * alias layer and the `@theme inline` bridge — the same string
+   * `scripts/generate-tokens.ts` writes to `src/styles/tokens.css`. Only the
+   * 11 public ramp stops are emitted; `--format dtcg` carries the full graph.
+   * Studio per-mode overrides are not applied here (see `overrides`): they are
+   * keyed by the graph's variable names and would move the shipped values.
+   */
+  readonly css: string;
+  readonly tailwind: string;
+  readonly dtcg: string;
+  readonly audit: ThemeAudit;
+  readonly passesAA: boolean;
+  readonly overrides: ModeTokenOverrides;
+  readonly unresolvable: readonly UnresolvableRole[];
+};
+
+/**
+ * A headless WCAG 2.2 AA theme from a brand seed, with no human in the loop.
+ *
+ * Every non-converged role is split per mode automatically, through the same
+ * dependency-ordered path `useColorStudio` uses. A seed that cannot resolve
+ * does not throw and does not nudge the hue: the roles that cannot be carried
+ * are returned in `unresolvable`, `passesAA` is `false`, and the emitters still
+ * run so the caller can inspect the near miss.
+ *
+ * Pure and synchronous: no React, no I/O, no `process`, no filesystem.
+ * Deterministic: the same seed and harmony give byte-identical output.
+ */
+export function generateTheme(seed: Hex, options?: { harmony?: HarmonyMode }): GeneratedTheme {
+  const harmony = options?.harmony ?? DEFAULT_HARMONY;
+  const palette = buildAppPalette(seed, harmony);
+
+  const arrival = arrivalRoles(palette);
+  const splits: Partial<Record<RolePath, RoleIntent>> = {};
+  for (const intent of Object.values(arrival)) {
+    if (intent === undefined || intent.resolution.kind === "converged") continue;
+    const split = splitIntent(intent);
+    if (split.resolution.kind === "split") splits[split.role] = split;
+  }
+  const decisions: RoleIntentMap = splits;
+  const roles = resolveRoles(palette, decisions);
+
+  const baseAudit = auditTokenGraph(palette.document, seed);
+  const baseline = baselineRoleHexes(baseAudit);
+  const decided: Partial<Record<RolePath, RoleIntent>> = {};
+  for (const key of Object.keys(splits) as RolePath[]) {
+    const intent = roles[key];
+    if (intent !== undefined) decided[key] = intent;
+  }
+  const roleOverrides = roleOverridesFrom(decided, baseline);
+  const audit = applyRoleOverrides(baseAudit, roleOverrides);
+  const overrides = tokenOverridesFrom(roleOverrides);
+
+  const unresolvable: UnresolvableRole[] = [];
+  for (const intent of Object.values(roles)) {
+    if (intent === undefined || intent.resolution.kind !== "unresolved") continue;
+    unresolvable.push({
+      role: intent.role,
+      reason: intent.resolution.reason,
+      required: intent.resolution.solution.required,
+    });
+  }
+
+  return {
+    seed,
+    harmony,
+    css: buildThemeStylesheet(palette, { seed, harmony }),
+    tailwind: exportTailwindTheme(palette.document, overrides),
+    dtcg: exportDtcgJson(palette.document, overrides),
+    audit,
+    passesAA: audit.failures.length === 0,
+    overrides,
+    unresolvable,
+  };
+}

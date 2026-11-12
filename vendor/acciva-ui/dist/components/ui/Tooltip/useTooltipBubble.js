@@ -29,6 +29,11 @@ export function useTooltipBubble(open, side, triggerRef, tooltipRef, hide, touch
             bubble.style.setProperty("--tooltip-arrow", `${above || below ? t.x + t.width / 2 - b.x : t.y + t.height / 2 - b.y}px`);
         };
         syncPlaced();
+        // Safari resolves the anchored position (and any position-try fallback) a frame after showPopover().
+        let frame = requestAnimationFrame(() => {
+            syncPlaced();
+            frame = requestAnimationFrame(syncPlaced);
+        });
         const handlePointerDown = (e) => {
             if (!tooltipRef.current?.contains(e.target))
                 hide();
@@ -48,6 +53,7 @@ export function useTooltipBubble(open, side, triggerRef, tooltipRef, hide, touch
         window.addEventListener("pointerdown", handlePointerDown);
         window.addEventListener("keydown", handleKeyDown);
         return () => {
+            cancelAnimationFrame(frame);
             window.removeEventListener("scroll", handleScroll, true);
             window.removeEventListener("scroll", syncPlaced, true);
             window.removeEventListener("resize", syncPlaced);

@@ -1,0 +1,37 @@
+/* Listbox panel of Select and SearchableSelect: a `popover="manual"` in the top layer, anchored
+   below its trigger (`position-anchor` inline). Without anchor positioning it docks to the bottom
+   edge like a sheet. `--select-list-cap` is the tallest it gets on a roomy screen (Select: 60
+   spacing steps; SearchableSelect sets `100%` and caps its virtual list itself).
+   Block size: with anchor positioning the percentage resolves against the `position-area`
+   containing block, so the list never outgrows the side it opened, minus the trigger gap and
+   `--overlay-gutter`, even on a 400px-tall or keyboard-shortened viewport (SC 1.4.10); it scrolls
+   inside. `position-try-order: most-block-size` (as the UA `::picker(select)`) opens it on the
+   side with more room. The far margin is the gutter, the near one the gap; `flip-block` swaps them. */
+.select-list {
+  position: fixed;
+  margin: 0;
+  inset-inline: calc(var(--spacing) * 2);
+  inset-block: auto calc(var(--spacing) * 4 + var(--safe-bottom));
+  width: auto;
+  max-block-size: min(
+    var(--select-list-cap, calc(var(--spacing) * 60)),
+    calc(100dvh - var(--spacing) * 8 - var(--safe-top) - var(--safe-bottom))
+  );
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@supports (anchor-name: --a) {
+  .select-list {
+    inset: auto;
+    margin-block: var(--spacing) var(--overlay-gutter);
+    width: max-content;
+    max-block-size: min(
+      var(--select-list-cap, calc(var(--spacing) * 60)),
+      calc(100% - var(--spacing) - var(--overlay-gutter))
+    );
+    position-area: block-end span-all;
+    position-try-order: most-block-size;
+    position-try-fallbacks: flip-block;
+  }
+}

@@ -3,7 +3,9 @@ import { computeArrow } from "./computeArrow.js";
 // Anchor positioning follows the trigger on scroll/resize; JS only reads back which side the card
 // landed on and where the trigger centre falls on it, for the arrow. Safari resolves the anchored
 // position a frame after showPopover(), so it is read again on the next two frames. Returns the placed side.
-export function usePopoverPlacement(open, targetPlacement, triggerRef, anchorName, popoverRef) {
+// The trigger keeps `anchor-name` while the card is `mounted` (exit transition included): dropping it at
+// `open=false` un-anchors the still-visible card, which then jumps to its static position.
+export function usePopoverPlacement(open, mounted, targetPlacement, triggerRef, anchorName, popoverRef) {
     const [placed, setPlaced] = useState(targetPlacement);
     useEffect(() => {
         if (!open)
@@ -33,12 +35,12 @@ export function usePopoverPlacement(open, targetPlacement, triggerRef, anchorNam
     }, [open, targetPlacement, triggerRef, popoverRef]);
     useEffect(() => {
         const trigger = triggerRef.current;
-        if (!open || !trigger)
+        if (!mounted || !trigger)
             return;
         trigger.style.setProperty("anchor-name", anchorName);
         return () => {
             trigger.style.removeProperty("anchor-name");
         };
-    }, [open, anchorName, triggerRef]);
+    }, [mounted, anchorName, triggerRef]);
     return placed;
 }

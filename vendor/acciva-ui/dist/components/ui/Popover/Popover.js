@@ -23,7 +23,7 @@ export function Popover({ content, title, open: controlledOpen, defaultOpen = fa
     const targetPlacement = placement ?? side ?? "top";
     const [open, mounted, handleClose, setOpenState] = usePopoverOpen(controlledOpen, defaultOpen, onOpenChange, onClose, animated, popoverRef);
     // Side the card actually landed on after a position-try flip; drives the arrow.
-    const placed = usePopoverPlacement(open, targetPlacement, triggerRef, anchorName, popoverRef);
+    const placed = usePopoverPlacement(open, mounted, targetPlacement, triggerRef, anchorName, popoverRef);
     const handlePopoverKeyDown = usePopoverFocus(open, triggerRef, popoverRef, handleClose);
     let triggerNode = null;
     if (children && isValidElement(children)) {

@@ -5,6 +5,7 @@ export function useTooltipOpen(delay, longPress, triggerRef) {
     const [open, setOpen] = useState(false);
     const timeoutRef = useRef(null);
     const dismissRef = useRef(null);
+    const leaveRef = useRef(null);
     const touchOpenRef = useRef(false);
     useEffect(() => {
         return () => {
@@ -12,9 +13,13 @@ export function useTooltipOpen(delay, longPress, triggerRef) {
                 clearTimeout(timeoutRef.current);
             if (dismissRef.current)
                 clearTimeout(dismissRef.current);
+            if (leaveRef.current)
+                clearTimeout(leaveRef.current);
         };
     }, []);
     const show = () => {
+        if (leaveRef.current)
+            clearTimeout(leaveRef.current);
         const reveal = () => {
             // A trigger whose menu/popup is open (or just closing and returning focus) keeps the tooltip hidden
             // until hover/focus is renewed, so it never sits over the popup (SC 1.4.13).
@@ -35,8 +40,16 @@ export function useTooltipOpen(delay, longPress, triggerRef) {
             clearTimeout(timeoutRef.current);
         if (dismissRef.current)
             clearTimeout(dismissRef.current);
+        if (leaveRef.current)
+            clearTimeout(leaveRef.current);
         touchOpenRef.current = false;
         setOpen(false);
+    };
+    // Hover-out closes after a short grace so a brief slip off the trigger doesn't flicker (SC 1.4.13).
+    const leave = () => {
+        if (timeoutRef.current)
+            clearTimeout(timeoutRef.current);
+        leaveRef.current = setTimeout(hide, 100);
     };
     const touch = useLongPress(longPress, () => {
         touchOpenRef.current = true;
@@ -46,5 +59,5 @@ export function useTooltipOpen(delay, longPress, triggerRef) {
     () => {
         dismissRef.current = setTimeout(hide, 1500);
     });
-    return [open, show, hide, touch, touchOpenRef];
+    return [open, show, hide, leave, touch, touchOpenRef];
 }
