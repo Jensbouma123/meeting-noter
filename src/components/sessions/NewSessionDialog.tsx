@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Button,
   FormField,
@@ -10,7 +10,6 @@ import {
   Text,
   VStack,
 } from '@jensbouma123/acciva-ui';
-import { Plus } from 'lucide-react';
 import { useLanguage, useT } from '@/lib/i18n/useT';
 import type { Language } from '@/lib/i18n/LanguageContext';
 
@@ -28,14 +27,17 @@ export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogPr
   const [draft, setDraft] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const nameRef = useRef<HTMLInputElement>(null);
 
-  // Reset the draft whenever the dialog opens. `Modal` moves focus to the first
-  // focusable element, so `Input` needs no manual focus dance.
+  // Reset the draft whenever the dialog opens, and put focus on the name field
+  // (effects run after Modal's own open pass, so this wins over its default of
+  // the first button, Annuleren) so Enter starts the meeting right away.
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect -- reset state on open */
     if (open) {
       setDraft('');
       setError(null);
+      nameRef.current?.focus();
     }
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [open]);
@@ -66,7 +68,6 @@ export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogPr
             variant="primary"
             onClick={handleSubmit}
             loading={isSubmitting}
-            leadingIcon={<Plus className="size-4" />}
           >
             {t('create')}
           </Button>
@@ -81,6 +82,7 @@ export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogPr
           error={error ?? undefined}
         >
           <Input
+            ref={nameRef}
             value={draft}
             onChange={(e) => {
               setDraft(e.target.value);
@@ -102,7 +104,6 @@ export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogPr
               setError(null);
             }}
             autoComplete="off"
-            autoFocus
           />
         </FormField>
 
