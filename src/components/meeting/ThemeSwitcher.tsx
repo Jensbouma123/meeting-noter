@@ -9,7 +9,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@jensbouma123/acciva-ui';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { Check, Monitor, Moon, Sun } from 'lucide-react';
 import { useT } from '@/lib/i18n/useT';
 
@@ -52,25 +52,44 @@ function readPreference(): ThemePreference {
  * the Settings "Appearance" section, so the two controls never drift out of
  * sync (one localStorage key, one `useTheme().setMode` call site per change).
  */
+/** Listeners of the preference store, notified by `choose`. */
+const listeners = new Set<() => void>();
+/** Holds the choice only when localStorage is unavailable. */
+let memoryPreference: ThemePreference | null = null;
+
+function subscribePreference(onChange: () => void) {
+  listeners.add(onChange);
+  return () => {
+    listeners.delete(onChange);
+  };
+}
+
+function getPreferenceSnapshot(): ThemePreference {
+  return memoryPreference ?? readPreference();
+}
+
+// Hydration safety: the server has no localStorage and no media query, so the
+// first client render MUST match the server's. `null` renders the neutral trigger
+// until the client snapshot takes over.
+function getServerPreferenceSnapshot(): ThemePreference | null {
+  return null;
+}
+
 export function useThemePreference() {
   const { setMode } = useTheme();
 
-  // Hydration safety: the server has no localStorage and no media query, so the
-  // first client render MUST match the server's. `null` renders the neutral
-  // trigger; the real preference is adopted in the mount effect below.
-  const [preference, setPreference] = useState<ThemePreference | null>(null);
-
-  useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect -- one-shot localStorage hydration */
-    setPreference(readPreference());
-    /* eslint-enable react-hooks/set-state-in-effect */
-  }, []);
+  const preference = useSyncExternalStore<ThemePreference | null>(
+    subscribePreference,
+    getPreferenceSnapshot,
+    getServerPreferenceSnapshot
+  );
 
   // While `system` is active the OS can flip under us, so follow the media
   // query; otherwise the explicit choice pins the mode.
   useEffect(() => {
+    if (preference === null) return;
     if (preference !== 'system') {
-      if (preference) setMode(preference);
+      setMode(preference);
       return;
     }
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
@@ -82,12 +101,14 @@ export function useThemePreference() {
 
   const choose = useCallback(
     (next: ThemePreference) => {
-      setPreference(next);
       try {
         localStorage.setItem(PREFERENCE_KEY, next);
+        memoryPreference = null;
       } catch {
         // localStorage unavailable — in-memory only.
+        memoryPreference = next;
       }
+      listeners.forEach((notify) => notify());
       // Apply immediately so the menu feels instant; the effect above then
       // takes over the `system` media-query subscription.
       setMode(next === 'system' ? getSystemTheme() : next);

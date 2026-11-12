@@ -83,6 +83,21 @@ describe('SearchPanel', () => {
     expect(await screen.findByText('No matches')).toBeInTheDocument();
   });
 
+  it('returns to the idle view when the query is cleared, dropping the old results', async () => {
+    const search = vi.fn(async () => [hit('m1', 0, 0, 'roadmap item')]);
+    render(<SearchPanel search={search} sessionHref={() => '#'} debounceMs={0} />);
+    const input = screen.getByLabelText('Search query');
+
+    fireEvent.change(input, { target: { value: 'roadmap' } });
+    expect(await screen.findByText('roadmap item')).toBeInTheDocument();
+
+    fireEvent.change(input, { target: { value: '' } });
+    expect(screen.queryByLabelText('Search results')).not.toBeInTheDocument();
+    expect(screen.queryByText('No matches')).not.toBeInTheDocument();
+    expect(screen.queryByText('Searching…')).not.toBeInTheDocument();
+    expect(search).toHaveBeenCalledTimes(1);
+  });
+
   it('does not query for a blank input', () => {
     const search = vi.fn(async () => []);
     render(<SearchPanel search={search} sessionHref={() => '#'} debounceMs={0} />);

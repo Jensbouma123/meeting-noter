@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, useSyncExternalStore } from 'react';
 import { Alert } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { LanguageContext } from '@/lib/i18n/LanguageContext';
@@ -44,32 +44,29 @@ export function LifecycleClient() {
   return failed ? <Alert layout="banner" variant="warning" role="status">{t('connectionLost')}</Alert> : null;
 }
 
-function useLanguage() {
+/** Context language, else the stored/browser language. `nl` is the SSR snapshot (localStorage is unreadable on the server). */
+function useLanguage(): 'en' | 'nl' {
   const contextLanguage = useContext(LanguageContext);
-  const [language, setLanguage] = useState<'en' | 'nl'>('nl');
-  useEffect(() => {
-    if (contextLanguage) {
-      // Language comes from context/localStorage, which is only readable after mount (SSR hydration).
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLanguage(contextLanguage);
-      return;
-    }
-    try {
-      const settings = JSON.parse(localStorage.getItem('mn.settings') ?? '{}');
-      if (settings.language === 'en' || settings.language === 'nl') setLanguage(settings.language);
-      else setLanguage(navigator.language.toLowerCase().startsWith('nl') ? 'nl' : 'en');
-    } catch {
-      setLanguage(navigator.language.toLowerCase().startsWith('nl') ? 'nl' : 'en');
-    }
-    const sync = (event: StorageEvent) => {
-      if (event.key !== 'mn.settings') return;
-      try {
-        const settings = JSON.parse(localStorage.getItem('mn.settings') ?? '{}');
-        if (settings.language === 'en' || settings.language === 'nl') setLanguage(settings.language);
-      } catch {}
-    };
-    window.addEventListener('storage', sync);
-    return () => window.removeEventListener('storage', sync);
-  }, [contextLanguage]);
-  return contextLanguage ?? language;
+  const storedLanguage = useSyncExternalStore(subscribeSettings, readStoredLanguage, serverLanguage);
+  return contextLanguage ?? storedLanguage;
+}
+
+function serverLanguage(): 'en' | 'nl' {
+  return 'nl';
+}
+
+function readStoredLanguage(): 'en' | 'nl' {
+  try {
+    const settings = JSON.parse(localStorage.getItem('mn.settings') ?? '{}');
+    if (settings.language === 'en' || settings.language === 'nl') return settings.language;
+  } catch {}
+  return navigator.language.toLowerCase().startsWith('nl') ? 'nl' : 'en';
+}
+
+function subscribeSettings(onChange: () => void) {
+  const sync = (event: StorageEvent) => {
+    if (event.key === 'mn.settings') onChange();
+  };
+  window.addEventListener('storage', sync);
+  return () => window.removeEventListener('storage', sync);
 }
