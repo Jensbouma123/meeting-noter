@@ -124,4 +124,18 @@ describe('import and export edge cases', () => {
       { word: 'word', variants: ['y'] },
     ]);
   });
+
+  it('round-trips a quoted word with quotes and variants, and several quoted words on one line', () => {
+    const entries = [{ word: 'He said "hi", ok', variants: ['x; y'.split('; ')[0], 'y'] }];
+    expect(parseWordList(formatWordList(entries))).toEqual(entries);
+    expect(parseWordList('"A,B", "C;D", plain')).toEqual([
+      { word: 'A,B', variants: [] },
+      { word: 'C;D', variants: [] },
+      { word: 'plain', variants: [] },
+    ]);
+  });
+
+  it('treats an unterminated quote as plain text without throwing', () => {
+    expect(parseWordList('"Acme')).toEqual([{ word: '"Acme', variants: [] }]);
+  });
 });

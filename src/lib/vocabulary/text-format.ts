@@ -39,22 +39,52 @@ export function mergeEntries(
   return out;
 }
 
+/** A leading `"quoted"` word (`""` is a quote) and what follows it, or null. */
+function readQuoted(line: string): { word: string; rest: string } | null {
+  if (!line.startsWith('"')) return null;
+  let word = '';
+  for (let i = 1; i < line.length; i++) {
+    if (line[i] !== '"') word += line[i];
+    else if (line[i + 1] === '"') {
+      word += '"';
+      i++;
+    } else return { word, rest: line.slice(i + 1).trim() };
+  }
+  return null;
+}
+
+function parseLine(line: string, entries: VocabularyEntry[]): void {
+  const quoted = readQuoted(line);
+  if (quoted) {
+    const word = clean(quoted.word);
+    const { rest } = quoted;
+    if (rest.startsWith('=')) {
+      if (word) entries.push({ word, variants: splitVariants(rest.slice(1)) });
+      return;
+    }
+    if (word) entries.push({ word, variants: [] });
+    if (/^[,;\t]/.test(rest)) parseLine(rest.slice(1).trim(), entries);
+    return;
+  }
+  const eq = line.indexOf('=');
+  if (eq > 0) {
+    const word = clean(line.slice(0, eq));
+    if (word) entries.push({ word, variants: splitVariants(line.slice(eq + 1)) });
+    return;
+  }
+  const cut = line.search(/[,;\t]/);
+  const head = cut < 0 ? line : line.slice(0, cut);
+  const word = clean(head);
+  if (word) entries.push({ word, variants: [] });
+  if (cut >= 0) parseLine(line.slice(cut + 1).trim(), entries);
+}
+
 /** Words from the paste box or a .txt file. */
 export function parseWordList(text: string): VocabularyEntry[] {
   const entries: VocabularyEntry[] = [];
   for (const raw of text.split(/\r?\n/)) {
     const line = raw.trim();
-    if (!line) continue;
-    const eq = line.indexOf('=');
-    if (eq > 0) {
-      const word = clean(line.slice(0, eq));
-      if (word) entries.push({ word, variants: splitVariants(line.slice(eq + 1)) });
-      continue;
-    }
-    for (const part of line.split(/[,;\t]/)) {
-      const word = clean(part);
-      if (word) entries.push({ word, variants: [] });
-    }
+    if (line) parseLine(line, entries);
   }
   return mergeEntries([], entries);
 }
@@ -91,9 +121,8 @@ function csvCells(line: string): string[] {
 /** Words from a .csv file: first cell the word, the rest how it was misheard. */
 export function parseWordCsv(text: string): VocabularyEntry[] {
   const entries: VocabularyEntry[] = [];
-  const lines = text.replace(/^﻿/, '').split(/\r?\n/);
+  const lines = text.replace(/^﻿/, '').split(/\r?\n/).filter((l) => l.trim());
   lines.forEach((line, i) => {
-    if (!line.trim()) return;
     const [first, ...rest] = csvCells(line);
     const word = clean(first ?? '');
     if (!word || (i === 0 && word.toLowerCase() === 'word')) return;
@@ -109,7 +138,10 @@ export function parseWordFile(fileName: string, text: string): VocabularyEntry[]
 
 export function formatWordList(entries: readonly VocabularyEntry[]): string {
   return entries
-    .map((e) => (e.variants.length > 0 ? `${e.word} = ${e.variants.join('; ')}` : e.word))
+    .map((e) => {
+      const word = /[,;\t="]/.test(e.word) ? `"${e.word.replace(/"/g, '""')}"` : e.word;
+      return e.variants.length > 0 ? `${word} = ${e.variants.join('; ')}` : word;
+    })
     .join('\n')
     .concat(entries.length > 0 ? '\n' : '');
 }

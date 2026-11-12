@@ -104,11 +104,11 @@ describe('replace edge cases', () => {
   });
 
   it('matches a word inside curly quotes and keeps the quotes', () => {
-    expect(fix('said “from now” twice')).toBe('said “Framna” twice');
+    expect(fix('said “fram na” twice')).toBe('said “Framna” twice');
   });
 
   it('matches and keeps a possessive', () => {
-    expect(fix("from now's plan")).toBe("Framna's plan");
+    expect(fix("fram na's plan")).toBe("Framna's plan");
   });
 
   it('matches unicode words in any case and keeps the user spelling', () => {
@@ -132,7 +132,7 @@ describe('replace edge cases', () => {
   });
 
   it('a long transcript keeps every match and leaves the rest alone', () => {
-    const words = Array.from({ length: 5000 }, (_, i) => (i % 500 === 0 ? 'from now' : `word${i}`));
+    const words = Array.from({ length: 5000 }, (_, i) => (i % 500 === 0 ? 'from now ah' : `word${i}`));
     const out = applyVocabularyToText(words.join(' '), vocab).split(' ');
     expect(out.filter((w) => w === 'Framna')).toHaveLength(10);
     expect(out.filter((w) => w === 'from')).toHaveLength(0);
@@ -140,7 +140,7 @@ describe('replace edge cases', () => {
   });
 
   it('applies the list to a segment whose words are missing (no words array)', () => {
-    const out = applyVocabularyToSegment({ text: 'from now' }, vocab);
+    const out = applyVocabularyToSegment({ text: 'fram na' }, vocab);
     expect(out).toEqual({ text: 'Framna' });
   });
 });
@@ -158,5 +158,16 @@ describe('soundKey / editDistance', () => {
     expect(editDistance('fromna', 'framna')).toBe(1);
     expect(editDistance('kitten', 'sitting')).toBe(3);
     expect(editDistance('abcdef', 'uvwxyz', 1)).toBe(2);
+  });
+
+  it('keeps a possessive on a near-miss and does not strip "\'s" from other words', () => {
+    expect(fix("Fromna's plan")).toBe("Framna's plan");
+    expect(fix("it's fine")).toBe("it's fine");
+  });
+
+  it('an entry with edge punctuation only matches text that carries it', () => {
+    const v = prepareVocabulary([{ word: 'Dr.', variants: [] }]);
+    expect(applyVocabularyToText('dr. who', v)).toBe('Dr. who');
+    expect(applyVocabularyToText('the dr who', v)).toBe('the dr who');
   });
 });

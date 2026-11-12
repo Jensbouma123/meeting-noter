@@ -34,6 +34,8 @@ interface PreparedEntry {
   letters: string;
   key: string;
   maxEdits: number;
+  /** Punctuation the entry carries around its first/last word ("Dr.", "C#"): the text must carry it too. */
+  edge: { lead: string; trail: string };
 }
 
 export interface Prepared {
@@ -46,7 +48,10 @@ const CHUNK = /^([^\p{L}\p{N}]*)([^]*?)([^\p{L}\p{N}]*)$/u;
 
 function splitChunk(text: string): Chunk {
   const m = CHUNK.exec(text);
-  return m ? { lead: m[1], core: m[2], trail: m[3] } : { lead: '', core: text, trail: '' };
+  const chunk = m ? { lead: m[1], core: m[2], trail: m[3] } : { lead: '', core: text, trail: '' };
+  // A possessive is not part of the word: "Framna's" is "Framna" + "'s".
+  const poss = /^(.+\p{L})([’'][sS])$/u.exec(chunk.core);
+  return poss ? { lead: chunk.lead, core: poss[1], trail: poss[2] + chunk.trail } : chunk;
 }
 
 function wordCores(text: string): string[] {
@@ -140,6 +145,7 @@ export function prepareVocabulary(entries: readonly VocabularyEntry[]): Prepared
       letters,
       key: soundKey(word),
       maxEdits: allowedEdits(letters.length),
+      edge: { lead: splitChunk(word.split(' ')[0]).lead, trail: splitChunk(word.split(' ').pop() ?? '').trail },
     });
   }
   return { entries: prepared, longest };
@@ -187,7 +193,10 @@ function matchAt(chunks: readonly Chunk[], from: number, vocab: Prepared): Match
     for (const spelling of entry.spellings) {
       const to = from + spelling.length;
       if (to > chunks.length || (best && to <= best.to)) continue;
-      if (joinable(chunks, from, to) && sameWords(chunks, from, spelling)) best = { from, to, word: entry.word };
+      if (!joinable(chunks, from, to) || !sameWords(chunks, from, spelling)) continue;
+      // The entry's own spelling with edge punctuation ("C#") must keep it, or a bare "C" would match.
+      if (spelling === entry.spellings[0] && !(chunks[from].lead.includes(entry.edge.lead) && chunks[to - 1].trail.includes(entry.edge.trail))) continue;
+      best = { from, to, word: entry.word };
     }
   }
   if (best) return best;
@@ -222,7 +231,11 @@ function replacementText(chunks: readonly Chunk[], m: Match): string {
     .slice(m.from, m.to)
     .map((c) => c.core)
     .join(' ');
-  return chunks[m.from].lead + withCase(m.word, original) + chunks[m.to - 1].trail;
+  const word = withCase(m.word, original);
+  const lead = chunks[m.from].lead;
+  const end = chunks[m.to - 1].trail;
+  // The entry already carries its own edge punctuation ("Inc." + "."): write it once.
+  return (lead && word.startsWith(lead) ? '' : lead) + word + (end && word.endsWith(end) ? '' : end);
 }
 
 /** `text` with the word list applied; the same string when nothing matched. */
