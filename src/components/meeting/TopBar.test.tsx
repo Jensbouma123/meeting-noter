@@ -4,13 +4,18 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { ToastProvider } from '@jensbouma123/acciva-ui';
 import { TopBar } from './TopBar';
+import type { ModelProgressView, ModelReadiness } from './modelReadiness';
 
 vi.mock('@/components/meeting/store', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/components/meeting/store')>();
   return { ...actual };
 });
 
-function view(status: 'live' | 'idle' = 'live') {
+function view(
+  status: 'live' | 'idle' = 'live',
+  modelReadiness: ModelReadiness = 'ready',
+  modelProgress: ModelProgressView = { stage: null, label: '', percent: null, detail: null },
+) {
   return (
     <ToastProvider>
       <TopBar
@@ -24,8 +29,8 @@ function view(status: 'live' | 'idle' = 'live') {
           selectedLang="auto"
           onPickLanguage={() => {}}
           onOpenSettings={() => {}}
-          modelReadiness="ready"
-          modelProgress={{ stage: null, label: '', percent: null, detail: null }}
+          modelReadiness={modelReadiness}
+          modelProgress={modelProgress}
           onClearTranscript={() => {}}
           onOpenShare={() => {}}
           updateAvailable
@@ -65,6 +70,19 @@ describe('TopBar phone layout (390px)', () => {
   it('renders the idle state without overflow classes regressing', () => {
     render(view('idle'));
     expect(screen.getByTestId('meeting-topbar').className).toMatch(/max-w-full/);
+    expect(screen.queryByText('Ready')).not.toBeInTheDocument();
+  });
+
+  it('shows the model download progress button while the model loads', () => {
+    render(
+      view('idle', 'downloading', {
+        stage: 'downloading',
+        label: 'Downloading model 42%',
+        percent: 42,
+        detail: null,
+      }),
+    );
+    expect(screen.getByRole('button', { name: 'Downloading model 42%' })).toBeInTheDocument();
   });
 
   it('shows the redesigned menu items and update badge', () => {

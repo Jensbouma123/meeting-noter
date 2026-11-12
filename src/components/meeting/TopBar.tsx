@@ -152,11 +152,7 @@ function statusBadge(
     case 'idle':
     default: {
       if (modelReadiness === 'ready') {
-        return (
-          <Badge variant="neutral" size="sm">
-            {t('ready')}
-          </Badge>
-        );
+        return null;
       }
 
       // While the model is preparing, the pill carries the real percentage
