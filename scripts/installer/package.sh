@@ -70,7 +70,7 @@ iconutil -c icns "$iconset" -o "$stage/launcher/AppIcon.icns"
 # 5. Meetings MCP server for AI agents (docs/MCP.md): one file, run by the bundled node.
 mkdir -p "$stage/mcp"
 MCP_OUT="$stage/mcp/meetings-mcp.mjs" npx rolldown -c scripts/mcp/rolldown.config.mjs
-"$stage/node/bin/node" -e 'import(process.argv[1])' "$stage/mcp/meetings-mcp.mjs" </dev/null >/dev/null 2>&1 \
+"$stage/node/bin/node" -e 'import(require("url").pathToFileURL(require("path").resolve(process.argv[1])).href)' "$stage/mcp/meetings-mcp.mjs" </dev/null >/dev/null 2>&1 \
   || { echo "staged MCP server does not load" >&2; exit 1; }
 
 cp scripts/installer/convert-parakeet-v3.py "$stage/convert-parakeet-v3.py"
