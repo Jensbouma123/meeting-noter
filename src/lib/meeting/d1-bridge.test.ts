@@ -631,21 +631,23 @@ describe('d1-bridge', () => {
 
   it('recoverStaleD1Run() resets a stored "running" record left behind by a killed scan to idle', async () => {
     const bridge = await import('./d1-bridge');
+    // Same module instance the bridge resets, so setup and reads share one store.
+    const storeMod = await import('@/lib/d1/store');
 
-    await updateSessionIntelligence('sess-stale', (cur) => ({
+    await storeMod.updateSessionIntelligence('sess-stale', (cur) => ({
       ...cur,
       status: 'running',
       progress: { done: 3, total: 178 },
     }));
 
-    bridge.recoverStaleD1Run('sess-stale');
+    const recovered = bridge.recoverStaleD1Run('sess-stale');
 
-    // The view is reset synchronously, without waiting on the backend.
-    const { getIntelligenceSnapshot } = await import('@/lib/d1/store');
-    expect(getIntelligenceSnapshot('sess-stale').status).toBe('idle');
-    expect(getIntelligenceSnapshot('sess-stale').progress).toEqual({ done: 0, total: 0 });
+    // The view is reset synchronously, before the persist settles.
+    expect(storeMod.getIntelligenceSnapshot('sess-stale').status).toBe('idle');
+    expect(storeMod.getIntelligenceSnapshot('sess-stale').progress).toEqual({ done: 0, total: 0 });
 
-    const stored = await getSessionIntelligence('sess-stale');
+    await recovered;
+    const stored = await storeMod.getSessionIntelligence('sess-stale');
     expect(stored.status).toBe('idle');
     expect(stored.progress).toEqual({ done: 0, total: 0 });
   });

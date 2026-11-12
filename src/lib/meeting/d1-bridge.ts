@@ -201,21 +201,23 @@ export async function cancelD1Analysis(sessionId: string): Promise<void> {
   // Hard-kill every D1 worker without waiting for acks or the hung run.
   activeClient.terminate();
   if (activeClient !== d1Client) d1Client.terminate();
-  // Reset the UI state at once (in memory first, persistence best-effort).
-  resetIntelligenceRunState(sessionId);
+  // Reset the UI state at once; the persisted write is not awaited so Stop stays instant.
+  void resetIntelligenceRunState(sessionId);
   console.info('[D1] cancel: worker terminated, state reset to idle');
 }
 
 /**
  * Reset a `running` record to `idle` when no D1 run is live (e.g. the app
  * reloaded or the scan was killed mid-run), so Scan is not stuck disabled.
+ * The view resets synchronously; the returned promise settles once the idle
+ * record is persisted (bounded at 4 s), so a reload cannot bring back `running`.
  * Reads the in-memory view only: no IndexedDB read, so a hung backend cannot
- * block it.
+ * block the reset itself.
  */
-export function recoverStaleD1Run(sessionId: string): void {
+export async function recoverStaleD1Run(sessionId: string): Promise<void> {
   if (!sessionId || activeRunPromise !== null) return;
   if (getIntelligenceSnapshot(sessionId).status !== 'running') return;
-  resetIntelligenceRunState(sessionId);
+  await resetIntelligenceRunState(sessionId);
 }
 
 /* ------------------------------------------------------------------ */

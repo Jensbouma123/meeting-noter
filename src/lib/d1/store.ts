@@ -213,10 +213,12 @@ export function updateSessionIntelligence(
 /**
  * Reset a session's run state to `idle` right now: the in-memory view (what the
  * UI reads) changes synchronously and listeners fire before this returns. The
- * persisted copy is written best-effort, bypassing the per-session write queue,
- * so a hung earlier write can never keep the UI stuck on "running".
+ * persisted copy is written bypassing the per-session write queue, so a hung
+ * earlier write can never keep the UI stuck on "running". The returned promise
+ * settles once the idle record is persisted (or after 4 s); it never rejects.
+ * Callers that must not wait (Stop) may ignore it.
  */
-export function resetIntelligenceRunState(sessionId: string): void {
+export function resetIntelligenceRunState(sessionId: string): Promise<void> {
   const current = cache.get(sessionId) ?? emptyIntelligence(sessionId);
   const record: SessionIntelligence = {
     ...current,
@@ -227,9 +229,12 @@ export function resetIntelligenceRunState(sessionId: string): void {
   };
   cache.set(sessionId, record);
   notify(sessionId);
-  void withTimeout(getBackend().then((b) => b.put(record)), 4000, 'reset write timed out').catch(() => {
-    // The view is already reset; a stale persisted `running` is healed on next mount.
-  });
+  return withTimeout(getBackend().then((b) => b.put(record)), 4000, 'reset write timed out').then(
+    () => undefined,
+    () => {
+      // The view is already reset; a persist failure leaves a stale `running` that recovery retries on next mount.
+    },
+  );
 }
 
 /** Remove a session's intelligence entirely. */
