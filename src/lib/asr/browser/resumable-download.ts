@@ -191,6 +191,11 @@ interface HfTreeEntry {
 /** Per-repo, per-revision tree listing cache — avoids refetching for every file. */
 const treeCache = new Map<string, Promise<HfTreeEntry[] | null>>();
 
+/** Longest a tree listing may take (request and body) before it counts as unavailable. */
+export const REPO_TREE_TIMEOUT_MS = 15_000;
+/** How long a cached file waits for its size metadata before being served without it. */
+export const CACHED_META_DEADLINE_MS = 3_000;
+
 function fetchRepoTree(repoId: string, revision: string): Promise<HfTreeEntry[] | null> {
   const cacheKey = `${repoId}@${revision}`;
   const cached = treeCache.get(cacheKey);
@@ -198,11 +203,41 @@ function fetchRepoTree(repoId: string, revision: string): Promise<HfTreeEntry[] 
 
   const encoded = repoId.split('/').map(encodeURIComponent).join('/');
   const url = `https://huggingface.co/api/models/${encoded}/tree/${encodeURIComponent(revision)}?recursive=1`;
-  const promise = fetch(url)
-    .then((res) => (res.ok ? (res.json() as Promise<HfTreeEntry[]>) : null))
-    .catch(() => null);
+  const promise = (async (): Promise<HfTreeEntry[] | null> => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), REPO_TREE_TIMEOUT_MS);
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      return res.ok ? ((await res.json()) as HfTreeEntry[]) : null;
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(timer);
+    }
+  })().then((tree) => {
+    // A failed lookup is not an answer: forget it so the next file retries.
+    if (tree === null) treeCache.delete(cacheKey);
+    return tree;
+  });
   treeCache.set(cacheKey, promise);
   return promise;
+}
+
+/** Resolve `promise`, or `null` if it has not settled within `ms`. */
+function settleWithin<T>(promise: Promise<T>, ms: number): Promise<T | null> {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(null), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      () => {
+        clearTimeout(timer);
+        resolve(null);
+      },
+    );
+  });
 }
 
 /** A file's expected size and (LFS) sha256, straight from the HF tree API. */
@@ -1251,11 +1286,16 @@ async function acquireHfFile(
       // HEAD against the override origin instead; when even that fails
       // (offline), a complete cache record still serves — it was
       // size-checked at commit time and `readCachedFile` re-verifies chunks
-      // against the record before serving.
-      const meta =
+      // against the record before serving. A cached file never waits on a
+      // stalled metadata request: past `CACHED_META_DEADLINE_MS` it is served
+      // unchecked, the same as when offline.
+      const lookupMeta = async () =>
         (await getRepoFileMeta(repoId, revision, filename)) ??
         (options.urlOverride ? await headFileMeta(options.urlOverride).catch(() => null) : null);
       const cached = await readCachedFile(key).catch(() => null);
+      const meta = cached
+        ? await settleWithin(lookupMeta(), CACHED_META_DEADLINE_MS)
+        : await lookupMeta();
       if (cached && (!meta || isSizeValid(cached.record.size, meta.size))) {
         const total = meta?.size ?? cached.record.size;
         onProgress?.({ loaded: total, total, file: filename, resuming: false });
