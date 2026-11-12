@@ -24,8 +24,9 @@ export function createEmbedHandler(
   };
 }
 
-// Only a worker has no `window`; tests and the main thread import this file inertly.
-if (typeof self !== 'undefined' && typeof window === 'undefined') {
+// No `typeof window` guard: Next/Turbopack fold it to a constant in client bundles and
+// dead-strip the whole handler. `typeof self` keeps tests (no `self`) importing this inertly.
+if (typeof self !== 'undefined') {
   const handle = createEmbedHandler();
   self.onmessage = async (e: MessageEvent<EmbedWorkerIn>) => {
     const out = await handle(e.data);
