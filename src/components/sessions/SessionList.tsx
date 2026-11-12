@@ -353,23 +353,26 @@ export function SessionSidebar({
       {/* Rail body */}
       <VStack spacing="none" fill className="flex-1 scroll-pt-10 overflow-y-auto">
         {sessions.length === 0 ? (
-          <EmptyState
-            size="sm"
-            icon={<Video className="size-5" />}
-            title={t('empty')}
-            description={t('emptyHint')}
-            action={
-              <Button
-                size="sm"
-                variant="outline"
-                leadingIcon={<Plus className="size-4" />}
-                onClick={onNewSession}
-              >
-                {t('new')}
-              </Button>
-            }
-            className="my-auto"
-          />
+          <>
+            {!searching && <FolderTree controller={folderCtl} sessions={sessions} renderSession={(session) => renderRow(session)} />}
+            <EmptyState
+              size="sm"
+              icon={<Video className="size-5" />}
+              title={t('empty')}
+              description={t('emptyHint')}
+              action={
+                <Button
+                  size="sm"
+                  variant="outline"
+                  leadingIcon={<Plus className="size-4" />}
+                  onClick={onNewSession}
+                >
+                  {t('new')}
+                </Button>
+              }
+              className="my-auto"
+            />
+          </>
         ) : searching && groups.length === 0 ? (
           <EmptyState size="sm" icon={<Search className="size-5" />} title={t('noResults')} className="my-auto" />
         ) : (

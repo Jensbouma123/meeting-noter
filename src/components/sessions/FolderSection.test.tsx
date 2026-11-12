@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import type { FolderRow } from '@/lib/meeting-db/types';
 import type { SessionMetadata } from '@/lib/meeting/session-store';
 import { ToastProvider } from '@jensbouma123/acciva-ui';
-import { FolderTree, useFolderController } from './FolderSection';
+import { DraggableMeeting, FolderTree, useFolderController } from './FolderSection';
 
 const folder = (id: string, parentId: string | null, name: string): FolderRow => ({ id, parentId, name, sort: 0, createdAt: 0, updatedAt: 0 });
 const session = { sessionId: 'm1', title: 'Standup', segmentCount: 1, durationSeconds: 5, createdAt: 1, updatedAt: 1 } as SessionMetadata;
@@ -34,6 +34,11 @@ function handle(url: string, init?: RequestInit): Response {
   }
   if (path === '/api/meetings' && method === 'GET') {
     return json(200, { ok: true, meetings: Object.entries(server.meetings).map(([id, folderId]) => ({ id, folderId })) });
+  }
+  const meetingFolderMatch = /^\/api\/meetings\/([^/]+)\/folder$/.exec(path);
+  if (meetingFolderMatch && method === 'PUT') {
+    server.meetings[meetingFolderMatch[1]] = body.folderId as string | null;
+    return json(200, { ok: true });
   }
   const folderMatch = /^\/api\/folders\/([^/]+)$/.exec(path);
   if (folderMatch && method === 'PATCH') {
@@ -90,11 +95,14 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function Harness() {
-  const ctl = useFolderController(sessions);
+function Harness({ items = sessions }: { items?: readonly SessionMetadata[] }) {
+  const ctl = useFolderController(items);
   return (
     <>
-      <FolderTree controller={ctl} sessions={sessions} renderSession={(s) => <span>{s.title}</span>} />
+      <FolderTree controller={ctl} sessions={items} renderSession={(s) => <span>{s.title}</span>} />
+      {items.filter((s) => Object.hasOwn(ctl.meetingFolders, s.sessionId) && !ctl.meetingFolders[s.sessionId]).map((s) => (
+        <DraggableMeeting key={s.sessionId} sessionId={s.sessionId}>{s.title}</DraggableMeeting>
+      ))}
       {ctl.dialogs}
     </>
   );
@@ -104,6 +112,15 @@ const renderTree = () => render(<ToastProvider><Harness /></ToastProvider>);
 const mutations = (method: string) => calls.filter((c) => c.method === method);
 const openActions = (name: string) => fireEvent.click(screen.getByRole('button', { name: `Actions for folder “${name}”` }));
 const pick = async (label: string) => fireEvent.click(await screen.findByRole('menuitem', { name: label, hidden: true }));
+function transfer() {
+  const values = new Map<string, string>();
+  return { setData: (type: string, value: string) => values.set(type, value), getData: (type: string) => values.get(type) ?? '', effectAllowed: 'none', dropEffect: 'none', types: [] as string[] };
+}
+function dragStart(element: HTMLElement) {
+  const dataTransfer = transfer();
+  fireEvent.dragStart(element, { dataTransfer });
+  return dataTransfer;
+}
 
 describe('FolderTree', () => {
   it('renders nested folders with the filed meeting and collapses', async () => {
@@ -122,13 +139,69 @@ describe('FolderTree', () => {
     expect(within(q1).getByText('1')).toBeInTheDocument();
   });
 
-  it('creates a top-level folder with the default name and opens it for rename', async () => {
+  it('keeps empty folders visible when there are no meetings', async () => {
+    server.meetings = {};
+    render(<ToastProvider><Harness items={[]} /></ToastProvider>);
+    expect(await screen.findByRole('button', { name: /^Work/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Q1/ })).toBeInTheDocument();
+  });
+
+  it('moves a meeting onto a folder by mouse drop', async () => {
+    server.meetings.m1 = null;
+    renderTree();
+    const meeting = await screen.findByText('Standup');
+    const source = meeting.closest('[draggable="true"]') as HTMLElement;
+    const dataTransfer = dragStart(source);
+    const target = screen.getByRole('button', { name: /^Work/ }).closest('[draggable="true"]') as HTMLElement;
+    fireEvent.drop(target, { dataTransfer });
+    await waitFor(() => expect(mutations('PUT')[0]?.body).toBe(JSON.stringify({ folderId: 'a' })));
+  });
+
+  it('expands a collapsed folder after a drag hover so it can receive a drop', async () => {
+    server.meetings.m1 = null;
+    renderTree();
+    const work = await screen.findByRole('button', { name: /^Work/ });
+    fireEvent.click(work);
+    const dataTransfer = dragStart(screen.getByText('Standup').closest('[draggable="true"]') as HTMLElement);
+    const target = work.closest('[draggable="true"]') as HTMLElement;
+    fireEvent.dragOver(target, { dataTransfer });
+    await new Promise((resolve) => setTimeout(resolve, 650));
+    expect(screen.getByText('Q1')).toBeInTheDocument();
+    fireEvent.drop(target, { dataTransfer });
+    await waitFor(() => expect(mutations('PUT')[0]?.body).toBe(JSON.stringify({ folderId: 'a' })));
+  });
+
+  it('moves a meeting out of its folder through the root drop zone', async () => {
+    renderTree();
+    const source = (await screen.findByText('Standup')).closest('[draggable="true"]') as HTMLElement;
+    const dataTransfer = dragStart(source);
+    const root = await screen.findByText('Top level');
+    fireEvent.dragOver(root, { dataTransfer });
+    fireEvent.drop(root, { dataTransfer });
+    await waitFor(() => expect(mutations('PUT')[0]?.body).toBe(JSON.stringify({ folderId: null })));
+  });
+
+  it('refuses to move a folder into its own descendant by drop', async () => {
+    renderTree();
+    const source = (await screen.findByRole('button', { name: /^Work/ })).closest('[draggable="true"]') as HTMLElement;
+    const dataTransfer = dragStart(source);
+    const target = screen.getByRole('button', { name: /^Q1/ }).closest('[draggable="true"]') as HTMLElement;
+    fireEvent.drop(target, { dataTransfer });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(mutations('PATCH')).toHaveLength(0);
+  });
+
+  it('opens the create folder dialog and creates a top-level folder', async () => {
     renderTree();
     await screen.findByText('Q1');
     fireEvent.click(screen.getByRole('button', { name: 'New folder' }));
     const input = await screen.findByRole('textbox', { name: 'Folder name' });
-    expect(input).toHaveValue('New folder');
-    expect(mutations('POST')[0]).toMatchObject({ url: '/api/folders', body: JSON.stringify({ name: 'New folder', parentId: null }) });
+    expect(input).toHaveValue('');
+    expect(mutations('POST')).toHaveLength(0);
+    fireEvent.change(input, { target: { value: 'Planning' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    await waitFor(() => expect(mutations('POST')[0]).toMatchObject({ url: '/api/folders', body: JSON.stringify({ name: 'Planning', parentId: null }) }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   });
 
   it('creates a nested folder under the chosen parent', async () => {
@@ -136,9 +209,24 @@ describe('FolderTree', () => {
     await screen.findByText('Q1');
     openActions('Work');
     await pick('New subfolder');
-    await waitFor(() => expect(mutations('POST')).toHaveLength(1));
-    expect(mutations('POST')[0].body).toBe(JSON.stringify({ name: 'New folder', parentId: 'a' }));
-    expect(await screen.findByRole('textbox', { name: 'Folder name' })).toBeInTheDocument();
+    const input = await screen.findByRole('textbox', { name: 'Folder name' });
+    expect(screen.getByLabelText('Location')).toHaveValue('a');
+    fireEvent.change(input, { target: { value: 'Planning' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+    await waitFor(() => expect(mutations('POST')[0].body).toBe(JSON.stringify({ name: 'Planning', parentId: 'a' })));
+  });
+
+  it('rejects empty and duplicate names in the selected parent', async () => {
+    renderTree();
+    await screen.findByText('Q1');
+    fireEvent.click(screen.getByRole('button', { name: 'New folder' }));
+    const input = await screen.findByRole('textbox', { name: 'Folder name' });
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+    expect(await screen.findByText('Enter a folder name.')).toBeInTheDocument();
+    fireEvent.change(input, { target: { value: 'Work' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+    expect(await screen.findByText('A folder with this name already exists here.')).toBeInTheDocument();
+    expect(mutations('POST')).toHaveLength(0);
   });
 
   it('renames inline with F2 and commits on Enter', async () => {
@@ -174,14 +262,14 @@ describe('FolderTree', () => {
     await waitFor(() => expect(mutations('PATCH')[0]?.body).toBe(JSON.stringify({ name: 'Retro' })));
   });
 
-  it('shows the rename field for a new subfolder even when its parent is collapsed', async () => {
+  it('opens the create dialog for a new subfolder even when its parent is collapsed', async () => {
     renderTree();
     await screen.findByText('Q1');
     fireEvent.click(screen.getByRole('button', { name: /^Work/, expanded: true }));
     openActions('Work');
     await pick('New subfolder');
-    await waitFor(() => expect(mutations('POST')).toHaveLength(1));
     expect(await screen.findByRole('textbox', { name: 'Folder name' })).toBeVisible();
+    expect(mutations('POST')).toHaveLength(0);
   });
 
   it('cancels a rename with Escape without calling the API', async () => {

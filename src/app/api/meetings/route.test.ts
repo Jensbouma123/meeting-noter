@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { sampleMeeting } from '@/lib/meeting-db/test-meeting';
+import { meetingStore } from '@/lib/meeting-db/store';
 import { DELETE as removeAll, GET as list } from './route';
 import { DELETE as remove, GET as get, PUT as put } from './[id]/route';
 import { POST as importMeetings } from './import/route';
@@ -84,11 +85,14 @@ describe('/api/meetings', () => {
 
   it('deletes a meeting and its Markdown file', async () => {
     const m = sampleMeeting();
+    const folder = meetingStore().createFolder('Keep this folder');
     await put(json('PUT', `/${m.id}`, m), ctx(m.id));
+    const markdownFile = meetingStore().db.markdownFile(m.id)!;
     const res = await remove(req(`/${m.id}`, { method: 'DELETE' }), ctx(m.id));
     expect(await res.json()).toEqual({ ok: true, deleted: true });
     expect((await get(req(`/${m.id}`), ctx(m.id))).status).toBe(404);
-    expect(fs.readdirSync(path.join(dir, 'meetings'))).toEqual([]);
+    expect(fs.existsSync(path.join(dir, 'meetings', markdownFile))).toBe(false);
+    expect(meetingStore().db.listFolders()).toContainEqual(expect.objectContaining({ id: folder.id, name: 'Keep this folder' }));
   });
 
   it('keeps a deleted meeting deleted: PUT gets 410, import skips it, the list names it', async () => {
@@ -107,13 +111,16 @@ describe('/api/meetings', () => {
 
   it('DELETE /api/meetings removes every meeting, Markdown file and trace of their text', async () => {
     const a = sampleMeeting();
+    const folder = meetingStore().createFolder('Keep after delete all');
     await put(json('PUT', `/${a.id}`, a), ctx(a.id));
     await put(json('PUT', '/b', sampleMeeting({ id: 'b' })), ctx('b'));
+    const markdownFiles = [meetingStore().db.markdownFile(a.id)!, meetingStore().db.markdownFile('b')!];
     expect(await (await removeAll(req('', { method: 'DELETE' }))).json()).toEqual({ ok: true, deleted: 2 });
     const all = await (await list(req(''))).json();
     expect(all.meetings).toEqual([]);
     expect(all.deleted.sort()).toEqual(['b', a.id].sort());
-    expect(fs.readdirSync(path.join(dir, 'meetings'))).toEqual([]);
+    for (const markdownFile of markdownFiles) expect(fs.existsSync(path.join(dir, 'meetings', markdownFile))).toBe(false);
+    expect(meetingStore().db.listFolders()).toContainEqual(expect.objectContaining({ id: folder.id, name: 'Keep after delete all' }));
     const raw = ['', '-wal'].map((x) => (fs.existsSync(path.join(dir, 'meetings.db') + x) ? fs.readFileSync(path.join(dir, 'meetings.db') + x, 'latin1') : '')).join('');
     expect(raw).not.toContain('quarterly budget');
     expect((await removeAll(new Request('http://evil.example/api/meetings', { method: 'DELETE', headers: { host: 'evil.example' } }))).status).toBe(403);
