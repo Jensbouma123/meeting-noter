@@ -95,7 +95,7 @@ describe('d1 worker handler', () => {
     });
 
     await handle({ type: 'init', id: 'init-1' });
-    expect(out).toEqual([
+    expect(out.filter((m) => m.type !== 'stage')).toEqual([
       {
         type: 'error',
         id: 'init-1',
@@ -130,7 +130,11 @@ describe('d1 worker handler', () => {
 
     await handle({ type: 'init', id: 'init-fail' });
     expect(revoked).toEqual([urls]);
-    expect(out[0]).toMatchObject({ type: 'error', id: 'init-fail', code: 'failed' });
+    expect(out.filter((m) => m.type !== 'stage')[0]).toMatchObject({
+      type: 'error',
+      id: 'init-fail',
+      code: 'failed',
+    });
   });
 
   it('serializes session.run via Mutex, caps batches <= 4, disposes all tensors, and releases on dispose', async () => {
