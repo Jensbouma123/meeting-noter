@@ -11,6 +11,9 @@ import type {
   SystemVia,
 } from '@/lib/meeting';
 
+import { applyVocabularyToSegment } from '@/lib/vocabulary/replace';
+import { addFixedWord, getPreparedVocabulary } from '@/lib/vocabulary/store';
+
 export type { CaptureMode, Levels, MeetingState, Segment, Source, Speaker, StartOpts, Status, SystemVia };
 
 interface ScriptTurn {
@@ -418,6 +421,12 @@ export const meeting = {
       rafId = requestAnimationFrame(runLevelsLoop);
     }
     streamTimer = setTimeout(advanceSimulation, 300);
+  },
+
+  fixWord(heard: string, word: string): void {
+    if (!addFixedWord(heard, word)) return;
+    const vocab = getPreparedVocabulary();
+    updateState({ segments: state.segments.map((s) => (s.final ? applyVocabularyToSegment(s, vocab) : s)) });
   },
 
   renameSpeaker(id: string, label: string): void {

@@ -488,3 +488,24 @@ describe('LiveTranscript empty states', () => {
     expect(screen.getByText('Ready to record')).toBeTruthy();
   });
 });
+
+describe('LiveTranscript ready state', () => {
+  it('Record button starts recording', () => {
+    const onStart = vi.fn();
+    render(
+      <LanguageContext.Provider value="en">
+        <LiveTranscript
+          segments={[]}
+          speakers={speakers}
+          status="idle"
+          autoScrollEnabled={false}
+          onStartRecording={onStart}
+          modelReady
+          onOpenSettings={() => {}}
+        />
+      </LanguageContext.Provider>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /record/i }));
+    expect(onStart).toHaveBeenCalledTimes(1);
+  });
+});

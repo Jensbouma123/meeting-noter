@@ -32,7 +32,9 @@ describe('ShareDialog', () => {
     const preview = screen.getByRole('region', { name: 'Preview of what you will share' });
     expect(preview).toHaveTextContent('Planning');
     expect(preview).toHaveTextContent('Hello');
-    fireEvent.click(screen.getByRole('button', { name: 'Copy transcript' }));
+    const copyButton = screen.getByRole('button', { name: 'Copy transcript' });
+    expect(copyButton.querySelector('svg.lucide-copy')).toBeInTheDocument();
+    fireEvent.click(copyButton);
     expect(await screen.findByRole('status')).toHaveTextContent('Copied');
     const text = vi.mocked(exp.copyToClipboard).mock.calls.at(-1)![0];
     expect(text).toContain('[00:00] Hello');

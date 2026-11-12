@@ -5,6 +5,9 @@ import type { Segment, Speaker, Status, SystemVia } from '@/lib/meeting';
 import { formatClock, splitTranscript } from '@/lib/meeting/export';
 import { TranscriptTurn } from './TranscriptTurn';
 import { TranscriptSearch } from './TranscriptSearch';
+import { FixWordAction } from './FixWordAction';
+import { SpeakerAssign } from './SpeakerAssign';
+import { meeting } from './store';
 import { getSpeakerColor } from './speaker-theme';
 import {
   Button,
@@ -14,7 +17,7 @@ import {
   type VirtualListHandle,
   type VirtualListRange,
 } from '@jensbouma123/acciva-ui';
-import { ArrowDown, Mic } from 'lucide-react';
+import { ArrowDown, Circle, Info, Mic } from 'lucide-react';
 import type { ModelReadiness } from './modelReadiness';
 import type { SettingsSectionId } from '@/components/settings/sections';
 import { useT } from '@/lib/i18n/useT';
@@ -102,6 +105,7 @@ export function LiveTranscript({
   speakers,
   status,
   autoScrollEnabled,
+  onStartRecording,
   modelReady,
   modelReadiness,
   onOpenSettings,
@@ -123,6 +127,8 @@ export function LiveTranscript({
   const [windowVersion, setWindowVersion] = useState(0);
   const pendingSegRef = useRef<string | null>(null);
   const ringRef = useRef<Element | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const fixWord = useCallback((heard: string, word: string) => meeting.fixWord(heard, word), []);
 
   useEffect(() => {
     autoScrollRef.current = autoScrollEnabled;
@@ -414,9 +420,20 @@ export function LiveTranscript({
                       />
                       <span className="flex min-w-0 items-baseline gap-1.5 select-none">
                         <span className={`inline-block size-2 shrink-0 self-center rounded-full ${color.dotClass}`} aria-hidden="true" />
-                        <Text as="span" size="sm" weight="semibold" className={`truncate ${color.textClass}`}>
-                          {label}
-                        </Text>
+                        {sessionId ? (
+                          <SpeakerAssign
+                            sessionId={sessionId}
+                            speakerId={id}
+                            label={label}
+                            source={segs[0].source}
+                            otherLabels={Object.values(speakers).filter((sp) => sp.id !== id).map((sp) => sp.label)}
+                            textClassName={`text-sm font-semibold ${color.textClass}`}
+                          />
+                        ) : (
+                          <Text as="span" size="sm" weight="semibold" className={`truncate ${color.textClass}`}>
+                            {label}
+                          </Text>
+                        )}
                       </span>
                       {segs.map((seg) => (
                         <div key={seg.id} data-seg-id={seg.id} className="min-w-0">
@@ -507,6 +524,16 @@ export function LiveTranscript({
               />
               {/* Kept, invisible, on a continuation line so its baseline and
                   width match a turn's first line. */}
+              {sessionId && turnStart ? (
+                <SpeakerAssign
+                  sessionId={sessionId}
+                  speakerId={seg.speaker}
+                  label={speakerLabel}
+                  source={seg.source}
+                  otherLabels={Object.values(speakers).filter((sp) => sp.id !== seg.speaker).map((sp) => sp.label)}
+                  textClassName={`text-sm font-semibold ${colorStyle.textClass}`}
+                />
+              ) : (
               <Text
                 as="span"
                 size="sm"
@@ -515,6 +542,7 @@ export function LiveTranscript({
               >
                 {speakerLabel}
               </Text>
+              )}
               {turnStart && <span className="sr-only">({sourceLabel})</span>}
             </span>
             )}
@@ -535,7 +563,8 @@ export function LiveTranscript({
   };
 
   return (
-    <div className="relative flex h-full flex-1 flex-col overflow-hidden">
+    <div ref={rootRef} className="relative flex h-full flex-1 flex-col overflow-hidden">
+      <FixWordAction containerRef={rootRef} segments={segments} onFix={fixWord} />
       {/* In-app transcript search overlay */}
       {searchOpen && (
         <div className="pointer-events-none absolute inset-x-0 top-2 z-30 flex justify-center px-4">
@@ -556,32 +585,46 @@ export function LiveTranscript({
           aria-label={t('transcriptLabel')}
           className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto px-4 py-6 md:px-8"
         >
-          <EmptyState
-            size="md"
-            icon={<Mic className="size-6" aria-hidden="true" />}
-            title={modelReady ? t('ready') : emptyTitle}
-            description={
-              modelReady
-                ? t('readyDescription')
-                : emptyBody
-            }
-            action={
-              !modelReady && !preparing ? (
-                <Button
-                  variant="secondary"
-                  size={{ base: 'md', md: 'sm' }}
-                  onClick={() => onOpenSettings('advanced')}
-                >
-                  {failed ? t('openSettings') : t('setupModel')}
-                </Button>
-              ) : undefined
-            }
-            secondaryAction={
-              <Text size="xs" variant="muted" className="max-w-[40ch] text-center">
+          <div className="flex w-full max-w-sm flex-col items-center gap-3">
+            <EmptyState
+              size="md"
+              icon={<Mic className="size-6" aria-hidden="true" />}
+              title={modelReady ? t('ready') : emptyTitle}
+              description={modelReady ? t('readyDescription') : emptyBody}
+              action={
+                modelReady ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Button
+                      variant="primary"
+                      size={{ base: 'md', md: 'sm' }}
+                      onClick={onStartRecording}
+                      leadingIcon={<Circle className="size-3 fill-current" aria-hidden="true" />}
+                    >
+                      {t('record')}
+                    </Button>
+                    <Text size="xs" variant="muted">
+                      {t('orPress')}{' '}
+                      <kbd className="rounded border border-border px-1.5 font-mono text-[0.7rem] text-muted-foreground">R</kbd>
+                    </Text>
+                  </div>
+                ) : !preparing ? (
+                  <Button
+                    variant="secondary"
+                    size={{ base: 'md', md: 'sm' }}
+                    onClick={() => onOpenSettings('advanced')}
+                  >
+                    {failed ? t('openSettings') : t('setupModel')}
+                  </Button>
+                ) : undefined
+              }
+            />
+            <div className="flex w-fit max-w-full items-start gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-left">
+              <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <Text size="xs" variant="muted">
                 {t('callTip')}
               </Text>
-            }
-          />
+            </div>
+          </div>
         </div>
       ) : listening ? (
         <div

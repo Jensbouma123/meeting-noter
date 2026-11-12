@@ -27,6 +27,7 @@
  */
 
 import type { BrowserWord } from './types';
+import type { ContextBiaser } from '../../vocabulary/bias';
 
 /** The export's constants (`genai_config.json` of the repo's `main`). */
 export const NEMOTRON = Object.freeze({
@@ -350,6 +351,8 @@ export interface NemotronRecognizeOptions {
   leadSeconds?: number;
   /** Called after each encoder chunk — the bench's per-chunk clock. */
   onChunk?: (index: number, total: number) => void;
+  /** The user's word list, favoured while decoding (`vocabulary/bias.ts`). */
+  biaser?: ContextBiaser | null;
 }
 
 /**
@@ -367,6 +370,11 @@ export class NemotronRecognizer {
     this.ort = ort;
     this.sessions = sessions;
     this.vocab = vocab;
+  }
+
+  /** The model's pieces, index = token id. */
+  get pieces(): readonly string[] {
+    return this.vocab;
   }
 
   async recognize(audio: Float32Array, options: NemotronRecognizeOptions = {}): Promise<NemotronResult> {
@@ -398,6 +406,8 @@ export class NemotronRecognizer {
     const lang = new Tensor('int64', BigInt64Array.from([BigInt(langId)]), [1]);
     const length = new Tensor('int64', BigInt64Array.from([BigInt(preEncodeCache + melFramesPerChunk)]), [1]);
     const decoder = new PredictionState(this.ort, this.sessions.decoder);
+    const biaser = options.biaser ?? null;
+    biaser?.reset();
 
     const audioChunks = Math.ceil(audio.length / chunkSamples);
     const total = audioChunks + flushChunks;
@@ -428,7 +438,15 @@ export class NemotronRecognizer {
       cacheLen = out.cache_last_channel_len_next;
       const enc = out.outputs;
       const encLen = Math.min(enc.dims[1], Number((out.encoded_lengths.data as BigInt64Array)[0]));
-      const emitted = await greedyDecodeChunk(this.ort, this.sessions.joint, decoder, enc.data as Float32Array, encLen, frameBase);
+      const emitted = await greedyDecodeChunk(
+        this.ort,
+        this.sessions.joint,
+        decoder,
+        enc.data as Float32Array,
+        encLen,
+        frameBase,
+        biaser,
+      );
       enc.dispose?.();
       for (const tok of emitted) {
         if (firstTokenMs === null && !isSpecialPiece(this.vocab[tok.id] ?? '<>')) firstTokenMs = Date.now() - startedAt;
@@ -512,6 +530,7 @@ async function greedyDecodeChunk(
   enc: Float32Array,
   frames: number,
   frameBase: number,
+  biaser: ContextBiaser | null = null,
 ): Promise<NemotronToken[]> {
   const { hidden, predHidden, vocabSize, blankId, maxSymbolsPerStep } = NEMOTRON;
   const emitted: NemotronToken[] = [];
@@ -525,6 +544,8 @@ async function greedyDecodeChunk(
       decoder_output: new ort.Tensor('float32', dec, [1, 1, predHidden]),
     });
     const logits = out.joint_output.data as Float32Array;
+    // The prediction state is the same for every row, so one bonus serves them all.
+    const bonus = biaser ? biaser.currentBonus() : null;
     let hit = -1;
     let best: number = blankId;
     let bestLp = 0;
@@ -533,7 +554,7 @@ async function greedyDecodeChunk(
       let arg = 0;
       let max = -Infinity;
       for (let v = 0; v < vocabSize; v++) {
-        const x = logits[row + v];
+        const x = bonus ? logits[row + v] + bonus[v] : logits[row + v];
         if (x > max) {
           max = x;
           arg = v;
@@ -542,7 +563,7 @@ async function greedyDecodeChunk(
       if (arg !== blankId) {
         hit = f;
         best = arg;
-        bestLp = max;
+        bestLp = logits[row + arg];
         break;
       }
     }
@@ -552,6 +573,7 @@ async function greedyDecodeChunk(
     t += hit;
     emitted.push({ id: best, frame: frameBase + t, logProb: bestLp });
     decoder.commit(best);
+    biaser?.advance(best);
     symbols += 1;
     if (symbols >= maxSymbolsPerStep) {
       t += 1;

@@ -1,5 +1,7 @@
 import { INITIAL_STATE, type CaptureMode, type Levels, type MeetingState, type Segment, type Source, type Speaker } from './types';
 import { useSyncExternalStore } from 'react';
+import { applyVocabularyToSegment } from '@/lib/vocabulary/replace';
+import { getPreparedVocabulary } from '@/lib/vocabulary/store';
 
 let state: MeetingState = { ...INITIAL_STATE, segments: [], speakers: {} };
 
@@ -307,8 +309,31 @@ export function ensureSpeaker(id: string, mode: CaptureMode): Speaker {
   return speaker;
 }
 
+/** A final line with the user's word list applied; partials pass through (they are re-read anyway). */
+function withVocabulary(seg: Segment): Segment {
+  return seg.final ? applyVocabularyToSegment(seg, getPreparedVocabulary()) : seg;
+}
+
+/**
+ * Apply the word list to every final line now in the store — after "Fix this
+ * word" added a word, so the open transcript shows it at once (the autosave
+ * that follows every change persists it).
+ */
+export function applyVocabularyToTranscript(): void {
+  let changed = false;
+  const segments = state.segments.map((s) => {
+    const next = withVocabulary(s);
+    if (next !== s) changed = true;
+    return next;
+  });
+  if (!changed) return;
+  state = { ...state, segments };
+  emit();
+}
+
 /** Insert or replace a segment by id; registers its speaker. */
 export function upsertSegment(seg: Segment): void {
+  seg = withVocabulary(seg);
   // Already-placed segments (prefixed id) pass through, so re-upserts of a
   // stored segment (e.g. diarization relabelling) are not shifted twice.
   if (activeAppend && !seg.id.startsWith(activeAppend.prefix)) {
@@ -365,7 +390,7 @@ export function inSegmentFamily(id: string, root: string): boolean {
  */
 export function replaceSegmentFamily(root: string, parts: Segment[]): void {
   if (parts.length === 0) return;
-  let placed = parts;
+  let placed = parts.map(withVocabulary);
   if (activeAppend && !root.startsWith(activeAppend.prefix)) {
     const { prefix, offset } = activeAppend;
     root = prefix + root;

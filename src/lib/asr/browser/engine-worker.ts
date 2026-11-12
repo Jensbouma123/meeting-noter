@@ -53,6 +53,9 @@ async function run(msg: Extract<EngineWorkerIn, { type: 'call' }>): Promise<void
       case 'unlockLanguage':
         engine.unlockLanguage();
         break;
+      case 'setVocabulary':
+        engine.setVocabulary(msg.args);
+        break;
     }
     post({ type: 'reply', callId, ok: true, value, ready: engine.isReady });
   } catch (err) {

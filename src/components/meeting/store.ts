@@ -78,6 +78,12 @@ export const meeting = {
     const activeMeeting = isMock ? mockMeeting.meeting : realMeeting.meeting;
     activeMeeting.renameSpeaker(id, label);
   },
+  /** "Fix this word": save the spelling to the word list and correct the open transcript. */
+  fixWord(heard: string, word: string): void {
+    const isMock = checkIsMock();
+    const activeMeeting = isMock ? mockMeeting.meeting : realMeeting.meeting;
+    activeMeeting.fixWord(heard, word);
+  },
   setLanguage(code: string): void {
     const isMock = checkIsMock();
     const activeMeeting = isMock ? mockMeeting.meeting : realMeeting.meeting;

@@ -9,6 +9,7 @@ import type {
   BrowserSegment,
   BrowserTranscribeResult,
 } from './types';
+import type { VocabularyBiasConfig } from '@/lib/vocabulary/types';
 
 export interface TranscribeArgs {
   audio: Float32Array;
@@ -23,7 +24,8 @@ export type EngineCall =
   | { method: 'recognize'; args: { audio: Float32Array } }
   | { method: 'stop' }
   | { method: 'lockLanguage' }
-  | { method: 'unlockLanguage' };
+  | { method: 'unlockLanguage' }
+  | { method: 'setVocabulary'; args: VocabularyBiasConfig };
 
 export type EngineWorkerIn =
   | { type: 'init'; config: BrowserASRConfig; debug: boolean }

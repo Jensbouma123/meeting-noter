@@ -20,6 +20,7 @@ export function groupSessionsByDay<T extends GroupableSession>(
   sessions: readonly T[],
   now: number = Date.now(),
   locale?: string,
+  labels: { today: string; yesterday: string } = { today: 'Today', yesterday: 'Yesterday' },
 ): SessionGroup<T>[] {
   const nowDate = new Date(now);
   const today = startOfDay(nowDate);
@@ -37,10 +38,10 @@ export function groupSessionsByDay<T extends GroupableSession>(
     let label: string;
     if (day >= today) {
       key = 'today';
-      label = 'Vandaag';
+      label = labels.today;
     } else if (day >= yesterday) {
       key = 'yesterday';
-      label = 'Gisteren';
+      label = labels.yesterday;
     } else if (day >= weekAgo) {
       key = `d:${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
       label = dayFmt.format(d).replace(/\./g, '');

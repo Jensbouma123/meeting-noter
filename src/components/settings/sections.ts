@@ -2,10 +2,11 @@ import type { ComponentType } from 'react';
 import {
   Database,
   Info,
+  SpellCheck,
   SlidersHorizontal,
 } from 'lucide-react';
 
-export type SettingsSectionId = 'general' | 'storage' | 'about' | 'advanced';
+export type SettingsSectionId = 'general' | 'vocabulary' | 'storage' | 'about' | 'advanced';
 
 export interface SettingsSectionMeta {
   id: SettingsSectionId;
@@ -16,6 +17,7 @@ export interface SettingsSectionMeta {
 
 export const SETTINGS_SECTIONS: SettingsSectionMeta[] = [
   { id: 'general', label: 'section.general', icon: SlidersHorizontal },
+  { id: 'vocabulary', label: 'section.vocabulary', icon: SpellCheck },
   { id: 'storage', label: 'section.storage', icon: Database },
   { id: 'about', label: 'section.about', icon: Info },
   { id: 'advanced', label: 'section.advanced', icon: SlidersHorizontal },

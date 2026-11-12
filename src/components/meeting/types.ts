@@ -9,6 +9,8 @@ export interface AppSettings {
   autoScroll: boolean;
   /** Meetings older than this are deleted at app start. */
   retention: RetentionChoice;
+  /** The user's own name. Stored only; assigning it to a speaker comes later. */
+  ownerName: string;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -18,6 +20,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   language: 'auto',
   autoScroll: true,
   retention: DEFAULT_RETENTION,
+  ownerName: '',
 };
 
 export const SETTINGS_STORAGE_KEY = 'mn.settings';
@@ -37,6 +40,7 @@ export function loadSettings(): AppSettings {
       language: parsed.language ?? DEFAULT_SETTINGS.language,
       autoScroll: parsed.autoScroll ?? DEFAULT_SETTINGS.autoScroll,
       retention: parseRetention(parsed.retention),
+      ownerName: typeof parsed.ownerName === 'string' ? parsed.ownerName : '',
     };
   } catch {
     return DEFAULT_SETTINGS;

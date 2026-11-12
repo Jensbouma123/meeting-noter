@@ -2,7 +2,7 @@
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import type { CaptureMode } from '@/lib/meeting';
+import type { CaptureMode, Status } from '@/lib/meeting';
 import { BottomDock } from './BottomDock';
 import { NO_MODEL_PROGRESS } from './modelReadiness';
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, loadSettings } from './types';
@@ -14,11 +14,16 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function renderDock(mode: CaptureMode, onModeChange: (m: CaptureMode) => void = () => {}, onOpenAdvanced: () => void = () => {}) {
-  render(
+function dockElement(
+  status: Status,
+  mode: CaptureMode,
+  onModeChange: (m: CaptureMode) => void = () => {},
+  onOpenAdvanced: () => void = () => {},
+) {
+  return (
     <LanguageContext.Provider value="nl">
       <BottomDock
-        status="idle"
+        status={status}
         mode={mode}
         modelReadiness="ready"
         modelProgress={NO_MODEL_PROGRESS}
@@ -29,8 +34,16 @@ function renderDock(mode: CaptureMode, onModeChange: (m: CaptureMode) => void = 
         onResume={() => {}}
         onOpenAdvanced={onOpenAdvanced}
       />
-    </LanguageContext.Provider>,
+    </LanguageContext.Provider>
   );
+}
+
+function renderDock(mode: CaptureMode, onModeChange: (m: CaptureMode) => void = () => {}, onOpenAdvanced: () => void = () => {}) {
+  render(dockElement('idle', mode, onModeChange, onOpenAdvanced));
+}
+
+function renderDockWithStatus(status: Status, mode: CaptureMode) {
+  return render(dockElement(status, mode));
 }
 
 describe('capture mode toggle', () => {
@@ -53,6 +66,21 @@ describe('capture mode toggle', () => {
     expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent('Neemt je microfoon en het geluid van je gesprek op (Teams, Zoom, Meet).');
   });
 
+  it('shows exactly one tooltip per option on hover, also while recording', () => {
+    const { rerender } = renderDockWithStatus('idle', 'both');
+    const [mic] = screen.getAllByRole('tab');
+    fireEvent.mouseEnter(mic);
+    expect(screen.getAllByRole('tooltip', { hidden: true })).toHaveLength(1);
+    fireEvent.mouseLeave(mic);
+
+    rerender(dockElement('live', 'both'));
+    const [liveMic] = screen.getAllByRole('tab');
+    fireEvent.mouseEnter(liveMic);
+    const tooltips = screen.getAllByRole('tooltip', { hidden: true });
+    expect(tooltips).toHaveLength(1);
+    expect(tooltips[0]).toHaveTextContent('Neemt alleen je microfoon op. Stop de opname om de audiobron te wijzigen.');
+  });
+
   it('still reports the selection', () => {
     const onModeChange = vi.fn();
     renderDock('both', onModeChange);
@@ -60,6 +88,79 @@ describe('capture mode toggle', () => {
     expect(onModeChange).toHaveBeenCalledWith('mic');
   });
 
+});
+
+describe('dock states', () => {
+  function renderState(status: Status, extra: Partial<Parameters<typeof BottomDock>[0]> = {}) {
+    const handlers = { onStart: vi.fn(), onStop: vi.fn(), onPause: vi.fn(), onResume: vi.fn() };
+    render(
+      <LanguageContext.Provider value="nl">
+        <BottomDock
+          status={status}
+          mode="both"
+          modelReadiness="ready"
+          modelProgress={NO_MODEL_PROGRESS}
+          onModeChange={() => {}}
+          onOpenAdvanced={() => {}}
+          {...handlers}
+          {...extra}
+        />
+      </LanguageContext.Provider>,
+    );
+    return handlers;
+  }
+
+  it('idle: one solid red Record action, no clock, pause or stop', () => {
+    const h = renderState('idle');
+    const record = screen.getByRole('button', { name: 'Opnemen (R).' });
+    expect(record).toHaveTextContent('Opnemen');
+    expect(record).toHaveClass('bg-danger', 'text-danger-foreground');
+    expect(screen.queryByRole('timer')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Pauzeren' })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Opname stoppen/ })).toBeNull();
+    fireEvent.click(record);
+    expect(h.onStart).toHaveBeenCalledOnce();
+    expect(screen.getAllByRole('tab').every((tab) => !(tab as HTMLButtonElement).disabled)).toBe(true);
+  });
+
+  it('without a model: the primary action offers the download', () => {
+    renderState('idle', { modelReadiness: 'not-downloaded' });
+    expect(screen.getByRole('button', { name: 'Model downloaden' })).toBeEnabled();
+    expect(screen.queryByRole('button', { name: 'Opnemen (R).' })).toBeNull();
+  });
+
+  it('recording: Record becomes a translucent red Stop with the clock; source and microphone locked', () => {
+    const h = renderState('live');
+    expect(screen.queryByRole('button', { name: 'Opnemen (R).' })).toBeNull();
+    const stop = screen.getByRole('button', { name: 'Opname stoppen, 0:00' });
+    expect(stop).toContainElement(screen.getByRole('timer'));
+    expect(screen.getByRole('timer')).toHaveTextContent('0:00');
+    expect(stop).toHaveClass('!bg-danger/10', '!text-danger');
+    expect(stop).not.toHaveClass('bg-danger');
+    fireEvent.click(stop);
+    expect(h.onStop).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getByRole('button', { name: 'Pauzeren' }));
+    expect(h.onPause).toHaveBeenCalledOnce();
+    expect(screen.getAllByRole('tab').every((tab) => (tab as HTMLButtonElement).disabled)).toBe(true);
+    expect(screen.getByRole('button', { name: 'Microfoon kiezen' })).toBeDisabled();
+  });
+
+  it('paused: Stop announces the pause and the pause control resumes', () => {
+    const h = renderState('paused');
+    expect(screen.getByRole('button', { name: 'Opname stoppen, 0:00, Gepauzeerd' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Hervatten' }));
+    expect(h.onResume).toHaveBeenCalledOnce();
+    expect(screen.queryByRole('button', { name: 'Pauzeren' })).toBeNull();
+  });
+
+  it('shows exactly one tooltip for Stop', () => {
+    renderState('live');
+    const stop = screen.getByRole('button', { name: /^Opname stoppen/ });
+    fireEvent.mouseEnter(stop);
+    const tips = screen.getAllByRole('tooltip', { hidden: true });
+    expect(tips).toHaveLength(1);
+    expect(tips[0]).toHaveTextContent('Opname stoppen (R).');
+  });
 });
 
 describe('saved mode migration', () => {

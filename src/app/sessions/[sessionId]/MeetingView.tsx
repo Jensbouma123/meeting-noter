@@ -1,5 +1,6 @@
 'use client';
 
+import { OnboardingDialog } from '@/components/onboarding/OnboardingDialog';
 import { sessionPath } from '@/lib/session-path';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback, useMemo, useRef, useSyncExternalStore } from 'react';
@@ -50,6 +51,8 @@ import {
   type AppSettings,
 } from '@/components/meeting';
 import { RecordTargetDialog } from '@/components/meeting/RecordTargetDialog';
+import { ParticipantsDialog } from '@/components/meeting/ParticipantsDialog';
+import { getParticipants, hasAskedParticipants, setParticipants, skipParticipants } from '@/lib/meeting/participants';
 import { CaptureDiagnostics } from '@/components/meeting/CaptureDiagnostics';
 import { ShortcutsHelp } from '@/components/meeting/ShortcutsHelp';
 import type { SettingsSectionId } from '@/components/settings/sections';
@@ -275,9 +278,12 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
   // Record pressed in a session that already has a transcript: ask first.
   const [targetPrompt, setTargetPrompt] = useState<{
     title: string;
-    segmentCount: number;
     durationSeconds: number;
   } | null>(null);
+
+  // "Who is in this meeting?" before a new recording; answered once per meeting.
+  const [participantsPrompt, setParticipantsPrompt] = useState(false);
+  const participantsAnswered = useRef(false);
 
   const startOptions = useMemo(
     () => ({
@@ -342,14 +348,25 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
     }
     if (initialSessionId && status === 'idle' && sessionHasTranscript(initialSessionId)) {
       const meta = getSessionMetadata(initialSessionId);
-      const live = getTranscriptSessionId() === initialSessionId ? getState() : null;
       setTargetPrompt({
         title: meta?.title ?? title,
-        segmentCount: meta?.segmentCount ?? live?.segments.length ?? 0,
         durationSeconds: meta?.durationSeconds ?? 0,
       });
       return;
     }
+    if (initialSessionId && !participantsAnswered.current && !hasAskedParticipants(initialSessionId)) {
+      let demo = false;
+      try {
+        demo = new URLSearchParams(window.location.search).get('demo') === '1';
+      } catch {
+        // Not a demo.
+      }
+      if (!demo) {
+        setParticipantsPrompt(true);
+        return;
+      }
+    }
+    participantsAnswered.current = false;
     setLangOverride(null);
     // A brand-new session replaces any crash-recovery snapshot.
     setResumeCandidate(null);
@@ -834,6 +851,8 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
             onPause={pauseRecording}
             onResume={resumeRecording}
             onOpenAdvanced={() => openSettings('advanced')}
+            micDeviceId={settings.micDeviceId}
+            onMicDeviceChange={(micDeviceId) => handleSettingsChange({ ...settings, micDeviceId })}
           />
           <CaptureDiagnostics />
         </VStack>
@@ -842,6 +861,7 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
         <RightRail sessionId={shareSessionId} segments={segments} />
       </HStack>
 
+      <OnboardingDialog settings={settings} onSettingsChange={handleSettingsChange} />
       {/* Settings dialog */}
       <MeetingSettings
         open={settingsOpen}
@@ -850,6 +870,25 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
         onSettingsChange={handleSettingsChange}
         section={settingsSection}
       />
+
+      {participantsPrompt && initialSessionId && (
+        <ParticipantsDialog
+          ownerName={settings.ownerName}
+          initial={getParticipants(initialSessionId)}
+          onSkip={() => {
+            skipParticipants(initialSessionId);
+            participantsAnswered.current = true;
+            setParticipantsPrompt(false);
+            void startRecording();
+          }}
+          onStart={(names) => {
+            setParticipants(initialSessionId, names);
+            participantsAnswered.current = true;
+            setParticipantsPrompt(false);
+            void startRecording();
+          }}
+        />
+      )}
 
       {targetPrompt && (
         <RecordTargetDialog

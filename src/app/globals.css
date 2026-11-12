@@ -211,3 +211,30 @@ body {
     transform: none !important;
   }
 }
+
+/* Dock microphone menu: the dock floats at the bottom edge, so the menu opens
+   upward (8px gap via --dropdown-offset), right-aligned to its button, and
+   only flips below / shifts sideways when there is no room. */
+@supports (anchor-name: --a) {
+  .dropdown-menu.mic-menu[data-align="end"] {
+    position-area: block-start span-inline-start;
+    margin-block: var(--overlay-gutter) var(--dropdown-offset, 8px);
+    position-try-order: normal;
+    position-try-fallbacks: flip-inline, flip-block, flip-block flip-inline, --menu-span-up, --menu-span;
+  }
+}
+
+/* Dialog footer actions: the library fixes control height, so long (e.g. Dutch)
+   labels overflow. Opt-in via the `dialog-actions` class on a footer wrapper;
+   buttons grow with their text and the row wraps when they do not fit. */
+.dialog-actions {
+  flex-wrap: wrap;
+}
+.dialog-actions > button {
+  height: auto;
+  min-height: 2.5rem;
+  padding-block: 0.5rem;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.25;
+}
