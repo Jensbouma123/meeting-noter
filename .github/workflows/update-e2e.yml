@@ -1,0 +1,28 @@
+# Runs the in-app update end to end (scripts/installer/update-e2e.mjs): install,
+# update, bad checksum, cut-off download and rollback, in a scratch install root.
+# Needs only Node.js and macOS; no npm ci.
+name: Update e2e
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/installer/**
+      - src/lib/update/**
+      - .github/workflows/update-e2e.yml
+  pull_request:
+    paths:
+      - scripts/installer/**
+      - src/lib/update/**
+      - .github/workflows/update-e2e.yml
+  workflow_dispatch:
+
+jobs:
+  update-e2e:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.4.0
+        with:
+          node-version-file: scripts/installer/node-version
+      - run: node scripts/installer/update-e2e.mjs

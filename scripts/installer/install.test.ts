@@ -26,7 +26,7 @@ function exe(file: string, body: string) {
 }
 
 /** Writes meeting-noter-macos-<arch>.tar.gz and its .sha256 into `base`. */
-function release(version: string, { arch = 'arm64', helper = 'helper-v1' } = {}) {
+function release(version: string, { arch = 'arm64', helper = 'helper-v1', launcher = '' } = {}) {
   const stage = path.join(dir, `stage-${arch}`, 'meeting-noter');
   rmSync(path.dirname(stage), { recursive: true, force: true });
   exe(path.join(stage, 'node/bin/node'), '#!/bin/sh\nexit 0\n');
@@ -35,6 +35,8 @@ function release(version: string, { arch = 'arm64', helper = 'helper-v1' } = {})
   writeFileSync(path.join(stage, 'server/server.js'), '');
   mkdirSync(path.join(stage, 'launcher'), { recursive: true });
   writeFileSync(path.join(stage, 'launcher/AppIcon.icns'), 'icns');
+  // Started only with MEETING_NOTER_RUN_SERVER=1; logs each start to $HOME/starts.
+  exe(path.join(stage, 'launcher/launcher.sh'), `#!/bin/bash\necho ${version} >> "$HOME/starts"\n${launcher}\n`);
   writeFileSync(path.join(stage, 'uninstall.sh'), readFileSync(UNINSTALL));
   writeFileSync(path.join(stage, 'VERSION'), `${version}\n`);
   writeFileSync(path.join(stage, 'ARCH'), `${arch}\n`);
@@ -182,6 +184,33 @@ describe.skipIf(process.platform !== 'darwin')('install.sh', () => {
     expect(r.code).not.toBe(0);
     expect(r.out).toContain('Controlesom klopt niet');
     expect(readFileSync(path.join(root(), 'app/VERSION'), 'utf8').trim()).toBe('0.2.0');
+  });
+
+  it('rolls back to the previous version when the new one does not start', () => {
+    release('0.2.0');
+    expect(run(INSTALL, { MEETING_NOTER_RUN_SERVER: '1' }).code).toBe(0);
+    const sum = readFileSync(path.join(root(), 'installed.sha256'), 'utf8');
+    release('0.3.0', { launcher: 'exit 1' });
+    const r = run(INSTALL, { MEETING_NOTER_RUN_SERVER: '1' });
+    expect(r.code).not.toBe(0);
+    expect(r.out).toContain('Meeting Noter 0.3.0 startte niet');
+    expect(r.out).toContain('Vorige versie 0.2.0 teruggezet');
+    expect(readFileSync(path.join(root(), 'app/VERSION'), 'utf8').trim()).toBe('0.2.0');
+    expect(readFileSync(path.join(home, 'starts'), 'utf8').trim().split('\n')).toEqual(['0.2.0', '0.3.0', '0.2.0']);
+    for (const d of ['app.old', 'app.new', 'app.failed']) expect(existsSync(path.join(root(), d)), d).toBe(false);
+    // Not marked installed, so a retry downloads 0.3.0 again.
+    expect(readFileSync(path.join(root(), 'installed.sha256'), 'utf8')).toBe(sum);
+  });
+
+  it('restores app.old left behind by an update cut off mid-swap', () => {
+    release('0.2.0');
+    expect(run(INSTALL).code).toBe(0);
+    execFileSync('mv', [path.join(root(), 'app'), path.join(root(), 'app.old')]);
+    rmSync(path.join(base, 'meeting-noter-macos-arm64.tar.gz'));
+    const r = run(INSTALL);
+    expect(r.code, r.out).toBe(0);
+    expect(r.out).toContain('al de nieuwste versie (0.2.0)');
+    expect(existsSync(path.join(root(), 'app.old'))).toBe(false);
   });
 
   it('refuses Intel Macs with a friendly message and installs nothing', () => {

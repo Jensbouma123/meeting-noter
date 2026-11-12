@@ -3,11 +3,14 @@
 # this file from the installed app). Starts the web server on demand (it stops
 # itself when the browser tab is gone), then opens it in the default browser.
 # --no-open: no dialogs and no browser; print errors and exit 1 (used by install.sh).
-ROOT="$HOME/Library/Application Support/Meeting Noter"
+# Test-only overrides (install.sh passes them on): MEETING_NOTER_ROOT,
+# MEETING_NOTER_PORT, MEETING_NOTER_NO_LAUNCHD=1 (touch no LaunchAgent). A
+# different port is a different browser origin, with none of the user's data.
+ROOT=${MEETING_NOTER_ROOT:-"$HOME/Library/Application Support/Meeting Noter"}
 APP_DIR="$ROOT/app"
-URL="http://localhost:3000"
-STATUS_URL="http://127.0.0.1:3000/api/app/status"
-PORT=3000
+PORT=${MEETING_NOTER_PORT:-3000}
+URL="http://localhost:$PORT"
+STATUS_URL="http://127.0.0.1:$PORT/api/app/status"
 NO_OPEN=
 [ "${1:-}" = "--no-open" ] && NO_OPEN=1
 uid=$(id -u)
@@ -30,7 +33,7 @@ ensure_agent() {
   launchctl kickstart "gui/$uid/$label" 2>/dev/null
 }
 
-ensure_agent nl.jensbouma.meeting-noter.audio-helper
+[ -n "${MEETING_NOTER_NO_LAUNCHD:-}" ] || ensure_agent nl.jensbouma.meeting-noter.audio-helper
 
 # nl when the macOS locale starts with nl, else en.
 case $(defaults read -g AppleLocale 2>/dev/null) in nl*) LANG_UI=nl ;; *) LANG_UI=en ;; esac
@@ -52,11 +55,11 @@ port_busy() {
   local title body retry close
   if [ "$LANG_UI" = nl ]; then
     title="Meeting Noter kan niet starten"
-    body="Een ander programma gebruikt poort 3000, die Meeting Noter nodig heeft. Sluit dat programma (bijvoorbeeld een oudere Meeting Noter die nog via 'Start Meeting Noter' draait) en probeer het opnieuw. Je opnames blijven bewaard."
+    body="Een ander programma gebruikt poort $PORT, die Meeting Noter nodig heeft. Sluit dat programma (bijvoorbeeld een oudere Meeting Noter die nog via 'Start Meeting Noter' draait) en probeer het opnieuw. Je opnames blijven bewaard."
     close=Sluiten; retry="Opnieuw proberen"
   else
     title="Meeting Noter can't start"
-    body="Another program is using port 3000, which Meeting Noter needs. Close that program (for example an older Meeting Noter still running via 'Start Meeting Noter') and try again. Your recordings are kept."
+    body="Another program is using port $PORT, which Meeting Noter needs. Close that program (for example an older Meeting Noter still running via 'Start Meeting Noter') and try again. Your recordings are kept."
     close=Close; retry="Try again"
   fi
   local answer

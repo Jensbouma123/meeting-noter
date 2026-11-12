@@ -27,7 +27,10 @@ export type UpdateStatus = {
   state: 'idle' | 'running' | 'done' | 'failed';
   phase: 'starting' | 'downloading' | 'installing' | 'restarting' | 'model' | null;
   percent: number | null;
-  message: string;
+  /** server-update.ts UpdateCode, e.g. 'failed' or 'rolled-back'. */
+  code: string;
+  /** failed: the installer's own error line. */
+  detail: string | null;
   fromVersion: string | null;
   toVersion: string | null;
   startedAt: string | null;

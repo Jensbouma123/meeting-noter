@@ -86,7 +86,7 @@ describe('useUpdate', () => {
   });
 
   it('sends the backend apply request with its required header', async () => {
-    const status = { state: 'running', phase: 'starting', percent: null, message: '', fromVersion: currentVersion, toVersion: '0.3.1', startedAt: null, finishedAt: null, restartRequired: false, logTail: '' };
+    const status = { state: 'running', phase: 'starting', percent: null, code: 'preparing', detail: null, fromVersion: currentVersion, toVersion: '0.3.1', startedAt: null, finishedAt: null, restartRequired: false, logTail: '' };
     vi.mocked(fetch).mockResolvedValue({ ok: true, json: async () => ({ status }) } as Response);
 
     await expect(applyUpdate()).resolves.toEqual(status);

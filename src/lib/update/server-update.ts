@@ -139,6 +139,8 @@ export type UpdateCode =
   | 'updated-restart-required'
   | 'already-latest'
   | 'failed'
+  /** failed, but install.sh put the previous version back and restarted it. */
+  | 'rolled-back'
   | 'interrupted';
 
 export type UpdateStatus = {
@@ -217,7 +219,8 @@ export function deriveStatus(
       return { ...finished, state: 'done', restartRequired: true, code: 'updated-restart-required' };
     }
     const reason = [...lines].reverse().find((l) => l.trimStart().startsWith('❌'));
-    return { ...finished, state: 'failed', code: 'failed', detail: reason ? reason.replace('❌', '').trim() : null };
+    const code = installer && log.includes('Vorige versie') ? 'rolled-back' : 'failed';
+    return { ...finished, state: 'failed', code, detail: reason ? reason.replace('❌', '').trim() : null };
   }
   if (!alive) return { ...base, state: 'failed', code: 'interrupted' };
 

@@ -34,7 +34,13 @@
 # MEETING_NOTER_NO_LAUNCHD=1 (write the agents and the app, but load, register
 # and wait for nothing, so it runs in a scratch HOME next to a real install),
 # MEETING_NOTER_NO_OPEN=1 (do not open the browser), MEETING_NOTER_FORCE=1
-# (reinstall the same version).
+# (reinstall the same version), MEETING_NOTER_ROOT (install dir),
+# MEETING_NOTER_RUN_SERVER=1 (start the server even with NO_LAUNCHD; the update
+# e2e test, update-e2e.mjs).
+#
+# An update keeps the previous app in app.old until the new one has started;
+# when it does not start, or anything fails in between, app.old is put back and
+# started again (rollback), and the error says so.
 
 # Everything runs from main, called on the last line, so a download that breaks
 # off halfway through `curl | bash` runs nothing.
@@ -47,7 +53,7 @@ UV_BASE=${MEETING_NOTER_UV_BASE:-https://github.com/astral-sh/uv/releases/downlo
 # Pinned: the combination verified to convert the encoder (ORT >= 1.22 dropped
 # the matmul_4bits_quantizer module the script uses).
 CONVERT_DEPS=(--with numpy==1.26.4 --with onnx==1.17.0 --with onnxconverter-common==1.14.0 --with onnxruntime==1.20.1)
-ROOT="$HOME/Library/Application Support/Meeting Noter"
+ROOT=${MEETING_NOTER_ROOT:-"$HOME/Library/Application Support/Meeting Noter"}
 MODEL_DIR_NAME=parakeet-tdt-0.6b-v3-webgpu
 AGENTS="$HOME/Library/LaunchAgents"
 # /Applications when this user may write there (admins can, without sudo), so
@@ -61,11 +67,31 @@ SERVER_LABEL=nl.jensbouma.meeting-noter.server
 HELPER_LABEL=nl.jensbouma.meeting-noter.audio-helper
 
 tmp=
+# Set while app.old holds the previous version and the new app has not started yet.
+swapped=
 say() { printf '%s\n' "$*"; }
 fail() {
   printf '\n❌ %s\n' "$1" >&2
+  if rollback; then
+    # server-update.ts matches "Vorige versie" to tell the app it was rolled back.
+    printf '   ↩️  Vorige versie %s teruggezet / Previous version restored.\n' "$(cat "$ROOT/app/VERSION" 2>/dev/null)" >&2
+  fi
   printf '   Er ging iets mis / Something went wrong. Uw opnames in de browser blijven bewaard.\n\n' >&2
   exit 1
+}
+
+# Puts the previous app back after a failed update and starts it again. Returns
+# 1 when there was nothing to roll back. Runs from fail and the EXIT trap.
+rollback() {
+  [ -n "$swapped" ] && [ -d "$ROOT/app.old" ] || return 1
+  swapped=
+  server_stop
+  rm -rf "$ROOT/app.failed"
+  if [ -d "$ROOT/app" ]; then mv "$ROOT/app" "$ROOT/app.failed"; fi
+  mv "$ROOT/app.old" "$ROOT/app"
+  rm -rf "$ROOT/app.failed"
+  server_start >/dev/null 2>&1 || say "⚠️  De vorige versie startte ook niet; open Meeting Noter opnieuw."
+  return 0
 }
 
 # version_at_least 14.4 14.4.1 -> true
@@ -118,7 +144,7 @@ server_stop() {
   rm -f "$ROOT/server.pid"
 }
 server_start() {
-  [ -n "${MEETING_NOTER_NO_LAUNCHD:-}" ] && return 0
+  [ -n "${MEETING_NOTER_NO_LAUNCHD:-}" ] && [ -z "${MEETING_NOTER_RUN_SERVER:-}" ] && return 0
   bash "$ROOT/app/launcher/launcher.sh" --no-open
 }
 # Stops the server whether it still runs as the old LaunchAgent or on demand.
@@ -210,13 +236,16 @@ main() {
   say "=============================="
 
   tmp=$(mktemp -d)
-  trap 'rm -rf "$tmp"' EXIT
+  # An unexpected error (set -e) after the swap rolls back too.
+  trap 'rollback || true; rm -rf "$tmp"' EXIT
   curl -fsSL "$BASE/$asset.sha256" -o "$tmp/sum" \
     || fail "Kon de nieuwste versie niet ophalen. Controleer uw internetverbinding (of de release wordt nog gebouwd: probeer het over 15 minuten opnieuw)."
   expected=$(awk '{print $1; exit}' "$tmp/sum")
   [[ "$expected" =~ ^[0-9a-f]{64}$ ]] || fail "Onverwachte controlesom-download."
 
   mkdir -p "$ROOT/logs" "$ROOT/bin" "$AGENTS"
+  # An update cut off between the two moves below left only app.old.
+  if [ ! -d "$ROOT/app" ] && [ -d "$ROOT/app.old" ]; then mv "$ROOT/app.old" "$ROOT/app"; fi
   if [ -z "${MEETING_NOTER_FORCE:-}" ] && [ -x "$ROOT/app/node/bin/node" ] \
     && [ "$(cat "$ROOT/installed.sha256" 2>/dev/null)" = "$expected" ]; then
     say "✓ U heeft al de nieuwste versie ($(cat "$ROOT/app/VERSION"))."
@@ -230,10 +259,8 @@ main() {
     tar -xzf "$tmp/$asset" -C "$ROOT/app.new" --strip-components 1 || fail "Uitpakken mislukt."
     "$ROOT/app.new/node/bin/node" -e 0 2>/dev/null || fail "De meegeleverde Node.js start niet op deze Mac."
     server_halt
-    if [ -d "$ROOT/app" ]; then mv "$ROOT/app" "$ROOT/app.old"; fi
+    if [ -d "$ROOT/app" ]; then mv "$ROOT/app" "$ROOT/app.old"; swapped=1; fi
     mv "$ROOT/app.new" "$ROOT/app"
-    rm -rf "$ROOT/app.old"
-    printf '%s\n' "$expected" > "$ROOT/installed.sha256"
     say "✓ Versie $(cat "$ROOT/app/VERSION") uitgepakt"
   fi
 
@@ -262,7 +289,11 @@ main() {
   cp "$ROOT/app/uninstall.sh" "$ROOT/uninstall.sh"
 
   say "Wachten tot Meeting Noter klaar is…"
-  server_start || fail "Meeting Noter startte niet. Logbestand: $ROOT/logs/server.log"
+  server_start || fail "Meeting Noter $(cat "$ROOT/app/VERSION") startte niet. Logbestand: $ROOT/logs/server.log"
+  # The new version runs: commit the update.
+  swapped=
+  rm -rf "$ROOT/app.old"
+  printf '%s\n' "$expected" > "$ROOT/installed.sha256"
   if [ -n "$helper_ok" ]; then
     write_agent "$HELPER_LABEL" "<string>$(xml "$helper")</string>" "" "$(xml "$ROOT/logs/helper.log")"
     agent_start "$HELPER_LABEL"
