@@ -6,6 +6,8 @@
  *   A line `Framna = from now; fram na` also gives how it was misheard.
  * - .csv: `word,heard as` rows; the second column holds misheard spellings
  *   separated by `;`. A header row is skipped.
+ * - A misheard spelling that itself contains `;`, `|` or `\` is written with a
+ *   backslash in front (`\;`, `\|`, `\\`). Other backslashes are kept as they are.
  */
 import type { VocabularyEntry } from './types';
 
@@ -13,8 +15,28 @@ function clean(text: string): string {
   return text.trim().replace(/\s+/g, ' ');
 }
 
+/** Split on unescaped `;` or `|`, and unescape `\;`, `\|`, `\\`. */
 function splitVariants(text: string): string[] {
-  return text.split(/[;|]/).map(clean).filter(Boolean);
+  const variants: string[] = [];
+  let current = '';
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '\\' && /[\\;|]/.test(text[i + 1] ?? '')) {
+      current += text[i + 1];
+      i++;
+    } else if (ch === ';' || ch === '|') {
+      variants.push(current);
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  variants.push(current);
+  return variants.map(clean).filter(Boolean);
+}
+
+function joinVariants(variants: readonly string[]): string {
+  return variants.map((v) => v.replace(/[\\;|]/g, (c) => `\\${c}`)).join('; ');
 }
 
 /** Merge `incoming` into `existing`: same word (any case) gains the new variants, new words append. */
@@ -140,7 +162,7 @@ export function formatWordList(entries: readonly VocabularyEntry[]): string {
   return entries
     .map((e) => {
       const word = /[,;\t="]/.test(e.word) ? `"${e.word.replace(/"/g, '""')}"` : e.word;
-      return e.variants.length > 0 ? `${word} = ${e.variants.join('; ')}` : word;
+      return e.variants.length > 0 ? `${word} = ${joinVariants(e.variants)}` : word;
     })
     .join('\n')
     .concat(entries.length > 0 ? '\n' : '');
@@ -151,6 +173,6 @@ function csvCell(text: string): string {
 }
 
 export function formatWordCsv(entries: readonly VocabularyEntry[]): string {
-  const rows = entries.map((e) => `${csvCell(e.word)},${csvCell(e.variants.join('; '))}`);
+  const rows = entries.map((e) => `${csvCell(e.word)},${csvCell(joinVariants(e.variants))}`);
   return ['word,heard as', ...rows].join('\n') + '\n';
 }
