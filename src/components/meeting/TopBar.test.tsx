@@ -42,6 +42,17 @@ function view(
 
 afterEach(cleanup);
 
+describe('TopBar title editing', () => {
+  it('focuses the title input with its text selected when editing starts', () => {
+    render(view('idle'));
+    fireEvent.click(screen.getByRole('button', { name: 'Standup' }));
+    const input = screen.getByRole('textbox', { name: 'Meeting title' }) as HTMLInputElement;
+    expect(input).toHaveFocus();
+    expect(input.selectionStart).toBe(0);
+    expect(input.selectionEnd).toBe('Standup'.length);
+  });
+});
+
 describe('TopBar phone layout (390px)', () => {
   it('wraps instead of clipping the right-most action', () => {
     const { container } = render(view());

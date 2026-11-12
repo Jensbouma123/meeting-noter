@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { CaptureMode, Status } from '@/lib/meeting';
 import { BottomDock } from './BottomDock';
 import { NO_MODEL_PROGRESS } from './modelReadiness';
@@ -45,6 +45,26 @@ function renderDock(mode: CaptureMode, onModeChange: (m: CaptureMode) => void = 
 function renderDockWithStatus(status: Status, mode: CaptureMode) {
   return render(dockElement(status, mode));
 }
+
+describe('recording clock', () => {
+  it('counts while live and restarts at 0:00 when a new recording starts', () => {
+    vi.useFakeTimers();
+    try {
+      const { rerender } = renderDockWithStatus('idle', 'both');
+      rerender(dockElement('live', 'both'));
+      act(() => {
+        vi.advanceTimersByTime(3000);
+      });
+      expect(screen.getByRole('timer')).toHaveTextContent('0:03');
+
+      rerender(dockElement('idle', 'both'));
+      rerender(dockElement('live', 'both'));
+      expect(screen.getByRole('timer')).toHaveTextContent('0:00');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
 
 describe('capture mode toggle', () => {
   it('offers exactly Mic and Mic + gesprek', () => {
