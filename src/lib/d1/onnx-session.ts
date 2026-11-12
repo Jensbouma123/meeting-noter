@@ -93,6 +93,7 @@ export async function createSession(
   const hasWebGpu = typeof navigator !== 'undefined' && 'gpu' in navigator;
   if (hasWebGpu) {
     try {
+      console.info('[D1] session: webgpu attempt');
       const session = await createWithDeadline(
         create,
         model,
@@ -101,11 +102,15 @@ export async function createSession(
         'webgpu',
       );
       return { session, backend: 'webgpu' };
-    } catch {
+    } catch (err) {
       // Fall through to WASM when WebGPU session initialization fails or stalls.
+      console.info('[D1] session: webgpu failed, falling back to wasm', err instanceof Error ? err.message : String(err));
     }
+  } else {
+    console.info('[D1] session: no navigator.gpu, using wasm');
   }
 
+  console.info('[D1] session: wasm attempt');
   const session = await createWithDeadline(
     create,
     model,

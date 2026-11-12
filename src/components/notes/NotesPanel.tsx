@@ -13,8 +13,13 @@ import {
 } from '@/lib/meeting/notes';
 import type { Segment, Speaker } from '@/lib/meeting/types';
 import { useT } from '@/lib/i18n/useT';
-import { useSessionIntelligence } from '@/lib/d1/store';
-import { isD1ModelCached, runD1AnalysisForSession, D1_REGISTRY_KEY } from '@/lib/meeting/d1-bridge';
+import { updateSessionIntelligence, useSessionIntelligence } from '@/lib/d1/store';
+import { d1StageElapsedSeconds, getD1StageSnapshot, subscribeD1Stage } from '@/lib/d1/stage';
+import type { D1Stage } from '@/lib/d1/protocol';
+import {
+  cancelD1Analysis, isD1ModelCached, recoverStaleD1Run, runD1AnalysisForSession, D1_REGISTRY_KEY,
+  D1_ERR_NO_SEGMENTS, D1_ERR_CAPTURE_ACTIVE, D1_ERR_INDEXING_BUSY, D1_ERR_MODEL_MISSING, D1_ERR_TIMEOUT,
+} from '@/lib/meeting/d1-bridge';
 import { isCaptureActive } from '@/lib/meeting/store';
 import { retryDownload, subscribeRegistry } from '@/lib/asr/browser';
 import { dispatchFixWord, dispatchJumpToSegment, flaggedWords, formatStamp, indexD1 } from '@/components/meeting/d1-view';
@@ -85,7 +90,7 @@ export function NotesPanel({ sessionId, speakers = [], segments = [] }: NotesPan
         </ul>}
       </section>}
 
-      <D1Insights sessionId={sessionId} speakers={speakers} segments={segments} t={t} />
+      <D1Insights key={sessionId} sessionId={sessionId} speakers={speakers} segments={segments} t={t} />
 
       {parsedNotes.actions.length === 0 && parsedNotes.decisions.length === 0 && suggestions.length === 0 && (
         <EmptyState size="sm" compact title={t('emptyTitle')} description={t('empty')} />
@@ -103,6 +108,9 @@ function D1Insights({ sessionId, speakers, segments, t }: {
   sessionId: string; speakers: Speaker[]; segments: Segment[]; t: T;
 }) {
   const [open, setOpen] = useState(false);
+  // Once per mount (the parent keys this component by sessionId): a run persisted as
+  // "running" with no live run behind it is stale, e.g. after a reload, and must not block Scan.
+  useState(() => { void recoverStaleD1Run(sessionId); });
   const intelligence = useSessionIntelligence(sessionId);
   const modelCached = useSyncExternalStore(subscribeRegistry, isD1ModelCached, () => false);
   const index = useMemo(() => indexD1(intelligence, segments), [intelligence, segments]);
@@ -120,10 +128,17 @@ function D1Insights({ sessionId, speakers, segments, t }: {
   const count = intelligence.decisions.length + intelligence.actionItems.length + flagged.length + hints.length;
 
   const scan = () => {
+    setOpen(true);
     const byId = Object.fromEntries(speakers.map((s) => [s.id, s]));
-    void runD1AnalysisForSession(sessionId, segments, byId, { force: true }).catch(() => {});
+    void runD1AnalysisForSession(sessionId, segments, byId, { force: true }).catch((err: unknown) => {
+      const message = err instanceof Error ? err.message : String(err);
+      void updateSessionIntelligence(sessionId, (cur) => ({ ...cur, status: 'error', error: message }));
+    });
   };
+  const errorText = intelligence.status === 'error' ? describeError(intelligence.error, t) : '';
+  const badge = running ? t('d1Checking') : errorText ? t('d1Error') : count > 0 ? t('d1Found').replace('{count}', String(count)) : '';
   const download = () => { void retryDownload(D1_REGISTRY_KEY).catch(() => {}); };
+  const stop = () => { void cancelD1Analysis(sessionId); };
   const jump = (segmentId: string | undefined) => { if (segmentId) dispatchJumpToSegment(segmentId); };
   const jumpButton = (start: number, segmentId: string | undefined) => (
     <button type="button" disabled={!segmentId} onClick={() => jump(segmentId)}
@@ -135,24 +150,34 @@ function D1Insights({ sessionId, speakers, segments, t }: {
 
   return <section aria-label={t('d1Title')} className="w-full min-w-0 rounded-md border border-border-subtle p-2">
     <button type="button" aria-expanded={open} aria-controls="notes-d1-body" onClick={() => setOpen((v) => !v)}
-      className="flex w-full min-w-0 items-center gap-1 rounded-md py-1 text-left text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1">
+      className="flex w-full min-w-0 flex-wrap items-center gap-1 rounded-md py-1 text-left text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1">
       {open ? <ChevronDown aria-hidden="true" className="size-4 shrink-0" /> : <ChevronRight aria-hidden="true" className="size-4 shrink-0" />}
-      <span className="truncate">{t('d1Title')} ({count})</span>
+      <span className="min-w-0 break-words">{t('d1Title')} ({count})</span>
+      {badge && <span role="status" className={`ml-auto shrink rounded-full px-2 py-0.5 text-xs ${running ? 'animate-pulse bg-surface-hover' : 'border border-border-subtle'}`}>{badge}</span>}
     </button>
+    {!open && errorText && <Text size="xs" role="alert" className="mt-1">{errorText}</Text>}
     {open && <VStack id="notes-d1-body" spacing="sm" className="mt-2 w-full min-w-0">
-      <Text size="xs" variant="muted">{modelCached ? t('d1ModelReady') : t('d1ModelMissing')}</Text>
-      {!modelCached && <Button size="sm" variant="outline" onClick={download}>{t('d1Download')}</Button>}
-      {intelligence.progress.total > 0 && <Text size="xs" variant="muted">
-        {t('d1Progress').replace('{done}', String(intelligence.progress.done)).replace('{total}', String(intelligence.progress.total))}
-      </Text>}
-      {running && <Text size="xs" variant="muted" role="status">{t('d1Running')}</Text>}
-      {intelligence.status === 'error' && <Text size="xs" role="alert">{t('d1Error')}{intelligence.error ? ` ${intelligence.error}` : ''}</Text>}
-      <HStack spacing="sm" align="center" className="flex-wrap">
-        <Button size="sm" variant="primary" disabled={recording || !modelCached || running} onClick={scan}>
-          {hasResults ? t('d1Rescan') : t('d1Scan')}
-        </Button>
-        {recording && <Text size="xs" variant="muted">{t('d1Recording')}</Text>}
-      </HStack>
+      {running ? (
+        <HStack spacing="sm" align="center" className="flex-wrap">
+          <Text size="xs" variant="muted" role="status">
+            {intelligence.progress.total > 0
+              ? t('d1Progress').replace('{done}', String(intelligence.progress.done)).replace('{total}', String(intelligence.progress.total))
+              : t('d1Running')}
+          </Text>
+          <Button size="sm" variant="outline" onClick={stop}>{t('d1Stop')}</Button>
+          <D1StageRow t={t} />
+        </HStack>
+      ) : (<>
+        <Text size="xs" variant="muted">{modelCached ? t('d1ModelReady') : t('d1ModelMissing')}</Text>
+        {!modelCached && <Button size="sm" variant="outline" onClick={download}>{t('d1Download')}</Button>}
+        {intelligence.status === 'error' && <Text size="xs" role="alert">{errorText}</Text>}
+        <HStack spacing="sm" align="center" className="flex-wrap">
+          <Button size="sm" variant="primary" disabled={recording || !modelCached} onClick={scan}>
+            {hasResults ? t('d1Rescan') : t('d1Scan')}
+          </Button>
+          {recording && <Text size="xs" variant="muted">{t('d1Recording')}</Text>}
+        </HStack>
+      </>)}
 
       <D1List title={t('d1Decisions')} empty={t('d1Empty')} count={intelligence.decisions.length} t={t}>
         {intelligence.decisions.map((d) => (
@@ -207,11 +232,38 @@ function D1Insights({ sessionId, speakers, segments, t }: {
   </section>;
 }
 
+/** Stage of the running decide batch and how long it has been there; re-renders on the stage store's 1 s tick. */
+function D1StageRow({ t }: { t: T }) {
+  const snap = useSyncExternalStore(subscribeD1Stage, getD1StageSnapshot, () => null);
+  if (!snap) return null;
+  return <Text size="xs" variant="muted">{stageLabel(snap.stage, t)} · {d1StageElapsedSeconds(snap)} s</Text>;
+}
+
+function stageLabel(stage: D1Stage, t: T): string {
+  switch (stage.kind) {
+    case 'loading': return t('d1StageLoading');
+    case 'session': return t('d1StageSession');
+    case 'sending': return t('d1StageSending').replace('{n}', String(stage.batch));
+    case 'waiting': return t('d1StageWaiting');
+  }
+}
+
+function describeError(error: string | null, t: T): string {
+  switch (error) {
+    case D1_ERR_NO_SEGMENTS: return t('d1ErrNoSegments');
+    case D1_ERR_CAPTURE_ACTIVE: return t('d1ErrCaptureActive');
+    case D1_ERR_INDEXING_BUSY: return t('d1ErrIndexingBusy');
+    case D1_ERR_MODEL_MISSING: return t('d1ErrModelMissing');
+    case D1_ERR_TIMEOUT: return t('d1ErrTimeout');
+    default: return error ? `${t('d1Error')} ${error}` : t('d1Error');
+  }
+}
+
 function D1List({ title, empty, count, t, children }: {
   title: string; empty: string; count: number; t: T; children: ReactNode;
 }) {
   return <section aria-label={title} className="w-full min-w-0">
-    <Heading level={4} size="xs" className="min-w-0 truncate">{title} ({count})</Heading>
+    <Heading level={4} size="xs" className="min-w-0 break-words">{title} ({count})</Heading>
     {count === 0
       ? <Text size="xs" variant="muted" className="mt-1">{empty}</Text>
       : <ul className="mt-1 flex w-full min-w-0 flex-col gap-2">{children}</ul>}

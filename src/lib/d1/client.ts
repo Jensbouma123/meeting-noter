@@ -24,6 +24,7 @@ import type {
   D1WorkerInMessage,
   D1WorkerOutMessage,
 } from './protocol';
+import { setD1Stage } from './stage';
 
 export const D1_DISPOSE_TIMEOUT_MS = 800;
 /** A decide batch with no answer by then means the worker is hung (e.g. a stalled session start). */
@@ -202,6 +203,11 @@ export function createD1Client(options: D1ClientOptions = {}): D1Client {
   const onMessage = (ev: MessageEvent<D1WorkerOutMessage>) => {
     const msg = ev.data;
     if (!msg || !msg.id) return;
+    console.info('[D1] client: message in', { type: msg.type, id: msg.id });
+    if (msg.type === 'stage') {
+      if (pending.has(msg.id)) setD1Stage(msg.stage);
+      return;
+    }
     const entry = pending.get(msg.id);
     if (!entry) return;
 
@@ -236,6 +242,8 @@ export function createD1Client(options: D1ClientOptions = {}): D1Client {
   const killWorker = (reason: string) => {
     const active = worker;
     worker = null;
+    console.info('[D1] client: kill', { reason, hadWorker: active !== null });
+    setD1Stage(null);
     if (active) {
       active.removeEventListener('message', onMessage);
       active.removeEventListener('error', onError);
@@ -248,6 +256,7 @@ export function createD1Client(options: D1ClientOptions = {}): D1Client {
 
   function ensureWorker(): WorkerLike {
     if (!worker) {
+      console.info('[D1] client: ensureWorker creates worker');
       const created = workerFactory();
       created.addEventListener('message', onMessage);
       created.addEventListener('error', onError);
@@ -262,6 +271,7 @@ export function createD1Client(options: D1ClientOptions = {}): D1Client {
     return new Promise<D1Answer[]>((resolve, reject) => {
       const timer = setTimeout(() => {
         if (!pending.delete(id)) return;
+        console.info('[D1] client: timeout', { id, afterMs: decideTimeoutMs });
         reject(new Error(D1_TIMEOUT_ERROR));
         killWorker(D1_TIMEOUT_ERROR);
       }, decideTimeoutMs);
@@ -269,13 +279,16 @@ export function createD1Client(options: D1ClientOptions = {}): D1Client {
         kind: 'decide',
         resolve: (val) => {
           clearTimeout(timer);
+          setD1Stage(null);
           resolve(val as D1Answer[]);
         },
         reject: (err) => {
           clearTimeout(timer);
+          setD1Stage(null);
           reject(err);
         },
       });
+      console.info('[D1] client: post batch', { id, size: requests.length, maxTokens });
       activeWorker.postMessage({
         type: 'decide',
         id,

@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { D1Client, D1SegmentInput, D1TriageResult } from '@/lib/d1';
 import {
   __resetIntelligenceStoreForTests,
+  getIntelligenceSnapshot,
   getSessionIntelligence,
   hashSegmentText,
   triageKey,
@@ -638,7 +639,11 @@ describe('d1-bridge', () => {
       progress: { done: 3, total: 178 },
     }));
 
-    await bridge.recoverStaleD1Run('sess-stale');
+    bridge.recoverStaleD1Run('sess-stale');
+
+    // The view is reset synchronously, without waiting on the backend.
+    expect(getIntelligenceSnapshot('sess-stale').status).toBe('idle');
+    expect(getIntelligenceSnapshot('sess-stale').progress).toEqual({ done: 0, total: 0 });
 
     const stored = await getSessionIntelligence('sess-stale');
     expect(stored.status).toBe('idle');

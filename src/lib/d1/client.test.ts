@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createD1Client, D1_DECIDE_TIMEOUT_MS, type WorkerLike } from './client';
+import { getD1StageSnapshot } from './stage';
 import {
   D1_CONFIG_FILE,
   D1_GRAPH_FILE,
@@ -477,6 +478,36 @@ describe('d1 client', () => {
       client.terminate();
       expect(createdWorkers).toHaveLength(1);
       expect(createdWorkers[0].terminated).toBe(true);
+    });
+  });
+
+  describe('stage', () => {
+    const ANSWER: D1Answer = { type: 'noul', noul: 0.5, probabilities: [0.5, 0.5] };
+    const REQUEST: D1DecisionRequest = {
+      state: 'stage',
+      question: { type: 'noul', instructions: 'ok?' },
+    };
+
+    it('forwards worker stage messages to the stage store and clears them when the batch settles', async () => {
+      const createdWorkers: FakeWorker[] = [];
+      const client = createD1Client({
+        createWorker: () => {
+          const w = new FakeWorker();
+          createdWorkers.push(w);
+          return w;
+        },
+      });
+
+      const answered = client.decide([REQUEST]);
+      const worker = createdWorkers[0];
+      const id = (worker.posted[0] as { id: string }).id;
+
+      worker.emitMessage({ type: 'stage', id, stage: { kind: 'waiting' } });
+      expect(getD1StageSnapshot()?.stage).toEqual({ kind: 'waiting' });
+
+      worker.emitMessage({ type: 'result', id, answers: [ANSWER], backend: 'wasm' });
+      expect(await answered).toEqual([ANSWER]);
+      expect(getD1StageSnapshot()).toBeNull();
     });
   });
 });

@@ -32,6 +32,7 @@ import {
   type D1SegmentInput,
 } from '@/lib/d1';
 import {
+  getIntelligenceSnapshot,
   getSessionIntelligence,
   hashSegmentText,
   resetIntelligenceRunState,
@@ -208,17 +209,13 @@ export async function cancelD1Analysis(sessionId: string): Promise<void> {
 /**
  * Reset a `running` record to `idle` when no D1 run is live (e.g. the app
  * reloaded or the scan was killed mid-run), so Scan is not stuck disabled.
+ * Reads the in-memory view only: no IndexedDB read, so a hung backend cannot
+ * block it.
  */
-export async function recoverStaleD1Run(sessionId: string): Promise<void> {
+export function recoverStaleD1Run(sessionId: string): void {
   if (!sessionId || activeRunPromise !== null) return;
-  const cur = await getSessionIntelligence(sessionId);
-  if (cur.status !== 'running') return;
-  await updateSessionIntelligence(sessionId, (c) => ({
-    ...c,
-    status: 'idle',
-    error: null,
-    progress: { done: 0, total: 0 },
-  }));
+  if (getIntelligenceSnapshot(sessionId).status !== 'running') return;
+  resetIntelligenceRunState(sessionId);
 }
 
 /* ------------------------------------------------------------------ */
