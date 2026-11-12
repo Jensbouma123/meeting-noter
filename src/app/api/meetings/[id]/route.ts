@@ -1,7 +1,8 @@
 /**
  * `/api/meetings/:id` — one meeting. `GET` reads it with its transcript,
  * `PUT` stores it (the newer `updatedAt` wins: an older copy gets 409 and the
- * stored one), `DELETE` removes it and its Markdown file.
+ * stored one; a deleted one gets 410), `DELETE` removes it and its Markdown
+ * file for good.
  */
 import { refuseForeign } from '@/lib/lifecycle/request-guard';
 import { MAX_MEETING_BODY_BYTES, failure, readJson, storageFailure } from '@/lib/meeting-db/http';
@@ -34,9 +35,11 @@ export async function PUT(request: Request, { params }: Ctx): Promise<Response> 
   if (!meeting || meeting.id !== id) return failure('bad-meeting', 400);
   try {
     const store = meetingStore();
-    if (store.save(meeting) === 'stale') {
+    const result = store.save(meeting);
+    if (result === 'stale') {
       return Response.json({ ok: false, error: 'stale', meeting: store.db.get(id) }, { status: 409 });
     }
+    if (result === 'deleted') return failure('deleted', 410);
     return Response.json({ ok: true });
   } catch (err) {
     return storageFailure(err);

@@ -23,7 +23,9 @@ export function GET(request: Request): Response {
       return Number.isNaN(n) ? undefined : n;
     };
     const meetings = q ? db.search(q, { limit: 100 }) : db.list({ limit: int('limit'), offset: int('offset') });
-    return Response.json({ ok: true, dataDir: meetingsDataDir(), meetings });
+    // The deleted ids let a browser drop its copies instead of sending them back.
+    const deleted = q ? undefined : db.deletedIds();
+    return Response.json({ ok: true, dataDir: meetingsDataDir(), meetings, deleted });
   } catch (err) {
     return storageFailure(err);
   }

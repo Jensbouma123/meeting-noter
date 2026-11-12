@@ -234,6 +234,50 @@ describe('server sync', () => {
   });
 });
 
+describe('deleted meetings and the one-time migration notice', () => {
+  it('drops a meeting another browser deleted and never sends it back', async () => {
+    const sync = await import('./server-sync');
+    await sync.startServerSync();
+    const store = await import('./session-store');
+    const id = store.persistSession({ title: 'Gone', segments: [line('a', 'bye', 0)], speakers: {} });
+    await sync.flushServerSync();
+    // Another browser deletes it; this one edits its stale copy meanwhile.
+    const { meetingStore } = await import('@/lib/meeting-db/store');
+    meetingStore().delete(id);
+    store.renameSession(id, 'Gone, renamed');
+    await sync.flushServerSync();
+    expect(store.listSessions()).toEqual([]);
+    expect(JSON.parse(localStorage.getItem('mn.sync.pending.v1')!).save).toEqual([]);
+
+    // A browser that still has it from before learns of the delete on pull.
+    store.persistSession({ title: 'Other', segments: [line('b', 'hi', 0)], speakers: {} });
+    store.adoptStoredMeeting(sampleMeeting({ id: 'stale-copy' }));
+    meetingStore().delete('stale-copy');
+    await sync.pullFromServer();
+    await sync.flushServerSync();
+    expect(store.listSessions().map((s) => s.title)).toEqual(['Other']);
+    const db = readDb();
+    expect(db.list().map((m) => m.title)).toEqual(['Other']);
+    db.close();
+  });
+
+  it('tells about the migration once per DB, not again after the browser is cleared', async () => {
+    let sync = await import('./server-sync');
+    const events: unknown[] = [];
+    const onEvent = (e: Event) => events.push((e as CustomEvent).detail);
+    window.addEventListener(sync.MIGRATED_EVENT, onEvent);
+    (await import('./session-store')).persistSession({ title: 'Kept', segments: [line('a', 'x', 0)], speakers: {} });
+    expect(await sync.migrateBrowserMeetings()).toMatchObject({ imported: 1 });
+
+    await reload({ clear: true });
+    sync = await import('./server-sync');
+    expect(await sync.migrateBrowserMeetings()).toMatchObject({ imported: 0 });
+    expect(localStorage.getItem(sync.MIGRATED_KEY)).not.toBeNull();
+    window.removeEventListener(sync.MIGRATED_EVENT, onEvent);
+    expect(events).toHaveLength(1);
+  });
+});
+
 /** A page reload: the modules start over; with `clear`, so does localStorage. */
 async function reload({ clear = false } = {}): Promise<void> {
   (await import('./server-sync')).stopServerSyncForTests();

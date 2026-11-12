@@ -313,7 +313,7 @@ export function isSessionRecording(sessionId: string): boolean {
  * Returns false, deleting nothing, when the session is being recorded.
  * Never throws — other sessions are never corrupted.
  */
-export function deleteSession(sessionId: string): boolean {
+export function deleteSession(sessionId: string, opts: { deletedOnServer?: boolean } = {}): boolean {
   if (isSessionRecording(sessionId)) return false;
   const index = readSessionIndex();
   const existingIdx = index.sessions.findIndex((s) => s.sessionId === sessionId);
@@ -324,7 +324,8 @@ export function deleteSession(sessionId: string): boolean {
   }
   removeSessionTranscript(sessionId);
   removeSpeakerState(sessionId);
-  queueMeetingDelete(sessionId);
+  // A meeting the DB already deleted (`server-sync.ts`) needs no delete sent.
+  if (!opts.deletedOnServer) queueMeetingDelete(sessionId);
 
   // The store outlives the route: drop the deleted session's in-memory
   // transcript (idle here — a live capture returned above).

@@ -21,7 +21,7 @@ export class MeetingStore {
     // Drafts have nothing to read yet; their file appears with the first line.
     const file = meeting.isDraft ? null : markdownFileName(meeting);
     const result = this.db.upsert(meeting, { ...opts, markdownFile: file });
-    if (result === 'stale') return result;
+    if (result !== 'written') return result;
     if (previous && previous !== file) this.removeFile(previous);
     if (file) this.writeFile(file, renderMeetingMarkdown(meeting));
     return result;

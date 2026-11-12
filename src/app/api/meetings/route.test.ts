@@ -91,12 +91,27 @@ describe('/api/meetings', () => {
     expect(fs.readdirSync(path.join(dir, 'meetings'))).toEqual([]);
   });
 
+  it('keeps a deleted meeting deleted: PUT gets 410, import skips it, the list names it', async () => {
+    const m = sampleMeeting();
+    await put(json('PUT', `/${m.id}`, m), ctx(m.id));
+    await remove(req(`/${m.id}`, { method: 'DELETE' }), ctx(m.id));
+    const newer = { ...m, updatedAt: m.updatedAt + 60_000 };
+    expect((await put(json('PUT', `/${m.id}`, newer), ctx(m.id))).status).toBe(410);
+    const imported = await (await importMeetings(json('POST', '/import', { meetings: [newer] }))).json();
+    expect(imported).toMatchObject({ imported: 0, skipped: 1 });
+    const all = await (await list(req(''))).json();
+    expect(all.meetings).toEqual([]);
+    expect(all.deleted).toEqual([m.id]);
+    expect(fs.readdirSync(path.join(dir, 'meetings'))).toEqual([]);
+  });
+
   it('import is idempotent: a second run skips what the first stored', async () => {
     const body = { meetings: [sampleMeeting(), sampleMeeting({ id: 'b' }), { id: '../bad' }] };
     const first = await (await importMeetings(json('POST', '/import', body))).json();
     expect(first).toMatchObject({ ok: true, imported: 2, skipped: 0, invalid: 1, dataDir: dir });
     const second = await (await importMeetings(json('POST', '/import', body))).json();
     expect(second).toMatchObject({ imported: 0, skipped: 2, invalid: 1 });
+    expect([first.firstImport, second.firstImport]).toEqual([true, false]);
   });
 
   it('refuses pages from another origin', async () => {

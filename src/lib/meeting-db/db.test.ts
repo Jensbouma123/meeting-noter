@@ -96,6 +96,29 @@ describe('MeetingsDb', () => {
     expect(db.delete('meeting-1').deleted).toBe(false);
   });
 
+  it('never stores a deleted meeting again, even a newer copy', () => {
+    const db = openDb();
+    db.upsert(sampleMeeting());
+    db.delete('meeting-1');
+    expect(db.upsert(sampleMeeting({ updatedAt: Date.now() }))).toBe('deleted');
+    expect(db.get('meeting-1')).toBeNull();
+    expect(db.deletedIds()).toEqual(['meeting-1']);
+  });
+
+  it('adds the v2 tables to a v1 DB and sets a meta key only once', () => {
+    const file = path.join(tmpDir(), 'meetings.db');
+    const v1 = new MeetingsDb(file);
+    v1.upsert(sampleMeeting());
+    v1.db.exec('DROP TABLE deleted_meetings; DROP TABLE meta; PRAGMA user_version = 1;');
+    v1.close();
+    const db = new MeetingsDb(file);
+    expect(db.get('meeting-1')?.title).toBe('Roadmap sync');
+    expect(db.setMetaOnce('k', 'a')).toBe(true);
+    expect(db.setMetaOnce('k', 'b')).toBe(false);
+    db.delete('meeting-1');
+    expect(db.deletedIds()).toEqual(['meeting-1']);
+  });
+
   it('opens read-only alongside a writer and sees its commits', () => {
     const file = path.join(tmpDir(), 'meetings.db');
     const writer = new MeetingsDb(file);

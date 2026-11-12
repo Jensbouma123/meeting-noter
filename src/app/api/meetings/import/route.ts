@@ -3,6 +3,7 @@
  * into the DB (`migrateBrowserMeetings`). Body `{ meetings: StoredMeeting[] }`.
  * Idempotent: a meeting the DB already has at the same or a newer
  * `updatedAt` is skipped, so a retried or repeated import changes nothing.
+ * `firstImport` is true only for the first import this DB ever took.
  */
 import { refuseForeign } from '@/lib/lifecycle/request-guard';
 import { MAX_IMPORT_BODY_BYTES, failure, readJson, storageFailure } from '@/lib/meeting-db/http';
@@ -30,7 +31,9 @@ export async function POST(request: Request): Promise<Response> {
       else if (store.save(meeting, { onlyIfNewer: true }) === 'written') imported += 1;
       else skipped += 1;
     }
-    return Response.json({ ok: true, imported, skipped, invalid, dataDir: meetingsDataDir() });
+    // Only the DB's first import is news to the user; a cleared browser importing again is not.
+    const firstImport = store.db.setMetaOnce('browser-import-at', String(Date.now()));
+    return Response.json({ ok: true, imported, skipped, invalid, firstImport, dataDir: meetingsDataDir() });
   } catch (err) {
     return storageFailure(err);
   }

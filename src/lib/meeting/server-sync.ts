@@ -1,7 +1,13 @@
 import type { StoredMeeting } from '@/lib/meeting-db/types';
 import { getNotes } from './notes';
 import { loadAutosavedSession, loadSessionTranscript } from './persist';
-import { adoptStoredMeeting, archiveAutosavedSession, getSessionMetadata, listSessions } from './session-store';
+import {
+  adoptStoredMeeting,
+  archiveAutosavedSession,
+  deleteSession,
+  getSessionMetadata,
+  listSessions,
+} from './session-store';
 import { getTranscriptSessionId, isCaptureActive } from './store';
 
 /**
@@ -153,20 +159,31 @@ export function buildStoredMeeting(sessionId: string, now = Date.now()): StoredM
   };
 }
 
-async function send(method: 'PUT' | 'DELETE', id: string, body?: StoredMeeting): Promise<boolean> {
+/** `'done'`: the server took it or never will; `'deleted'`: the DB deleted this meeting; `'retry'`: try later. */
+async function send(method: 'PUT' | 'DELETE', id: string, body?: StoredMeeting): Promise<'done' | 'deleted' | 'retry'> {
   try {
     const res = await fetch(`/api/meetings/${encodeURIComponent(id)}`, {
       method,
       headers: body ? { 'content-type': 'application/json' } : undefined,
       body: body ? JSON.stringify(body) : undefined,
     });
-    if (res.ok) return true;
+    if (res.ok) return 'done';
+    if (res.status === 410) return 'deleted';
     // 409: the server holds a newer copy, which the next pull brings in; 400:
     // the server will never take it. Either way retrying cannot help.
-    return res.status === 409 || res.status === 400;
+    return res.status === 409 || res.status === 400 ? 'done' : 'retry';
   } catch {
-    return false;
+    return 'retry';
   }
+}
+
+/** Drop this browser's copy of a meeting the DB deleted; the one being recorded stays. */
+function dropDeleted(id: string): void {
+  const pending = readPending();
+  writeJson(PENDING_KEY, { ...pending, save: pending.save.filter((x) => x !== id) });
+  markSynced(id, null);
+  if (isCaptureActive() && getTranscriptSessionId() === id) return;
+  if (getSessionMetadata(id)) deleteSession(id, { deletedOnServer: true });
 }
 
 /** Send every queued change now. Ids that fail stay queued. */
@@ -176,7 +193,7 @@ export function flushServerSync(): Promise<void> {
   flushing = (async () => {
     const pending = readPending();
     for (const id of pending.remove) {
-      if (await send('DELETE', id)) {
+      if ((await send('DELETE', id)) !== 'retry') {
         markSynced(id, null);
         const now = readPending();
         writeJson(PENDING_KEY, { ...now, remove: now.remove.filter((x) => x !== id) });
@@ -185,8 +202,12 @@ export function flushServerSync(): Promise<void> {
     for (const id of pending.save) {
       const gen = generation.get(id) ?? 0;
       const meeting = buildStoredMeeting(id);
-      const ok = meeting ? await send('PUT', id, meeting) : true;
-      if (!ok) continue;
+      const sent = meeting ? await send('PUT', id, meeting) : 'done';
+      if (sent === 'retry') continue;
+      if (sent === 'deleted') {
+        dropDeleted(id);
+        continue;
+      }
       if (meeting) markSynced(id, meeting.updatedAt);
       // A change queued while this one was in flight keeps the id queued.
       if ((generation.get(id) ?? 0) !== gen) continue;
@@ -218,6 +239,7 @@ export async function migrateBrowserMeetings(): Promise<MigrationResult | null> 
     .map((s) => buildStoredMeeting(s.sessionId, s.updatedAt))
     .filter((m): m is StoredMeeting => m !== null);
   let result: MigrationResult;
+  let firstImport = true;
   try {
     const res = await fetch('/api/meetings/import', {
       method: 'POST',
@@ -225,14 +247,16 @@ export async function migrateBrowserMeetings(): Promise<MigrationResult | null> 
       body: JSON.stringify({ meetings }),
     });
     if (!res.ok) return null;
-    const body = (await res.json()) as MigrationResult & { ok: boolean };
+    const body = (await res.json()) as MigrationResult & { ok: boolean; firstImport?: boolean };
+    firstImport = body.firstImport !== false;
     result = { imported: body.imported, skipped: body.skipped, invalid: body.invalid, dataDir: body.dataDir };
   } catch {
     return null;
   }
   for (const m of meetings) markSynced(m.id, m.updatedAt);
   writeJson(MIGRATED_KEY, { at: Date.now(), ...result });
-  if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+  // The DB remembers its first import, so a cleared browser is not told again.
+  if (firstImport && typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
     window.dispatchEvent(new CustomEvent<MigrationResult>(MIGRATED_EVENT, { detail: result }));
   }
   return result;
@@ -245,23 +269,28 @@ export async function migrateBrowserMeetings(): Promise<MigrationResult | null> 
  */
 export async function pullFromServer(): Promise<number> {
   const list: { id: string; updatedAt: number }[] = [];
+  let deleted: string[] = [];
   try {
     for (;;) {
       const res = await fetch(`/api/meetings?limit=${LIST_PAGE}&offset=${list.length}`, { cache: 'no-store' });
       if (!res.ok) return 0;
-      const page = ((await res.json()) as { meetings: { id: string; updatedAt: number }[] }).meetings;
-      list.push(...page);
-      if (page.length < LIST_PAGE) break;
+      const body = (await res.json()) as { meetings: { id: string; updatedAt: number }[]; deleted?: string[] };
+      list.push(...body.meetings);
+      deleted = body.deleted ?? [];
+      if (body.meetings.length < LIST_PAGE) break;
     }
   } catch {
     return 0;
   }
+  // Deleted in the DB (from another browser): gone here too, never sent back.
+  const gone = new Set(deleted);
+  for (const id of gone) dropDeleted(id);
   // A meeting only this browser has (its queue entry lost to a full or
   // edited localStorage, or the DB restored from an older copy) goes up now,
   // so the DB never misses a meeting the browser still shows.
   const onServer = new Set(list.map((row) => row.id));
   for (const s of listSessions()) {
-    if (!onServer.has(s.sessionId)) queueMeetingSync(s.sessionId);
+    if (!onServer.has(s.sessionId) && !gone.has(s.sessionId)) queueMeetingSync(s.sessionId);
   }
   const pending = readPending();
   const synced = readJson<Record<string, number>>(SYNCED_KEY, {});

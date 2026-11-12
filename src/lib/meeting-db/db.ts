@@ -17,7 +17,7 @@ import type { MeetingSearchHit, MeetingSummaryRow, StoredMeeting, StoredSegment 
  * so there is no native module to build per arch.
  */
 
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS meetings (
@@ -59,9 +59,20 @@ CREATE VIRTUAL TABLE IF NOT EXISTS meetings_fts USING fts5(
   title, summary, transcript,
   tokenize = 'unicode61 remove_diacritics 2'
 );
+-- v2: deleted meetings stay deleted, so a browser holding an old copy cannot bring one back.
+CREATE TABLE IF NOT EXISTS deleted_meetings (
+  id TEXT PRIMARY KEY,
+  deleted_at INTEGER NOT NULL
+);
+-- v2: facts about this DB, such as when the browser meetings were first moved in.
+CREATE TABLE IF NOT EXISTS meta (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
 `;
 
-export type UpsertResult = 'written' | 'stale';
+/** `'deleted'`: the meeting was deleted from this DB and is not stored again. */
+export type UpsertResult = 'written' | 'stale' | 'deleted';
 
 type Row = Record<string, SQLOutputValue>;
 
@@ -143,6 +154,7 @@ export class MeetingsDb {
    */
   upsert(meeting: StoredMeeting, opts: { onlyIfNewer?: boolean; markdownFile?: string | null } = {}): UpsertResult {
     return this.transaction(() => {
+      if (this.db.prepare('SELECT 1 FROM deleted_meetings WHERE id = ?').get(meeting.id)) return 'deleted';
       const existing = this.db.prepare('SELECT updated_at FROM meetings WHERE id = ?').get(meeting.id);
       if (existing) {
         const stored = num(existing.updated_at);
@@ -206,9 +218,13 @@ export class MeetingsDb {
     });
   }
 
-  /** Remove a meeting and everything it owns. Returns its Markdown file name, if it had one. */
-  delete(id: string): { deleted: boolean; markdownFile: string | null } {
+  /**
+   * Remove a meeting and everything it owns, and remember the id so it is
+   * never stored again. Returns its Markdown file name, if it had one.
+   */
+  delete(id: string, now = Date.now()): { deleted: boolean; markdownFile: string | null } {
     return this.transaction(() => {
+      this.db.prepare('INSERT OR IGNORE INTO deleted_meetings (id, deleted_at) VALUES (?, ?)').run(id, now);
       const row = this.db.prepare('SELECT rowid, markdown_file FROM meetings WHERE id = ?').get(id);
       if (!row) return { deleted: false, markdownFile: null };
       this.db.prepare('DELETE FROM meetings_fts WHERE rowid = ?').run(row.rowid);
@@ -217,6 +233,16 @@ export class MeetingsDb {
       this.db.prepare('DELETE FROM meetings WHERE id = ?').run(id);
       return { deleted: true, markdownFile: row.markdown_file === null ? null : String(row.markdown_file) };
     });
+  }
+
+  /** Ids of every meeting deleted from this DB. */
+  deletedIds(): string[] {
+    return this.db.prepare('SELECT id FROM deleted_meetings').all().map((row) => String(row.id));
+  }
+
+  /** Sets `key` unless it is set already; true when this call set it. */
+  setMetaOnce(key: string, value: string): boolean {
+    return Number(this.db.prepare('INSERT OR IGNORE INTO meta (key, value) VALUES (?, ?)').run(key, value).changes) > 0;
   }
 
   markdownFile(id: string): string | null {
