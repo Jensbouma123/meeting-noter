@@ -24,4 +24,19 @@ describe('SpeakerAssign rail name layout', () => {
     expect(button).not.toHaveAttribute('title');
     expect(button.querySelector('span')).toHaveClass('flex-1', 'min-w-0');
   });
+
+  it('overrides the DropdownMenu wrapper (inline-block) so the button can grow', () => {
+    render(
+      <LanguageContext.Provider value="en">
+        <SpeakerAssign sessionId="s1" speakerId="1" label="Jens" source="system" otherLabels={[]} appearance="rail" />
+      </LanguageContext.Provider>,
+    );
+    const button = screen.getByRole('button', { name: 'Change who this is: Jens' });
+    const menuRoot = button.parentElement as HTMLElement;
+    expect(menuRoot).toHaveClass('inline-block'); // acciva-ui's shrink-to-fit wrapper
+    const wrap = screen.getByTestId('speaker-assign-wrap');
+    expect(menuRoot.parentElement).toBe(wrap);
+    expect(wrap).toHaveClass('w-full', 'min-w-0', '[&>div]:block', '[&>div]:w-full');
+    expect(button.querySelector('span')).toHaveClass('truncate');
+  });
 });
