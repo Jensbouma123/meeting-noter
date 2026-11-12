@@ -13,7 +13,8 @@
     "helper": "sh helper/build.sh && ./helper/build/meeting-noter-audio-helper",
     "app": "node scripts/dev.mjs --prod",
     "helper:install": "sh helper/install-agent.sh",
-    "helper:uninstall": "sh helper/install-agent.sh uninstall"
+    "helper:uninstall": "sh helper/install-agent.sh uninstall",
+    "mcp:build": "rolldown -c scripts/mcp/rolldown.config.mjs"
   },
   "dependencies": {
     "@huggingface/transformers": "4.3.1",
@@ -38,6 +39,7 @@
     "eslint-config-next": "16.3.6",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^30.1.1",
+    "rolldown": "1.2.19",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.11"
