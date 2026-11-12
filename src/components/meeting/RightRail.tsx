@@ -1,29 +1,23 @@
 'use client';
 
 import type React from 'react';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getSpeakerColor } from './speaker-theme';
 import { useSpeakerStats } from '@/lib/meeting';
-import type { Speaker } from '@/lib/meeting';
-import { meeting } from './store';
-import { Check, Pencil, PanelRightClose, PanelRightOpen, Users } from 'lucide-react';
+import { PanelRightClose, PanelRightOpen, Info, Users } from 'lucide-react';
 import { ProgressTrack } from '@/components/common/ProgressTrack';
 import { NotesPanel } from '@/components/notes/NotesPanel';
 import type { Segment } from '@/lib/meeting/types';
 import { useT } from '@/lib/i18n/useT';
-import { addNameToVocabulary } from '@/lib/vocabulary/names';
 import { setParticipants, useParticipants, useRecentParticipants } from '@/lib/meeting/participants';
-import { ParticipantsEditor, CHIP_CLASS } from './ParticipantsEditor';
+import { ParticipantsEditor } from './ParticipantsEditor';
 import { SpeakerAssign } from './SpeakerAssign';
 import { isUnnamedSpeakerLabel, unassignedParticipants } from '@/lib/meeting/participants';
 import {
   Badge,
   Button,
-  Card,
   Drawer,
   EmptyState,
-  HStack,
-  Input,
   Text,
   useToast,
   VStack,
@@ -38,32 +32,11 @@ type SpeakerRow = ReturnType<typeof useSpeakerStats>[number];
 
 interface SpeakerListProps {
   rows: SpeakerRow[];
-  editingSpeakerId: string | null;
-  nameDraft: string;
-  inputRef: React.RefObject<HTMLInputElement | null>;
-  onNameDraftChange: (v: string) => void;
-  onStartEditing: (speaker: SpeakerRow) => void;
-  onCommit: () => void;
-  onCancel: () => void;
-  /** People named for this meeting, offered as one-tap names while renaming. */
-  participants: string[];
-  onPick: (name: string) => void;
   sessionId: string;
+  onAssigned: (added: number) => void;
 }
 
-function SpeakerList({
-  rows,
-  editingSpeakerId,
-  nameDraft,
-  inputRef,
-  onNameDraftChange,
-  onStartEditing,
-  onCommit,
-  onCancel,
-  participants,
-  onPick,
-  sessionId,
-}: SpeakerListProps) {
+function SpeakerList({ rows, sessionId, onAssigned }: SpeakerListProps) {
   const tp = useT('participants');
   if (rows.length === 0) {
     return (
@@ -71,129 +44,71 @@ function SpeakerList({
         size="sm"
         compact
         icon={<Users className="size-5" aria-hidden="true" />}
-        title="No speakers yet"
-        description="Speakers show up here once people start talking. Tap a name to rename it."
+        title={tp('noSpeakers')}
+        description={tp('noSpeakersHint')}
       />
     );
   }
   return (
-    <>
+    <ul
+      aria-labelledby="rail-speakers-h"
+      className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0"
+    >
       {rows.map((spk) => {
         const colorStyle = getSpeakerColor(spk.colorIndex);
-        const isEditing = editingSpeakerId === spk.id;
+        const named = !isUnnamedSpeakerLabel(spk.label);
+        const pct = spk.percentage;
+        const assign = (
+          <SpeakerAssign
+            appearance="rail"
+            sessionId={sessionId}
+            speakerId={spk.id}
+            label={spk.label}
+            source={spk.source}
+            otherLabels={rows.filter((r) => r.id !== spk.id).map((r) => r.label)}
+            onAssigned={onAssigned}
+          />
+        );
         return (
-          <Card
-            key={spk.id}
-            variant="bordered"
-            padding="sm"
-            className="animate-turn-enter shadow-2xs hover:border-border"
-          >
-            <VStack spacing="sm" className="w-full">
-              <HStack spacing="sm" justify="between">
-                <HStack spacing="sm" className="min-w-0 flex-1">
-                  <span
-                    className={`size-2.5 shrink-0 rounded-full ${colorStyle.dotClass}`}
-                    aria-hidden="true"
-                  />
-                  {isEditing ? (
-                    <HStack spacing="xs" className="flex-1">
-                      <Input
-                        ref={inputRef}
-                        size="xs"
-                        value={nameDraft}
-                        onChange={(e) => onNameDraftChange(e.target.value)}
-                        onBlur={onCommit}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') onCommit();
-                          if (e.key === 'Escape') onCancel();
-                        }}
-                        maxLength={40}
-                        aria-label={`Rename ${spk.label}`}
-                        className="min-w-0 flex-1"
-                      />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        iconOnly
-                        onClick={onCommit}
-                        tooltip="Save name"
-                        className="touch-target-44"
-                        leadingIcon={<Check className="size-4 text-success" />}
-                      />
-                    </HStack>
-                  ) : (
-                    <>
-                    {isUnnamedSpeakerLabel(spk.label) && (
-                      <SpeakerAssign
-                        sessionId={sessionId}
-                        speakerId={spk.id}
-                        label={spk.label}
-                        source={spk.source}
-                        otherLabels={rows.filter((r) => r.id !== spk.id).map((r) => r.label)}
-                        textClassName={`text-xs font-semibold ${colorStyle.textClass}`}
-                      />
-                    )}
-                    <Button
-                      variant="ghost"
-                      size={{ base: 'md', md: 'sm' }}
-                      onClick={() => onStartEditing(spk)}
-                      tooltip={`Rename ${spk.label}`}
-                      trailingIcon={
-                        <Pencil className="size-3 opacity-60 group-hover:opacity-100" />
-                      }
-                      className="group min-w-0 justify-start"
-                    >
-                      <Text
-                        as="span"
-                        size="xs"
-                        weight="semibold"
-                        truncate
-                        className={colorStyle.textClass}
-                      >
-                        {spk.label}
-                      </Text>
-                    </Button>
-                    </>
-                  )}
-                </HStack>
-                <Text size="xs" variant="muted" font="mono" className="shrink-0 tabular-nums">
-                  {formatDuration(spk.time)}
-                </Text>
-              </HStack>
-
-              {isEditing && participants.length > 0 && (
-                <div className="flex flex-wrap gap-1.5" role="group" aria-label={tp('quickPicks')}>
-                  {participants.map((name) => (
-                    <button
-                      key={name}
-                      type="button"
-                      className={`${CHIP_CLASS} hover:bg-surface-hover`}
-                      // Keep focus in the field so picking does not first save the half-typed text.
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => onPick(name)}
-                    >
-                      {name}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              <HStack spacing="sm">
-                <ProgressTrack
-                  value={Math.max(3, spk.percentage)}
-                  label={`${spk.label} share of talk time`}
-                  barClassName={colorStyle.barBgClass}
-                  className="flex-1"
-                />
-                <Badge variant="neutral" size="xxs" className="w-9 justify-end tabular-nums">
-                  {Math.round(spk.percentage)}%
-                </Badge>
-              </HStack>
-            </VStack>
-          </Card>
+          <li key={spk.id} className="animate-turn-enter flex flex-col gap-1.5 py-2.5">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className={`size-2 shrink-0 rounded-full ${colorStyle.dotClass}`} aria-hidden="true" />
+              <div className="min-w-0 flex-1">
+                {named ? (
+                  assign
+                ) : (
+                  <Text as="span" size="sm" variant="muted" truncate title={spk.label}>
+                    {spk.label}
+                  </Text>
+                )}
+              </div>
+              <Text size="xs" variant="muted" font="mono" className="shrink-0 tabular-nums">
+                <span className="sr-only">{tp('talkTime')} </span>
+                {formatDuration(spk.time)}
+              </Text>
+            </div>
+            <div className="flex items-center gap-2 pl-4">
+              <ProgressTrack
+                value={Math.max(3, pct)}
+                label={tp('talkShare').replace('{name}', spk.label).replace('{pct}', String(Math.round(pct)))}
+                barClassName={colorStyle.barBgClass}
+                className="flex-1"
+              />
+              <Text
+                size="xs"
+                variant="muted"
+                font="mono"
+                className="w-8 shrink-0 text-right tabular-nums"
+                aria-hidden="true"
+              >
+                {Math.round(pct)}%
+              </Text>
+            </div>
+            {!named && <div className="pl-4">{assign}</div>}
+          </li>
         );
       })}
-    </>
+    </ul>
   );
 }
 
@@ -226,8 +141,6 @@ function RailTabs({
   trailing?: React.ReactNode;
 }) {
   const t = useT('rail');
-  const ts = useT('settings');
-  const { toast } = useToast();
   const onKeyDown = (e: React.KeyboardEvent) => {
     const i = RAIL_TABS.indexOf(active);
     let next: number;
@@ -283,11 +196,11 @@ function formatDuration(seconds: number): string {
   return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
-/** Speaker directory + talk-time sidebar. Reads live from the meeting store
- *  (via `useSpeakerStats`), so it takes no props — it's self-sufficient. */
 /** Meetings that already showed the "names added to your words" note. */
 const notedSessions = new Set<string>();
 
+/** Speaker directory + talk-time sidebar. Reads live from the meeting store
+ *  (via `useSpeakerStats`), so it takes no props — it's self-sufficient. */
 export function RightRail({ sessionId, segments = [] }: { sessionId: string; segments?: Segment[] }) {
   const t = useT('rail');
   const tp = useT('participants');
@@ -297,9 +210,6 @@ export function RightRail({ sessionId, segments = [] }: { sessionId: string; seg
   // Initial render must match the server (expanded); the real preference —
   // a saved choice, or the narrow-screen default — loads after mount.
   const [open, setOpen] = useState(true);
-  const [editingSpeakerId, setEditingSpeakerId] = useState<string | null>(null);
-  const [nameDraft, setNameDraft] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
 
   // Derive speaker stats from the store (single source of truth).
   const speakerStatRows = useSpeakerStats();
@@ -331,41 +241,18 @@ export function RightRail({ sessionId, segments = [] }: { sessionId: string; seg
     });
   }, []);
 
-  useEffect(() => {
-    if (editingSpeakerId) {
-      inputRef.current?.focus();
-      inputRef.current?.select();
+  const onAssigned = (added: number) => {
+    if (added > 0 && !notedSessions.has(sessionId)) {
+      notedSessions.add(sessionId);
+      toast({ title: ts('vocab.nameNote') });
     }
-  }, [editingSpeakerId]);
-
-  const startEditing = (speaker: Speaker) => {
-    setEditingSpeakerId(speaker.id);
-    setNameDraft(speaker.label);
-  };
-
-  const commitEdit = () => {
-    if (!editingSpeakerId) return;
-    const trimmed = nameDraft.trim();
-    if (trimmed.length > 0) {
-      meeting.renameSpeaker(editingSpeakerId, trimmed);
-      if (addNameToVocabulary(trimmed) > 0 && !notedSessions.has(sessionId)) {
-        notedSessions.add(sessionId);
-        toast({ title: ts('vocab.nameNote') });
-      }
-    }
-    setEditingSpeakerId(null);
-  };
-
-  const pickName = (name: string) => {
-    if (!editingSpeakerId) return;
-    meeting.renameSpeaker(editingSpeakerId, name);
-    addNameToVocabulary(name);
-    setEditingSpeakerId(null);
   };
 
   const participants = useParticipants(sessionId);
   const recentParticipants = useRecentParticipants();
   const unmatched = unassignedParticipants(participants, speakerStatRows.map((r) => r.label));
+  const hasUnnamed = speakerStatRows.some((r) => isUnnamedSpeakerLabel(r.label));
+  const [unmatchedBefore, unmatchedAfter] = (hasUnnamed ? tp('unassigned') : tp('notHeard')).split('{names}');
 
   const isMdUp = useMediaQuery('(min-width: 768px)');
   const isLgUp = useMediaQuery('(min-width: 1024px)');
@@ -385,35 +272,54 @@ export function RightRail({ sessionId, segments = [] }: { sessionId: string; seg
 
   const list = (
     <>
-    <VStack spacing="xs" className="w-full" data-testid="participants-editor">
-      <Text size="xs" weight="semibold">
-        {tp('heading')}
-      </Text>
-      <ParticipantsEditor
-        id="rail-participants-add"
-        names={participants}
-        suggestions={recentParticipants}
-        onChange={(names) => setParticipants(sessionId, names)}
-      />
-      {unmatched.length > 0 && (
-        <Text size="xs" variant="muted" data-testid="participants-unassigned">
-          {tp('unassigned').replace('{names}', unmatched.join(', '))}
-        </Text>
-      )}
-    </VStack>
-    <SpeakerList
-      rows={speakerStatRows}
-      editingSpeakerId={editingSpeakerId}
-      nameDraft={nameDraft}
-      inputRef={inputRef}
-      onNameDraftChange={setNameDraft}
-      onStartEditing={startEditing}
-      onCommit={commitEdit}
-      onCancel={() => setEditingSpeakerId(null)}
-      participants={participants}
-      onPick={pickName}
-      sessionId={sessionId}
-    />
+      <section
+        aria-labelledby="rail-people-h"
+        data-testid="participants-editor"
+        className="flex w-full flex-col gap-2"
+      >
+        <h3 id="rail-people-h" className="m-0">
+          <Text size="xs" weight="semibold" variant="muted">
+            {tp('heading')}
+          </Text>
+        </h3>
+        {participants.length === 0 && (
+          <Text size="xs" variant="muted">
+            {tp('railHint')}
+          </Text>
+        )}
+        <ParticipantsEditor
+          id="rail-participants-add"
+          compact
+          names={participants}
+          suggestions={recentParticipants}
+          onChange={(names) => setParticipants(sessionId, names)}
+        />
+      </section>
+      <section
+        aria-labelledby="rail-speakers-h"
+        className="flex w-full flex-col gap-2 border-t border-border-subtle pt-3"
+      >
+        <h3 id="rail-speakers-h" className="m-0">
+          <Text size="xs" weight="semibold" variant="muted">
+            {tp('speakers')}
+          </Text>
+        </h3>
+        {speakerStatRows.length > 0 && unmatched.length > 0 && (
+          <div
+            role="status"
+            data-testid="participants-unassigned"
+            className="flex items-start gap-2 rounded-md border border-border-subtle bg-elevation-2 px-2.5 py-2 text-xs text-foreground"
+          >
+            <Info className="mt-px size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <span>
+              {unmatchedBefore}
+              <strong className="font-semibold">{unmatched.join(', ')}</strong>
+              {unmatchedAfter}
+            </span>
+          </div>
+        )}
+        <SpeakerList rows={speakerStatRows} sessionId={sessionId} onAssigned={onAssigned} />
+      </section>
     </>
   );
 

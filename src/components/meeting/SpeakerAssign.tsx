@@ -6,10 +6,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
   Input,
 } from '@jensbouma123/acciva-ui';
-import { Check, ChevronDown } from 'lucide-react';
+import { Check, ChevronDown, UserPlus } from 'lucide-react';
 import { useT } from '@/lib/i18n/useT';
 import {
   defaultSpeakerLabel,
@@ -24,7 +25,10 @@ import { meeting } from './store';
 /**
  * "Who is this?" for one speaker: pick one of the meeting's participants (one
  * click renames all of that speaker's lines), type "Someone else" (also added
- * to the participants), or clear the name again. Nothing is guessed.
+ * to the participants), edit or clear the name again. Nothing is guessed.
+ *
+ * `appearance="rail"` is the compact trigger used in the right rail's
+ * Participants tab; `inline` (default) is the transcript's speaker label.
  */
 export function SpeakerAssign({
   sessionId,
@@ -34,6 +38,8 @@ export function SpeakerAssign({
   otherLabels,
   className,
   textClassName,
+  appearance = 'inline',
+  onAssigned,
 }: {
   sessionId: string;
   speakerId: string;
@@ -43,6 +49,9 @@ export function SpeakerAssign({
   otherLabels: string[];
   className?: string;
   textClassName?: string;
+  appearance?: 'inline' | 'rail';
+  /** Called with how many names were newly added to the vocabulary. */
+  onAssigned?: (addedToVocab: number) => void;
 }) {
   const t = useT('participants');
   const tt = useT('transcript');
@@ -50,13 +59,15 @@ export function SpeakerAssign({
   const [typing, setTyping] = useState(false);
   const [draft, setDraft] = useState('');
   const unnamed = isUnnamedSpeakerLabel(label);
+  const rail = appearance === 'rail';
   const free = new Set(unassignedParticipants(participants, otherLabels).map((n) => n.toLowerCase()));
 
   const assign = (name: string) => {
     const clean = name.trim().replace(/\s+/g, ' ');
     if (!clean) return;
     meeting.renameSpeaker(speakerId, clean);
-    addNameToVocabulary(clean);
+    const added = addNameToVocabulary(clean);
+    onAssigned?.(added);
     if (!participants.some((p) => p.toLowerCase() === clean.toLowerCase())) {
       setParticipants(sessionId, [...participants, clean]);
     }
@@ -64,6 +75,10 @@ export function SpeakerAssign({
     setDraft('');
   };
   const clear = () => meeting.renameSpeaker(speakerId, defaultSpeakerLabel(speakerId, source, tt('you')));
+  const edit = () => {
+    setDraft(label);
+    setTyping(true);
+  };
 
   if (typing) {
     return (
@@ -74,7 +89,7 @@ export function SpeakerAssign({
         maxLength={40}
         aria-label={t('someoneElse')}
         placeholder={t('someoneElsePlaceholder')}
-        className="w-40"
+        className={rail ? 'w-full' : 'w-40'}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={() => (draft.trim() ? assign(draft) : setTyping(false))}
         onKeyDown={(e) => {
@@ -85,21 +100,51 @@ export function SpeakerAssign({
     );
   }
 
+  const trigger = rail ? (
+    unnamed ? (
+      <Button
+        type="button"
+        variant="outline"
+        size="xs"
+        data-testid="speaker-assign"
+        aria-label={`${t('whoIsThis')} (${label})`}
+        leadingIcon={<UserPlus className="size-3.5" aria-hidden="true" />}
+        trailingIcon={<ChevronDown className="size-3 opacity-60" aria-hidden="true" />}
+        className="text-foreground"
+      >
+        {t('whoIsThis')}
+      </Button>
+    ) : (
+      <Button
+        type="button"
+        variant="ghost"
+        size="xs"
+        data-testid="speaker-assign"
+        title={label}
+        aria-label={`${t('change')}: ${label}`}
+        trailingIcon={<ChevronDown className="size-3 shrink-0 text-muted-foreground" aria-hidden="true" />}
+        className="-ml-1.5 max-w-full justify-start px-1.5"
+      >
+        <span className="truncate text-sm font-medium text-foreground">{label}</span>
+      </Button>
+    )
+  ) : (
+    <Button
+      type="button"
+      variant="ghost"
+      size="xs"
+      data-testid="speaker-assign"
+      aria-label={unnamed ? `${t('whoIsThis')} (${label})` : `${t('change')}: ${label}`}
+      trailingIcon={<ChevronDown className="size-3 opacity-60" aria-hidden="true" />}
+      className={className}
+    >
+      <span className={`truncate ${textClassName ?? ''}`}>{unnamed ? t('whoIsThis') : label}</span>
+    </Button>
+  );
+
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
-        <Button
-          type="button"
-          variant="ghost"
-          size="xs"
-          data-testid="speaker-assign"
-          aria-label={unnamed ? `${t('whoIsThis')} (${label})` : `${t('change')}: ${label}`}
-          trailingIcon={<ChevronDown className="size-3 opacity-60" aria-hidden="true" />}
-          className={className}
-        >
-          <span className={`truncate ${textClassName ?? ''}`}>{unnamed ? t('whoIsThis') : label}</span>
-        </Button>
-      </DropdownMenuTrigger>
+      <DropdownMenuTrigger>{trigger}</DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         {participants.map((name) => (
           <DropdownMenuItem key={name} onClick={() => assign(name)}>
@@ -113,7 +158,9 @@ export function SpeakerAssign({
             </span>
           </DropdownMenuItem>
         ))}
+        {participants.length > 0 && <DropdownMenuSeparator />}
         <DropdownMenuItem onClick={() => setTyping(true)}>{t('someoneElse')}</DropdownMenuItem>
+        {!unnamed && <DropdownMenuItem onClick={edit}>{t('editName')}</DropdownMenuItem>}
         {!unnamed && <DropdownMenuItem onClick={clear}>{t('clearName')}</DropdownMenuItem>}
       </DropdownMenuContent>
     </DropdownMenu>

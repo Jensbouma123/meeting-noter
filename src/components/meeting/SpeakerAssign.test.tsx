@@ -9,10 +9,10 @@ import { LanguageContext } from '@/lib/i18n/LanguageContext';
 const renameSpeaker = vi.fn();
 vi.mock('./store', () => ({ meeting: { renameSpeaker: (...a: unknown[]) => renameSpeaker(...a) } }));
 
-function view(label: string) {
+function view(label: string, extra: Partial<Parameters<typeof SpeakerAssign>[0]> = {}) {
   render(
     <LanguageContext.Provider value="en">
-      <SpeakerAssign sessionId="s1" speakerId="2" label={label} source="system" otherLabels={['Anna']} />
+      <SpeakerAssign sessionId="s1" speakerId="2" label={label} source="system" otherLabels={['Anna']} {...extra} />
     </LanguageContext.Provider>,
   );
 }
@@ -59,5 +59,31 @@ describe('SpeakerAssign', () => {
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(renameSpeaker).toHaveBeenCalledWith('2', 'Noor');
     expect(getParticipants('s1')).toEqual(['Anna', 'Jan', 'Noor']);
+  });
+
+  it('"Edit name…" opens the input pre-filled with the current name', () => {
+    view('Jan');
+    open();
+    fireEvent.click(screen.getByText('Edit name…'));
+    const input = screen.getByLabelText('Someone else…');
+    expect(input).toHaveValue('Jan');
+    fireEvent.change(input, { target: { value: 'Jann' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(renameSpeaker).toHaveBeenCalledWith('2', 'Jann');
+  });
+
+  it('rail appearance shows a neutral "Who is this?" button for an unnamed speaker', () => {
+    view('Speaker 2', { appearance: 'rail' });
+    const trigger = screen.getByTestId('speaker-assign');
+    expect(trigger).toHaveTextContent('Who is this?');
+    expect(trigger.className).not.toMatch(/text-primary/);
+  });
+
+  it('reports how many names were added to the vocabulary', () => {
+    const onAssigned = vi.fn();
+    view('Speaker 2', { onAssigned });
+    open();
+    fireEvent.click(screen.getByText('Jan'));
+    expect(onAssigned).toHaveBeenCalledWith(expect.any(Number));
   });
 });
