@@ -6,12 +6,14 @@ import pkg from '../../../package.json';
 import { useT } from '@/lib/i18n/useT';
 import { useUpdate } from '@/components/update/useUpdate';
 import { UpdateDialog } from '@/components/update/UpdateDialog';
+import { restartOnboarding } from '@/lib/onboarding/store';
 import { SettingsGroup, SettingsRow } from './SettingsRow';
 
 const APP_VERSION = pkg.version;
 
 export function AboutSection() {
   const t = useT('update');
+  const tOnboarding = useT('onboarding');
   const update = useUpdate();
   const [open, setOpen] = useState(false);
   const info = update.info;
@@ -23,6 +25,13 @@ export function AboutSection() {
         <VStack spacing="xs" className="w-full p-4">
           <Text size="xs" variant="muted">{t('privacy')}</Text>
         </VStack>
+      </SettingsGroup>
+      <SettingsGroup>
+        <SettingsRow
+          label={tOnboarding('reopen.title')}
+          description={tOnboarding('reopen.description')}
+          control={<Button variant="secondary" onClick={restartOnboarding}>{tOnboarding('reopen.action')}</Button>}
+        />
       </SettingsGroup>
       <SettingsGroup>
         <SettingsRow label={t('updates')} description={info?.notes || (info?.available ? '' : t(update.status === 'checking' ? 'checking' : update.status === 'error' ? 'checkFailed' : 'upToDate'))} control={null} />

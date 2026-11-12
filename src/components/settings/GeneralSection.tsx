@@ -1,6 +1,6 @@
 'use client';
 
-import { Select, Switch } from '@jensbouma123/acciva-ui';
+import { Input, Select, Switch } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { SetLanguageContext, type Language } from '@/lib/i18n/LanguageContext';
 import { useContext } from 'react';
@@ -24,6 +24,21 @@ export function GeneralSection({
   return (
     <>
       <SettingsGroup>
+        <SettingsRow
+          label={t('ownerName')}
+          description={t('ownerNameDescription')}
+          htmlFor="setting-owner-name"
+          control={
+            <Input
+              id="setting-owner-name"
+              value={settings.ownerName}
+              onChange={(e) => onSettingsChange({ ...settings, ownerName: e.target.value })}
+              placeholder={t('ownerNamePlaceholder')}
+              autoComplete="name"
+              aria-label={t('ownerName')}
+            />
+          }
+        />
         <SettingsRow
           label={t('uiLanguage')}
           description={t('uiLanguageDescription')}

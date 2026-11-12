@@ -6,6 +6,7 @@ import { lifecycle } from './ns/lifecycle';
 import { meeting } from './ns/meeting';
 import { models } from './ns/models';
 import { notes } from './ns/notes';
+import { onboarding } from './ns/onboarding';
 import { rail } from './ns/rail';
 import { settings } from './ns/settings';
 import { share } from './ns/share';
@@ -25,6 +26,7 @@ export const translations = {
   meeting,
   models,
   notes,
+  onboarding,
   rail,
   settings,
   share,

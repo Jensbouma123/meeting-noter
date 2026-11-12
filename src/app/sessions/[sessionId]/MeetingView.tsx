@@ -1,5 +1,6 @@
 'use client';
 
+import { OnboardingDialog } from '@/components/onboarding/OnboardingDialog';
 import { sessionPath } from '@/lib/session-path';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback, useMemo, useRef, useSyncExternalStore } from 'react';
@@ -832,6 +833,7 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
         <RightRail sessionId={shareSessionId} segments={segments} />
       </HStack>
 
+      <OnboardingDialog settings={settings} onSettingsChange={handleSettingsChange} />
       {/* Settings dialog */}
       <MeetingSettings
         open={settingsOpen}

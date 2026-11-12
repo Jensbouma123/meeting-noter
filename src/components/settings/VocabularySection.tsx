@@ -7,13 +7,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  HStack,
-  Input,
   Select,
   Text,
   VStack,
 } from '@jensbouma123/acciva-ui';
-import { Download, MoreHorizontal, Plus, Upload, X } from 'lucide-react';
+import { Download, MoreHorizontal, Upload, X } from 'lucide-react';
 import { useT } from '@/lib/i18n/useT';
 import { downloadFile } from '@/lib/meeting/export';
 import { DEFAULT_BIAS_STRENGTH } from '@/lib/vocabulary/bias';
@@ -23,11 +21,9 @@ import {
   setVocabularyStrength,
   useVocabulary,
 } from '@/lib/vocabulary/store';
-import { formatWordCsv, formatWordList, parseWordFile, parseWordList } from '@/lib/vocabulary/text-format';
+import { formatWordCsv, formatWordList, parseWordFile } from '@/lib/vocabulary/text-format';
+import { VocabularyAddField, vocabularyFill as fill, vocabularyWordCount } from './VocabularyAddField';
 import { SettingsGroup, SettingsRow, SettingsStackedRow } from './SettingsRow';
-
-const fill = (text: string, values: Record<string, string | number>) =>
-  text.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key] ?? ''));
 
 /**
  * The user's own words: names and terms the transcript should spell their
@@ -37,27 +33,15 @@ const fill = (text: string, values: Record<string, string | number>) =>
 export function VocabularySection() {
   const t = useT('settings');
   const { entries, strength } = useVocabulary();
-  const wordCount = (n: number) => (n === 1 ? t('vocab.one') : fill(t('vocab.many'), { n }));
+  const wordCount = (n: number) => vocabularyWordCount(t, n);
   const strengthOptions = [
     { value: '0', label: t('vocab.strengthOff') },
     { value: '1.5', label: t('vocab.strengthGentle') },
     { value: String(DEFAULT_BIAS_STRENGTH), label: t('vocab.strengthNormal') },
     { value: '5', label: t('vocab.strengthStrong') },
   ];
-  const [draft, setDraft] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-
-  const addDraft = () => {
-    const parsed = parseWordList(draft);
-    if (parsed.length === 0) {
-      if (draft.trim()) setNotice(t('vocab.noWords'));
-      return;
-    }
-    addVocabularyEntries(parsed);
-    setNotice(fill(t('vocab.added'), { count: wordCount(parsed.length) }));
-    setDraft('');
-  };
 
   const importFile = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -80,32 +64,7 @@ export function VocabularySection() {
     <SettingsGroup>
       <SettingsStackedRow label={t('vocab.title')} description={t('vocab.description')}>
         <VStack spacing="sm" className="w-full">
-          <HStack spacing="sm" className="w-full">
-            <div className="min-w-0 flex-1">
-              <Input
-                id="vocabulary-add"
-                aria-label={t('vocab.pasteLabel')}
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addDraft();
-                  }
-                }}
-                placeholder={t('vocab.placeholder')}
-                autoComplete="off"
-              />
-            </div>
-            <Button
-              variant="primary"
-              size={{ base: 'md', md: 'sm' }}
-              leadingIcon={<Plus className="size-3.5" />}
-              disabled={draft.trim().length === 0}
-              onClick={addDraft}
-            >
-              {t('vocab.add')}
-            </Button>
+          <VocabularyAddField id="vocabulary-add" notice={notice} onNotice={setNotice}>
             <DropdownMenu>
               <DropdownMenuTrigger>
                 <Button
@@ -145,12 +104,7 @@ export function VocabularySection() {
               aria-label={t('vocab.importLabel')}
               onChange={importFile}
             />
-          </HStack>
-          {notice && (
-            <Text size="xs" variant="muted" role="status">
-              {notice}
-            </Text>
-          )}
+          </VocabularyAddField>
         </VStack>
       </SettingsStackedRow>
 
