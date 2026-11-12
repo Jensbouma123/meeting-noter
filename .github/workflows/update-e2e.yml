@@ -6,12 +6,15 @@ name: Update e2e
 on:
   push:
     branches: [main]
-    paths: &paths
+    paths:
       - scripts/installer/**
       - src/lib/update/**
       - .github/workflows/update-e2e.yml
   pull_request:
-    paths: *paths
+    paths:
+      - scripts/installer/**
+      - src/lib/update/**
+      - .github/workflows/update-e2e.yml
   workflow_dispatch:
 
 jobs:
