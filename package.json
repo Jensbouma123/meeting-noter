@@ -18,6 +18,7 @@
   "dependencies": {
     "@huggingface/transformers": "4.3.1",
     "@jensbouma123/acciva-ui": "file:vendor/acciva-ui",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "lucide-react": "^1.61.0",
     "next": "16.3.6",
     "onnxruntime-web": "1.24.1",
