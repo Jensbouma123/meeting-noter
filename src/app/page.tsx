@@ -54,19 +54,24 @@ export default function Home() {
         onOpenSession={handleOpenSession}
         onNewSession={() => setNewDialogOpen(true)}
       >
-        <div className="flex flex-1 items-center justify-center p-6">
-          <VStack spacing="lg" align="center" className="w-full max-w-xl text-center">
-            <Video className="size-8 text-primary" aria-hidden="true" />
-            <Heading as="h1" size="xl" weight="semibold">{t('title')}</Heading>
-            <section aria-labelledby="home-how-it-works" className="w-full">
-              <Heading id="home-how-it-works" as="h2" size="lg" weight="medium">{t('heading')}</Heading>
-              <ol className="mt-4 space-y-3">
+        <div className="flex flex-1 items-center justify-center px-4 py-6 md:px-8">
+          <VStack spacing="lg" align="center" className="w-full max-w-md text-center">
+            <div className="flex size-14 items-center justify-center rounded-2xl bg-elevation-2 text-muted-foreground" aria-hidden="true">
+              <Video className="size-7" />
+            </div>
+            <VStack spacing="sm" align="center">
+              <Heading as="h1" size="xl" weight="semibold">{t('title')}</Heading>
+              <Text variant="muted">{t('subtitle')}</Text>
+            </VStack>
+            <section aria-labelledby="home-how-it-works" className="w-full rounded-xl border border-border bg-elevation-1 p-5 text-left">
+              <Heading id="home-how-it-works" as="h2" size="md" weight="medium">{t('heading')}</Heading>
+              <ol className="mt-3 list-decimal space-y-2 pl-5">
                 <li><Text>{t('step1')}</Text></li>
                 <li><Text>{t('step2')}</Text></li>
                 <li><Text>{t('step3')}</Text></li>
               </ol>
             </section>
-            <Button variant="primary" leadingIcon={<Plus className="size-4" />} onClick={() => setNewDialogOpen(true)}>
+            <Button variant="outline" leadingIcon={<Plus className="size-4" />} onClick={() => setNewDialogOpen(true)}>
               {t('newMeeting')}
             </Button>
           </VStack>
