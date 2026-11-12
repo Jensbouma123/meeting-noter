@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react';
 import {
   Button, Checkbox, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
   EmptyState, HStack, Heading, Input, Popover, Text, VStack,
@@ -108,9 +108,9 @@ function D1Insights({ sessionId, speakers, segments, t }: {
   sessionId: string; speakers: Speaker[]; segments: Segment[]; t: T;
 }) {
   const [open, setOpen] = useState(false);
-  // Once per mount (the parent keys this component by sessionId): a run persisted as
-  // "running" with no live run behind it is stale, e.g. after a reload, and must not block Scan.
-  useState(() => { void recoverStaleD1Run(sessionId); });
+  // A run persisted as "running" with no live run behind it is stale, e.g. after a reload, and must
+  // not block Scan. It resets the store (which notifies other components), so it runs after commit, never during render.
+  useEffect(() => { void recoverStaleD1Run(sessionId); }, [sessionId]);
   const intelligence = useSessionIntelligence(sessionId);
   const modelCached = useSyncExternalStore(subscribeRegistry, isD1ModelCached, () => false);
   const index = useMemo(() => indexD1(intelligence, segments), [intelligence, segments]);

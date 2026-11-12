@@ -35,6 +35,12 @@ class FakeWorker implements WorkerLike {
     this.terminated = true;
   }
 
+  onmessageerror: ((ev: MessageEvent) => void) | null = null;
+
+  emitError(event: Partial<ErrorEvent>): void {
+    for (const listener of this.errorListeners) listener(event as Event);
+  }
+
   emitMessage(msg: D1WorkerOutMessage): void {
     const ev = { data: msg } as MessageEvent<D1WorkerOutMessage>;
     for (const listener of this.messageListeners) {
@@ -491,6 +497,74 @@ describe('d1 client', () => {
       client.terminate();
       expect(createdWorkers).toHaveLength(1);
       expect(createdWorkers[0].terminated).toBe(true);
+    });
+  });
+
+  describe('diagnostics and failures', () => {
+    const REQUEST: D1DecisionRequest = {
+      state: 'diag',
+      question: { type: 'noul', instructions: 'ok?' },
+    };
+
+    function startHung() {
+      const createdWorkers: FakeWorker[] = [];
+      const client = createD1Client({
+        createWorker: () => {
+          const w = new FakeWorker();
+          createdWorkers.push(w);
+          return w;
+        },
+      });
+      const outcome = client.decide([REQUEST]).then(
+        () => 'resolved',
+        (err: Error) => err.message,
+      );
+      return { createdWorkers, outcome };
+    }
+
+    it('prints worker log messages in the page console', async () => {
+      const info = vi.spyOn(console, 'info').mockImplementation(() => {});
+      try {
+        const { createdWorkers } = startHung();
+        createdWorkers[0].emitMessage({ type: 'log', args: ['[D1] worker: booted', { crossOriginIsolated: false }] });
+        expect(info).toHaveBeenCalledWith('[D1] worker: booted', { crossOriginIsolated: false });
+      } finally {
+        info.mockRestore();
+      }
+    });
+
+    it('a worker error event rejects the call with the worker message and kills the worker', async () => {
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        const { createdWorkers, outcome } = startHung();
+        createdWorkers[0].emitError({ message: 'Importing a module script failed.', filename: 'http://x/worker.js', lineno: 3 });
+        expect(await outcome).toBe('D1 worker crashed: Importing a module script failed. (http://x/worker.js:3)');
+        expect(createdWorkers[0].terminated).toBe(true);
+      } finally {
+        error.mockRestore();
+      }
+    });
+
+    it('an unreadable worker message rejects the call and kills the worker', async () => {
+      const { createdWorkers, outcome } = startHung();
+      createdWorkers[0].onmessageerror?.({} as MessageEvent);
+      expect(await outcome).toBe('D1 worker sent an unreadable message');
+      expect(createdWorkers[0].terminated).toBe(true);
+    });
+
+    it('worker activity restarts the timeout; only a silent worker times out', async () => {
+      vi.useFakeTimers();
+      const { createdWorkers, outcome } = startHung();
+      const worker = createdWorkers[0];
+
+      await vi.advanceTimersByTimeAsync(D1_DECIDE_TIMEOUT_MS - 1000);
+      worker.emitMessage({ type: 'log', args: ['[D1] worker: still loading'] });
+      await vi.advanceTimersByTimeAsync(D1_DECIDE_TIMEOUT_MS - 1000);
+      expect(worker.terminated).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(1000);
+      expect(await outcome).toBe('d1:timeout');
+      expect(worker.terminated).toBe(true);
     });
   });
 

@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { useSyncExternalStore } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { hashSegmentText, triageKey, useSessionIntelligence } from '@/lib/d1/store';
 import { setD1Stage } from '@/lib/d1/stage';
@@ -112,6 +113,29 @@ describe('NotesPanel D1 insights', () => {
 
     expect(recoverStaleD1Run).toHaveBeenCalledTimes(1);
     expect(recoverStaleD1Run).toHaveBeenCalledWith(sessionId);
+  });
+
+  it('recovers after commit: a store notify from recovery never lands during render', () => {
+    vi.mocked(useSessionIntelligence).mockReturnValue(intelligence({ status: 'idle', progress: { done: 0, total: 0 } }));
+    let version = 0;
+    const listeners = new Set<() => void>();
+    vi.mocked(recoverStaleD1Run).mockImplementationOnce(() => {
+      version += 1;
+      for (const listener of listeners) listener();
+      return Promise.resolve();
+    });
+    function Probe() {
+      useSyncExternalStore((l) => { listeners.add(l); return () => { listeners.delete(l); }; }, () => version, () => 0);
+      return null;
+    }
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      render(<><Probe /><NotesPanel sessionId={sessionId} speakers={speakers} segments={[segment]} /></>);
+      expect(recoverStaleD1Run).toHaveBeenCalledTimes(1);
+      expect(error.mock.calls.flat().join(' ')).not.toContain('Cannot update a component');
+    } finally {
+      error.mockRestore();
+    }
   });
 
   it('explains a timed-out analysis', () => {

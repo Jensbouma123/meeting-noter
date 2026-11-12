@@ -46,6 +46,8 @@ export interface WorkerLike {
   ): void;
   addEventListener(type: 'error', listener: (ev: Event) => void): void;
   removeEventListener(type: 'error', listener: (ev: Event) => void): void;
+  /** A message the page could not deserialize (a real `Worker` has this; fakes may omit it). */
+  onmessageerror?: ((ev: MessageEvent) => void) | null;
 }
 
 export interface D1ClientOptions {
@@ -187,7 +189,12 @@ interface PendingRequest {
   kind: 'decide' | 'dispose';
   resolve: (value: unknown) => void;
   reject: (err: Error) => void;
+  /** Worker activity: restarts this request's timeout (only a silent worker times out). */
+  touch?: () => void;
 }
+
+/** No message at all this long after the worker was created: its module likely failed to load. */
+const WORKER_SILENT_WARN_MS = 15_000;
 
 export function createD1Client(options: D1ClientOptions = {}): D1Client {
   const workerFactory = options.createWorker ?? defaultCreateWorker;
@@ -200,9 +207,24 @@ export function createD1Client(options: D1ClientOptions = {}): D1Client {
   let disposingPromise: Promise<void> | null = null;
   const pending = new Map<string, PendingRequest>();
 
+  let silentTimer: ReturnType<typeof setTimeout> | null = null;
+  const clearSilentTimer = () => {
+    if (silentTimer !== null) clearTimeout(silentTimer);
+    silentTimer = null;
+  };
+
   const onMessage = (ev: MessageEvent<D1WorkerOutMessage>) => {
     const msg = ev.data;
-    if (!msg || !msg.id) return;
+    if (!msg) return;
+    clearSilentTimer();
+    // Any sign of life means the worker is working (a model load is slow, not hung).
+    for (const entry of pending.values()) entry.touch?.();
+    if (msg.type === 'log') {
+      // Worker-side [D1] lines: Safari shows a worker's console apart from the page's.
+      console.info(...msg.args);
+      return;
+    }
+    if (!msg.id) return;
     console.info('[D1] client: message in', { type: msg.type, id: msg.id });
     if (msg.type === 'stage') {
       if (pending.has(msg.id)) setD1Stage(msg.stage);
@@ -244,15 +266,24 @@ export function createD1Client(options: D1ClientOptions = {}): D1Client {
     worker = null;
     console.info('[D1] client: kill', { reason, hadWorker: active !== null });
     setD1Stage(null);
+    clearSilentTimer();
     if (active) {
       active.removeEventListener('message', onMessage);
       active.removeEventListener('error', onError);
+      active.onmessageerror = null;
       active.terminate();
     }
     rejectAllPending(reason);
   };
 
-  const onError = () => killWorker('D1 worker crashed');
+  /** A load failure (module 404, syntax error, blocked import) or an uncaught throw in the worker. */
+  function onError(ev: Event) {
+    ev.preventDefault?.();
+    const e = ev as Partial<ErrorEvent>;
+    const where = e.filename ? ` (${e.filename}${e.lineno ? `:${e.lineno}` : ''})` : '';
+    console.error('[D1] client: worker error event', { message: e.message, filename: e.filename, lineno: e.lineno });
+    killWorker(`D1 worker crashed: ${e.message || 'it failed to load'}${where}`);
+  }
 
   function ensureWorker(): WorkerLike {
     if (!worker) {
@@ -260,7 +291,14 @@ export function createD1Client(options: D1ClientOptions = {}): D1Client {
       const created = workerFactory();
       created.addEventListener('message', onMessage);
       created.addEventListener('error', onError);
+      created.onmessageerror = () => killWorker('D1 worker sent an unreadable message');
       worker = created;
+      silentTimer = setTimeout(() => {
+        silentTimer = null;
+        console.warn(
+          `[D1] client: worker silent for ${WORKER_SILENT_WARN_MS / 1000} s after start. Its module probably failed to load; look for a failed script request in the Network tab.`,
+        );
+      }, WORKER_SILENT_WARN_MS);
     }
     return worker;
   }
@@ -269,12 +307,13 @@ export function createD1Client(options: D1ClientOptions = {}): D1Client {
     const activeWorker = ensureWorker();
     const id = `d1-${++nextId}`;
     return new Promise<D1Answer[]>((resolve, reject) => {
-      const timer = setTimeout(() => {
+      const onTimeout = () => {
         if (!pending.delete(id)) return;
-        console.info('[D1] client: timeout', { id, afterMs: decideTimeoutMs });
+        console.warn('[D1] client: timeout, no word from the worker', { id, afterMs: decideTimeoutMs });
         reject(new Error(D1_TIMEOUT_ERROR));
         killWorker(D1_TIMEOUT_ERROR);
-      }, decideTimeoutMs);
+      };
+      let timer = setTimeout(onTimeout, decideTimeoutMs);
       pending.set(id, {
         kind: 'decide',
         resolve: (val) => {
@@ -287,14 +326,25 @@ export function createD1Client(options: D1ClientOptions = {}): D1Client {
           setD1Stage(null);
           reject(err);
         },
+        touch: () => {
+          clearTimeout(timer);
+          timer = setTimeout(onTimeout, decideTimeoutMs);
+        },
       });
       console.info('[D1] client: post batch', { id, size: requests.length, maxTokens });
-      activeWorker.postMessage({
-        type: 'decide',
-        id,
-        requests: [...requests],
-        maxTokens,
-      });
+      try {
+        activeWorker.postMessage({
+          type: 'decide',
+          id,
+          requests: [...requests],
+          maxTokens,
+        });
+      } catch (err) {
+        // e.g. a DataCloneError: fail now instead of waiting out the timeout.
+        pending.delete(id);
+        clearTimeout(timer);
+        reject(err instanceof Error ? err : new Error(String(err)));
+      }
     });
   }
 

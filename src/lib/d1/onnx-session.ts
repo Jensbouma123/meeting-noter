@@ -6,6 +6,7 @@
  */
 
 import * as ort from 'onnxruntime-web';
+import { d1Log } from './log';
 
 const ORT_VERSION = '1.24.1';
 
@@ -26,8 +27,50 @@ function ensureWasmPaths(): void {
   if (!ort.env.wasm.wasmPaths) {
     ort.env.wasm.wasmPaths = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VERSION}/dist/`;
   }
+  // One thread always: multi-threaded WASM needs SharedArrayBuffer, which needs a cross-origin
+  // isolated page (COOP/COEP) that this app does not serve, and Safari gains nothing from a pool.
   ort.env.wasm.numThreads = 1;
   ort.env.wasm.proxy = false;
+  d1Log('[D1] session: wasm config', {
+    wasmPaths: ort.env.wasm.wasmPaths,
+    numThreads: ort.env.wasm.numThreads,
+    crossOriginIsolated: (globalThis as { crossOriginIsolated?: boolean }).crossOriginIsolated ?? false,
+    sharedArrayBuffer: typeof SharedArrayBuffer !== 'undefined',
+  });
+}
+
+/** How long `requestAdapter()` may take before WebGPU counts as unavailable. */
+const WEBGPU_ADAPTER_TIMEOUT_MS = 5_000;
+
+/**
+ * Whether WebGPU can really run here: `'gpu' in navigator` is true in Safari even
+ * when `requestAdapter()` resolves `null` (or never settles inside a worker), and a
+ * WebGPU session on such a browser stalls or fails. Asks for an adapter, with a deadline.
+ */
+async function hasWebGpuAdapter(): Promise<boolean> {
+  const gpu = typeof navigator === 'undefined'
+    ? undefined
+    : (navigator as Navigator & { gpu?: { requestAdapter?: () => Promise<unknown> } }).gpu;
+  if (!gpu?.requestAdapter) {
+    d1Log('[D1] session: no navigator.gpu');
+    return false;
+  }
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const adapter = await Promise.race([
+      gpu.requestAdapter(),
+      new Promise<null>((resolve) => {
+        timer = setTimeout(() => resolve(null), WEBGPU_ADAPTER_TIMEOUT_MS);
+      }),
+    ]);
+    d1Log('[D1] session: webgpu adapter', adapter ? 'found' : 'none (or timed out)');
+    return adapter !== null && adapter !== undefined;
+  } catch (err) {
+    d1Log('[D1] session: webgpu requestAdapter failed', err instanceof Error ? err.message : String(err));
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export interface ExternalDataFile {
@@ -90,10 +133,9 @@ export async function createSession(
   ) => Promise<ort.InferenceSession>;
   const base: ort.InferenceSession.SessionOptions = externalData ? { externalData } : {};
 
-  const hasWebGpu = typeof navigator !== 'undefined' && 'gpu' in navigator;
-  if (hasWebGpu) {
+  if (await hasWebGpuAdapter()) {
     try {
-      console.info('[D1] session: webgpu attempt');
+      d1Log('[D1] session: webgpu attempt');
       const session = await createWithDeadline(
         create,
         model,
@@ -101,16 +143,15 @@ export async function createSession(
         WEBGPU_SESSION_TIMEOUT_MS,
         'webgpu',
       );
+      d1Log('[D1] session: backend webgpu (GPU) ready');
       return { session, backend: 'webgpu' };
     } catch (err) {
       // Fall through to WASM when WebGPU session initialization fails or stalls.
-      console.info('[D1] session: webgpu failed, falling back to wasm', err instanceof Error ? err.message : String(err));
+      d1Log('[D1] session: webgpu failed, falling back to wasm', err instanceof Error ? err.message : String(err));
     }
-  } else {
-    console.info('[D1] session: no navigator.gpu, using wasm');
   }
 
-  console.info('[D1] session: wasm attempt');
+  d1Log('[D1] session: wasm attempt (CPU)');
   const session = await createWithDeadline(
     create,
     model,
@@ -118,6 +159,7 @@ export async function createSession(
     WASM_SESSION_TIMEOUT_MS,
     'wasm',
   );
+  d1Log('[D1] session: backend wasm (CPU) ready');
   return { session, backend: 'wasm' };
 }
 

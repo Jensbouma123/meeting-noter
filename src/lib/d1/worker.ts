@@ -15,6 +15,7 @@ import {
   readModelJson,
   revokeModelUrls,
 } from './downloader';
+import { d1Log, setD1LogSink } from './log';
 import {
   D1_CONFIG_FILE,
   D1_GRAPH_FILE,
@@ -132,22 +133,29 @@ export function createD1WorkerHandler(
     if (runtimePromise) return runtimePromise;
     const loadGeneration = generation;
 
-    runtimePromise = (async () => {
+    // While the model loads, say so every 10 s: the client reads any worker message as
+    // proof of life, so a slow session start is not mistaken for a hung worker.
+    const startedAt = Date.now();
+    const heartbeat = setInterval(() => {
+      d1Log('[D1] worker: still loading', { seconds: Math.round((Date.now() - startedAt) / 1000) });
+    }, 10_000);
+
+    const loading = (async () => {
       post({ type: 'stage', id, stage: { kind: 'loading' } });
       try {
         await assertCached();
-        console.info('[D1] worker: assertCached ok');
+        d1Log('[D1] worker: assertCached ok');
       } catch (err) {
-        console.info('[D1] worker: assertCached failed', err instanceof Error ? err.message : String(err));
+        d1Log('[D1] worker: assertCached failed', err instanceof Error ? err.message : String(err));
         runtimePromise = null;
         throw new NotCachedError(err instanceof Error ? err.message : String(err));
       }
 
       let urls: Record<string, string>;
       try {
-        console.info('[D1] worker: download start');
+        d1Log('[D1] worker: download start');
         urls = await downloadModels();
-        console.info('[D1] worker: download urls ready');
+        d1Log('[D1] worker: download urls ready');
       } catch (err) {
         runtimePromise = null;
         throw err;
@@ -158,11 +166,12 @@ export function createD1WorkerHandler(
         const config = await readJson<D1ConfigLike>(urls[D1_CONFIG_FILE.filename]);
         const tokenizerJson = await readJson<unknown>(urls[D1_TOKENIZER_FILE.filename]);
         const tokenizerConfig = await readJson<unknown>(urls[D1_TOKENIZER_CONFIG_FILE.filename]);
+        d1Log('[D1] worker: config and tokenizer files read');
 
         const tokenizer = createTokenizer(tokenizerJson, tokenizerConfig);
         const tokens = assertD1TokenizerSelfTest(tokenizer, config);
         const temperatures = extractD1Temperatures(config);
-        console.info('[D1] worker: tokenizer ready');
+        d1Log('[D1] worker: tokenizer ready');
 
         post({ type: 'stage', id, stage: { kind: 'session' } });
         const { session, backend } = await createOrtSession(
@@ -175,7 +184,7 @@ export function createD1WorkerHandler(
           ],
         );
         createdSession = session;
-        console.info('[D1] worker: session backend', { backend });
+        d1Log('[D1] worker: session backend', { backend });
 
         // If dispose() ran while loading was in flight, release immediately and abort.
         if (loadGeneration !== generation) {
@@ -195,8 +204,11 @@ export function createD1WorkerHandler(
         revokeUrls(urls);
       }
     })();
+    runtimePromise = loading;
+    const stopHeartbeat = () => clearInterval(heartbeat);
+    loading.then(stopHeartbeat, stopHeartbeat);
 
-    return runtimePromise;
+    return loading;
   }
 
   async function runBatch(
@@ -275,12 +287,12 @@ export function createD1WorkerHandler(
             const chunk = requests.slice(i, i + D1_MAX_BATCH_SIZE);
             const batch = Math.floor(i / D1_MAX_BATCH_SIZE) + 1;
             post({ type: 'stage', id: msg.id, stage: { kind: 'sending', batch } });
-            console.info('[D1] worker: batch', { id: msg.id, batch, size: chunk.length, maxTokens });
+            d1Log('[D1] worker: batch', { id: msg.id, batch, size: chunk.length, maxTokens });
             const chunkAnswers = await mutex.run(() => {
               post({ type: 'stage', id: msg.id, stage: { kind: 'waiting' } });
               return runBatch(rt, chunk, maxTokens);
             });
-            console.info('[D1] worker: batch done', { id: msg.id, batch, answers: chunkAnswers.length });
+            d1Log('[D1] worker: batch done', { id: msg.id, batch, answers: chunkAnswers.length });
             answers.push(...chunkAnswers);
           }
           post({ type: 'result', id: msg.id, answers, backend: rt.backend });
@@ -306,6 +318,7 @@ export function createD1WorkerHandler(
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       const code: D1WorkerErrorCode = err instanceof NotCachedError ? 'not-cached' : 'failed';
+      d1Log('[D1] worker: error', { id: msg.id, code, message });
       post({ type: 'error', id: msg.id, message, code });
     }
   };
@@ -321,8 +334,22 @@ if (typeof self !== 'undefined' && typeof window === 'undefined') {
     postMessage(message: D1WorkerOutMessage): void;
     onmessage: ((ev: MessageEvent<D1WorkerInMessage>) => void) | null;
   };
+  // Safari lists a worker's console apart from the page's: forward every [D1] line to the page.
+  setD1LogSink((args) => ctx.postMessage({ type: 'log', args }));
+  const nav = (self as unknown as { navigator?: Navigator & { gpu?: unknown } }).navigator;
+  d1Log('[D1] worker: booted', {
+    userAgent: nav?.userAgent,
+    crossOriginIsolated: (self as { crossOriginIsolated?: boolean }).crossOriginIsolated ?? false,
+    sharedArrayBuffer: typeof SharedArrayBuffer !== 'undefined',
+    webgpuApi: typeof nav === 'object' && nav !== null && 'gpu' in nav,
+    indexedDB: typeof indexedDB !== 'undefined',
+  });
   const handle = createD1WorkerHandler((msg) => ctx.postMessage(msg));
   ctx.onmessage = (ev) => {
     void handle(ev.data);
   };
+  // A throw outside any handled message would otherwise vanish in the worker's own console.
+  self.addEventListener('unhandledrejection', (ev) => {
+    d1Log('[D1] worker: unhandled rejection', (ev as PromiseRejectionEvent).reason);
+  });
 }
