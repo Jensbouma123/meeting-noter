@@ -1,7 +1,9 @@
 'use client';
 
 import type React from 'react';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef, useSyncExternalStore } from 'react';
+import { flushSync } from 'react-dom';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { getSpeakerColor } from './speaker-theme';
 import { useSpeakerStats } from '@/lib/meeting';
 import { PanelRightClose, PanelRightOpen, Info, Users } from 'lucide-react';
@@ -27,6 +29,25 @@ import {
 const RAIL_OPEN_KEY = 'mn.speakerRailOpen';
 /** Below this width the rail defaults to collapsed (no persisted preference yet). */
 const NARROW_BREAKPOINT_PX = 1024;
+
+/** Saved collapse state, or the narrow-screen default. Only read it once `useHydrated()` is true. */
+function readInitialOpen(): boolean {
+  if (typeof window === 'undefined') return true;
+  try {
+    const saved = window.localStorage.getItem(RAIL_OPEN_KEY);
+    if (saved !== null) return saved === '1';
+    if (window.innerWidth < NARROW_BREAKPOINT_PX) return false;
+  } catch {
+    // Best-effort only — falls back to expanded.
+  }
+  return true;
+}
+
+const subscribeNever = () => () => {};
+/** False during SSR and the hydrating render, true after — keeps the first client markup equal to the server's. */
+function useHydrated(): boolean {
+  return useSyncExternalStore(subscribeNever, () => true, () => false);
+}
 
 type SpeakerRow = ReturnType<typeof useSpeakerStats>[number];
 
@@ -130,18 +151,6 @@ function SpeakerList({ rows, sessionId, onAssigned }: SpeakerListProps) {
   );
 }
 
-function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia(query);
-    const update = () => setMatches(mq.matches);
-    update();
-    mq.addEventListener('change', update);
-    return () => mq.removeEventListener('change', update);
-  }, [query]);
-  return matches;
-}
-
 type RailTab = 'participants' | 'summary';
 const RAIL_TABS: RailTab[] = ['participants', 'summary'];
 
@@ -226,53 +235,31 @@ export function RightRail({ sessionId, segments = [] }: { sessionId: string; seg
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<RailTab>('participants');
   // Initial render must match the server (expanded); the real preference —
-  // a saved choice, or the narrow-screen default — loads after mount.
-  const [open, setOpen] = useState(true);
+  // a saved choice, or the narrow-screen default — applies once hydrated.
+  const hydrated = useHydrated();
+  const [initialOpen] = useState(readInitialOpen);
+  const [override, setOverride] = useState<boolean | null>(null);
+  const open = hydrated ? (override ?? initialOpen) : true;
 
   // Derive speaker stats from the store (single source of truth).
   const speakerStatRows = useSpeakerStats();
 
-  useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect -- one-shot hydration from localStorage/viewport */
-    try {
-      const saved = window.localStorage.getItem(RAIL_OPEN_KEY);
-      if (saved !== null) {
-        setOpen(saved === '1');
-      } else if (window.innerWidth < NARROW_BREAKPOINT_PX) {
-        setOpen(false);
-      }
-    } catch {
-      // Best-effort only — falls back to expanded.
-    }
-    /* eslint-enable react-hooks/set-state-in-effect */
-  }, []);
-
   const asideRef = useRef<HTMLElement>(null);
-  // Which toggle button should take focus after the next open/close render.
-  const pendingFocus = useRef<'show' | 'hide' | null>(null);
 
-  const toggleOpen = useCallback(() => {
+  const toggleOpen = () => {
     const next = !open;
-    pendingFocus.current = next ? 'hide' : 'show';
     try {
       window.localStorage.setItem(RAIL_OPEN_KEY, next ? '1' : '0');
     } catch {
       // Best-effort only.
     }
-    setOpen(next);
-  }, [open]);
-
-  // Focus moves to the button that now exists after a toggle (not on mount).
-  useEffect(() => {
-    const target = pendingFocus.current;
-    if (!target) return;
-    pendingFocus.current = null;
-    const label = target === 'show' ? t('showRail') : t('hideRail');
-    const button = Array.from(asideRef.current?.querySelectorAll('button') ?? []).find(
-      (b) => b.getAttribute('aria-label') === label,
-    );
-    button?.focus();
-  }, [open, t]);
+    // Commit the new markup first, then move focus to the toggle that now exists.
+    flushSync(() => setOverride(next));
+    const label = next ? t('hideRail') : t('showRail');
+    Array.from(asideRef.current?.querySelectorAll('button') ?? [])
+      .find((b) => b.getAttribute('aria-label') === label)
+      ?.focus();
+  };
 
   const onAssigned = (added: number) => {
     if (added > 0 && !notedSessions.has(sessionId)) {
@@ -290,18 +277,19 @@ export function RightRail({ sessionId, segments = [] }: { sessionId: string; seg
   const isMdUp = useMediaQuery('(min-width: 768px)');
   const isLgUp = useMediaQuery('(min-width: 1024px)');
   const [drawerOpen, setDrawerOpen] = useState(false);
+  // Crossing into the docked layout hides the drawer. Adjusted during render
+  // rather than in an effect, so it does not reopen when the viewport narrows again.
+  const [wasLgUp, setWasLgUp] = useState(isLgUp);
+  if (wasLgUp !== isLgUp) {
+    setWasLgUp(isLgUp);
+    if (isLgUp) setDrawerOpen(false);
+  }
 
   useEffect(() => {
     const openDrawer = () => setDrawerOpen(true);
     window.addEventListener('mn:open-speakers', openDrawer);
     return () => window.removeEventListener('mn:open-speakers', openDrawer);
   }, []);
-
-  useEffect(() => {
-    // Crossing into the docked layout hides the drawer.
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- reacts to viewport change
-    if (isLgUp) setDrawerOpen(false);
-  }, [isLgUp]);
 
   const list = (
     <>
