@@ -37,6 +37,7 @@ import {
   Trash2,
   Video,
   Pencil,
+  FolderInput,
 } from 'lucide-react';
 import { formatClock } from '@/lib/meeting/export';
 import type { CaptureMode } from '@/lib/meeting/types';
@@ -48,6 +49,8 @@ import { loadSettings } from '@/components/meeting/types';
 import { openCount } from '@/lib/meeting/notes';
 import { useT } from '@/lib/i18n/useT';
 import { LanguageContext } from '@/lib/i18n/LanguageContext';
+import { folderPath } from '@/lib/folders/folder-tree';
+import { DraggableMeeting, FolderTree, useFolderController, useFoldersT } from './FolderSection';
 
 /* -------------------------------------------------------------------------- */
 /* Formatting helpers                                                         */
@@ -225,6 +228,7 @@ export function SessionSidebar({
   const t = useT('sidebar');
   const router = useRouter();
   const { sessions, remove, clear } = useSessionIndex();
+  const folderCtl = useFolderController(sessions);
   const [deleteTarget, setDeleteTarget] = useState<SessionMetadata | null>(null);
   const [clearTarget, setClearTarget] = useState<SessionMetadata | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -244,14 +248,20 @@ export function SessionSidebar({
   const language = useContext(LanguageContext) ?? 'en';
   const todayLabel = t('today');
   const yesterdayLabel = t('yesterday');
+  const unfiled = useMemo(
+    () => sessions.filter((s) => !folderCtl.meetingFolders[s.sessionId]),
+    [sessions, folderCtl.meetingFolders],
+  );
+  const searching = debouncedQuery.trim() !== '';
   const groups = useMemo(() => {
     const hits = serverHits?.query === debouncedQuery ? serverHits.ids : null;
     const transcriptOf = (id: string) => (hits?.has(id) ? debouncedQuery : transcriptText(id));
-    return groupSessionsByDay(filterSessions(sessions, debouncedQuery, transcriptOf), undefined, language, {
+    // Without a query the tree holds filed meetings; with one, every match shows with its folder path.
+    return groupSessionsByDay(filterSessions(searching ? sessions : unfiled, debouncedQuery, transcriptOf), undefined, language, {
       today: todayLabel,
       yesterday: yesterdayLabel,
     });
-  }, [sessions, debouncedQuery, serverHits, language, todayLabel, yesterdayLabel]);
+  }, [sessions, unfiled, searching, debouncedQuery, serverHits, language, todayLabel, yesterdayLabel]);
 
   // Opened from the headers' "Show meetings" buttons below lg.
   useEffect(() => {
@@ -266,6 +276,19 @@ export function SessionSidebar({
       setMobileOpen(false);
     },
     [onOpenSession]
+  );
+
+  const renderRow = (session: SessionMetadata, pathLabel?: string) => (
+    <RailSessionRow
+      key={session.sessionId}
+      session={session}
+      isActive={activeSessionId === session.sessionId}
+      pathLabel={pathLabel}
+      onOpen={() => openSession(session.sessionId)}
+      onClear={() => setClearTarget(session)}
+      onDelete={() => setDeleteTarget(session)}
+      onMove={() => folderCtl.requestMove({ kind: 'meeting', id: session.sessionId, title: session.title })}
+    />
   );
 
   const railBody = (
@@ -347,28 +370,36 @@ export function SessionSidebar({
             }
             className="my-auto"
           />
-        ) : groups.length === 0 ? (
+        ) : searching && groups.length === 0 ? (
           <EmptyState size="sm" icon={<Search className="size-5" />} title={t('noResults')} className="my-auto" />
         ) : (
-          groups.map((group) => (
+          <>
+          {!searching && (
+            <FolderTree
+              controller={folderCtl}
+              sessions={sessions}
+              renderSession={(session) => renderRow(session)}
+            />
+          )}
+          {groups.map((group) => (
             <section key={group.key} aria-label={group.label}>
               <h3 className="sticky top-0 z-10 bg-surface px-3 py-1.5 text-xs font-semibold text-muted-foreground">
                 {group.label}
               </h3>
               <VStack spacing="none" className="w-full px-3 pb-2 pt-1">
-                {group.sessions.map((session) => (
-                  <RailSessionRow
-                    key={session.sessionId}
-                    session={session}
-                    isActive={activeSessionId === session.sessionId}
-                    onOpen={() => openSession(session.sessionId)}
-                    onClear={() => setClearTarget(session)}
-                    onDelete={() => setDeleteTarget(session)}
-                  />
-                ))}
+                {group.sessions.map((session) =>
+                  searching ? (
+                    renderRow(session, folderPath(folderCtl.folders, folderCtl.meetingFolders[session.sessionId]).join(' / '))
+                  ) : (
+                    <DraggableMeeting key={session.sessionId} sessionId={session.sessionId}>
+                      {renderRow(session)}
+                    </DraggableMeeting>
+                  ),
+                )}
               </VStack>
             </section>
-          ))
+          ))}
+          </>
         )}
       </VStack>
     </VStack>
@@ -435,6 +466,8 @@ export function SessionSidebar({
         )}
       </aside>
 
+      {folderCtl.dialogs}
+
       <ClearTranscriptDialog
         session={clearTarget}
         onClose={() => setClearTarget(null)}
@@ -483,6 +516,10 @@ interface RailSessionRowProps {
   onOpen: () => void;
   onClear: () => void;
   onDelete: () => void;
+  /** Adds a "Move to…" menu item (keyboard alternative to dragging into a folder). */
+  onMove?: () => void;
+  /** Folder path shown under the title in search results. */
+  pathLabel?: string;
 }
 
 /**
@@ -499,8 +536,9 @@ export function getRailBadgeState(
   return 'none';
 }
 
-export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete }: RailSessionRowProps) {
+export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete, onMove, pathLabel }: RailSessionRowProps) {
   const t = useT('sidebar');
+  const tf = useFoldersT();
   // Re-render when a capture starts/stops so the badge flips without waiting
   // for the next index event (the stop persist then fills in the duration).
   useSyncExternalStore(subscribeMeetingStore, () => isSessionRecording(session.sessionId), () => false);
@@ -508,7 +546,8 @@ export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete }:
   const badgeState = getRailBadgeState(session, recording);
   const locked = isSessionRecording(session.sessionId);
   const count = openCount(session.sessionId);
-  const subtitle = `${formatTime(session.createdAt)} · ${formatDuration(session.durationSeconds)}`;
+  const base = `${formatTime(session.createdAt)} · ${formatDuration(session.durationSeconds)}`;
+  const subtitle = pathLabel ? `${pathLabel} · ${base}` : base;
   return (
     <div className="group relative w-full">
       <ListItem
@@ -547,6 +586,11 @@ export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete }:
             {!isActive && (
               <DropdownMenuItem icon={<ArrowRight className="size-4" />} onClick={onOpen}>
                 {t('open')}
+              </DropdownMenuItem>
+            )}
+            {onMove && (
+              <DropdownMenuItem icon={<FolderInput className="size-4" />} onClick={onMove}>
+                {tf('moveTo')}
               </DropdownMenuItem>
             )}
             <DropdownMenuItem variant="danger" icon={<Eraser className="size-4" />} disabled={locked} onClick={onClear}>
