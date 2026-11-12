@@ -1,8 +1,9 @@
 // Runs install.sh and uninstall.sh against a fake release (file:// download
 // base) in a scratch HOME. sw_vers and sysctl are replaced through PATH so the
 // macOS version and arch checks can be driven; launchd is never touched.
-import { execFileSync, spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
+import { createConnection, createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -68,7 +69,7 @@ function fakeMac({ version = '15.1', arm64 = '1' } = {}) {
 
 describe.skipIf(process.platform !== 'darwin')('install.sh', () => {
   beforeEach(() => {
-    dir = mkdtempSync(path.join(tmpdir(), 'mn-install-'));
+    dir = mkdtempSync(path.join(realpathSync(tmpdir()), 'mn-install-'));
     home = path.join(dir, 'home');
     base = path.join(dir, 'release');
     shims = path.join(dir, 'shims');
@@ -257,6 +258,45 @@ describe.skipIf(process.platform !== 'darwin')('install.sh', () => {
     expect(old.code).not.toBe(0);
     expect(old.out).toContain('te oud');
   });
+
+  // Starts `node` (reached through `link`, so ps shows that path) listening on a free port.
+  async function listener(link: string, cwd: string) {
+    const free = createServer();
+    await new Promise<void>((r) => free.listen(0, '127.0.0.1', r));
+    const port = (free.address() as { port: number }).port;
+    await new Promise((r) => free.close(r));
+    mkdirSync(path.dirname(link), { recursive: true });
+    symlinkSync(process.execPath, link);
+    const child = spawn(link, ['-e', `require('net').createServer().listen(${port}, '127.0.0.1')`], { stdio: 'ignore', cwd });
+    for (let i = 0; i < 100; i++) {
+      if (await new Promise<boolean>((r) => { const c = createConnection(port, '127.0.0.1').once('connect', () => { c.destroy(); r(true); }).once('error', () => r(false)); })) break;
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    return { child, port };
+  }
+  const alive = (pid: number) => { try { process.kill(pid, 0); return true; } catch { return false; } };
+
+  it('update stops the on-demand server on the port even without a pid file, and spares foreign listeners', async () => {
+    release('0.2.0');
+    expect(run(INSTALL).code).toBe(0);
+    const ours = await listener(path.join(root(), 'app/node-listener'), path.join(root(), 'app'));
+    const env = { MEETING_NOTER_PORT: String(ours.port) };
+    try {
+      release('0.2.1');
+      const r = run(INSTALL, env);
+      expect(r.code, r.out).toBe(0);
+      await new Promise((res) => (ours.child.exitCode !== null || ours.child.signalCode ? res(0) : ours.child.once('exit', res)));
+      expect(alive(ours.child.pid!)).toBe(false);
+    } finally { ours.child.kill('SIGKILL'); }
+
+    const foreign = await listener(path.join(dir, 'elsewhere/node'), dir);
+    try {
+      release('0.2.2');
+      const r = run(INSTALL, { MEETING_NOTER_PORT: String(foreign.port) });
+      expect(r.code, r.out).toBe(0);
+      expect(alive(foreign.child.pid!)).toBe(true);
+    } finally { foreign.child.kill('SIGKILL'); }
+  }, 60_000);
 
   it('fails clearly when the release has no tarball yet', () => {
     const r = run(INSTALL);

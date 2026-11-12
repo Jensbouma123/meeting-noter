@@ -47,6 +47,16 @@ describe('useUpdate', () => {
     unmount();
   });
 
+  it('manual refresh bypasses the server cache, the timer check does not', async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ current: currentVersion, latest: currentVersion, available: false }) } as Response);
+    const { result } = renderHook(() => useUpdate());
+    await act(async () => { await checkForUpdate(); });
+    fetchMock.mockClear();
+    await act(async () => { await result.current.refresh(); });
+    expect(fetchMock).toHaveBeenCalledWith('/api/app/update?refresh=1');
+  });
+
   it('uses the release lookup when the endpoint is unavailable and disables apply', async () => {
     vi.mocked(fetch).mockResolvedValue({ ok: false, status: 404 } as Response);
     findNewerRelease.mockResolvedValue({

@@ -112,13 +112,13 @@ async function releaseFallback(): Promise<void> {
   });
 }
 
-export async function checkForUpdate(): Promise<void> {
+export async function checkForUpdate(manual = false): Promise<void> {
   if (checkPromise) return checkPromise;
 
   publish({ ...snapshot, status: 'checking' });
   checkPromise = (async () => {
     try {
-      const response = await fetch(UPDATE_URL);
+      const response = await fetch(manual ? `${UPDATE_URL}?refresh=1` : UPDATE_URL);
       if (!response.ok) throw new Error(`Update check failed: ${response.status}`);
       const info = normalizeInfo(await response.json() as UpdateResponse);
       publish({
@@ -194,6 +194,6 @@ export function useUpdate(isRecording = false) {
     blockedRecording: isRecording,
     dismiss: dismissUpdate,
     apply: applyUpdate,
-    refresh: checkForUpdate,
+    refresh: () => checkForUpdate(true),
   };
 }

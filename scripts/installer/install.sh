@@ -52,7 +52,7 @@ AGENTS="$HOME/Library/LaunchAgents"
 # (MEETING_NOTER_NO_LAUNCHD) stay inside $HOME.
 if [ -z "${MEETING_NOTER_NO_LAUNCHD:-}" ] && [ -w /Applications ]; then APPS=/Applications; else APPS="$HOME/Applications"; fi
 APP="$APPS/Meeting Noter.app"
-PORT=3000
+PORT=${MEETING_NOTER_PORT:-3000}
 URL="http://localhost:$PORT"
 SERVER_LABEL=nl.jensbouma.meeting-noter.server
 HELPER_LABEL=nl.jensbouma.meeting-noter.audio-helper
@@ -91,15 +91,27 @@ EOF
   plutil -lint -s "$AGENTS/$1.plist" || fail "Ongeldig LaunchAgent-bestand: $AGENTS/$1.plist"
 }
 
-# Stops the on-demand server (the pid in server.pid, only when it runs our app).
+# True when pid is a node running from our install (app or app.old), never a foreign process.
+ours() {
+  case $(ps -p "$1" -o command= 2>/dev/null) in *"$ROOT/app"*) return 0 ;; esac
+  case $(lsof -p "$1" -a -d cwd,txt -Fn 2>/dev/null) in *"n$ROOT/app"*) return 0 ;; esac
+  return 1
+}
+# Stops the on-demand server: the pid in server.pid plus whatever listens on our
+# port, each only when it runs our app (the pid file can be missing or stale).
 server_stop() {
-  local pid n=0
-  pid=$(cat "$ROOT/server.pid" 2>/dev/null) || return 0
-  case $pid in ''|*[!0-9]*) return 0 ;; esac
-  case $(ps -p "$pid" -o command= 2>/dev/null) in *"$ROOT/app"*) ;; *) rm -f "$ROOT/server.pid"; return 0 ;; esac
-  kill "$pid" 2>/dev/null || true
-  while kill -0 "$pid" 2>/dev/null && [ "$n" -lt 10 ]; do sleep 1; n=$((n + 1)); done
-  kill -0 "$pid" 2>/dev/null && kill -9 "$pid" 2>/dev/null || true
+  local pid n=0 pids=""
+  pid=$(cat "$ROOT/server.pid" 2>/dev/null) || pid=""
+  case $pid in ''|*[!0-9]*) ;; *) pids=$pid ;; esac
+  pids="$pids $(lsof -nP -iTCP:"$PORT" -sTCP:LISTEN -t 2>/dev/null || true)"
+  local live=""
+  for pid in $pids; do ours "$pid" && live="$live $pid"; done
+  for pid in $live; do kill "$pid" 2>/dev/null || true; done
+  for pid in $live; do
+    n=0
+    while kill -0 "$pid" 2>/dev/null && [ "$n" -lt 10 ]; do sleep 1; n=$((n + 1)); done
+    kill -0 "$pid" 2>/dev/null && kill -9 "$pid" 2>/dev/null || true
+  done
   rm -f "$ROOT/server.pid"
 }
 server_start() {
