@@ -25,7 +25,7 @@ import { resetDiarization } from './diarization-bridge';
 import { requestPersistentStorage } from './persistent-storage';
 import { adoptNotes, hasLocalNotes, notesKey } from './notes';
 import { adoptParticipants, hasAskedParticipants, isSessionParticipantsKey, removeParticipants, sessionParticipantsKey } from './participants';
-import { flushServerSync, queueMeetingDelete, queueMeetingSync } from './server-sync';
+import { flushServerSync, queueMeetingClear, queueMeetingDelete, queueMeetingSync } from './server-sync';
 import { moveMeeting } from '@/lib/folders/folders-api';
 import { indexKey, removeIndex } from '@/lib/semantic-search/store';
 import type { MeetingSummaryRow, StoredMeeting } from '@/lib/meeting-db/types';
@@ -435,7 +435,7 @@ export function clearSessionTranscript(sessionId: string): boolean {
   removeMeetingCaches(sessionId, { notes: false });
   // Its speakers go with the transcript: a new recording numbers them afresh.
   removeSpeakerState(sessionId);
-  queueMeetingSync(sessionId);
+  queueMeetingClear(sessionId);
 
   try {
     const autosaved = loadAutosavedSession();

@@ -201,6 +201,28 @@ describe('server sync', () => {
     expect(getNotes(id).decisions.map((d) => d.text)).toEqual(['No travel in Q1']);
   });
 
+  it('a cleared transcript stays gone: no refetch of the old copy, no append prompt, DB emptied', async () => {
+    const sync = await import('./server-sync');
+    await sync.startServerSync();
+    const store = await import('./session-store');
+    const id = store.persistSession({ title: 'Standup', segments: [line('a', 'delete me please', 0)], speakers: {} });
+    await sync.flushServerSync();
+    await sync.ensureMeetingLoaded(id); // opening it brings the evicted transcript back
+    expect(store.sessionHasTranscript(id)).toBe(true);
+
+    expect(store.clearSessionTranscript(id)).toBe(true);
+    // Open-meeting load (MeetingView) and the queued flush both run ensureMeetingLoaded.
+    await sync.ensureMeetingLoaded(id);
+    await sync.flushServerSync();
+
+    expect(store.sessionHasTranscript(id)).toBe(false);
+    expect(store.startRecordingInSession(id, 'append')).toBeNull();
+    expect(store.openSession(id)).toBeNull();
+    const db = readDb();
+    expect(db.get(id)?.segments).toEqual([]);
+    db.close();
+  });
+
   it('replays edits made offline once the browser is back online, without duplicates', async () => {
     let sync = await import('./server-sync');
     await sync.startServerSync();

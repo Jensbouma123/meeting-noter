@@ -63,6 +63,8 @@ let onOnline: (() => void) | null = null;
 let flushing: Promise<void> | null = null;
 /** Bumped by every queued change, so a flush knows whether the id changed while it was in flight. */
 const generation = new Map<string, number>();
+/** Bumped by every clear, so an in-flight refetch of the old copy can be dropped. */
+const clearGeneration = new Map<string, number>();
 
 function storage(): Storage | null {
   try {
@@ -121,6 +123,20 @@ export function queueMeetingSync(sessionId: string): void {
   pending.remove = pending.remove.filter((id) => id !== sessionId);
   writeJson(PENDING_KEY, pending);
   schedule();
+}
+
+/**
+ * Queue a cleared transcript. Forgets the "server confirmed" mark first: with
+ * the local transcript gone, `ensureMeetingLoaded` would read the meeting as
+ * evicted and refetch the server's old copy, resurrecting the cleared text.
+ * Flushes at once so the DB holds the empty meeting before any reload.
+ */
+export function queueMeetingClear(sessionId: string): void {
+  if (!sessionId) return;
+  clearGeneration.set(sessionId, (clearGeneration.get(sessionId) ?? 0) + 1);
+  markSynced(sessionId, null);
+  queueMeetingSync(sessionId);
+  void flushServerSync();
 }
 
 /** Queue a session's removal from the server. */
@@ -252,11 +268,14 @@ export async function ensureMeetingLoaded(id: string): Promise<boolean> {
   // Only a meeting the server confirmed can have been dropped here.
   const dropped = readJson<Record<string, number>>(SYNCED_KEY, {})[id] !== undefined;
   if (local && (!dropped || (hasLocalTranscript(id) && hasLocalNotes(id)))) return true;
+  const gen = clearGeneration.get(id) ?? 0;
   try {
     const res = await fetch(`/api/meetings/${encodeURIComponent(id)}`, { cache: 'no-store' });
     if (res.status === 404 || res.status === 410) return true;
     if (!res.ok) return false;
     const { meeting } = (await res.json()) as { meeting: StoredMeeting };
+    // Cleared while the fetch was in flight: the old copy must not come back.
+    if ((clearGeneration.get(id) ?? 0) !== gen) return true;
     if (local) cacheMeetingContent(meeting);
     else {
       adoptStoredMeeting(meeting);
