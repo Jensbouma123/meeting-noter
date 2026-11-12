@@ -397,7 +397,7 @@ export function SessionSidebar({
       <aside
         aria-label={t('meetings')}
         className={[
-          'hidden shrink-0 border-r border-border-subtle transition-[width] duration-200 ease-in-out lg:flex lg:flex-col',
+          'hidden shrink-0 border-r border-border-subtle transition-[width] duration-200 ease-in-out motion-reduce:transition-none lg:flex lg:flex-col',
           open ? 'w-72 xl:w-80' : 'w-16',
         ].join(' ')}
       >

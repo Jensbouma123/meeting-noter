@@ -153,6 +153,12 @@ export function BottomDock({
       className="absolute bottom-[calc(1.25rem+env(safe-area-inset-bottom))] left-1/2 z-40 w-max max-w-[calc(100%-32px)] -translate-x-1/2 select-none sm:bottom-6"
       aria-label={t('recordingControls')}
     >
+      {/* The reason is announced from a polite live region that exists before
+          the message does. It cannot sit inside the indicator button: a
+          button's children are presentational and are never announced. */}
+      <span role="status" className="sr-only">
+        {showCallAudioMissing ? `${t('noCallAudio')}. ${callAudioMissingReason}` : ''}
+      </span>
       <div className="flex flex-wrap items-center justify-center gap-1.5 rounded-[26px] border border-border-subtle bg-surface/90 p-1.5 shadow-elevation-3 backdrop-blur-md">
         {/* Recording group: Record, which becomes Stop + clock, then pause once it runs. */}
         <div className="flex shrink-0 items-center gap-1">
@@ -247,7 +253,6 @@ export function BottomDock({
             <Tooltip content={callAudioMissingReason} side="top">
               <button
                 type="button"
-                role="alert"
                 aria-label={`${t('noCallAudio')}. ${callAudioMissingReason}`}
                 onClick={onOpenAdvanced}
                 className="focus-ring touch-target-44 inline-flex h-10 min-w-10 shrink-0 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-warning/10 px-3 text-sm font-medium text-warning transition-colors hover:bg-warning/20"

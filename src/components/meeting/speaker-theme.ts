@@ -84,6 +84,11 @@ export const SPEAKER_COLORS: SpeakerColorStyle[] = [
 ];
 
 export function getSpeakerColor(index: number): SpeakerColorStyle {
-  const safeIdx = Math.abs(index) % SPEAKER_COLORS.length;
+  // Any index has to produce a colour: callers destructure it straight into
+  // class names, and NaN (a missing `colorIndex` in stored data) used to fall
+  // through to `undefined`. Negative indices wrap backwards, so -1 is the last
+  // colour rather than a mirror of the second.
+  const count = SPEAKER_COLORS.length;
+  const safeIdx = Number.isFinite(index) ? ((Math.trunc(index) % count) + count) % count : 0;
   return SPEAKER_COLORS[safeIdx];
 }

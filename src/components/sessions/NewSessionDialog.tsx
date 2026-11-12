@@ -11,7 +11,8 @@ import {
   VStack,
 } from '@jensbouma123/acciva-ui';
 import { Plus } from 'lucide-react';
-import { useT } from '@/lib/i18n/useT';
+import { useLanguage, useT } from '@/lib/i18n/useT';
+import type { Language } from '@/lib/i18n/LanguageContext';
 
 const MAX_NAME_LENGTH = 80;
 
@@ -23,6 +24,7 @@ interface NewSessionDialogProps {
 
 export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogProps) {
   const t = useT('sidebar');
+  const language = useLanguage();
   const [draft, setDraft] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,7 +41,7 @@ export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogPr
   }, [open]);
 
   const handleSubmit = useCallback(() => {
-    const trimmed = draft.trim() || defaultMeetingName();
+    const trimmed = draft.trim() || defaultMeetingName(language);
     setIsSubmitting(true);
     try {
       onCreate('', trimmed);
@@ -47,7 +49,7 @@ export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogPr
       setError(t('createError'));
     }
     setIsSubmitting(false);
-  }, [draft, onCreate, t]);
+  }, [draft, language, onCreate, t]);
 
   return (
     <Modal
@@ -112,11 +114,17 @@ export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogPr
   );
 }
 
-function defaultMeetingName(): string {
+function defaultMeetingName(language: Language): string {
   const now = new Date();
-  const language = typeof navigator === 'undefined' ? 'en' : navigator.language;
-  const locale = language.toLowerCase().startsWith('nl') ? 'nl-NL' : 'en-US';
-  const date = new Intl.DateTimeFormat(locale, { weekday: 'short', day: 'numeric', month: 'short' }).format(now);
-  const time = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(now);
+  const date = new Intl.DateTimeFormat(language === 'nl' ? 'nl-NL' : 'en-US', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  }).format(now);
+  const time = new Intl.DateTimeFormat(language === 'nl' ? 'nl-NL' : 'en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).format(now);
   return `Meeting ${date}, ${time}`;
 }

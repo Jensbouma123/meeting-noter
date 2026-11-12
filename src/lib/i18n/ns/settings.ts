@@ -1,6 +1,7 @@
 export const settings = {
   en: {
     title: 'Settings',
+    sectionsLabel: 'Settings sections',
     needsAttention: 'Needs attention',
     'section.general': 'General',
     'section.vocabulary': 'Vocabulary',
@@ -116,6 +117,7 @@ export const settings = {
   },
   nl: {
     title: 'Instellingen',
+    sectionsLabel: 'Instellingenonderdelen',
     needsAttention: 'Je aandacht nodig',
     'section.general': 'Algemeen',
     'section.vocabulary': 'Woordenlijst',

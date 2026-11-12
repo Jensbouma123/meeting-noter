@@ -8,10 +8,16 @@ export function getDefaultLanguage(browserLanguage?: string): Language {
   return browserLanguage?.toLowerCase().startsWith('nl') ? 'nl' : 'en';
 }
 
-export function useT<N extends Namespace>(namespace: N) {
+/** The language the interface is in: the provider's, or the browser's until it mounts. */
+export function useLanguage(): Language {
   const context = useContext(LanguageContext);
-  const language = context ?? getDefaultLanguage(
-    typeof navigator === 'undefined' ? undefined : navigator.language,
+  return (
+    context ??
+    getDefaultLanguage(typeof navigator === 'undefined' ? undefined : navigator.language)
   );
+}
+
+export function useT<N extends Namespace>(namespace: N) {
+  const language = useLanguage();
   return (key: string) => t(namespace, key, language);
 }

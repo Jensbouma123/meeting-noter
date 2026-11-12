@@ -108,7 +108,7 @@ export function CaptureDiagnostics() {
         <button
           type="button"
           onClick={() => setCaptureDebug(false)}
-          className="rounded px-1.5 text-muted-foreground hover:text-foreground"
+          className="focus-ring rounded px-1.5 text-muted-foreground hover:text-foreground"
           aria-label={t('diagnostics.hide')}
         >
           ✕

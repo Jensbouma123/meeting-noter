@@ -11,6 +11,7 @@ import {
 } from '@jensbouma123/acciva-ui';
 import { useCallback, useEffect, useState } from 'react';
 import { Check, Monitor, Moon, Sun } from 'lucide-react';
+import { useT } from '@/lib/i18n/useT';
 
 const PREFERENCE_KEY = 'mn-theme-preference';
 
@@ -18,12 +19,12 @@ export type ThemePreference = 'system' | 'light' | 'dark';
 
 const CYCLE: ThemePreference[] = ['system', 'light', 'dark'];
 
-export const THEME_PREFERENCE_LABELS: Record<ThemePreference, string> = {
-  system: 'System',
-  light: 'Light',
-  dark: 'Dark',
+/** Settings-namespace key per preference; the label itself is translated at render. */
+const LABEL_KEYS: Record<ThemePreference, string> = {
+  system: 'system',
+  light: 'light',
+  dark: 'dark',
 };
-const LABELS = THEME_PREFERENCE_LABELS;
 
 const ICONS: Record<ThemePreference, typeof Sun> = {
   system: Monitor,
@@ -98,8 +99,10 @@ export function useThemePreference() {
 }
 
 export function ThemeSwitcher({ className }: { className?: string }) {
+  const t = useT('settings');
   const { preference: current, choose } = useThemePreference();
   const ActiveIcon = ICONS[current];
+  const label = (preference: ThemePreference) => t(LABEL_KEYS[preference]);
 
   return (
     <DropdownMenu>
@@ -108,14 +111,14 @@ export function ThemeSwitcher({ className }: { className?: string }) {
           variant="ghost"
           size="sm"
           iconOnly
-          tooltip="Theme"
-          aria-label={`Theme: ${LABELS[current]}`}
+          tooltip={t('theme')}
+          aria-label={`${t('theme')}: ${label(current)}`}
           leadingIcon={<ActiveIcon className="size-4" />}
           className={`touch-target-44 ${className ?? ''}`.trim()}
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Theme</DropdownMenuLabel>
+        <DropdownMenuLabel>{t('theme')}</DropdownMenuLabel>
         {CYCLE.map((pref) => {
           const selected = pref === current;
           return (
@@ -126,7 +129,7 @@ export function ThemeSwitcher({ className }: { className?: string }) {
               onClick={() => choose(pref)}
               className={selected ? 'font-semibold' : undefined}
             >
-              {LABELS[pref]}
+              {label(pref)}
             </DropdownMenuItem>
           );
         })}

@@ -85,3 +85,40 @@ describe('RightRail header tabs', () => {
     expect(screen.getAllByRole('tab')[0].textContent).toContain('Deelnemers');
   });
 });
+
+describe('RightRail tab keyboard model', () => {
+  it('wraps with ArrowRight/ArrowLeft and honours Home/End', () => {
+    view();
+    const [participants, summary] = screen.getAllByRole('tab');
+    participants.focus();
+    fireEvent.keyDown(participants, { key: 'ArrowLeft' });
+    expect(summary.getAttribute('aria-selected')).toBe('true');
+    // Wrapped past the last tab.
+    fireEvent.keyDown(summary, { key: 'ArrowRight' });
+    expect(participants.getAttribute('aria-selected')).toBe('true');
+    fireEvent.keyDown(participants, { key: 'End' });
+    expect(summary.getAttribute('aria-selected')).toBe('true');
+    expect(document.activeElement).toBe(summary);
+    fireEvent.keyDown(summary, { key: 'Home' });
+    expect(participants.getAttribute('aria-selected')).toBe('true');
+    expect(document.activeElement).toBe(participants);
+  });
+
+  it('wires each tab to the panel it controls', () => {
+    view();
+    const tabs = screen.getAllByRole('tab');
+    const panel = screen.getByRole('tabpanel');
+    expect(panel.id).toBe(tabs[0].getAttribute('aria-controls'));
+    fireEvent.click(tabs[1]);
+    expect(screen.getByRole('tabpanel').id).toBe(tabs[1].getAttribute('aria-controls'));
+    expect(screen.getByRole('tabpanel').getAttribute('aria-labelledby')).toBe(tabs[1].id);
+  });
+
+  it('leaves other keys to the page', () => {
+    view();
+    const [participants] = screen.getAllByRole('tab');
+    const notPrevented = fireEvent.keyDown(participants, { key: 'ArrowDown' });
+    expect(notPrevented).toBe(true);
+    expect(participants.getAttribute('aria-selected')).toBe('true');
+  });
+});

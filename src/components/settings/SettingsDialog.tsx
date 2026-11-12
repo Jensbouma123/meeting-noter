@@ -78,7 +78,7 @@ export function SettingsDialog({
       >
         {isSmUp ? (
           <TabList
-            aria-label="Settings sections"
+            aria-label={t('sectionsLabel')}
             className="h-full w-52 shrink-0 gap-0.5 overflow-y-auto !rounded-none border-r border-border-subtle !bg-transparent p-1 pr-3"
           >
             {tabs}
@@ -88,10 +88,10 @@ export function SettingsDialog({
             orientation="horizontal"
             fadeEdges
             showArrows="auto"
-            aria-label="Settings sections"
+            aria-label={t('sectionsLabel')}
             className="shrink-0 border-b border-border-subtle"
           >
-            <TabList aria-label="Settings sections" className="gap-0.5 !rounded-none !bg-transparent p-2">
+            <TabList aria-label={t('sectionsLabel')} className="gap-0.5 !rounded-none !bg-transparent p-2">
               {tabs}
             </TabList>
           </ScrollView>

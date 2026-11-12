@@ -186,7 +186,7 @@ function RailTabs({
               aria-controls={`rail-panel-${tab}`}
               tabIndex={selected ? 0 : -1}
               onClick={() => onChange(tab)}
-              className={`relative flex items-center gap-1.5 whitespace-nowrap py-3 text-sm font-semibold transition-colors ${
+              className={`focus-ring relative flex items-center gap-1.5 whitespace-nowrap py-3 text-sm font-semibold transition-colors ${
                 selected ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
               }`}
             >

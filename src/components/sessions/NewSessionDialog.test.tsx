@@ -1,20 +1,46 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { NewSessionDialog } from './NewSessionDialog';
+import { LanguageContext } from '@/lib/i18n/LanguageContext';
 
-afterEach(cleanup);
+beforeAll(() => {
+  HTMLDialogElement.prototype.showModal ||= function (this: HTMLDialogElement) {
+    this.setAttribute('open', '');
+  };
+  HTMLDialogElement.prototype.close ||= function (this: HTMLDialogElement) {
+    this.removeAttribute('open');
+  };
+});
+
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
+
+function start(language: 'en' | 'nl' = 'en') {
+  const onCreate = vi.fn();
+  const dialog = <NewSessionDialog open onClose={() => {}} onCreate={onCreate} />;
+  render(<LanguageContext.Provider value={language}>{dialog}</LanguageContext.Provider>);
+  fireEvent.click(screen.getByRole('button', { name: language === 'nl' ? 'Starten' : 'Start' }));
+  return onCreate;
+}
 
 describe('NewSessionDialog', () => {
   it('starts a meeting with a localized default name when left blank', () => {
     vi.stubGlobal('navigator', { language: 'en-US' });
-    HTMLDialogElement.prototype.showModal = vi.fn();
-    HTMLDialogElement.prototype.close = vi.fn();
-    const onCreate = vi.fn();
-    render(<NewSessionDialog open onClose={() => {}} onCreate={onCreate} />);
-    fireEvent.click(screen.getByText('Start'));
+    const onCreate = start('en');
     expect(onCreate).toHaveBeenCalledWith('', expect.stringMatching(/^Meeting \w{3}, \w{3} \d{1,2}, \d{2}:\d{2}$/));
-    vi.unstubAllGlobals();
+  });
+
+  it('names the meeting in the interface language, not the browser language', () => {
+    // An English browser with the app set to Dutch: the weekday and month have
+    // to be Dutch, or the saved meeting title is half-translated.
+    vi.stubGlobal('navigator', { language: 'en-US' });
+    const onCreate = start('nl');
+    const title = onCreate.mock.calls[0][1] as string;
+    expect(title).toMatch(/(ma|di|wo|do|vr|za|zo)[ .,]/);
+    expect(title).not.toMatch(/(Mon|Tue|Wed|Thu|Fri|Sat|Sun)/);
   });
 });

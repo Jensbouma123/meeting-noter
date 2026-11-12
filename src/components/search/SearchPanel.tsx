@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Card, EmptyState, Input, Text, VStack } from '@jensbouma123/acciva-ui';
 import { formatClock } from '@/lib/meeting/export';
 import type { Hit } from '@/lib/semantic-search';
+import { useT } from '@/lib/i18n/useT';
 
 export const SNIPPET_MAX_CHARS = 160;
 
@@ -53,6 +54,7 @@ export function SearchPanel({
   limit = 8,
   debounceMs = 250,
 }: SearchPanelProps) {
+  const t = useT('search');
   const [query, setQuery] = useState('');
   const [state, setState] = useState<State>({ status: 'idle' });
   // Only the newest request may write state; older results are dropped.
@@ -84,27 +86,27 @@ export function SearchPanel({
   }, [query, search, limit, debounceMs]);
 
   return (
-    <VStack spacing="md" aria-label="Search meetings">
+    <VStack spacing="md" aria-label={t('panelLabel')}>
       <Input
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search across meetings"
-        aria-label="Search query"
+        placeholder={t('placeholder')}
+        aria-label={t('queryLabel')}
       />
 
-      {state.status === 'loading' && <Text>Searching…</Text>}
+      {state.status === 'loading' && <Text>{t('searching')}</Text>}
 
       {state.status === 'error' && (
-        <Text role="alert">Search failed: {state.message}</Text>
+        <Text role="alert">{t('failed').replace('{message}', state.message)}</Text>
       )}
 
       {state.status === 'done' && state.hits.length === 0 && (
-        <EmptyState title="No matches" description="Try different words." />
+        <EmptyState title={t('noMatches')} description={t('noMatchesHint')} />
       )}
 
       {state.status === 'done' && state.hits.length > 0 && (
-        <ul aria-label="Search results" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+        <ul aria-label={t('resultsLabel')} style={{ listStyle: 'none', margin: 0, padding: 0 }}>
           {state.hits.map((hit) => {
             const title = meetingTitles?.[hit.meetingId] ?? hit.meetingId;
             const start = hit.window.start;

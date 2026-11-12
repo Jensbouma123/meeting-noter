@@ -9,6 +9,7 @@ import { notes } from './ns/notes';
 import { onboarding } from './ns/onboarding';
 import { participants } from './ns/participants';
 import { rail } from './ns/rail';
+import { search } from './ns/search';
 import { settings } from './ns/settings';
 import { share } from './ns/share';
 import { sidebar } from './ns/sidebar';
@@ -30,6 +31,7 @@ export const translations = {
   onboarding,
   participants,
   rail,
+  search,
   settings,
   share,
   sidebar,
