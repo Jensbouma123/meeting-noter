@@ -185,9 +185,9 @@ function ActionRow({ item, speakers, t, sessionId }: {
       <Popover open={dueOpen} onOpenChange={setDueOpen} onClose={() => setDueOpen(false)} dismissOnOutsideClick
         placement="bottom" maxWidth={220} title={t('due')}
         content={<VStack spacing="sm" className="w-full">
-          <input autoFocus aria-label={t('due')} type="date" value={item.due ?? ''}
+          <Input autoFocus aria-label={t('due')} type="date" value={item.due ?? ''}
             onChange={(event) => updateAction(sessionId, item.id, { due: event.target.value || undefined })}
-            className="w-full min-w-0 rounded-md border border-border bg-surface px-2 py-1 text-sm" />
+            className="w-full min-w-0" />
           {item.due && <Button size="sm" variant="ghost" className="whitespace-nowrap"
             onClick={() => { updateAction(sessionId, item.id, { due: undefined }); setDueOpen(false); }}>{t('clearDue')}</Button>}
         </VStack>}>

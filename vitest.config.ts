@@ -14,4 +14,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  // acciva-ui is installed as a copy (install-links), so vitest would load it
+  // through Node ESM, which cannot resolve its extensionless `next/link`.
+  test: { server: { deps: { inline: [/@jensbouma123\/acciva-ui/] } } },
 });
