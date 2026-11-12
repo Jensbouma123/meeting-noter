@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useT } from '@/lib/i18n/useT';
 import type { LanguageInfo, Status } from '@/lib/meeting';
 import { useMeeting } from './store';
@@ -84,6 +84,13 @@ const LANG_PICK_OPTIONS = [
   { value: 'pt', label: 'Português' },
   { value: 'ja', label: '日本語' },
 ];
+
+// Stable callback ref: runs once when the title input mounts (edit starts),
+// in place of a focus effect keyed on `isEditingTitle`.
+function focusAndSelectTitle(input: HTMLInputElement | null) {
+  input?.focus();
+  input?.select();
+}
 
 function formatElapsed(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -210,18 +217,9 @@ export function TopBar({
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(title);
   const [now, setNow] = useState(() => Date.now());
-  const titleInputRef = useRef<HTMLInputElement>(null);
 
   const diarization = useMeeting((s) => s.diarization);
   const dateMs = meetingDate ?? startedAt;
-
-  // Focus input when editing starts
-  useEffect(() => {
-    if (isEditingTitle) {
-      titleInputRef.current?.focus();
-      titleInputRef.current?.select();
-    }
-  }, [isEditingTitle]);
 
   // Live timer interval
   useEffect(() => {
@@ -276,7 +274,7 @@ export function TopBar({
         {isEditingTitle ? (
           <HStack spacing="xs" className="min-w-0 flex-1">
             <Input
-              ref={titleInputRef}
+              ref={focusAndSelectTitle}
               size="sm"
               value={titleDraft}
               onChange={(e) => setTitleDraft(e.target.value)}
