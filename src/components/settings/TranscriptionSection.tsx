@@ -4,7 +4,6 @@ import { Select } from '@jensbouma123/acciva-ui';
 import type { AppSettings } from '@/components/meeting/types';
 import { useT } from '@/lib/i18n/useT';
 import { SettingsGroup, SettingsRow } from './SettingsRow';
-import { VocabularySection } from './VocabularySection';
 
 export function TranscriptionSection({
   settings,
@@ -26,22 +25,19 @@ export function TranscriptionSection({
     { value: 'ja', label: t('japanese') },
   ];
   return (
-    <>
-      <SettingsGroup>
-        <SettingsRow
-          label={t('spokenLanguage')}
-          description={t('spokenLanguageDescription')}
-          control={
-            <Select
-              options={languageOptions}
-              value={settings.language}
-              onChange={(language) => onSettingsChange({ ...settings, language })}
-              aria-label={t('spokenLanguage')}
-            />
-          }
-        />
-      </SettingsGroup>
-      <VocabularySection />
-    </>
+    <SettingsGroup>
+      <SettingsRow
+        label={t('spokenLanguage')}
+        description={t('spokenLanguageDescription')}
+        control={
+          <Select
+            options={languageOptions}
+            value={settings.language}
+            onChange={(language) => onSettingsChange({ ...settings, language })}
+            aria-label={t('spokenLanguage')}
+          />
+        }
+      />
+    </SettingsGroup>
   );
 }
