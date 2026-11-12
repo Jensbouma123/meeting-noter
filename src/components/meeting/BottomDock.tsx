@@ -121,18 +121,18 @@ export function BottomDock({
   // Elapsed recording time, tracked locally: the capture pipeline reads `mode`
   // once at start (see MeetingView's startRecording), so this dock owns its own
   // clock rather than needing a startedAt prop threaded down for it.
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const accumulatedMsRef = useRef(0);
+  const [accumulatedMs, setAccumulatedMs] = useState(0);
+  const [wasActive, setWasActive] = useState(isRecordingActive);
   const lastTickRef = useRef<number | null>(null);
-  const wasActiveRef = useRef(false);
+  const elapsedSeconds = Math.floor(accumulatedMs / 1000);
 
-  useEffect(() => {
-    if (isRecordingActive && !wasActiveRef.current) {
-      accumulatedMsRef.current = 0;
-      setElapsedSeconds(0);
-    }
-    wasActiveRef.current = isRecordingActive;
-  }, [isRecordingActive]);
+  // A recording starting from idle restarts the clock at zero. Adjusting
+  // state during render (rather than in an effect) means the first frame of
+  // the new recording already shows 0.
+  if (wasActive !== isRecordingActive) {
+    setWasActive(isRecordingActive);
+    if (isRecordingActive) setAccumulatedMs(0);
+  }
 
   useEffect(() => {
     if (!isLive) return;
@@ -141,8 +141,7 @@ export function BottomDock({
       const now = Date.now();
       const delta = now - (lastTickRef.current ?? now);
       lastTickRef.current = now;
-      accumulatedMsRef.current += delta;
-      setElapsedSeconds(Math.floor(accumulatedMsRef.current / 1000));
+      setAccumulatedMs((ms) => ms + delta);
     }, 250);
     return () => clearInterval(id);
   }, [isLive]);
