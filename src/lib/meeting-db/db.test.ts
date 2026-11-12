@@ -142,14 +142,14 @@ describe('MeetingsDb', () => {
     expect(db.get('meeting-1')?.participants).toEqual(['Noor']);
   });
 
-  it('migrates a v1 DB straight to v3: meetings kept, participants column and tombstones work', () => {
+  it('migrates a v1 DB straight to the current version: meetings kept, participants column and tombstones work', () => {
     const file = path.join(tmpDir(), 'meetings.db');
     const v1 = new MeetingsDb(file);
     v1.upsert(sampleMeeting());
     v1.db.exec('DROP TABLE deleted_meetings; DROP TABLE meta; ALTER TABLE meetings DROP COLUMN participants; PRAGMA user_version = 1;');
     v1.close();
     const db = new MeetingsDb(file);
-    expect(db.db.prepare('PRAGMA user_version').get()).toEqual({ user_version: 3 });
+    expect(db.db.prepare('PRAGMA user_version').get()).toEqual({ user_version: 4 });
     expect(db.get('meeting-1')?.participants).toBeNull();
     expect(db.search('budget').map((h) => h.id)).toEqual(['meeting-1']);
     db.upsert(sampleMeeting({ updatedAt: Date.now(), participants: ['Noor'] }));
@@ -314,6 +314,16 @@ describe('deleting leaves no meeting text on disk', () => {
     for (const s of ['café export', 'quarterly budget', 'Freeze the scope', 'release notes', 'Anna', 'Jens']) {
       expect(bytes, s).not.toContain(s);
     }
+  });
+
+  it('renaming or editing notes/participants scrubs the old text from the WAL', () => {
+    const file = path.join(tmpDir(), 'meetings.db');
+    const db = fill(file);
+    db.upsert(sampleMeeting({ updatedAt: Date.UTC(2026, 10, 3, 10, 30), participants: ['Marieke'] }));
+    expect(rawBytes(file)).toContain('Marieke');
+    db.upsert(sampleMeeting({ updatedAt: Date.UTC(2026, 10, 3, 11, 0), title: 'Renamed', participants: ['Zed'], notes: { actions: [], decisions: [] } }));
+    const bytes = rawBytes(file);
+    for (const s of ['Roadmap sync', 'Marieke', 'Freeze the scope']) expect(bytes, s).not.toContain(s);
   });
 
   it('MeetingStore.delete removes the Markdown file and its text', () => {

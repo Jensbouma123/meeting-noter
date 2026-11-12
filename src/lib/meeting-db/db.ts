@@ -214,13 +214,21 @@ export class MeetingsDb {
     let shrunk = false;
     const result = this.transaction(() => {
       if (this.db.prepare('SELECT 1 FROM deleted_meetings WHERE id = ?').get(meeting.id)) return 'deleted';
-      const existing = this.db.prepare('SELECT updated_at, segment_count, folder_id FROM meetings WHERE id = ?').get(meeting.id);
+      const existing = this.db.prepare('SELECT updated_at, segment_count, folder_id, title, notes, participants FROM meetings WHERE id = ?').get(meeting.id);
       if (existing) {
         const stored = num(existing.updated_at);
         if (stored > meeting.updatedAt || (opts.onlyIfNewer && stored === meeting.updatedAt)) return 'stale';
       }
       const segments = meeting.segments.slice().sort((a, b) => a.start - b.start);
       shrunk = !!existing && num(existing.segment_count) > segments.length;
+      // Renamed, re-noted or participants edited: the old text sits in the WAL too.
+      if (existing && !shrunk) {
+        const newParticipants = meeting.participants === null ? null : JSON.stringify(meeting.participants);
+        shrunk =
+          str(existing.title) !== meeting.title ||
+          str(existing.notes) !== JSON.stringify(meeting.notes) ||
+          (existing.participants === null ? null : str(existing.participants)) !== newParticipants;
+      }
       // Absent `folderId` (a browser that knows no folders) keeps the filing; an unknown folder unfiles.
       let folderId: string | null = null;
       if (meeting.folderId === undefined) folderId = existing && existing.folder_id !== null ? str(existing.folder_id) : null;
@@ -282,7 +290,7 @@ export class MeetingsDb {
         .run(rowid, meeting.title, searchSummary(meeting), transcriptText(meeting));
       return 'written';
     });
-    // A cleared transcript: the old lines sit in the WAL until it is emptied.
+    // Cleared transcript, rename, or notes/participant edit: old text sits in the WAL until it is emptied.
     if (result === 'written' && shrunk) this.scrub(false);
     return result;
   }
