@@ -1,6 +1,7 @@
 'use client';
 
 import { Alert, Button, Modal, VStack } from '@jensbouma123/acciva-ui';
+import { Copy } from 'lucide-react';
 import { useState } from 'react';
 import { useT } from '@/lib/i18n/useT';
 import { copyToClipboard, downloadFile, exportFilename, formatExport, formatMeta, finalSegments, type ExportFormat } from '@/lib/meeting/export';
@@ -33,7 +34,7 @@ export function ShareDialog({ open, onClose, title, segments, speakers }: ShareD
       <section aria-label={t('previewLabel')} className="max-h-72 w-full overflow-y-auto rounded-md border border-border p-4 text-sm" tabIndex={0}>
         <pre className="whitespace-pre-wrap font-sans">{transcriptText('txt')}</pre>
       </section>
-      <Button variant="primary" size="lg" className="w-full" onClick={() => void copy(transcriptText('txt'))}>{t('copyTranscript')}</Button>
+      <Button variant="primary" size="lg" className="w-full justify-center" leadingIcon={<Copy className="size-4" aria-hidden="true" />} onClick={() => void copy(transcriptText('txt'))}>{t('copyTranscript')}</Button>
       <div aria-live="polite">
         {message === 'copied' && <p role="status" className="text-sm">{t('copied')}</p>}
         {message === 'failed' && <Alert variant="danger" layout="inline">{t('copyFailed')}</Alert>}
