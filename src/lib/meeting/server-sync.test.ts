@@ -70,6 +70,24 @@ function readDb(): MeetingsDb {
 }
 
 describe('server sync', () => {
+  it('keeps a server filing when the browser syncs a meeting without folderId', async () => {
+    const sync = await import('./server-sync');
+    await sync.startServerSync();
+    const sessions = await import('./session-store');
+    const id = sessions.persistSession({ title: 'Filed sync', segments: [line('f1', 'folder survives', 0)], speakers: {} });
+    await sync.flushServerSync();
+
+    const { meetingStore } = await import('@/lib/meeting-db/store');
+    const folder = meetingStore().createFolder('Keep filed');
+    meetingStore().moveMeeting(id, folder.id);
+    sessions.renameSession(id, 'Filed sync edited');
+    await sync.flushServerSync();
+
+    const db = readDb();
+    expect(db.get(id)).toMatchObject({ title: 'Filed sync edited', folderId: folder.id });
+    db.close();
+  });
+
   it('sends nothing before startServerSync', async () => {
     const { persistSession } = await import('./session-store');
     persistSession({ title: 'Quiet', segments: [line('a', 'hello', 0)], speakers: {} });

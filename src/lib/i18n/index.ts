@@ -1,6 +1,7 @@
 import { common } from './ns/common';
 import { dialogs } from './ns/dialogs';
 import { dock } from './ns/dock';
+import { folders } from './ns/folders';
 import { home } from './ns/home';
 import { lifecycle } from './ns/lifecycle';
 import { meeting } from './ns/meeting';
@@ -23,6 +24,7 @@ export const translations = {
   common,
   dialogs,
   dock,
+  folders,
   home,
   lifecycle,
   meeting,

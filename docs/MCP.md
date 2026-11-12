@@ -9,16 +9,33 @@ Meeting Noter keeps every meeting on this Mac, in
 
 The Markdown files (title, date, participants, speakers, summary, transcript) can be read by
 any tool. For AI agents there is also an MCP server that reads the same
-database, read-only. It has three tools:
+database, read-only. It has four tools:
 
 | Tool | What it does |
 | --- | --- |
-| `list_meetings` | Meetings, newest first: id, title, date, duration, speakers (`limit`, `offset`) |
-| `search_meetings` | Full-text search over titles, summaries and transcripts (`query`, `limit`) |
+| `list_meetings` | Meetings, newest first: id, title, date, duration, speakers (`limit`, `offset`, `folderId`, `includeSubfolders`) |
+| `search_meetings` | Full-text search over titles, summaries and transcripts (`query`, `limit`, `folderId`, `includeSubfolders`) |
+| `list_folders` | Every folder: id, name, parent folder and full path |
 | `get_meeting` | One meeting by `id`, as Markdown (default) or `format: "json"` |
 
 Nothing leaves the Mac: the server talks to the agent over stdio and only opens
 the database file.
+
+## Folders
+
+Meetings can be filed in nested folders; a meeting with no folder sits at the
+top level. `list_folders` returns every folder with its `id`, `name`,
+`parentId` (null at the top level) and `path` (for example
+`Client work/Acme/Kick-off`), so an agent can pick the folder to look in.
+
+`list_meetings` and `search_meetings` take two folder filters:
+
+| Argument | What it does |
+| --- | --- |
+| `folderId` | Only meetings filed in that folder. Get ids from `list_folders`. Leave it out for every meeting, filed or not; unfiled meetings never match a folder. |
+| `includeSubfolders` | `true` also matches meetings in the folders below `folderId`. Off by default, so a folder means just that folder. Ignored without `folderId`. |
+
+`get_meeting` reads the meeting itself and takes no folder filter.
 
 ## Setup
 

@@ -558,6 +558,7 @@ export function adoptStoredMeeting(meeting: StoredMeeting): void {
     captureMode: meeting.captureMode,
     isDraft: meeting.segments.length === 0,
     speakers: [],
+    folderId: meeting.folderId ?? null,
   });
   cacheMeetingContent(meeting, { replace: true });
 }

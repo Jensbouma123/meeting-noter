@@ -110,5 +110,6 @@ export function parseStoredMeeting(v: unknown): StoredMeeting | null {
     speakers: parseSpeakers(v.speakers),
     notes: parseNotes(v.notes),
     participants: parseParticipants(v.participants),
+    ...(v.folderId === null || isMeetingId(v.folderId) ? { folderId: v.folderId } : {}),
   };
 }

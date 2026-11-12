@@ -2,7 +2,8 @@ import { DatabaseSync, type SQLOutputValue } from 'node:sqlite';
 import type { CaptureMode, Source, Speaker } from '../meeting/types';
 import type { ActionItem, Decision } from '../meeting/notes';
 import { searchSummary, speakerNames, summaryText, transcriptText } from './markdown';
-import type { MeetingSearchHit, MeetingSummaryRow, StoredMeeting, StoredSegment } from './types';
+import { randomUUID } from 'node:crypto';
+import type { FolderRow, MeetingSearchHit, MeetingSummaryRow, StoredMeeting, StoredSegment } from './types';
 
 /**
  * The meetings database: one SQLite file (`meetings.db`, see `paths.ts`) that
@@ -11,13 +12,15 @@ import type { MeetingSearchHit, MeetingSummaryRow, StoredMeeting, StoredSegment 
  *   and the summary text rendered from them;
  * - `segments`: the final transcript lines, in order;
  * - `speakers`: each meeting's speaker labels;
+ * - `folders`: the nested folder tree (`parent_id` null at the root); a meeting's
+ *   `folder_id` null means unfiled;
  * - `meetings_fts`: FTS5 over title, summary and transcript, its rowid the
  *   meeting row's rowid.
  * Uses Node's built-in `node:sqlite` (Node >= 22.13; the installer ships 24),
  * so there is no native module to build per arch.
  */
 
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS meetings (
@@ -34,7 +37,8 @@ CREATE TABLE IF NOT EXISTS meetings (
   summary TEXT NOT NULL DEFAULT '',
   notes TEXT NOT NULL DEFAULT '{"actions":[],"decisions":[]}',
   markdown_file TEXT,
-  participants TEXT
+  participants TEXT,
+  folder_id TEXT
 );
 CREATE TABLE IF NOT EXISTS segments (
   meeting_id TEXT NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
@@ -65,12 +69,41 @@ CREATE TABLE IF NOT EXISTS deleted_meetings (
   id TEXT PRIMARY KEY,
   deleted_at INTEGER NOT NULL
 );
+-- v4: nested folders; a meeting's folder_id null means unfiled.
+CREATE TABLE IF NOT EXISTS folders (
+  id TEXT PRIMARY KEY,
+  parent_id TEXT REFERENCES folders(id),
+  name TEXT NOT NULL,
+  sort INTEGER NOT NULL DEFAULT 0,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);
 -- v2: facts about this DB, such as when the browser meetings were first moved in.
 CREATE TABLE IF NOT EXISTS meta (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL
 );
 `;
+
+export type FolderErrorCode = 'not-found' | 'bad-name' | 'bad-parent' | 'cycle';
+
+/** A folder operation the tree cannot take; `code` says why. */
+export class FolderError extends Error {
+  constructor(readonly code: FolderErrorCode) {
+    super(code);
+  }
+}
+
+export const MAX_FOLDER_NAME = 200;
+
+/** A folder name trimmed and checked; throws `bad-name` when empty or too long. */
+function cleanFolderName(name: unknown): string {
+  const clean = typeof name === 'string' ? name.trim().replace(/\s+/g, ' ') : '';
+  if (!clean || clean.length > MAX_FOLDER_NAME) throw new FolderError('bad-name');
+  return clean;
+}
+
+export type FolderDeleteMode = 'move-up' | 'delete-contents';
 
 /** `'deleted'`: the meeting was deleted from this DB and is not stored again. */
 export type UpsertResult = 'written' | 'stale' | 'deleted';
@@ -101,11 +134,12 @@ function summaryRow(row: Row): MeetingSummaryRow {
     captureMode: (row.capture_mode as CaptureMode | null) ?? null,
     isDraft: num(row.is_draft) === 1,
     speakers: parseJson<string[]>(row.speaker_names, []),
+    folderId: row.folder_id === null ? null : str(row.folder_id),
   };
 }
 
 const SUMMARY_COLUMNS =
-  'm.id, m.title, m.created_at, m.updated_at, m.started_at, m.duration_seconds, m.segment_count, m.capture_mode, m.is_draft, m.speaker_names';
+  'm.id, m.title, m.created_at, m.updated_at, m.started_at, m.duration_seconds, m.segment_count, m.capture_mode, m.is_draft, m.speaker_names, m.folder_id';
 
 /**
  * FTS5 query from free text: every word becomes a quoted prefix term, all
@@ -133,6 +167,8 @@ export class MeetingsDb {
       // v3: participants. `CREATE TABLE IF NOT EXISTS` leaves an older table without the column.
       const columns = this.db.prepare('PRAGMA table_info(meetings)').all().map((c) => String(c.name));
       if (!columns.includes('participants')) this.db.exec('ALTER TABLE meetings ADD COLUMN participants TEXT');
+      // v4: folder_id.
+      if (!columns.includes('folder_id')) this.db.exec('ALTER TABLE meetings ADD COLUMN folder_id TEXT');
       this.db.exec(`PRAGMA user_version = ${SCHEMA_VERSION}`);
     }
     this.db.exec("INSERT INTO meetings_fts (meetings_fts, rank) VALUES ('secure-delete', 1)");
@@ -178,13 +214,17 @@ export class MeetingsDb {
     let shrunk = false;
     const result = this.transaction(() => {
       if (this.db.prepare('SELECT 1 FROM deleted_meetings WHERE id = ?').get(meeting.id)) return 'deleted';
-      const existing = this.db.prepare('SELECT updated_at, segment_count FROM meetings WHERE id = ?').get(meeting.id);
+      const existing = this.db.prepare('SELECT updated_at, segment_count, folder_id FROM meetings WHERE id = ?').get(meeting.id);
       if (existing) {
         const stored = num(existing.updated_at);
         if (stored > meeting.updatedAt || (opts.onlyIfNewer && stored === meeting.updatedAt)) return 'stale';
       }
       const segments = meeting.segments.slice().sort((a, b) => a.start - b.start);
       shrunk = !!existing && num(existing.segment_count) > segments.length;
+      // Absent `folderId` (a browser that knows no folders) keeps the filing; an unknown folder unfiles.
+      let folderId: string | null = null;
+      if (meeting.folderId === undefined) folderId = existing && existing.folder_id !== null ? str(existing.folder_id) : null;
+      else if (meeting.folderId !== null && this.folderExists(meeting.folderId)) folderId = meeting.folderId;
       const params = {
         id: meeting.id,
         title: meeting.title,
@@ -200,19 +240,20 @@ export class MeetingsDb {
         notes: JSON.stringify(meeting.notes),
         markdown_file: opts.markdownFile ?? null,
         participants: meeting.participants === null ? null : JSON.stringify(meeting.participants),
+        folder_id: folderId,
       };
       this.db
         .prepare(
           `INSERT INTO meetings (id, title, created_at, updated_at, started_at, duration_seconds, segment_count,
-             capture_mode, is_draft, speaker_names, summary, notes, markdown_file, participants)
+             capture_mode, is_draft, speaker_names, summary, notes, markdown_file, participants, folder_id)
            VALUES (:id, :title, :created_at, :updated_at, :started_at, :duration_seconds, :segment_count,
-             :capture_mode, :is_draft, :speaker_names, :summary, :notes, :markdown_file, :participants)
+             :capture_mode, :is_draft, :speaker_names, :summary, :notes, :markdown_file, :participants, :folder_id)
            ON CONFLICT(id) DO UPDATE SET title = excluded.title, created_at = excluded.created_at,
              updated_at = excluded.updated_at, started_at = excluded.started_at,
              duration_seconds = excluded.duration_seconds, segment_count = excluded.segment_count,
              capture_mode = excluded.capture_mode, is_draft = excluded.is_draft,
              speaker_names = excluded.speaker_names, summary = excluded.summary, notes = excluded.notes,
-             markdown_file = excluded.markdown_file, participants = excluded.participants`,
+             markdown_file = excluded.markdown_file, participants = excluded.participants, folder_id = excluded.folder_id`,
         )
         .run(params);
       const rowid = num(this.db.prepare('SELECT rowid FROM meetings WHERE id = ?').get(meeting.id)!.rowid);
@@ -251,18 +292,159 @@ export class MeetingsDb {
    * never stored again. Returns its Markdown file name, if it had one.
    */
   delete(id: string, now = Date.now()): { deleted: boolean; markdownFile: string | null } {
-    const result = this.transaction(() => {
-      this.db.prepare('INSERT OR IGNORE INTO deleted_meetings (id, deleted_at) VALUES (?, ?)').run(id, now);
-      const row = this.db.prepare('SELECT rowid, markdown_file FROM meetings WHERE id = ?').get(id);
-      if (!row) return { deleted: false, markdownFile: null };
-      this.db.prepare('DELETE FROM meetings_fts WHERE rowid = ?').run(row.rowid);
-      this.db.prepare('DELETE FROM segments WHERE meeting_id = ?').run(id);
-      this.db.prepare('DELETE FROM speakers WHERE meeting_id = ?').run(id);
-      this.db.prepare('DELETE FROM meetings WHERE id = ?').run(id);
-      return { deleted: true, markdownFile: row.markdown_file === null ? null : String(row.markdown_file) };
-    });
+    const result = this.transaction(() => this.deleteMeetingRows(id, now));
     this.scrub(result.deleted);
     return result;
+  }
+
+  /** The rows of one meeting delete; the single path `delete` and `deleteFolder` share. */
+  private deleteMeetingRows(id: string, now: number): { deleted: boolean; markdownFile: string | null } {
+    this.db.prepare('INSERT OR IGNORE INTO deleted_meetings (id, deleted_at) VALUES (?, ?)').run(id, now);
+    const row = this.db.prepare('SELECT rowid, markdown_file FROM meetings WHERE id = ?').get(id);
+    if (!row) return { deleted: false, markdownFile: null };
+    this.db.prepare('DELETE FROM meetings_fts WHERE rowid = ?').run(row.rowid);
+    this.db.prepare('DELETE FROM segments WHERE meeting_id = ?').run(id);
+    this.db.prepare('DELETE FROM speakers WHERE meeting_id = ?').run(id);
+    this.db.prepare('DELETE FROM meetings WHERE id = ?').run(id);
+    return { deleted: true, markdownFile: row.markdown_file === null ? null : String(row.markdown_file) };
+  }
+
+  private folderExists(id: string): boolean {
+    return !!this.db.prepare('SELECT 1 FROM folders WHERE id = ?').get(id);
+  }
+
+  /** `id` and every folder below it. */
+  private folderSubtree(id: string): string[] {
+    return this.db
+      .prepare(
+        `WITH RECURSIVE sub(id) AS (
+           SELECT id FROM folders WHERE id = ?
+           UNION SELECT f.id FROM folders f JOIN sub ON f.parent_id = sub.id
+         ) SELECT id FROM sub`,
+      )
+      .all(id)
+      .map((r) => String(r.id));
+  }
+
+  private nextSort(parentId: string | null): number {
+    const row = this.db
+      .prepare('SELECT COALESCE(MAX(sort), -1) + 1 AS next FROM folders WHERE parent_id IS ?')
+      .get(parentId);
+    return num(row?.next ?? 0);
+  }
+
+  private folderRow(id: string): FolderRow {
+    const r = this.db.prepare('SELECT * FROM folders WHERE id = ?').get(id);
+    if (!r) throw new FolderError('not-found');
+    return {
+      id: str(r.id),
+      parentId: r.parent_id === null ? null : str(r.parent_id),
+      name: str(r.name),
+      sort: num(r.sort),
+      createdAt: num(r.created_at),
+      updatedAt: num(r.updated_at),
+    };
+  }
+
+  /** Every folder, siblings in `sort` order (then name); build the tree from `parentId`. */
+  listFolders(): FolderRow[] {
+    return this.db
+      .prepare('SELECT id FROM folders ORDER BY sort, name COLLATE NOCASE, id')
+      .all()
+      .map((r) => this.folderRow(String(r.id)));
+  }
+
+  /** New folder under `parentId` (null: the root), last among its siblings. Throws `bad-name` / `bad-parent`. */
+  createFolder(name: string, parentId: string | null = null, now = Date.now(), id = randomUUID()): FolderRow {
+    const clean = cleanFolderName(name);
+    return this.transaction(() => {
+      if (parentId !== null && !this.folderExists(parentId)) throw new FolderError('bad-parent');
+      this.db
+        .prepare('INSERT INTO folders (id, parent_id, name, sort, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)')
+        .run(id, parentId, clean, this.nextSort(parentId), now, now);
+      return this.folderRow(id);
+    });
+  }
+
+  renameFolder(id: string, name: string, now = Date.now()): FolderRow {
+    const clean = cleanFolderName(name);
+    return this.transaction(() => {
+      this.folderRow(id);
+      this.db.prepare('UPDATE folders SET name = ?, updated_at = ? WHERE id = ?').run(clean, now, id);
+      return this.folderRow(id);
+    });
+  }
+
+  /**
+   * Re-parent a folder (null: the root), last among its new siblings. Throws
+   * `not-found`, `bad-parent` (no such parent) or `cycle` (the folder itself or
+   * one of its descendants).
+   */
+  moveFolder(id: string, parentId: string | null, now = Date.now()): FolderRow {
+    return this.transaction(() => {
+      this.folderRow(id);
+      if (parentId !== null) {
+        if (!this.folderExists(parentId)) throw new FolderError('bad-parent');
+        if (this.folderSubtree(id).includes(parentId)) throw new FolderError('cycle');
+      }
+      this.db
+        .prepare('UPDATE folders SET parent_id = ?, sort = ?, updated_at = ? WHERE id = ?')
+        .run(parentId, this.nextSort(parentId), now, id);
+      return this.folderRow(id);
+    });
+  }
+
+  /**
+   * File a meeting in a folder (null: unfile). Bumps `updated_at` so browsers
+   * pull the change. Throws `not-found` for a missing meeting, `bad-parent` for a missing folder.
+   */
+  moveMeeting(meetingId: string, folderId: string | null, now = Date.now()): void {
+    this.transaction(() => {
+      if (!this.db.prepare('SELECT 1 FROM meetings WHERE id = ?').get(meetingId)) throw new FolderError('not-found');
+      if (folderId !== null && !this.folderExists(folderId)) throw new FolderError('bad-parent');
+      this.db
+        .prepare('UPDATE meetings SET folder_id = ?, updated_at = MAX(updated_at + 1, ?) WHERE id = ?')
+        .run(folderId, now, meetingId);
+    });
+  }
+
+  /**
+   * Delete a folder. `move-up`: its subfolders and meetings go to its parent.
+   * `delete-contents`: every folder below it and every meeting in them are
+   * deleted, each meeting through the same path as `delete` (remembered, scrubbed).
+   * Returns the Markdown files of the deleted meetings.
+   */
+  deleteFolder(
+    id: string,
+    mode: FolderDeleteMode,
+    now = Date.now(),
+  ): { folders: number; meetings: number; markdownFiles: string[] } {
+    const out = this.transaction(() => {
+      const folder = this.folderRow(id);
+      if (mode === 'move-up') {
+        this.db.prepare('UPDATE folders SET parent_id = ?, updated_at = ? WHERE parent_id = ?').run(folder.parentId, now, id);
+        this.db
+          .prepare('UPDATE meetings SET folder_id = ?, updated_at = MAX(updated_at + 1, ?) WHERE folder_id = ?')
+          .run(folder.parentId, now, id);
+        this.db.prepare('DELETE FROM folders WHERE id = ?').run(id);
+        return { folders: 1, meetings: 0, markdownFiles: [] as string[] };
+      }
+      const ids = this.folderSubtree(id);
+      const marks = ids.map(() => '?').join(',');
+      const meetingIds = this.db
+        .prepare(`SELECT id FROM meetings WHERE folder_id IN (${marks})`)
+        .all(...ids)
+        .map((r) => String(r.id));
+      const markdownFiles: string[] = [];
+      for (const mid of meetingIds) {
+        const r = this.deleteMeetingRows(mid, now);
+        if (r.markdownFile) markdownFiles.push(r.markdownFile);
+      }
+      this.db.prepare(`DELETE FROM folders WHERE id IN (${marks})`).run(...ids);
+      return { folders: ids.length, meetings: meetingIds.length, markdownFiles };
+    });
+    this.scrub(out.meetings > 0);
+    return out;
   }
 
   /**
@@ -372,6 +554,7 @@ export class MeetingsDb {
       speakers,
       notes,
       participants: parseJson<string[] | null>(row.participants, null),
+      folderId: row.folder_id === null ? null : str(row.folder_id),
     };
   }
 }
