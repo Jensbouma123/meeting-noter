@@ -2,7 +2,7 @@
 // base) in a scratch HOME. sw_vers and sysctl are replaced through PATH so the
 // macOS version and arch checks can be driven; launchd is never touched.
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { createConnection, createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -45,8 +45,8 @@ function release(version: string, { arch = 'arm64', helper = 'helper-v1' } = {})
   execFileSync('/bin/sh', ['-c', `shasum -a 256 ${asset} > ${asset}.sha256`], { cwd: base });
 }
 
-function run(script: string, env: Record<string, string> = {}) {
-  const r = spawnSync('/bin/bash', [script], {
+function run(script: string, env: Record<string, string> = {}, args: string[] = []) {
+  const r = spawnSync('/bin/bash', [script, ...args], {
     env: {
       NODE_ENV: 'test',
       PATH: `${shims}:/usr/bin:/bin:/usr/sbin:/sbin`,
@@ -312,5 +312,45 @@ describe.skipIf(process.platform !== 'darwin')('install.sh', () => {
     expect(existsSync(root())).toBe(false);
     expect(existsSync(path.join(home, 'Applications/Meeting Noter.app'))).toBe(false);
     expect(existsSync(path.join(home, 'Library/LaunchAgents/nl.jensbouma.meeting-noter.server.plist'))).toBe(false);
+  });
+
+  /** The app's meetings DB (with its WAL files) and Markdown copies, as the server writes them. */
+  function seedMeetings() {
+    for (const f of ['meetings.db', 'meetings.db-wal', 'meetings.db-shm']) writeFileSync(path.join(root(), f), f);
+    mkdirSync(path.join(root(), 'meetings'), { recursive: true });
+    writeFileSync(path.join(root(), 'meetings/2026-11-12-standup-abc.md'), '# Standup\n');
+  }
+
+  it('an update keeps the meetings database and Markdown files', () => {
+    release('0.2.0');
+    expect(run(INSTALL).code).toBe(0);
+    seedMeetings();
+    release('0.2.1');
+    const r = run(INSTALL);
+    expect(r.code, r.out).toBe(0);
+    expect(readFileSync(path.join(root(), 'app/VERSION'), 'utf8').trim()).toBe('0.2.1');
+    expect(readFileSync(path.join(root(), 'meetings.db'), 'utf8')).toBe('meetings.db');
+    expect(existsSync(path.join(root(), 'meetings/2026-11-12-standup-abc.md'))).toBe(true);
+  });
+
+  it('uninstall.sh keeps the meetings unless asked to delete them', () => {
+    release('0.2.0');
+    expect(run(INSTALL).code).toBe(0);
+    seedMeetings();
+    const r = run(path.join(root(), 'uninstall.sh'));
+    expect(r.code, r.out).toBe(0);
+    expect(r.out).toContain('meetings.db');
+    expect(readdirSync(root()).sort()).toEqual(['meetings', 'meetings.db', 'meetings.db-shm', 'meetings.db-wal']);
+    expect(existsSync(path.join(root(), 'meetings/2026-11-12-standup-abc.md'))).toBe(true);
+    expect(existsSync(path.join(home, 'Applications/Meeting Noter.app'))).toBe(false);
+  });
+
+  it('uninstall.sh --delete-meetings removes the meetings too', () => {
+    release('0.2.0');
+    expect(run(INSTALL).code).toBe(0);
+    seedMeetings();
+    const r = run(path.join(root(), 'uninstall.sh'), {}, ['--delete-meetings']);
+    expect(r.code, r.out).toBe(0);
+    expect(existsSync(root())).toBe(false);
   });
 });

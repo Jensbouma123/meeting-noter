@@ -1,7 +1,7 @@
 #!/bin/bash
 # Builds build/installer/meeting-noter-macos-<arch>.tar.gz and its .sha256 for
 # scripts/installer/install.sh: the Next.js standalone server, a pinned Node.js runtime,
-# the ad-hoc signed audio helper and the .app launcher. Run on a Mac of the
+# the ad-hoc signed audio helper, the .app launcher and the meetings MCP server. Run on a Mac of the
 # target arch (the server's native modules, such as sharp, are installed per
 # arch by `npm ci`); needs Node.js, npm dependencies and the Xcode command line
 # tools. Used by .github/workflows/release.yml.
@@ -66,6 +66,12 @@ for s in 16 32 128 256 512; do
   sips -z $((s * 2)) $((s * 2)) "$out/stage/icon.png" --out "$iconset/icon_${s}x${s}@2x.png" >/dev/null
 done
 iconutil -c icns "$iconset" -o "$stage/launcher/AppIcon.icns"
+
+# 5. Meetings MCP server for AI agents (docs/MCP.md): one file, run by the bundled node.
+mkdir -p "$stage/mcp"
+MCP_OUT="$stage/mcp/meetings-mcp.mjs" npx rolldown -c scripts/mcp/rolldown.config.mjs
+"$stage/node/bin/node" -e 'import(process.argv[1])' "$stage/mcp/meetings-mcp.mjs" </dev/null >/dev/null 2>&1 \
+  || { echo "staged MCP server does not load" >&2; exit 1; }
 
 cp scripts/installer/convert-parakeet-v3.py "$stage/convert-parakeet-v3.py"
 cp scripts/installer/uninstall.sh "$stage/uninstall.sh"
