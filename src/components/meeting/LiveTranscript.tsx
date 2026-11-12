@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { useEffect, useEffectEvent, useMemo, useRef, useState, useCallback } from 'react';
 import type { Segment, Speaker, Status, SystemVia } from '@/lib/meeting';
 import { formatClock, splitTranscript } from '@/lib/meeting/export';
 import { TranscriptTurn } from './TranscriptTurn';
@@ -120,8 +120,6 @@ export function LiveTranscript({
   const stickRef = useRef(true);
   const [stuck, setStuck] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
-  const searchOpenRef = useRef(false);
-  const autoScrollRef = useRef(autoScrollEnabled);
   // Bumped when the mounted window of lines changes while searching, so the
   // search re-applies its highlights to the freshly mounted rows.
   const [windowVersion, setWindowVersion] = useState(0);
@@ -129,13 +127,6 @@ export function LiveTranscript({
   const ringRef = useRef<Element | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const fixWord = useCallback((heard: string, word: string) => meeting.fixWord(heard, word), []);
-
-  useEffect(() => {
-    autoScrollRef.current = autoScrollEnabled;
-  }, [autoScrollEnabled]);
-  useEffect(() => {
-    searchOpenRef.current = searchOpen;
-  }, [searchOpen]);
 
   const getScrollElement = useCallback((): HTMLElement | null => {
     return listRef.current?.getScrollElement() ?? null;
@@ -163,11 +154,6 @@ export function LiveTranscript({
       ),
     [segments],
   );
-  const linesRef = useRef(lines);
-  useEffect(() => {
-    linesRef.current = lines;
-  }, [lines]);
-
   const isIdle = status === 'idle' && segments.length === 0;
   const listening = (status === 'live' || status === 'paused') && segments.length === 0;
   const showList = lines.length > 0;
@@ -182,6 +168,11 @@ export function LiveTranscript({
   // we listen to it directly. Rows above the fold re-measure (and the spacer
   // height changes) after we've scrolled, so the spacer's ResizeObserver
   // re-pins the end in the same frame instead of leaving a gap.
+  // Reads the latest `autoScrollEnabled` without re-subscribing the observer.
+  const stickOnResize = useEffectEvent(() => {
+    if (stickRef.current && autoScrollEnabled) stickToEnd();
+  });
+
   useEffect(() => {
     const el = getScrollElement();
     if (!el || !showList) return;
@@ -196,9 +187,7 @@ export function LiveTranscript({
     if (typeof ResizeObserver !== 'undefined') {
       const spacer = el.firstElementChild;
       let width = el.clientWidth;
-      observer = new ResizeObserver(() => {
-        if (stickRef.current && autoScrollRef.current) stickToEnd();
-      });
+      observer = new ResizeObserver(() => stickOnResize());
       if (spacer) observer.observe(spacer);
       // A width change rewraps every line, so cached heights of unmounted rows
       // are stale: drop them and let mounted rows re-measure.
@@ -215,7 +204,7 @@ export function LiveTranscript({
       };
     }
     return () => el.removeEventListener('scroll', onScroll);
-  }, [getScrollElement, showList, stickToEnd]);
+  }, [getScrollElement, showList]);
 
   // Keyboard-shortcut contract: the global handler dispatches 'mn:search'.
   useEffect(() => {
@@ -251,12 +240,11 @@ export function LiveTranscript({
     ringRef.current = null;
   }, []);
 
-  useEffect(() => {
-    if (!searchOpen) {
-      clearRing();
-      pendingSegRef.current = null;
-    }
-  }, [searchOpen, clearRing]);
+  const closeSearch = useCallback(() => {
+    setSearchOpen(false);
+    clearRing();
+    pendingSegRef.current = null;
+  }, [clearRing]);
 
   // TranscriptSearch finds a match's line with `querySelector` on the viewport.
   // Virtualised, an off-screen line isn't there: on that miss we scroll it
@@ -271,7 +259,7 @@ export function LiveTranscript({
         const wanted = SEG_SELECTOR.exec(selector)?.[1];
         if (wanted === undefined) return null;
         let segId: string | undefined;
-        const index = linesRef.current.findIndex((item) => {
+        const index = lines.findIndex((item) => {
           segId = itemSegments(item).find((seg) => cssEscape(seg.id) === wanted)?.id;
           return segId !== undefined;
         });
@@ -284,7 +272,7 @@ export function LiveTranscript({
       querySelectorAll: (selector: string) => el.querySelectorAll(selector),
     };
     return root as unknown as HTMLElement;
-  }, [getScrollElement, clearRing]);
+  }, [getScrollElement, clearRing, lines]);
 
   // VirtualList reports a fresh range object on every render, so compare the
   // bounds or this would loop.
@@ -293,8 +281,8 @@ export function LiveTranscript({
     const last = lastRangeRef.current;
     if (last.start === range.start && last.end === range.end) return;
     lastRangeRef.current = range;
-    if (searchOpenRef.current) setWindowVersion((v) => v + 1);
-  }, []);
+    if (searchOpen) setWindowVersion((v) => v + 1);
+  }, [searchOpen]);
 
   // Once a jumped-to line is mounted, ring it and centre it exactly (the row
   // heights above it were estimates when we first scrolled).
@@ -572,7 +560,7 @@ export function LiveTranscript({
             <TranscriptSearch
               segments={searchSegments}
               getScrollElement={getSearchRoot}
-              onClose={() => setSearchOpen(false)}
+              onClose={closeSearch}
               onNavigatedAway={leaveLiveEdge}
             />
           </div>

@@ -90,18 +90,12 @@ export function TranscriptSearch({
   const t = useT('transcript');
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
-  const inputRef = useRef<HTMLInputElement>(null);
   const activeTurnRef = useRef<Element | null>(null);
   const lastScrolledKeyRef = useRef<string | null>(null);
 
   const matches = useMemo(() => findMatches(segments, query), [segments, query]);
   const clampedActive = matches.length === 0 ? 0 : Math.min(active, matches.length - 1);
   const activeMatch = matches.length === 0 ? null : matches[clampedActive];
-
-  // Focus the input as soon as the bar opens (mn:search may fire from anywhere).
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
 
   // (active resets to the first match in the input onChange below)
 
@@ -240,7 +234,7 @@ export function TranscriptSearch({
     >
       <HStack spacing="xs" className="w-full">
         <Input
-          ref={inputRef}
+          autoFocus
           type="search"
           size="sm"
           value={query}

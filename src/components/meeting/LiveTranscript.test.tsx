@@ -277,6 +277,51 @@ describe('LiveTranscript virtualised list', () => {
     expect(line!.classList.contains('mn-search-active-turn')).toBe(true);
   });
 
+  it('focuses the search field when it opens', () => {
+    render(view(twoTurns()));
+    act(() => {
+      window.dispatchEvent(new Event('mn:search'));
+    });
+    expect(document.activeElement).toBe(screen.getByPlaceholderText('Search transcript…'));
+  });
+
+  it('closing search removes the bar and clears the active match ring', () => {
+    const many = Array.from({ length: 200 }, (_, i) =>
+      seg(`s${i}`, i % 2 ? 'mic:1' : 'mic:0', i * 40, i === 150 ? 'needle in here' : `line ${i}`),
+    );
+    const { container } = render(view(many));
+    act(() => {
+      window.dispatchEvent(new Event('mn:search'));
+    });
+    fireEvent.change(screen.getByPlaceholderText('Search transcript…'), { target: { value: 'needle' } });
+    expect(container.querySelector('.mn-search-active-turn')).not.toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: /close/i }));
+    expect(screen.queryByPlaceholderText('Search transcript…')).toBeNull();
+    expect(container.querySelector('.mn-search-active-turn')).toBeNull();
+  });
+
+  it('does not stick to the end on resize once auto-scroll is switched off', () => {
+    const live = (enabled: boolean) => (
+      <LiveTranscript
+        segments={twoTurns()}
+        speakers={speakers}
+        status="live"
+        autoScrollEnabled={enabled}
+        onStartRecording={() => {}}
+        modelReady
+        onOpenSettings={() => {}}
+      />
+    );
+    const { container, rerender } = render(live(true));
+    const el = scroller(container);
+    // Still at the live edge, but auto-scroll is now off: a resize must not re-pin.
+    rerender(live(false));
+    el.scrollTop = 0;
+    resize(el.firstElementChild!, 9000);
+    expect(el.scrollTop).toBe(0);
+  });
+
   it('shows a placeholder for an unconfirmed line and the name once confirmed', () => {
     const { container, rerender } = render(view([{ ...seg('p', 'mic:1', 0), unconfirmed: true }]));
     const pending = container.querySelector('[data-speaker-pending]');
