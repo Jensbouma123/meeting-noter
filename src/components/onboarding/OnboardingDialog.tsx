@@ -7,8 +7,8 @@ import {
   formatBytes,
   initiateDownloads,
   retryDownload,
-  probeRegisteredModelSizes,
 } from '@/lib/asr/browser';
+import { useModelSizesKnown } from '@/components/models/useModelSizesKnown';
 import {
   getServerSnapshot,
   getState,
@@ -58,8 +58,8 @@ function OnboardingSteps({
   const [stepId, setStepId] = useState<StepId>('welcome');
   const step = STEPS.indexOf(stepId) + 1;
   const { entries: words } = useVocabulary();
-  const [sizeKnown, setSizeKnown] = useState(false);
   const { entries } = useSyncExternalStore(subscribeRegistry, getState, getServerSnapshot);
+  const sizeKnown = useModelSizesKnown(entries);
   const list = Object.values(entries).filter((e) => e.status !== 'unavailable');
   const modelsReady = list.length > 0 && list.every((e) => e.status === 'cached');
   const downloading = list.filter((e) => e.status === 'downloading');
@@ -75,18 +75,6 @@ function OnboardingSteps({
   useEffect(() => {
     setDialogVisible(false);
   }, []);
-
-  // The size is measured, not guessed (see ModelConsentDialog).
-  useEffect(() => {
-    let cancelled = false;
-    if (Object.keys(entries).length === 0) return;
-    void probeRegisteredModelSizes().then(() => {
-      if (!cancelled) setSizeKnown(true);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [entries]);
 
   const startDownload = () => {
     const keys = Object.keys(entries);

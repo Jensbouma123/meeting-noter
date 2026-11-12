@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useState, useSyncExternalStore } from 'react';
+import { useId, useSyncExternalStore } from 'react';
 import { CheckCircle2, Download, Info, Loader2, TriangleAlert, XCircle } from 'lucide-react';
 import {
   formatBytes,
@@ -8,7 +8,6 @@ import {
   cancelDownloads,
   initiateDownloads,
   retryDownload,
-  probeRegisteredModelSizes,
   type ModelEntry,
   type ModelProgress,
   type ModelStatus,
@@ -40,6 +39,7 @@ import {
   VStack,
 } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
+import { useModelSizesKnown } from './useModelSizesKnown';
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
@@ -78,7 +78,7 @@ export function ModelConsentDialog({ onDismiss }: ConsentDialogProps) {
     getServerSnapshot
   );
   const titleId = useId();
-  const [sizeKnown, setSizeKnown] = useState(false);
+  const sizeKnown = useModelSizesKnown(entries);
   // The engine's own preparation state, so this dialog shows the same
   // percentage the recording banner does. It is the *only* thing that can
   // report the initialization half (ORT reports no progress), and without it
@@ -86,21 +86,6 @@ export function ModelConsentDialog({ onDismiss }: ConsentDialogProps) {
   // model whose bytes were already on disk, is seconds after the user pressed
   // Download. See `ModelPreparationProgress.tsx`.
   const preparation = useModelPreparation();
-
-  // The stated size is the single most important number in this dialog, and it
-  // cannot come from a constant: the encoder's weights live in a 2.4 GB
-  // external `.data` blob that no hand-written estimate accounts for. Measure
-  // it before asking the user to commit to the download.
-  useEffect(() => {
-    let cancelled = false;
-    if (Object.keys(entries).length === 0) return;
-    void probeRegisteredModelSizes().then(() => {
-      if (!cancelled) setSizeKnown(true);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [entries]);
 
   const anyCached = Object.values(entries).some((e) => e.status === 'cached');
   const anyFailed = Object.values(entries).some((e) => e.status === 'failed');
