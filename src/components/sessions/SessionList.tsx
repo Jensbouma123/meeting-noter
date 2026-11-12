@@ -8,7 +8,6 @@ import {
   Badge,
   Button,
   ConfirmDialog,
-  Divider,
   Drawer,
   DropdownMenu,
   DropdownMenuContent,
@@ -256,7 +255,7 @@ export function SessionSidebar({
         as="header"
         spacing="sm"
         justify="between"
-        className="h-14 shrink-0 border-b border-border-subtle px-3"
+        className="h-14 box-border shrink-0 border-b border-border-subtle px-3"
       >
         <HStack spacing="sm" className="min-w-0 flex-1">
           <Video className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -385,17 +384,23 @@ export function SessionSidebar({
         {open ? (
           railBody
         ) : (
-          <VStack spacing="lg" align="center" className="h-full py-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              iconOnly
-              onClick={onToggle}
-              tooltip={t('show')}
-              leadingIcon={<PanelLeftOpen className="size-4" />}
-              className="touch-target-44"
-            />
-            <Divider className="w-8" />
+          <VStack spacing="lg" align="center" className="h-full">
+            <HStack
+              as="header"
+              align="center"
+              justify="center"
+              className="h-14 w-full box-border shrink-0 border-b border-border-subtle"
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                iconOnly
+                onClick={onToggle}
+                tooltip={t('show')}
+                leadingIcon={<PanelLeftOpen className="size-4" />}
+                className="touch-target-44"
+              />
+            </HStack>
             <Button
               variant="ghost"
               size="sm"

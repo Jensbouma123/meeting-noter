@@ -262,7 +262,7 @@ export function TopBar({
       justify="between"
       align="center"
       data-testid="meeting-topbar"
-      className="h-auto min-h-14 w-full max-w-full shrink-0 select-none overflow-hidden border-b border-border-subtle bg-surface/70 px-2 py-1 backdrop-blur-md sm:h-14 sm:py-0 sm:px-6 max-sm:flex-wrap max-sm:gap-x-1 max-sm:gap-y-1"
+      className="h-auto min-h-14 box-border w-full max-w-full shrink-0 select-none overflow-hidden border-b border-border-subtle bg-surface/70 px-2 py-1 backdrop-blur-md sm:h-14 sm:py-0 sm:px-6 max-sm:flex-wrap max-sm:gap-x-1 max-sm:gap-y-1"
     >
       {/* Left: Meeting title (editable) */}
       <HStack spacing="xs" className="min-w-0 flex-1 overflow-hidden max-sm:basis-full">
