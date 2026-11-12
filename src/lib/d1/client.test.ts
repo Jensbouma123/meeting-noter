@@ -215,6 +215,15 @@ describe('d1 worker handler', () => {
     const res1 = out.find((m) => m.type === 'result' && m.id === 'req-1');
     expect(res1 && res1.type === 'result' ? res1.answers : []).toHaveLength(6);
 
+    expect(out.filter((m) => m.type === 'stage' && m.id === 'req-1')).toEqual([
+      { type: 'stage', id: 'req-1', stage: { kind: 'loading' } },
+      { type: 'stage', id: 'req-1', stage: { kind: 'session' } },
+      { type: 'stage', id: 'req-1', stage: { kind: 'sending', batch: 1 } },
+      { type: 'stage', id: 'req-1', stage: { kind: 'waiting' } },
+      { type: 'stage', id: 'req-1', stage: { kind: 'sending', batch: 2 } },
+      { type: 'stage', id: 'req-1', stage: { kind: 'waiting' } },
+    ]);
+
     await handle({ type: 'dispose', id: 'disp-1' });
     expect(sessionReleased).toBe(true);
     expect(out).toContainEqual({ type: 'disposed', id: 'disp-1' });
