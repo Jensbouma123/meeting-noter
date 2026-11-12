@@ -1,6 +1,6 @@
 {
   "name": "@jensbouma123/acciva-ui",
-  "version": "0.17.10",
+  "version": "0.17.11",
   "description": "Agent-first component library, logger, and API client layers.",
   "type": "module",
   "main": "./dist/index.js",
@@ -96,7 +96,7 @@
     "test:e2e": "playwright test",
     "test:lighthouse": "lhci autorun --config=./lighthouserc.cjs",
     "audit:lighthouse": "lhci autorun --config=./lighthouserc.cjs",
-    "build:lib": "rm -rf dist && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json && node src/cli/fix-dist-imports.mjs dist && node scripts/emit-subpath-shims.mjs dist && mkdir -p dist/styles && cp src/styles/tokens.css dist/styles/tokens.css && cp src/styles/base.css dist/styles/base.css && cp -R src/styles/base dist/styles/ && chmod +x dist/cli/index.js && node scripts/build-registry.ts",
+    "build:lib": "rm -rf dist && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json && node src/cli/fix-dist-imports.mjs dist && node scripts/emit-subpath-shims.mjs dist && mkdir -p dist/styles && cp src/styles/tokens.css dist/styles/tokens.css && cp src/styles/base.css dist/styles/base.css && cp -R src/styles/base dist/styles/ && chmod +x dist/cli/index.js && node scripts/build-registry.ts && node scripts/check-no-position-try.mjs dist/styles",
     "publish:local": "npm run build:lib && npx yalc publish --push",
     "prepack": "npm run build:lib",
     "prepublishOnly": "npm run build:lib",

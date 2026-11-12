@@ -3,15 +3,17 @@
    `data-align` picks the `position-area` span; `flip-*` moves it on viewport collision and
    `--dropdown-offset` (the `sideOffset` prop) is the gap. Without anchor positioning it docks
    to the bottom edge like a sheet. When neither inline side of the trigger fits the menu, the
-   `--menu-span*` tries use the full-width row centred on the trigger (`safe`: shifted back
-   inside near an edge); `max-inline-size` bounds it to the viewport minus the safe-area-aware
+   `block-end|block-start span-all` tries use the full-width row (inline `position-area`
+   values: custom at-rule blocks do not parse in Lightning CSS); `max-inline-size`
+   bounds it to the viewport minus the safe-area-aware
    `--overlay-gutter` (popovers.css), SC 1.4.10.
    Block size: `max-block-size` is a percentage of the `position-area` containing block, i.e. the
    space on the side it opened, minus the offset and the gutter, so a tall menu scrolls inside
    instead of running off a short viewport (SC 1.4.10, 2.4.11). Since that always fits, the side
    comes from `position-try-order: most-block-size` (as the UA `::picker(select)`): it opens
    where there is more room; ties keep the list order. The far margin is the gutter, the near one
-   the offset: `flip-block` swaps them, `--menu-span-up` states them. */
+   the offset: `flip-block` swaps them; the `span-all` tries keep the base margins (offset above, gutter
+   below) and the base `justify-self`, so the row is start-aligned, not centred on the trigger. */
 .dropdown-menu {
   position: fixed;
   inset: auto;
@@ -53,15 +55,6 @@
 }
 
 @supports (anchor-name: --a) {
-  @position-try --menu-span {
-    position-area: block-end span-all;
-    justify-self: safe anchor-center;
-  }
-  @position-try --menu-span-up {
-    position-area: block-start span-all;
-    justify-self: safe anchor-center;
-    margin-block: var(--overlay-gutter) var(--dropdown-offset, calc(var(--spacing) * 1));
-  }
   .dropdown-menu {
     margin-block: var(--dropdown-offset, calc(var(--spacing) * 1)) var(--overlay-gutter);
     margin-inline: var(--overlay-gutter);
@@ -69,7 +62,7 @@
     position-area: block-end span-inline-end;
     position-try-order: most-block-size;
     position-try-fallbacks:
-      flip-block, flip-inline, flip-block flip-inline, --menu-span, --menu-span-up;
+      flip-block, flip-inline, flip-block flip-inline, block-end span-all, block-start span-all;
   }
   .dropdown-menu[data-align="end"] {
     position-area: block-end span-inline-start;
