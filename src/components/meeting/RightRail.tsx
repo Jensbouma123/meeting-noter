@@ -196,8 +196,8 @@ function RailTabs({
     document.getElementById(`rail-tab-${RAIL_TABS[next]}`)?.focus();
   };
   return (
-    <HStack spacing="sm" justify="between" align="center" className="shrink-0 border-b border-border-subtle px-4">
-      <div role="tablist" aria-label={t('tabs')} onKeyDown={onKeyDown} className="flex min-w-0 gap-4">
+    <div className="flex shrink-0 items-stretch justify-between gap-2 border-b border-border-subtle px-4">
+      <div role="tablist" aria-label={t('tabs')} onKeyDown={onKeyDown} className="flex min-w-0 items-stretch gap-4">
         {RAIL_TABS.map((tab) => {
           const selected = tab === active;
           return (
@@ -210,24 +210,25 @@ function RailTabs({
               aria-controls={`rail-panel-${tab}`}
               tabIndex={selected ? 0 : -1}
               onClick={() => onChange(tab)}
-              className={`-mb-px flex items-center gap-1.5 whitespace-nowrap border-b-2 py-3 text-sm font-semibold transition-colors ${
-                selected
-                  ? 'border-current text-foreground'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              className={`relative flex items-center gap-1.5 whitespace-nowrap py-3 text-sm font-semibold transition-colors ${
+                selected ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               {t(tab)}
               {tab === 'participants' && (
-                <Badge variant="neutral" size="sm">
+                <Badge variant="neutral" size="xs" className="leading-none">
                   {count}
                 </Badge>
+              )}
+              {selected && (
+                <span aria-hidden="true" className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-primary-500" />
               )}
             </button>
           );
         })}
       </div>
-      {trailing}
-    </HStack>
+      {trailing && <div className="flex items-center">{trailing}</div>}
+    </div>
   );
 }
 
