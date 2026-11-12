@@ -1,5 +1,6 @@
 export const sidebar = {
   en: {
+    today: 'Today', yesterday: 'Yesterday',
     meetings: 'Meetings', new: 'New meeting', search: 'Search meetings', noResults: 'No meetings found',
     empty: 'No meetings yet', emptyHint: 'Meetings you record show up here.', show: 'Show meetings list', hide: 'Hide meetings list',
     open: 'Open', clear: 'Clear transcript', delete: 'Delete meeting', more: 'More actions for “{title}”',
@@ -14,6 +15,7 @@ export const sidebar = {
     nameError: 'Enter a name for the meeting.', createError: 'Couldn’t create the meeting. Try again.',
   },
   nl: {
+    today: 'Vandaag', yesterday: 'Gisteren',
     meetings: 'Meetings', new: 'Nieuwe meeting', search: 'Zoek in meetings', noResults: 'Geen meetings gevonden',
     empty: 'Nog geen meetings', emptyHint: 'Meetings die je opneemt verschijnen hier.', show: 'Toon meetings', hide: 'Verberg meetings',
     open: 'Openen', clear: 'Transcript wissen', delete: 'Meeting verwijderen', more: 'Meer acties voor “{title}”',

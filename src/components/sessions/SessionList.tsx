@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
+import { useState, useCallback, useContext, useEffect, useMemo, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { clearSessionTranscript, deleteSession, isSessionRecording, listSessions, type SessionMetadata } from '@/lib/meeting/session-store';
 import { subscribe as subscribeMeetingStore } from '@/lib/meeting/store';
@@ -46,6 +46,7 @@ import { purgeExpiredSessions } from '@/lib/meeting/retention';
 import { loadSettings } from '@/components/meeting/types';
 import { openCount } from '@/lib/meeting/notes';
 import { useT } from '@/lib/i18n/useT';
+import { LanguageContext } from '@/lib/i18n/LanguageContext';
 
 /* -------------------------------------------------------------------------- */
 /* Formatting helpers                                                         */
@@ -228,9 +229,16 @@ export function SessionSidebar({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounced(query, 200);
+  const language = useContext(LanguageContext) ?? 'en';
+  const todayLabel = t('today');
+  const yesterdayLabel = t('yesterday');
   const groups = useMemo(
-    () => groupSessionsByDay(filterSessions(sessions, debouncedQuery, transcriptText)),
-    [sessions, debouncedQuery],
+    () =>
+      groupSessionsByDay(filterSessions(sessions, debouncedQuery, transcriptText), undefined, language, {
+        today: todayLabel,
+        yesterday: yesterdayLabel,
+      }),
+    [sessions, debouncedQuery, language, todayLabel, yesterdayLabel],
   );
 
   // Opened from the headers' "Show meetings" buttons below lg.
@@ -308,7 +316,7 @@ export function SessionSidebar({
       )}
 
       {/* Rail body */}
-      <VStack spacing="none" fill className="flex-1 overflow-y-auto">
+      <VStack spacing="none" fill className="flex-1 scroll-pt-10 overflow-y-auto">
         {sessions.length === 0 ? (
           <EmptyState
             size="sm"
@@ -335,7 +343,7 @@ export function SessionSidebar({
               <h3 className="sticky top-0 z-10 bg-surface px-3 py-1.5 text-xs font-semibold text-muted-foreground">
                 {group.label}
               </h3>
-              <VStack spacing="none" className="w-full px-2 pb-2">
+              <VStack spacing="none" className="w-full px-3 pb-2 pt-1">
                 {group.sessions.map((session) => (
                   <RailSessionRow
                     key={session.sessionId}

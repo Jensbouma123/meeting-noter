@@ -358,7 +358,7 @@ export function RightRail({ sessionId, segments = [] }: { sessionId: string; seg
     >
       <VStack spacing="sm" className="h-full min-h-0 p-4">
         <RailTabs active={activeTab} onChange={setActiveTab} count={speakerStatRows.length} />
-        <VStack spacing="sm" role="tabpanel" id={`rail-panel-${activeTab}`} aria-labelledby={`rail-tab-${activeTab}`} className="min-h-0 flex-1 overflow-y-auto pb-4">
+        <VStack spacing="sm" role="tabpanel" id={`rail-panel-${activeTab}`} aria-labelledby={`rail-tab-${activeTab}`} className="min-h-0 flex-1 overflow-y-auto px-1 pt-1 pb-4">
           {activeTab === 'participants' ? list : <NotesPanel sessionId={sessionId} speakers={speakerStatRows.map((row) => ({ id: row.id, label: row.label, colorIndex: row.colorIndex, source: row.source }))} segments={segments} />}
         </VStack>
       </VStack>
@@ -418,7 +418,7 @@ export function RightRail({ sessionId, segments = [] }: { sessionId: string; seg
             />
           }
         />
-        <VStack spacing="sm" role="tabpanel" id={`rail-panel-${activeTab}`} aria-labelledby={`rail-tab-${activeTab}`} className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+        <VStack spacing="sm" role="tabpanel" id={`rail-panel-${activeTab}`} aria-labelledby={`rail-tab-${activeTab}`} className="min-h-0 flex-1 overflow-y-auto px-4 pt-1 pb-4">
           {activeTab === 'participants' ? list : <NotesPanel sessionId={sessionId} speakers={speakerStatRows.map((row) => ({ id: row.id, label: row.label, colorIndex: row.colorIndex, source: row.source }))} segments={segments} />}
         </VStack>
       </aside>

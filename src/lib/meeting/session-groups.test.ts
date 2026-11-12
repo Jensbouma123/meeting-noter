@@ -3,6 +3,7 @@ import { filterSessions, groupSessionsByDay } from './session-groups';
 
 const s = (id: string, at: Date, title = id) => ({ sessionId: id, title, createdAt: at.getTime() });
 // Tuesday 10 Nov 2026, 00:30 local: yesterday's evening is close by.
+const NL = { today: 'Vandaag', yesterday: 'Gisteren' };
 const NOW = new Date(2026, 10, 10, 0, 30).getTime();
 
 describe('groupSessionsByDay', () => {
@@ -16,6 +17,7 @@ describe('groupSessionsByDay', () => {
       ],
       NOW,
       'nl',
+      NL,
     );
     expect(g.map((x) => [x.label, x.sessions.map((y) => y.sessionId)])).toEqual([
       ['Vandaag', ['a']],
@@ -38,8 +40,13 @@ describe('groupSessionsByDay', () => {
 
   it('follows the process timezone, not UTC', () => {
     // 23:30 local on the 9th may be the 10th in UTC; it must still be yesterday.
-    const g = groupSessionsByDay([s('x', new Date(2026, 10, 9, 23, 30))], NOW, 'nl');
+    const g = groupSessionsByDay([s('x', new Date(2026, 10, 9, 23, 30))], NOW, 'nl', NL);
     expect(g[0].label).toBe('Gisteren');
+  });
+
+  it('labels today/yesterday in English by default', () => {
+    const g = groupSessionsByDay([s('a', new Date(2026, 10, 10, 0, 5)), s('b', new Date(2026, 10, 9, 12))], NOW);
+    expect(g.map((x) => x.label)).toEqual(['Today', 'Yesterday']);
   });
 
   it('sorts newest first and returns nothing for no sessions', () => {

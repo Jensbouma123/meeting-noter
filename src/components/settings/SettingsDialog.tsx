@@ -79,7 +79,7 @@ export function SettingsDialog({
         {isSmUp ? (
           <TabList
             aria-label="Settings sections"
-            className="h-full w-52 shrink-0 gap-0.5 overflow-y-auto !rounded-none border-r border-border-subtle !bg-transparent py-0 pr-3"
+            className="h-full w-52 shrink-0 gap-0.5 overflow-y-auto !rounded-none border-r border-border-subtle !bg-transparent p-1 pr-3"
           >
             {tabs}
           </TabList>
@@ -97,7 +97,7 @@ export function SettingsDialog({
           </ScrollView>
         )}
 
-        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto bg-surface p-4 sm:py-0 sm:pl-6 sm:pr-2">
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto bg-surface p-4 sm:py-1 sm:pl-6 sm:pr-3">
           <TabPanel value={activeSection}>
             <VStack spacing="lg" className="w-full max-w-2xl">
               <Heading as="h3" level={3} size="md" weight="semibold">
