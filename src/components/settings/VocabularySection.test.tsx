@@ -14,23 +14,40 @@ afterEach(cleanup);
 describe('VocabularySection', () => {
   it('explains itself in plain words, without technical terms', () => {
     render(<VocabularySection />);
-    expect(screen.getByText(/spell your way — for example your company name, like Framna/)).toBeInTheDocument();
+    expect(screen.getByText(/always spell your way, like names/)).toBeInTheDocument();
     expect(document.body.textContent ?? '').not.toMatch(/boost|trie|WER|bias|logit/i);
   });
 
-  it('adds pasted words, one per line or comma-separated, and lists them', () => {
+  it('shows a friendly empty state with Framna as the example', () => {
     render(<VocabularySection />);
-    fireEvent.change(screen.getByLabelText('Words to add'), {
-      target: { value: 'Framna, Hezelaer\nAcme Cloud\nframna' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: /add words/i }));
+    expect(screen.getByText(/No words yet\. Try adding Framna/)).toBeInTheDocument();
+    expect(screen.getByText(/choose Fix this word/)).toBeInTheDocument();
+  });
+
+  it('adds with Enter, splits on commas, and lists the words', () => {
+    render(<VocabularySection />);
+    const field = screen.getByLabelText('Add a word');
+    fireEvent.change(field, { target: { value: 'Framna, Hezelaer, Acme Cloud, framna' } });
+    fireEvent.keyDown(field, { key: 'Enter' });
 
     expect(getVocabulary().entries.map((e) => e.word)).toEqual(['Framna', 'Hezelaer', 'Acme Cloud']);
     expect(screen.getByRole('status')).toHaveTextContent('Added 3 words to your list.');
-    expect(screen.getByLabelText('Words to add')).toHaveValue('');
+    expect(field).toHaveValue('');
     const list = screen.getByRole('list', { name: 'Your words' });
-    expect(list).toHaveTextContent('Framna');
     expect(list).toHaveTextContent('Acme Cloud');
+    expect(screen.queryByText(/No words yet/)).not.toBeInTheDocument();
+  });
+
+  it('adds with the Add button', () => {
+    render(<VocabularySection />);
+    fireEvent.change(screen.getByLabelText('Add a word'), { target: { value: 'Hezelaer' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+    expect(getVocabulary().entries.map((e) => e.word)).toEqual(['Hezelaer']);
+  });
+
+  it('keeps the strength setting closed under Advanced', () => {
+    render(<VocabularySection />);
+    expect(document.querySelector('details')).not.toHaveAttribute('open');
   });
 
   it('shows misheard spellings saved from a transcript, and removes a word', () => {

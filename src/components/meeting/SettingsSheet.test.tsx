@@ -33,6 +33,6 @@ describe('SettingsSheet vocabulary tab', () => {
     expect(SETTINGS_SECTIONS.map((s) => s.id)).toContain('vocabulary');
     render(<SettingsSheet open onClose={() => {}} settings={DEFAULT_SETTINGS} onSettingsChange={() => {}} />);
     fireEvent.click(screen.getAllByRole('tab', { name: /Vocabulary/ })[0]);
-    expect(screen.getByLabelText('Words to add')).toBeInTheDocument();
+    expect(screen.getByLabelText('Add a word')).toBeInTheDocument();
   });
 });

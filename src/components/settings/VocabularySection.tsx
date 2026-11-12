@@ -1,8 +1,19 @@
 'use client';
 
 import { useRef, useState, type ChangeEvent } from 'react';
-import { Button, HStack, Select, Text, VStack } from '@jensbouma123/acciva-ui';
-import { Download, Plus, Upload, X } from 'lucide-react';
+import {
+  Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  HStack,
+  Input,
+  Select,
+  Text,
+  VStack,
+} from '@jensbouma123/acciva-ui';
+import { Download, MoreHorizontal, Plus, Upload, X } from 'lucide-react';
 import { useT } from '@/lib/i18n/useT';
 import { downloadFile } from '@/lib/meeting/export';
 import { DEFAULT_BIAS_STRENGTH } from '@/lib/vocabulary/bias';
@@ -20,8 +31,8 @@ const fill = (text: string, values: Record<string, string | number>) =>
 
 /**
  * The user's own words: names and terms the transcript should spell their
- * way. Adding them is meant to need no explanation — paste a list, import a
- * file, or fix a word straight from a transcript (`FixWordAction`).
+ * way. One add field (Enter adds, commas split), a plain list, a small menu
+ * for files, and a tip pointing at `FixWordAction` in the transcript.
  */
 export function VocabularySection() {
   const t = useT('settings');
@@ -37,15 +48,15 @@ export function VocabularySection() {
   const [notice, setNotice] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const addFromText = (text: string) => {
-    const parsed = parseWordList(text);
+  const addDraft = () => {
+    const parsed = parseWordList(draft);
     if (parsed.length === 0) {
-      setNotice(t('vocab.noWords'));
-      return false;
+      if (draft.trim()) setNotice(t('vocab.noWords'));
+      return;
     }
     addVocabularyEntries(parsed);
     setNotice(fill(t('vocab.added'), { count: wordCount(parsed.length) }));
-    return true;
+    setDraft('');
   };
 
   const importFile = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -67,40 +78,65 @@ export function VocabularySection() {
 
   return (
     <SettingsGroup>
-      <SettingsStackedRow
-        label={t('vocab.title')}
-        description={t('vocab.description')}
-      >
+      <SettingsStackedRow label={t('vocab.title')} description={t('vocab.description')}>
         <VStack spacing="sm" className="w-full">
-          <textarea
-            id="vocabulary-paste"
-            aria-label={t('vocab.pasteLabel')}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            rows={3}
-            placeholder={t('vocab.placeholder')}
-            className="w-full resize-y rounded-md border border-border bg-surface px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
-          />
-          <HStack spacing="sm" wrap className="w-full">
+          <HStack spacing="sm" className="w-full">
+            <div className="min-w-0 flex-1">
+              <Input
+                id="vocabulary-add"
+                aria-label={t('vocab.pasteLabel')}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addDraft();
+                  }
+                }}
+                placeholder={t('vocab.placeholder')}
+                autoComplete="off"
+              />
+            </div>
             <Button
               variant="primary"
               size={{ base: 'md', md: 'sm' }}
               leadingIcon={<Plus className="size-3.5" />}
               disabled={draft.trim().length === 0}
-              onClick={() => {
-                if (addFromText(draft)) setDraft('');
-              }}
+              onClick={addDraft}
             >
               {t('vocab.add')}
             </Button>
-            <Button
-              variant="secondary"
-              size={{ base: 'md', md: 'sm' }}
-              leadingIcon={<Upload className="size-3.5" />}
-              onClick={() => fileRef.current?.click()}
-            >
-              {t('vocab.import')}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  iconOnly
+                  tooltip={t('vocab.menu')}
+                  leadingIcon={<MoreHorizontal className="size-4" />}
+                  className="touch-target-44"
+                />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem icon={<Upload className="size-4" />} onClick={() => fileRef.current?.click()}>
+                  {t('vocab.import')}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  icon={<Download className="size-4" />}
+                  disabled={entries.length === 0}
+                  onClick={() => downloadFile('my-words.txt', formatWordList(entries), 'text/plain')}
+                >
+                  {t('vocab.exportTxt')}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  icon={<Download className="size-4" />}
+                  disabled={entries.length === 0}
+                  onClick={() => downloadFile('my-words.csv', formatWordCsv(entries), 'text/csv')}
+                >
+                  {t('vocab.exportCsv')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <input
               ref={fileRef}
               type="file"
@@ -118,8 +154,12 @@ export function VocabularySection() {
         </VStack>
       </SettingsStackedRow>
 
-      {entries.length > 0 && (
-        <SettingsStackedRow label={fill(t('vocab.inList'), { n: entries.length })}>
+      <SettingsStackedRow label={entries.length > 0 ? fill(t('vocab.inList'), { n: entries.length }) : undefined}>
+        {entries.length === 0 ? (
+          <Text size="sm" variant="muted">
+            {t('vocab.empty')}
+          </Text>
+        ) : (
           <ul className="flex w-full flex-col divide-y divide-border-subtle" aria-label={t('vocab.title')}>
             {entries.map((entry) => (
               <li key={entry.word} className="flex items-center justify-between gap-3 py-1.5">
@@ -145,26 +185,11 @@ export function VocabularySection() {
               </li>
             ))}
           </ul>
-          <HStack spacing="sm" wrap>
-            <Button
-              variant="outline"
-              size={{ base: 'md', md: 'sm' }}
-              leadingIcon={<Download className="size-3.5" />}
-              onClick={() => downloadFile('my-words.txt', formatWordList(entries), 'text/plain')}
-            >
-              {t('vocab.exportTxt')}
-            </Button>
-            <Button
-              variant="outline"
-              size={{ base: 'md', md: 'sm' }}
-              leadingIcon={<Download className="size-3.5" />}
-              onClick={() => downloadFile('my-words.csv', formatWordCsv(entries), 'text/csv')}
-            >
-              {t('vocab.exportCsv')}
-            </Button>
-          </HStack>
-        </SettingsStackedRow>
-      )}
+        )}
+        <Text size="xs" variant="muted">
+          {t('vocab.tip')}
+        </Text>
+      </SettingsStackedRow>
 
       <details className="group w-full">
         <summary className="cursor-pointer select-none p-4 text-sm font-medium text-text-muted hover:text-text">
