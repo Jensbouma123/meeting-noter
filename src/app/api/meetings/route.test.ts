@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { sampleMeeting } from '@/lib/meeting-db/test-meeting';
-import { GET as list } from './route';
+import { DELETE as removeAll, GET as list } from './route';
 import { DELETE as remove, GET as get, PUT as put } from './[id]/route';
 import { POST as importMeetings } from './import/route';
 
@@ -103,6 +103,20 @@ describe('/api/meetings', () => {
     expect(all.meetings).toEqual([]);
     expect(all.deleted).toEqual([m.id]);
     expect(fs.readdirSync(path.join(dir, 'meetings'))).toEqual([]);
+  });
+
+  it('DELETE /api/meetings removes every meeting, Markdown file and trace of their text', async () => {
+    const a = sampleMeeting();
+    await put(json('PUT', `/${a.id}`, a), ctx(a.id));
+    await put(json('PUT', '/b', sampleMeeting({ id: 'b' })), ctx('b'));
+    expect(await (await removeAll(req('', { method: 'DELETE' }))).json()).toEqual({ ok: true, deleted: 2 });
+    const all = await (await list(req(''))).json();
+    expect(all.meetings).toEqual([]);
+    expect(all.deleted.sort()).toEqual([a.id, 'b']);
+    expect(fs.readdirSync(path.join(dir, 'meetings'))).toEqual([]);
+    const raw = ['', '-wal'].map((x) => (fs.existsSync(path.join(dir, 'meetings.db') + x) ? fs.readFileSync(path.join(dir, 'meetings.db') + x, 'latin1') : '')).join('');
+    expect(raw).not.toContain('quarterly budget');
+    expect((await removeAll(new Request('http://evil.example/api/meetings', { method: 'DELETE', headers: { host: 'evil.example' } }))).status).toBe(403);
   });
 
   it('import is idempotent: a second run skips what the first stored', async () => {

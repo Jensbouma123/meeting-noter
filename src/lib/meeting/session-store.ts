@@ -7,6 +7,9 @@ import {
   removeSessionTranscript,
   removeSpeakerState,
   flushAutosave,
+  cancelPendingAutosave,
+  sessionTranscriptKey,
+  speakerStateKey,
   type AutosavedSession,
 } from './persist';
 import {
@@ -22,6 +25,7 @@ import { resetDiarization } from './diarization-bridge';
 import { requestPersistentStorage } from './persistent-storage';
 import { adoptNotes, hasLocalNotes, notesKey } from './notes';
 import { queueMeetingDelete, queueMeetingSync } from './server-sync';
+import { indexKey, removeIndex } from '@/lib/semantic-search/store';
 import type { MeetingSummaryRow, StoredMeeting } from '@/lib/meeting-db/types';
 
 // ---------------------------------------------------------------------------
@@ -307,6 +311,40 @@ export function isSessionRecording(sessionId: string): boolean {
   return isCaptureActive() && getTranscriptSessionId() === sessionId;
 }
 
+/** Browser copies of a meeting kept beside its transcript: the semantic index (quotes the text) and, on delete, the notes. */
+function removeMeetingCaches(sessionId: string, opts: { notes: boolean }): void {
+  removeIndex(sessionId);
+  if (!opts.notes) return;
+  try {
+    localStorage.removeItem(notesKey(sessionId));
+  } catch {
+    // Best-effort, like every other local write.
+  }
+}
+
+/**
+ * Remove every meeting key left in localStorage (transcripts, speaker states,
+ * notes, search indexes) except the meeting being recorded's. Catches orphans
+ * no index entry points to. Never throws.
+ */
+export function sweepMeetingStorage(keepSessionId: string | null): void {
+  try {
+    const keep = new Set<string>();
+    if (keepSessionId) {
+      for (const k of [sessionTranscriptKey(keepSessionId), speakerStateKey(keepSessionId), notesKey(keepSessionId), indexKey(keepSessionId)]) keep.add(k);
+    }
+    const doomed: string[] = [];
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (!key || keep.has(key)) continue;
+      if (/^mn\.(session\.|speaker-state\.|notes\.v1\.|semindex\.)/.test(key) || key === 'mn.semindex.ids.v1') doomed.push(key);
+    }
+    for (const key of doomed) localStorage.removeItem(key);
+  } catch {
+    // Best-effort.
+  }
+}
+
 /**
  * Delete a session by sessionId.
  * Removes the index entry, its transcript AND any autosaved data keyed to it.
@@ -322,8 +360,10 @@ export function deleteSession(sessionId: string, opts: { deletedOnServer?: boole
     writeSessionIndex(index);
     notifySessionsChanged();
   }
+  cancelPendingAutosave(sessionId);
   removeSessionTranscript(sessionId);
   removeSpeakerState(sessionId);
+  removeMeetingCaches(sessionId, { notes: true });
   // A meeting the DB already deleted (`server-sync.ts`) needs no delete sent.
   if (!opts.deletedOnServer) queueMeetingDelete(sessionId);
 
@@ -372,7 +412,10 @@ export function clearSessionTranscript(sessionId: string): boolean {
     updatedAt: Date.now(),
   };
   writeSessionIndex(index);
+  cancelPendingAutosave(sessionId);
   removeSessionTranscript(sessionId);
+  // Search windows and chapters quote the transcript.
+  removeMeetingCaches(sessionId, { notes: false });
   // Its speakers go with the transcript: a new recording numbers them afresh.
   removeSpeakerState(sessionId);
   queueMeetingSync(sessionId);

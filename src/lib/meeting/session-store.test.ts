@@ -355,3 +355,60 @@ describe('clearSessionTranscript', () => {
     expect(clearSessionTranscript('nope')).toBe(false);
   });
 });
+
+/** Everything in localStorage as one string. */
+function everything(): string {
+  const out: string[] = [];
+  for (let i = 0; i < localStorage.length; i += 1) {
+    const k = localStorage.key(i)!;
+    out.push(k, localStorage.getItem(k) ?? '');
+  }
+  return out.join('\n');
+}
+
+describe('no transcript text stays in the browser after delete or clear', () => {
+  const SECRET = 'hello there';
+  async function seed() {
+    const store = await import('./session-store');
+    const { saveSpeakerState, scheduleAutosave } = await import('./persist');
+    const { addDecision } = await import('./notes');
+    const { saveIndex } = await import('@/lib/semantic-search/store');
+    const id = store.persistSession({ title: 'Secret plans', segments: snapshot('x').segments as never, speakers: {}, startedAt: 1 });
+    addDecision(id, 'Decision about hello there');
+    saveSpeakerState(id, { mic: { speakers: [{ label: 'Hello there person' }] } } as never);
+    saveIndex(id, { windows: [{ text: SECRET }] as never, vectors: [new Float32Array([0.1])], chapters: [{ title: SECRET }] as never });
+    scheduleAutosave(snapshot(id) as never);
+    return { store, id };
+  }
+
+  it('deleteSession wipes transcript, notes, speaker state, search index and the pending autosave', async () => {
+    const { store, id } = await seed();
+    expect(everything()).toContain(SECRET);
+    store.deleteSession(id);
+    await new Promise((r) => setTimeout(r, 1100)); // a throttled autosave must not resurrect it
+    expect(everything().toLowerCase()).not.toContain(SECRET);
+    expect(everything()).not.toContain('Secret plans');
+    expect(everything()).not.toContain(id.slice(0, 8) + '.v1');
+  });
+
+  it('clearSessionTranscript drops transcript, speaker state and the search index (quotes of the text)', async () => {
+    const { store, id } = await seed();
+    store.clearSessionTranscript(id);
+    await new Promise((r) => setTimeout(r, 1100));
+    const text = everything();
+    expect(text).not.toContain('mn.semindex.' + id);
+    expect(text).not.toContain('mn.session.' + id);
+    expect(text).not.toContain('Hello there person');
+    expect(text).not.toContain('"text":"hello there"');
+  });
+
+  it('sweepMeetingStorage removes orphans no index entry points to', async () => {
+    const { store } = await seed();
+    localStorage.setItem('mn.session.orphan.v1', JSON.stringify({ text: SECRET }));
+    localStorage.setItem('mn.notes.v1.orphan', SECRET);
+    localStorage.setItem('mn.settings', '{"language":"nl"}');
+    store.sweepMeetingStorage(null);
+    expect(everything().toLowerCase()).not.toContain(SECRET);
+    expect(localStorage.getItem('mn.settings')).not.toBeNull();
+  });
+});

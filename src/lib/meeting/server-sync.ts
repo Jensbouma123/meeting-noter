@@ -419,6 +419,21 @@ export async function startServerSync(): Promise<void> {
   await pullFromServer();
 }
 
+/**
+ * Delete every meeting in the server's DB, also those this browser never
+ * loaded, and forget what is queued for them. True when the server did it;
+ * on false the per-meeting deletes already queued by `deleteSession` retry.
+ */
+export async function deleteAllOnServer(): Promise<boolean> {
+  try {
+    const res = await fetch('/api/meetings', { method: 'DELETE' });
+    if (res.ok) writeJson(PENDING_KEY, { save: [], remove: [] });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 /** Tests: back to the state before `startServerSync`. */
 export function stopServerSyncForTests(): void {
   enabled = false;

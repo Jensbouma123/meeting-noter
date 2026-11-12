@@ -1,7 +1,8 @@
 /**
  * `GET /api/meetings` — every stored meeting without its transcript, newest
  * first, a page of `?limit=` (at most 1000, the default) from `?offset=`;
- * `?q=words` searches titles, summaries and transcripts instead.
+ * `?q=words` searches titles, summaries and transcripts instead. `DELETE`
+ * removes every meeting and Markdown file for good (Settings › Delete all).
  */
 import { refuseForeign } from '@/lib/lifecycle/request-guard';
 import { storageFailure } from '@/lib/meeting-db/http';
@@ -26,6 +27,16 @@ export function GET(request: Request): Response {
     // The deleted ids let a browser drop its copies instead of sending them back.
     const deleted = q ? undefined : db.deletedIds();
     return Response.json({ ok: true, dataDir: meetingsDataDir(), meetings, deleted });
+  } catch (err) {
+    return storageFailure(err);
+  }
+}
+
+export function DELETE(request: Request): Response {
+  const refused = refuseForeign(request);
+  if (refused) return refused;
+  try {
+    return Response.json({ ok: true, deleted: meetingStore().deleteAll() });
   } catch (err) {
     return storageFailure(err);
   }
