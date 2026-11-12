@@ -17,7 +17,9 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: Request): Promise<Response> {
   const refused = refuseForeign(request);
   if (refused) return refused;
-  const body = await readJson(request, MAX_IMPORT_BODY_BYTES);
+  const parsed = await readJson(request, MAX_IMPORT_BODY_BYTES);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.value;
   const list = body && typeof body === 'object' ? (body as { meetings?: unknown }).meetings : undefined;
   if (!Array.isArray(list)) return failure('bad-import', 400);
   try {

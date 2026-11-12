@@ -138,4 +138,26 @@ describe('import and export edge cases', () => {
   it('treats an unterminated quote as plain text without throwing', () => {
     expect(parseWordList('"Acme')).toEqual([{ word: '"Acme', variants: [] }]);
   });
+
+  it('keeps a misheard variant with ";" or "|" whole through a .txt export and re-import', () => {
+    const entries = [{ word: 'Framna', variants: ['from; now', 'fram|na', 'back\\slash\\', 'C:\\new'] }];
+    expect(parseWordList(formatWordList(entries))).toEqual(entries);
+  });
+
+  it('keeps a misheard variant with ";" or "|" through a .csv export and re-import', () => {
+    const entries = [{ word: 'Framna', variants: ['from; now', 'fram|na', 'a\\;b', 'x\\'] }];
+    expect(parseWordCsv(formatWordCsv(entries))).toEqual(entries);
+  });
+
+  it('reads backslash-escaped separators in variants and leaves other backslashes alone', () => {
+    expect(parseWordList('Framna = from\\; now | fram\\|na; C:\\new; a\\\\; b')).toEqual([
+      { word: 'Framna', variants: ['from; now', 'fram|na', 'C:\\new', 'a\\', 'b'] },
+    ]);
+  });
+
+  it('keeps existing unescaped files working (plain "|" and ";" still separate variants)', () => {
+    expect(parseWordList('Framna = from now; Fromna | Frammna')).toEqual([
+      { word: 'Framna', variants: ['from now', 'Fromna', 'Frammna'] },
+    ]);
+  });
 });

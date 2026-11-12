@@ -31,7 +31,9 @@ export async function PUT(request: Request, { params }: Ctx): Promise<Response> 
   const refused = refuseForeign(request);
   if (refused) return refused;
   const { id } = await params;
-  const meeting = parseStoredMeeting(await readJson(request, MAX_MEETING_BODY_BYTES));
+  const parsed = await readJson(request, MAX_MEETING_BODY_BYTES);
+  if (!parsed.ok) return parsed.response;
+  const meeting = parseStoredMeeting(parsed.value);
   if (!meeting || meeting.id !== id) return failure('bad-meeting', 400);
   try {
     const store = meetingStore();

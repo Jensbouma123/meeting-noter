@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MeetingsDb } from '../lib/meeting-db/db';
 import { sampleMeeting } from '../lib/meeting-db/test-meeting';
 import { createMeetingsMcpServer } from './meetings-server';
@@ -78,7 +78,31 @@ describe('meetings MCP server', () => {
     const { call } = await connect();
     const res = await call('list_meetings');
     expect(res.isError).toBe(false);
-    expect(res.text).toMatch(/No meetings saved yet/);
+    expect(res.text).toBe('Meeting database not found. Open Meeting Noter once to create it.');
+  });
+
+  it('returns a generic error without the DB path, and logs the detail to stderr', async () => {
+    const secretPath = '/Users/someone/Library/Application Support/Meeting Noter/meetings.db';
+    const server = createMeetingsMcpServer(() => {
+      throw new Error(`unable to open database file: ${secretPath}`);
+    });
+    const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
+    await server.connect(serverSide);
+    const client = new Client({ name: 'test', version: '1.0.0' });
+    await client.connect(clientSide);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const res = (await client.callTool({ name: 'list_meetings', arguments: {} })) as {
+        content: { text: string }[];
+        isError?: boolean;
+      };
+      expect(res.isError).toBe(true);
+      expect(res.content[0].text).toBe('Could not read the meetings database. Open Meeting Noter once, then try again.');
+      expect(res.content[0].text).not.toContain(secretPath);
+      expect(errorSpy.mock.calls.flat().join(' ')).toContain(secretPath);
+    } finally {
+      errorSpy.mockRestore();
+    }
   });
 
   it('list_meetings returns id, title, ISO date and speakers, newest first, without drafts, with paging', async () => {

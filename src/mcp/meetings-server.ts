@@ -39,10 +39,12 @@ export function createMeetingsMcpServer(openDb: () => MeetingsDb | null, version
     let db: MeetingsDb | null = null;
     try {
       db = openDb();
-      if (!db) return text('No meetings saved yet: Meeting Noter has not created its database.');
+      if (!db) return text('Meeting database not found. Open Meeting Noter once to create it.');
       return fn(db);
     } catch (err) {
-      return text(`Could not read the meetings database: ${err instanceof Error ? err.message : String(err)}`, true);
+      // Details (which may name the local DB path) stay in stderr; the client gets generic text.
+      console.error('[meeting-noter mcp] database error:', err instanceof Error ? err.message : String(err));
+      return text('Could not read the meetings database. Open Meeting Noter once, then try again.', true);
     } finally {
       db?.close();
     }
