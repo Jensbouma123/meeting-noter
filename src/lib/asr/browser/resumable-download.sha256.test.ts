@@ -65,7 +65,11 @@ describe('Sha256', () => {
       const bytes = content(size, size % 97);
       expect(sha256Hex(bytes), `size ${size}`).toBe(nodeSha256(bytes));
     }
-  });
+    // ~108 MB through the pure-JS hasher plus the byte generator: about 3.7s
+    // alone on a dev machine, and the cost is the point of these sizes, so the
+    // budget is raised rather than the sizes cut. Vitest's 5s default is shared
+    // with every other test in the run and is what made this flaky under load.
+  }, 60_000);
 
   it('does not care how the message is split — one byte at a time is the worst case', () => {
     const bytes = content(300, 11);

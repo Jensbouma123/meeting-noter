@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 
 /**
  * There was no vitest config at all before this: every existing test file
@@ -14,7 +14,11 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  // acciva-ui is installed as a copy (install-links), so vitest would load it
-  // through Node ESM, which cannot resolve its extensionless `next/link`.
-  test: { server: { deps: { inline: [/@jensbouma123\/acciva-ui/] } } },
+  test: {
+    // build/, .next/, dist/ and out/ hold stale compiled copies of test files.
+    exclude: [...configDefaults.exclude, 'build/**', '.next/**', 'dist/**', 'out/**'],
+    // acciva-ui is installed as a copy (install-links), so vitest would load it
+    // through Node ESM, which cannot resolve its extensionless `next/link`.
+    server: { deps: { inline: [/@jensbouma123\/acciva-ui/] } },
+  },
 });
