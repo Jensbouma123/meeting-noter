@@ -8,6 +8,7 @@ import "./globals.css";
 import { UpdateBanner } from "@/components/UpdateBanner";
 import { I18nProvider } from "@/lib/i18n/I18nProvider";
 import { LifecycleClient } from "@/components/lifecycle/LifecycleClient";
+import { MeetingsSync } from "@/components/lifecycle/MeetingsSync";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -58,6 +59,7 @@ export default function RootLayout({
             <ToastProvider position="bottom-right">
               <UpdateBanner />
               <LifecycleClient />
+              <MeetingsSync />
               {children}
             </ToastProvider>
           </ThemeProvider>

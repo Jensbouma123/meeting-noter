@@ -57,8 +57,10 @@ Privacy: voor de updatecheck vraagt de app (en het startbestand) alleen het vers
 
 ### Je meetings bewaren
 
-- Een update of herinstallatie van de app laat je meetings staan. Ze worden bewaard in deze browser, op deze Mac, en niet op een server.
-- Gebruik daarom steeds dezelfde browser (en open de app op http://localhost:3000). In een andere browser of ander profiel zie je je meetings niet.
+- Je meetings staan op deze Mac, in `~/Library/Application Support/Meeting Noter/`: in de database `meetings.db` en als Markdown-bestand per meeting in de map `meetings/`. Ze gaan nooit naar een server.
+- Een update of herinstallatie van de app laat ze staan; `uninstall.sh` ook, tenzij je `--delete-meetings` meegeeft.
+- De browser bewaart een reservekopie. Draait de app even niet, dan worden wijzigingen bij de volgende start alsnog opgeslagen. Meetings die al in de browser stonden, zet de app bij de eerste start eenmalig over (met een melding).
+- AI-assistenten (Claude Code, Claude Desktop) kunnen je meetings doorzoeken via de MCP-server: zie [docs/MCP.md](docs/MCP.md).
 - Na je eerste meeting vraagt de app de browser om de opslag te beschermen, zodat de browser hem niet uit zichzelf opruimt. In Instellingen > Opslag zie je of dat aan staat.
 - Meetings worden standaard na 2 jaar automatisch verwijderd (met hun transcript). Je kunt dit wijzigen naar 1 jaar, 5 jaar of Nooit bij Instellingen > Opslag > "Meetings automatisch verwijderen na".
 
@@ -74,7 +76,7 @@ De Mac-installer wordt gebouwd door `.github/workflows/release.yml` (zie [docs/R
 
 **Vereisten / Requirements**
 
-- Node.js 20.9 of nieuwer (getest met 24) / Node.js 20.9+ (tested on 24)
+- Node.js 22.13 of nieuwer (getest met 24; nodig voor `node:sqlite`) / Node.js 22.13+ (tested on 24; needed for `node:sqlite`)
 - Chrome of Edge (WebGPU + opname van tab-audio). Safari werkt met een kleiner CPU-model (WASM).
 - Optioneel, macOS 14.4+ met Xcode command line tools: de audio-helper voor systeemaudio.
 

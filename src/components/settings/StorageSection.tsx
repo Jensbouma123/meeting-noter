@@ -5,7 +5,9 @@ import { Alert, Button, ConfirmDialog, Select, useToast } from '@jensbouma123/ac
 import { Trash2 } from 'lucide-react';
 import { clearAutosavedSession } from '@/lib/meeting/persist';
 import { isCaptureActive } from '@/lib/meeting/store';
-import { deleteSession, listSessions } from '@/lib/meeting/session-store';
+import { deleteSession, listSessions, sweepMeetingStorage } from '@/lib/meeting/session-store';
+import { deleteAllOnServer } from '@/lib/meeting/server-sync';
+import { getTranscriptSessionId } from '@/lib/meeting/store';
 import type { AppSettings } from '@/components/meeting/types';
 import { getPersistentStorageStatus, requestPersistentStorage } from '@/lib/meeting/persistent-storage';
 import { RETENTION_OPTIONS, parseRetention, purgeExpiredSessions } from '@/lib/meeting/retention';
@@ -53,6 +55,10 @@ export function StorageSection({
       deleteSession(session.sessionId);
     }
     if (!isCaptureActive()) clearAutosavedSession();
+    // Orphans no index entry points to, then the server's copies (DB rows, search index, Markdown files).
+    sweepMeetingStorage(isCaptureActive() ? getTranscriptSessionId() : null);
+    // While recording, the open meeting must stay storable: the per-meeting deletes queued above cover the rest.
+    if (!isCaptureActive()) void deleteAllOnServer();
     const remaining = listSessions().length;
     setSessionCount(remaining);
     setConfirmOpen(false);

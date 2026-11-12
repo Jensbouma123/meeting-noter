@@ -66,8 +66,10 @@ of, zonder internet:
 bash ~/Library/Application\ Support/Meeting\ Noter/uninstall.sh
 ```
 
-Dit verwijdert de app en de achtergronddiensten. Uw opnames staan in de browser en
-blijven bewaard; wis die via de websitegegevens van `localhost` in uw browser.
+Dit verwijdert de app en de achtergronddiensten. Uw vergaderingen (`meetings.db`
+en de map `meetings/`) blijven bewaard; wilt u ook die wissen, voeg dan
+`--delete-meetings` toe (`… | bash -s -- --delete-meetings`). De reservekopie in
+de browser wist u via de websitegegevens van `localhost` in uw browser.
 
 ## Problemen
 
@@ -86,6 +88,8 @@ blijven bewaard; wis die via de websitegegevens van `localhost` in uw browser.
 | `~/Library/Application Support/Meeting Noter/` | de app met eigen Node.js, de audio-helper, logbestanden, `uninstall.sh` |
 | `~/Library/LaunchAgents/nl.jensbouma.meeting-noter.server.plist` | start de webserver op `127.0.0.1:3000` bij het inloggen |
 | `~/Library/LaunchAgents/nl.jensbouma.meeting-noter.audio-helper.plist` | start de audio-helper (alleen macOS 14.4+) |
+| `~/Library/Application Support/Meeting Noter/meetings.db`, `meetings/` | uw vergaderingen: database en een Markdown-bestand per vergadering (blijven bewaard bij updates en verwijderen) |
+| `~/Library/Application Support/Meeting Noter/app/mcp/meetings-mcp.mjs` | MCP-server waarmee AI-assistenten uw vergaderingen lezen ([MCP.md](MCP.md)) |
 | `~/Library/Application Support/Meeting Noter/models/` | het zelfgebouwde WebGPU-spraakmodel (blijft bewaard bij updates) |
 | `~/Library/Application Support/Meeting Noter/bin/uv` | modelbouwer, alleen gebruikt om het model te maken |
 | `/Applications/Meeting Noter.app` (of `~/Applications/…`) | opent `http://localhost:3000`, biedt updates aan |
@@ -97,8 +101,9 @@ Mac niet.
 
 *English: open Terminal, paste the line above, press Enter; Meeting Noter appears in
 Applications and opens in your browser. Update: paste the same line again (the
-app also offers updates). Uninstall: the `uninstall.sh` line above; recordings stay
-in the browser. Needs macOS 13.5+ (system audio helper: 14.4+).*
+app also offers updates). Uninstall: the `uninstall.sh` line above; meetings
+(`meetings.db`, `meetings/`) are kept unless you add `--delete-meetings`. AI agents
+can read them through the MCP server, see [MCP.md](MCP.md). Needs macOS 13.5+ (system audio helper: 14.4+).*
 
 ## Voor de beheerder: een release maken
 

@@ -30,13 +30,13 @@ if curl -fs -o /dev/null "$URL" 2>/dev/null; then
   exit 0
 fi
 
-# ---- 1. Node.js (>= 20.9) -------------------------------------------------
+# ---- 1. Node.js (>= 22.13: node:sqlite stores the meetings) ---------------
 node_ok() {
   command -v node >/dev/null 2>&1 || return 1
   local v major minor
   v=$(node -p 'process.versions.node' 2>/dev/null) || return 1
   major=${v%%.*}; minor=${v#*.}; minor=${minor%%.*}
-  [ "$major" -gt 20 ] || { [ "$major" -eq 20 ] && [ "$minor" -ge 9 ]; }
+  [ "$major" -gt 22 ] || { [ "$major" -eq 22 ] && [ "$minor" -ge 13 ]; }
 }
 
 RUNTIME="$ROOT/.runtime"

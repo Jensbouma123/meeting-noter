@@ -277,6 +277,17 @@ export function scheduleAutosave(input: AutosaveInput): void {
   }
 }
 
+/**
+ * Drop the throttled snapshot still waiting to be written, when it is
+ * `sessionId`'s: a delete must not be followed by a write of the same text.
+ */
+export function cancelPendingAutosave(sessionId: string): void {
+  if (pendingInput?.sessionId !== sessionId) return;
+  if (throttleTimer !== null) clearTimeout(throttleTimer);
+  throttleTimer = null;
+  pendingInput = null;
+}
+
 /** Write any pending throttled snapshot immediately. Never throws. */
 export function flushAutosave(): void {
   try {

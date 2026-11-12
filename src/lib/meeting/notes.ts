@@ -1,4 +1,5 @@
 import type { Segment } from './types';
+import { queueMeetingSync } from './server-sync';
 
 export interface ActionItem {
   id: string;
@@ -74,7 +75,28 @@ function writeNotes(sessionId: string, notes: Notes): void {
   } catch {
     // Notes are best-effort when storage is unavailable or full.
   }
+  queueMeetingSync(sessionId);
   notify(sessionId);
+}
+
+/** Take in notes from the meetings DB (`server-sync.ts`): stored and shown, not queued back. */
+export function adoptNotes(sessionId: string, notes: Notes): void {
+  if (typeof window === 'undefined' || !sessionId) return;
+  try {
+    window.localStorage.setItem(notesKey(sessionId), JSON.stringify(notes));
+  } catch {
+    // Best-effort, like every other local write.
+  }
+  notify(sessionId);
+}
+
+/** Whether this browser holds the session's notes (it drops them once the DB has them). */
+export function hasLocalNotes(sessionId: string): boolean {
+  try {
+    return typeof window !== 'undefined' && window.localStorage.getItem(notesKey(sessionId)) !== null;
+  } catch {
+    return false;
+  }
 }
 
 function newId(): string {

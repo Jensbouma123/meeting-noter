@@ -8,6 +8,9 @@
 #
 # Installs:
 #   ~/Library/Application Support/Meeting Noter/   app, helper, logs, uninstall.sh
+#     (the app keeps its meetings there too, in meetings.db and meetings/; an
+#     update only replaces app/, so they survive it, and uninstall.sh keeps them
+#     unless given --delete-meetings)
 #   ~/Library/LaunchAgents/nl.jensbouma.meeting-noter.audio-helper.plist
 #   /Applications (or ~/Applications)/Meeting Noter.app  starts the server on demand
 #     and opens http://localhost:3000

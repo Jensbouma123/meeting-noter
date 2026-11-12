@@ -7,6 +7,9 @@ import {
   removeSessionTranscript,
   removeSpeakerState,
   flushAutosave,
+  cancelPendingAutosave,
+  sessionTranscriptKey,
+  speakerStateKey,
   type AutosavedSession,
 } from './persist';
 import {
@@ -20,6 +23,10 @@ import {
 } from './store';
 import { resetDiarization } from './diarization-bridge';
 import { requestPersistentStorage } from './persistent-storage';
+import { adoptNotes, hasLocalNotes, notesKey } from './notes';
+import { queueMeetingDelete, queueMeetingSync } from './server-sync';
+import { indexKey, removeIndex } from '@/lib/semantic-search/store';
+import type { MeetingSummaryRow, StoredMeeting } from '@/lib/meeting-db/types';
 
 // ---------------------------------------------------------------------------
 // Session index: persisted map of sessionId → session metadata.
@@ -201,6 +208,7 @@ export function persistSession(input: CreateSessionInput): string {
     persistRequested = true;
     void requestPersistentStorage();
   }
+  queueMeetingSync(sessionId);
   notifySessionsChanged();
   return sessionId;
 }
@@ -242,6 +250,7 @@ export function createDraftSession(title: string): string {
 
   index.sessions.push(entry);
   writeSessionIndex(index);
+  queueMeetingSync(sessionId);
   notifySessionsChanged();
   return sessionId;
 }
@@ -261,6 +270,7 @@ export function unmarkDraft(sessionId: string): void {
     updatedAt: Date.now(),
   };
   writeSessionIndex(index);
+  queueMeetingSync(sessionId);
   notifySessionsChanged();
 }
 
@@ -271,6 +281,7 @@ export function setSessionCaptureMode(sessionId: string, captureMode: CaptureMod
   if (existingIdx < 0) return;
   index.sessions[existingIdx] = { ...index.sessions[existingIdx], captureMode };
   writeSessionIndex(index);
+  queueMeetingSync(sessionId);
   notifySessionsChanged();
 }
 
@@ -286,6 +297,7 @@ export function renameSession(sessionId: string, title: string): boolean {
     updatedAt: Date.now(),
   };
   writeSessionIndex(index);
+  queueMeetingSync(sessionId);
   notifySessionsChanged();
   return true;
 }
@@ -299,13 +311,47 @@ export function isSessionRecording(sessionId: string): boolean {
   return isCaptureActive() && getTranscriptSessionId() === sessionId;
 }
 
+/** Browser copies of a meeting kept beside its transcript: the semantic index (quotes the text) and, on delete, the notes. */
+function removeMeetingCaches(sessionId: string, opts: { notes: boolean }): void {
+  removeIndex(sessionId);
+  if (!opts.notes) return;
+  try {
+    localStorage.removeItem(notesKey(sessionId));
+  } catch {
+    // Best-effort, like every other local write.
+  }
+}
+
+/**
+ * Remove every meeting key left in localStorage (transcripts, speaker states,
+ * notes, search indexes) except the meeting being recorded's. Catches orphans
+ * no index entry points to. Never throws.
+ */
+export function sweepMeetingStorage(keepSessionId: string | null): void {
+  try {
+    const keep = new Set<string>();
+    if (keepSessionId) {
+      for (const k of [sessionTranscriptKey(keepSessionId), speakerStateKey(keepSessionId), notesKey(keepSessionId), indexKey(keepSessionId)]) keep.add(k);
+    }
+    const doomed: string[] = [];
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (!key || keep.has(key)) continue;
+      if (/^mn\.(session\.|speaker-state\.|notes\.v1\.|semindex\.)/.test(key) || key === 'mn.semindex.ids.v1') doomed.push(key);
+    }
+    for (const key of doomed) localStorage.removeItem(key);
+  } catch {
+    // Best-effort.
+  }
+}
+
 /**
  * Delete a session by sessionId.
  * Removes the index entry, its transcript AND any autosaved data keyed to it.
  * Returns false, deleting nothing, when the session is being recorded.
  * Never throws — other sessions are never corrupted.
  */
-export function deleteSession(sessionId: string): boolean {
+export function deleteSession(sessionId: string, opts: { deletedOnServer?: boolean } = {}): boolean {
   if (isSessionRecording(sessionId)) return false;
   const index = readSessionIndex();
   const existingIdx = index.sessions.findIndex((s) => s.sessionId === sessionId);
@@ -314,8 +360,12 @@ export function deleteSession(sessionId: string): boolean {
     writeSessionIndex(index);
     notifySessionsChanged();
   }
+  cancelPendingAutosave(sessionId);
   removeSessionTranscript(sessionId);
   removeSpeakerState(sessionId);
+  removeMeetingCaches(sessionId, { notes: true });
+  // A meeting the DB already deleted (`server-sync.ts`) needs no delete sent.
+  if (!opts.deletedOnServer) queueMeetingDelete(sessionId);
 
   // The store outlives the route: drop the deleted session's in-memory
   // transcript (idle here — a live capture returned above).
@@ -362,9 +412,13 @@ export function clearSessionTranscript(sessionId: string): boolean {
     updatedAt: Date.now(),
   };
   writeSessionIndex(index);
+  cancelPendingAutosave(sessionId);
   removeSessionTranscript(sessionId);
+  // Search windows and chapters quote the transcript.
+  removeMeetingCaches(sessionId, { notes: false });
   // Its speakers go with the transcript: a new recording numbers them afresh.
   removeSpeakerState(sessionId);
+  queueMeetingSync(sessionId);
 
   try {
     const autosaved = loadAutosavedSession();
@@ -429,6 +483,76 @@ export function archiveAutosavedSession(): string | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * The index entry of a meeting in the server's DB (`pullFromServer` in
+ * `server-sync.ts`) replaces this browser's. Queues nothing, since the server
+ * already has it.
+ */
+export function adoptMeetingSummary(row: MeetingSummaryRow): void {
+  const index = readSessionIndex();
+  const entry: SessionEntry = {
+    version: INDEX_VERSION,
+    sessionId: row.id,
+    title: row.title,
+    segmentCount: row.segmentCount,
+    durationSeconds: row.durationSeconds,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    isDraft: row.isDraft,
+    ...(row.captureMode ? { captureMode: row.captureMode } : {}),
+  };
+  const existingIdx = index.sessions.findIndex((s) => s.sessionId === row.id);
+  if (existingIdx >= 0) index.sessions[existingIdx] = entry;
+  else index.sessions.push(entry);
+  writeSessionIndex(index);
+  notifySessionsChanged();
+}
+
+/**
+ * A meeting's transcript and notes from the server's DB. With `replace` they
+ * replace this browser's copy; without, only what this browser lacks is
+ * filled in, so unsent local edits survive.
+ */
+export function cacheMeetingContent(meeting: StoredMeeting, opts: { replace?: boolean } = {}): void {
+  if (opts.replace || !loadSessionTranscript(meeting.id)) {
+    saveSessionTranscript({
+      sessionId: meeting.id,
+      title: meeting.title,
+      segments: meeting.segments.map((s) => ({ ...s, final: true })),
+      speakers: meeting.speakers,
+      startedAt: meeting.startedAt,
+    });
+  }
+  if (opts.replace || !hasLocalNotes(meeting.id)) adoptNotes(meeting.id, meeting.notes);
+}
+
+/** Drop this browser's copy of a meeting's transcript and notes once the DB holds them. */
+export function evictMeetingContent(sessionId: string): void {
+  removeSessionTranscript(sessionId);
+  try {
+    localStorage.removeItem(notesKey(sessionId));
+  } catch {
+    // Best-effort: a copy left behind is only a cache.
+  }
+}
+
+/** Take in a whole meeting from the server's DB: index entry, transcript and notes. */
+export function adoptStoredMeeting(meeting: StoredMeeting): void {
+  adoptMeetingSummary({
+    id: meeting.id,
+    title: meeting.title,
+    createdAt: meeting.createdAt,
+    updatedAt: meeting.updatedAt,
+    startedAt: meeting.startedAt,
+    durationSeconds: meeting.durationSeconds,
+    segmentCount: meeting.segments.length,
+    captureMode: meeting.captureMode,
+    isDraft: meeting.segments.length === 0,
+    speakers: [],
+  });
+  cacheMeetingContent(meeting, { replace: true });
 }
 
 /**
