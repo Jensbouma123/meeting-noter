@@ -48,6 +48,69 @@ export function createMeetingsMcpServer(openDb: () => MeetingsDb | null, version
     }
   };
 
+  const folderScope = (db: MeetingsDb, folderId?: string, includeSubfolders?: boolean): Set<string> | null => {
+    if (folderId === undefined) return null;
+    const folders = db.listFolders();
+    const included = new Set([folderId]);
+    if (includeSubfolders) {
+      for (const folder of folders) {
+        let parentId = folder.parentId;
+        while (parentId !== null) {
+          if (parentId === folderId) {
+            included.add(folder.id);
+            break;
+          }
+          parentId = folders.find((candidate) => candidate.id === parentId)?.parentId ?? null;
+        }
+      }
+    }
+    return included;
+  };
+
+  server.registerTool(
+    'list_folders',
+    {
+      title: 'List folders',
+      description: 'List meeting folders in hierarchy order with their id, name, parent id and full path.',
+      inputSchema: {},
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    () =>
+      withDb((db) => {
+        const folders = db.listFolders();
+        const byId = new Map(folders.map((folder) => [folder.id, folder]));
+        const depth = (folder: (typeof folders)[number]) => {
+          let result = 0;
+          let parentId = folder.parentId;
+          while (parentId !== null) {
+            const parent = byId.get(parentId);
+            if (!parent) break;
+            result += 1;
+            parentId = parent.parentId;
+          }
+          return result;
+        };
+        const orderedFolders = [...folders].sort((a, b) => depth(a) - depth(b));
+        return text(
+          JSON.stringify(
+            orderedFolders.map((folder) => {
+              const parts = [folder.name];
+              let parentId = folder.parentId;
+              while (parentId !== null) {
+                const parent = byId.get(parentId);
+                if (!parent) break;
+                parts.unshift(parent.name);
+                parentId = parent.parentId;
+              }
+              return { id: folder.id, name: folder.name, parentId: folder.parentId, path: parts.join('/') };
+            }),
+            null,
+            2,
+          ),
+        );
+      }),
+  );
+
   server.registerTool(
     'list_meetings',
     {
@@ -58,11 +121,18 @@ export function createMeetingsMcpServer(openDb: () => MeetingsDb | null, version
       inputSchema: {
         limit: z.number().int().min(1).max(200).optional().describe('How many to return (default 50).'),
         offset: z.number().int().min(0).optional().describe('How many of the newest to skip, for paging.'),
+        folderId: z.string().min(1).optional().describe('Only meetings filed in this folder.'),
+        includeSubfolders: z.boolean().optional().describe('Include meetings filed in descendant folders (requires folderId).'),
       },
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
-    ({ limit, offset }) =>
-      withDb((db) => text(JSON.stringify(db.list({ limit: limit ?? 50, offset, includeDrafts: false }).map(listItem), null, 2))),
+    ({ limit, offset, folderId, includeSubfolders }) =>
+      withDb((db) => {
+        const scope = folderScope(db, folderId, includeSubfolders);
+        const meetings = db.list({ limit: scope ? 1000 : limit ?? 50, offset: scope ? 0 : offset, includeDrafts: false });
+        const filtered = scope ? meetings.filter((meeting) => meeting.folderId !== null && scope.has(meeting.folderId)) : meetings;
+        return text(JSON.stringify((scope ? filtered.slice(offset ?? 0, (offset ?? 0) + (limit ?? 50)) : filtered).map(listItem), null, 2));
+      }),
   );
 
   server.registerTool(
@@ -76,14 +146,18 @@ export function createMeetingsMcpServer(openDb: () => MeetingsDb | null, version
       inputSchema: {
         query: z.string().min(1).describe('Words to look for, e.g. "budget freeze".'),
         limit: z.number().int().min(1).max(100).optional().describe('How many to return (default 10).'),
+        folderId: z.string().min(1).optional().describe('Only meetings filed in this folder.'),
+        includeSubfolders: z.boolean().optional().describe('Include meetings filed in descendant folders (requires folderId).'),
       },
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
-    ({ query, limit }) =>
+    ({ query, limit, folderId, includeSubfolders }) =>
       withDb((db) => {
-        const hits = db.search(query, { limit: limit ?? 10 });
-        if (hits.length === 0) return text(`No meetings match "${query}".`);
-        return text(JSON.stringify(hits.map((h) => ({ ...listItem(h), snippet: h.snippet })), null, 2));
+        const scope = folderScope(db, folderId, includeSubfolders);
+        const hits = db.search(query, { limit: scope ? 100 : limit ?? 10 });
+        const filtered = scope ? hits.filter((hit) => hit.folderId !== null && scope.has(hit.folderId)).slice(0, limit ?? 10) : hits;
+        if (filtered.length === 0) return text(`No meetings match "${query}".`);
+        return text(JSON.stringify(filtered.map((h) => ({ ...listItem(h), snippet: h.snippet })), null, 2));
       }),
   );
 
