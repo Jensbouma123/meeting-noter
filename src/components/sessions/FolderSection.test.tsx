@@ -110,10 +110,9 @@ describe('FolderTree', () => {
     renderTree();
     expect(await screen.findByText('Standup')).toBeInTheDocument();
     expect(screen.getByText('Q1')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Collapse folder “Work”' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Work/, expanded: true }));
     expect(screen.queryByText('Q1')).toBeNull();
-    expect(screen.getByRole('treeitem', { expanded: false })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Expand folder “Work”' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Work/, expanded: false }));
     expect(screen.getByText('Q1')).toBeInTheDocument();
   });
 
@@ -178,7 +177,7 @@ describe('FolderTree', () => {
   it('shows the rename field for a new subfolder even when its parent is collapsed', async () => {
     renderTree();
     await screen.findByText('Q1');
-    fireEvent.click(screen.getByRole('button', { name: 'Collapse folder “Work”' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Work/, expanded: true }));
     openActions('Work');
     await pick('New subfolder');
     await waitFor(() => expect(mutations('POST')).toHaveLength(1));

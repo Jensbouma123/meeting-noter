@@ -333,6 +333,15 @@ export function FolderTree({ controller, sessions, renderSession }: FolderTreePr
     return m;
   }, [sessions, meetingFolders]);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  // A folder being renamed (e.g. just created) must be visible: expand its ancestors.
+  const [seenRenamingId, setSeenRenamingId] = useState<string | null>(null);
+  if (controller.renamingId !== seenRenamingId) {
+    setSeenRenamingId(controller.renamingId);
+    const hidden = new Set<string>();
+    const byId = new Map(controller.folders.map((f) => [f.id, f]));
+    for (let p = byId.get(controller.renamingId ?? '')?.parentId; p; p = byId.get(p)?.parentId) hidden.add(p);
+    if ([...hidden].some((id) => collapsed.has(id))) setCollapsed(new Set([...collapsed].filter((id) => !hidden.has(id))));
+  }
   const toggle = useCallback((id: string) => {
     setCollapsed((prev) => {
       const next = new Set(prev);
@@ -360,7 +369,7 @@ export function FolderTree({ controller, sessions, renderSession }: FolderTreePr
       {tree.length === 0 ? (
         <Text size="xs" variant="muted" className="px-3 py-1">{t('empty')}</Text>
       ) : (
-        <ul role="tree" aria-label={t('title')} className="px-1">
+        <ul aria-label={t('title')} className="px-1">
           {tree.map((node) => (
             <FolderItem
               key={node.folder.id}
@@ -443,7 +452,7 @@ function FolderItem({ node, depth, controller, counts, byFolder, collapsed, onTo
   const hasContent = node.children.length > 0 || meetings.length > 0;
 
   return (
-    <li role="treeitem" aria-expanded={hasContent ? expanded : undefined} aria-selected={false}>
+    <li>
       <div
         {...dragProps(FOLDER_MIME, folder.id)}
         onDragOver={(e) => {
@@ -464,20 +473,20 @@ function FolderItem({ node, depth, controller, counts, byFolder, collapsed, onTo
         style={{ paddingLeft: `${depth * 0.75}rem` }}
         className={`group flex items-center gap-1 rounded-md pr-1 ${over ? 'bg-surface-hover outline outline-2 -outline-offset-2 outline-primary-500' : 'hover:bg-surface-hover'}`}
       >
-        <button
-          type="button"
+        <span
+          aria-hidden="true"
           onClick={() => onToggle(folder.id)}
-          aria-label={(expanded ? t('collapse') : t('expand')).replace('{name}', folder.name)}
-          className={`inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground ${FOCUS}`}
+          className="inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-muted-foreground"
         >
-          <ChevronRight className={`size-4 transition-transform ${expanded ? 'rotate-90' : ''}`} aria-hidden="true" />
-        </button>
+          <ChevronRight className={`size-4 transition-transform ${expanded ? 'rotate-90' : ''}`} />
+        </span>
         {renaming ? (
           <RenameInput initial={folder.name} label={t('name')} onDone={(name) => void controller.rename(folder.id, name)} onCancel={() => controller.setRenamingId(null)} />
         ) : (
           <button
             type="button"
             onClick={() => onToggle(folder.id)}
+            aria-expanded={hasContent ? expanded : undefined}
             onKeyDown={(e) => {
               if (e.key === 'F2') controller.setRenamingId(folder.id);
             }}
@@ -516,7 +525,7 @@ function FolderItem({ node, depth, controller, counts, byFolder, collapsed, onTo
         </DropdownMenu>
       </div>
       {expanded && hasContent && (
-        <ul role="group">
+        <ul>
           {node.children.map((child) => (
             <FolderItem
               key={child.folder.id}
@@ -531,7 +540,7 @@ function FolderItem({ node, depth, controller, counts, byFolder, collapsed, onTo
             />
           ))}
           {meetings.map((s) => (
-            <li key={s.sessionId} role="none" style={{ paddingLeft: `${(depth + 1) * 0.75 + 0.5}rem` }}>
+            <li key={s.sessionId} style={{ paddingLeft: `${(depth + 1) * 0.75 + 0.5}rem` }}>
               <DraggableMeeting sessionId={s.sessionId}>{renderSession(s)}</DraggableMeeting>
             </li>
           ))}
