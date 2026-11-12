@@ -3,7 +3,7 @@
 import { OnboardingDialog } from '@/components/onboarding/OnboardingDialog';
 import { sessionPath } from '@/lib/session-path';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect, useCallback, useMemo, useRef, useSyncExternalStore } from 'react';
+import { useState, useEffect, useEffectEvent, useCallback, useMemo, useRef, useSyncExternalStore } from 'react';
 import type { CaptureMode } from '@/lib/meeting';
 import {
   restoreSnapshot,
@@ -586,21 +586,24 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
     modelReady,
   ]);
 
-  // Auto-start recording on load in mock mode when ?demo=1 is present
+  // Auto-start recording on load in mock mode when ?demo=1 is present. Runs once
+  // on mount: the URL is the trigger, so a later `startRecording` identity change
+  // must not start a second recording.
+  const autoStartDemo = useEffectEvent(() => {
+    startRecording();
+  });
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
       const params = new URLSearchParams(window.location.search);
       if (params.get('demo') === '1') {
-        const timer = setTimeout(() => {
-          startRecording();
-        }, 0);
+        const timer = setTimeout(autoStartDemo, 0);
         return () => clearTimeout(timer);
       }
     } catch {
       // Safe fallback
     }
-  }, [startRecording]);
+  }, []);
 
   // Is the engine going to produce a transcript for this recording? Shown
   // *while recording*, not only before it: pressing Record must never look
