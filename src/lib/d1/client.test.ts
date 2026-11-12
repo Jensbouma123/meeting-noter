@@ -9,7 +9,12 @@ import {
   D1_WEIGHTS_FILE,
 } from './manifest';
 import type { D1Answer, D1Tokenizer } from './prompt';
-import type { D1SegmentInput, D1WorkerInMessage, D1WorkerOutMessage } from './protocol';
+import type {
+  D1DecisionRequest,
+  D1SegmentInput,
+  D1WorkerInMessage,
+  D1WorkerOutMessage,
+} from './protocol';
 import { createD1WorkerHandler } from './worker';
 
 class FakeWorker implements WorkerLike {
@@ -391,13 +396,16 @@ describe('d1 client', () => {
   });
 
   describe('timeouts', () => {
-    const ANSWER = { type: 'noul', noul: 0.5, probabilities: [0.5, 0.5] } as const;
-    const REQUEST = { state: 'timeout', question: { type: 'noul', instructions: 'ok?' } } as const;
+    const ANSWER: D1Answer = { type: 'noul', noul: 0.5, probabilities: [0.5, 0.5] };
+    const REQUEST: D1DecisionRequest = {
+      state: 'timeout',
+      question: { type: 'noul', instructions: 'ok?' },
+    };
 
-    /** The first worker never answers (a hung session start); later ones answer. */
-    function hungThenHealthyFactory(createdWorkers: FakeWorker[]) {
+    /** The first worker never answers (a hung session start) when `hangFirst`; later ones answer. */
+    function hungThenHealthyFactory(createdWorkers: FakeWorker[], hangFirst = true) {
       return () => {
-        const hangs = createdWorkers.length === 0;
+        const hangs = hangFirst && createdWorkers.length === 0;
         const w = new FakeWorker((msg, self) => {
           if (msg.type === 'decide' && !hangs) {
             self.emitMessage({ type: 'result', id: msg.id, answers: [ANSWER], backend: 'wasm' });
@@ -432,9 +440,7 @@ describe('d1 client', () => {
     it('does not time out a batch that was answered in time', async () => {
       vi.useFakeTimers();
       const createdWorkers: FakeWorker[] = [];
-      const client = createD1Client({ createWorker: hungThenHealthyFactory(createdWorkers) });
-      // Consume the hanging first worker's batch via a healthy second worker.
-      await client.dispose();
+      const client = createD1Client({ createWorker: hungThenHealthyFactory(createdWorkers, false) });
 
       const answered = client.decide([REQUEST]);
       await vi.advanceTimersByTimeAsync(D1_DECIDE_TIMEOUT_MS * 2);
@@ -462,13 +468,14 @@ describe('d1 client', () => {
 
     it('terminate() on an idle client is a no-op, and the next call starts a fresh worker', async () => {
       const createdWorkers: FakeWorker[] = [];
-      const client = createD1Client({ createWorker: hungThenHealthyFactory(createdWorkers) });
+      const client = createD1Client({ createWorker: hungThenHealthyFactory(createdWorkers, false) });
 
       client.terminate();
       expect(createdWorkers).toHaveLength(0);
 
-      await client.decide([REQUEST]).catch(() => undefined);
+      expect(await client.decide([REQUEST])).toEqual([ANSWER]);
       client.terminate();
+      expect(createdWorkers).toHaveLength(1);
       expect(createdWorkers[0].terminated).toBe(true);
     });
   });
