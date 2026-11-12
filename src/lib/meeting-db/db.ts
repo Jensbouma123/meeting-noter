@@ -123,11 +123,29 @@ export class MeetingsDb {
   constructor(file: string, opts: { readOnly?: boolean } = {}) {
     this.db = new DatabaseSync(file, { readOnly: opts.readOnly ?? false, timeout: 5000 });
     if (opts.readOnly) return;
-    this.db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
+    // secure_delete zeroes freed pages, and FTS5's own `secure-delete` does the same for the
+    // index, so deleted text does not linger in free pages (see `scrub`).
+    this.db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA secure_delete = ON;');
     const version = num(this.db.prepare('PRAGMA user_version').get()?.user_version ?? 0);
     if (version < SCHEMA_VERSION) {
       this.db.exec(SCHEMA);
       this.db.exec(`PRAGMA user_version = ${SCHEMA_VERSION}`);
+    }
+    this.db.exec("INSERT INTO meetings_fts (meetings_fts, rank) VALUES ('secure-delete', 1)");
+  }
+
+  /**
+   * Make removed text unrecoverable from the files: rewrite the DB without free
+   * pages (VACUUM) and empty the WAL, which holds copies of every page written.
+   * Best-effort when a reader (the MCP server) keeps the WAL busy; the zeroed
+   * pages from secure_delete are already in place by then.
+   */
+  private scrub(vacuum: boolean): void {
+    try {
+      if (vacuum) this.db.exec('VACUUM');
+      this.db.exec('PRAGMA wal_checkpoint(TRUNCATE)');
+    } catch {
+      // A busy WAL is retried on the next delete.
     }
   }
 
@@ -153,14 +171,16 @@ export class MeetingsDb {
    * so is one with the same `updatedAt`, which makes re-imports no-ops.
    */
   upsert(meeting: StoredMeeting, opts: { onlyIfNewer?: boolean; markdownFile?: string | null } = {}): UpsertResult {
-    return this.transaction(() => {
+    let shrunk = false;
+    const result = this.transaction(() => {
       if (this.db.prepare('SELECT 1 FROM deleted_meetings WHERE id = ?').get(meeting.id)) return 'deleted';
-      const existing = this.db.prepare('SELECT updated_at FROM meetings WHERE id = ?').get(meeting.id);
+      const existing = this.db.prepare('SELECT updated_at, segment_count FROM meetings WHERE id = ?').get(meeting.id);
       if (existing) {
         const stored = num(existing.updated_at);
         if (stored > meeting.updatedAt || (opts.onlyIfNewer && stored === meeting.updatedAt)) return 'stale';
       }
       const segments = meeting.segments.slice().sort((a, b) => a.start - b.start);
+      shrunk = !!existing && num(existing.segment_count) > segments.length;
       const params = {
         id: meeting.id,
         title: meeting.title,
@@ -216,6 +236,9 @@ export class MeetingsDb {
         .run(rowid, meeting.title, params.summary, transcriptText(meeting));
       return 'written';
     });
+    // A cleared transcript: the old lines sit in the WAL until it is emptied.
+    if (result === 'written' && shrunk) this.scrub(false);
+    return result;
   }
 
   /**
@@ -223,7 +246,7 @@ export class MeetingsDb {
    * never stored again. Returns its Markdown file name, if it had one.
    */
   delete(id: string, now = Date.now()): { deleted: boolean; markdownFile: string | null } {
-    return this.transaction(() => {
+    const result = this.transaction(() => {
       this.db.prepare('INSERT OR IGNORE INTO deleted_meetings (id, deleted_at) VALUES (?, ?)').run(id, now);
       const row = this.db.prepare('SELECT rowid, markdown_file FROM meetings WHERE id = ?').get(id);
       if (!row) return { deleted: false, markdownFile: null };
@@ -233,6 +256,26 @@ export class MeetingsDb {
       this.db.prepare('DELETE FROM meetings WHERE id = ?').run(id);
       return { deleted: true, markdownFile: row.markdown_file === null ? null : String(row.markdown_file) };
     });
+    this.scrub(result.deleted);
+    return result;
+  }
+
+  /**
+   * Delete every meeting; every id is remembered (id and time only) like a
+   * single delete. Returns how many were removed and their Markdown file names.
+   */
+  deleteAll(now = Date.now()): { count: number; markdownFiles: string[] } {
+    const out = this.transaction(() => {
+      const rows = this.db.prepare('SELECT id, markdown_file FROM meetings').all();
+      this.db.prepare('INSERT OR IGNORE INTO deleted_meetings (id, deleted_at) SELECT id, ? FROM meetings').run(now);
+      this.db.exec('DELETE FROM meetings_fts; DELETE FROM segments; DELETE FROM speakers; DELETE FROM meetings');
+      return {
+        count: rows.length,
+        markdownFiles: rows.flatMap((r) => (r.markdown_file === null ? [] : [String(r.markdown_file)])),
+      };
+    });
+    this.scrub(true);
+    return out;
   }
 
   /** Ids of every meeting deleted from this DB. */

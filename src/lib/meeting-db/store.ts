@@ -33,6 +33,20 @@ export class MeetingStore {
     return deleted;
   }
 
+  /** Delete every meeting, every Markdown file in `meetings/` (also stray ones and temp files). */
+  deleteAll(): number {
+    const { count, markdownFiles } = this.db.deleteAll();
+    for (const name of markdownFiles) this.removeFile(name);
+    try {
+      for (const name of fs.readdirSync(this.markdownDir)) {
+        if (name.endsWith('.md') || name.includes('.md.tmp-')) this.removeFile(name);
+      }
+    } catch {
+      // No folder, nothing to remove.
+    }
+    return count;
+  }
+
   private writeFile(name: string, content: string): void {
     try {
       fs.mkdirSync(this.markdownDir, { recursive: true });
