@@ -119,6 +119,18 @@ describe('/api/meetings', () => {
     expect((await removeAll(new Request('http://evil.example/api/meetings', { method: 'DELETE', headers: { host: 'evil.example' } }))).status).toBe(403);
   });
 
+  it('after DELETE all, a stale PUT gets 410 and a stale import is skipped: nothing is resurrected', async () => {
+    const a = sampleMeeting();
+    await put(json('PUT', `/${a.id}`, a), ctx(a.id));
+    await removeAll(req('', { method: 'DELETE' }));
+    const newer = { ...a, updatedAt: a.updatedAt + 60_000 };
+    expect((await put(json('PUT', `/${a.id}`, newer), ctx(a.id))).status).toBe(410);
+    expect(await (await importMeetings(json('POST', '/import', { meetings: [newer] }))).json()).toMatchObject({ imported: 0, skipped: 1 });
+    expect((await get(req(`/${a.id}`), ctx(a.id))).status).toBe(404);
+    expect((await (await list(req(''))).json()).meetings).toEqual([]);
+    expect(fs.readdirSync(path.join(dir, 'meetings'))).toEqual([]);
+  });
+
   it('import is idempotent: a second run skips what the first stored', async () => {
     const body = { meetings: [sampleMeeting(), sampleMeeting({ id: 'b' }), { id: '../bad' }] };
     const first = await (await importMeetings(json('POST', '/import', body))).json();

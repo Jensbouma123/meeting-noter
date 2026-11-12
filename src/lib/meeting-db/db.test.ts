@@ -142,6 +142,54 @@ describe('MeetingsDb', () => {
     expect(db.get('meeting-1')?.participants).toEqual(['Noor']);
   });
 
+  it('migrates a v1 DB straight to v3: meetings kept, participants column and tombstones work', () => {
+    const file = path.join(tmpDir(), 'meetings.db');
+    const v1 = new MeetingsDb(file);
+    v1.upsert(sampleMeeting());
+    v1.db.exec('DROP TABLE deleted_meetings; DROP TABLE meta; ALTER TABLE meetings DROP COLUMN participants; PRAGMA user_version = 1;');
+    v1.close();
+    const db = new MeetingsDb(file);
+    expect(db.db.prepare('PRAGMA user_version').get()).toEqual({ user_version: 3 });
+    expect(db.get('meeting-1')?.participants).toBeNull();
+    expect(db.search('budget').map((h) => h.id)).toEqual(['meeting-1']);
+    db.upsert(sampleMeeting({ updatedAt: Date.now(), participants: ['Noor'] }));
+    expect(db.get('meeting-1')?.participants).toEqual(['Noor']);
+    db.delete('meeting-1');
+    expect(db.upsert(sampleMeeting({ updatedAt: Date.now() + 1 }))).toBe('deleted');
+    db.close();
+    // Reopening a migrated DB is a no-op.
+    const again = new MeetingsDb(file);
+    expect(again.deletedIds()).toEqual(['meeting-1']);
+  });
+
+  it('after deleteAll a stale or newer copy of any deleted meeting is refused, other ids still store', () => {
+    const db = openDb();
+    db.upsert(sampleMeeting());
+    db.upsert(sampleMeeting({ id: 'two' }));
+    db.deleteAll();
+    expect(db.upsert(sampleMeeting({ updatedAt: Date.now() + 1000 }))).toBe('deleted');
+    expect(db.upsert(sampleMeeting({ id: 'two' }), { onlyIfNewer: true })).toBe('deleted');
+    expect(db.upsert(sampleMeeting({ id: 'three' }))).toBe('written');
+    expect(db.list().map((m) => m.id)).toEqual(['three']);
+    expect(db.deletedIds().sort()).toEqual(['meeting-1', 'two']);
+  });
+
+  it('a read-only handle refuses every write path and leaves an old DB unmigrated', () => {
+    const file = path.join(tmpDir(), 'meetings.db');
+    const writer = new MeetingsDb(file);
+    writer.upsert(sampleMeeting());
+    writer.db.exec('PRAGMA user_version = 2');
+    writer.close();
+    const reader = new MeetingsDb(file, { readOnly: true });
+    expect(() => reader.upsert(sampleMeeting({ updatedAt: Date.now() }))).toThrow();
+    expect(() => reader.delete('meeting-1')).toThrow();
+    expect(() => reader.deleteAll()).toThrow();
+    expect(() => reader.setMetaOnce('k', 'v')).toThrow();
+    expect(reader.db.prepare('PRAGMA user_version').get()).toEqual({ user_version: 2 });
+    expect(reader.get('meeting-1')?.title).toBe('Roadmap sync');
+    reader.close();
+  });
+
   it('opens read-only alongside a writer and sees its commits', () => {
     const file = path.join(tmpDir(), 'meetings.db');
     const writer = new MeetingsDb(file);

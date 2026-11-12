@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MeetingsDb } from '@/lib/meeting-db/db';
 import { meetingsDbPath } from '@/lib/meeting-db/paths';
 import { sampleMeeting } from '@/lib/meeting-db/test-meeting';
-import { GET as listRoute } from '@/app/api/meetings/route';
+import { DELETE as deleteAllRoute, GET as listRoute } from '@/app/api/meetings/route';
 import { DELETE as deleteRoute, GET as getRoute, PUT as putRoute } from '@/app/api/meetings/[id]/route';
 import { POST as importRoute } from '@/app/api/meetings/import/route';
 
@@ -35,7 +35,7 @@ async function fakeFetch(input: RequestInfo | URL, init: RequestInit = {}): Prom
   const match = url.pathname.match(/^\/api\/meetings(?:\/(.+))?$/);
   if (!match) return new Response('not found', { status: 404 });
   if (match[1] === 'import') return importRoute(request);
-  if (!match[1]) return listRoute(request);
+  if (!match[1]) return method === 'DELETE' ? deleteAllRoute(request) : listRoute(request);
   const ctx = { params: Promise.resolve({ id: decodeURIComponent(match[1]) }) };
   if (method === 'PUT') return putRoute(request, ctx);
   if (method === 'DELETE') return deleteRoute(request, ctx);
@@ -262,6 +262,72 @@ describe('deleted meetings and the one-time migration notice', () => {
     expect(store.listSessions().map((s) => s.title)).toEqual(['Other']);
     const db = readDb();
     expect(db.list().map((m) => m.title)).toEqual(['Other']);
+    db.close();
+  });
+
+  it('a delete made offline is replayed when back online, and a save queued after it wins over the delete', async () => {
+    const sync = await import('./server-sync');
+    await sync.startServerSync();
+    const store = await import('./session-store');
+    const keep = store.persistSession({ title: 'Keep', segments: [line('a', 'keep me', 0)], speakers: {} });
+    const gone = store.persistSession({ title: 'Gone', segments: [line('b', 'drop me', 0)], speakers: {} });
+    await sync.flushServerSync();
+    online = false;
+    store.deleteSession(gone);
+    await sync.flushServerSync();
+    expect(JSON.parse(localStorage.getItem('mn.sync.pending.v1')!).remove).toEqual([gone]);
+    // Queue order: a later save of the same id replaces its queued delete, a later delete replaces its save.
+    sync.queueMeetingSync(gone);
+    expect(JSON.parse(localStorage.getItem('mn.sync.pending.v1')!)).toEqual({ save: [gone], remove: [] });
+    sync.queueMeetingDelete(gone);
+    expect(JSON.parse(localStorage.getItem('mn.sync.pending.v1')!)).toEqual({ save: [], remove: [gone] });
+    online = true;
+    await sync.flushServerSync();
+    expect(JSON.parse(localStorage.getItem('mn.sync.pending.v1')!)).toEqual({ save: [], remove: [] });
+    const db = readDb();
+    expect(db.get(gone)).toBeNull();
+    expect(db.deletedIds()).toContain(gone);
+    expect(db.get(keep)?.title).toBe('Keep');
+    db.close();
+  });
+
+  it('Delete all: a browser that still holds its meetings cannot bring them back, and tabs never sent get 410s dropped', async () => {
+    const sync = await import('./server-sync');
+    await sync.startServerSync();
+    const store = await import('./session-store');
+    const id = store.persistSession({ title: 'Secret', segments: [line('a', 'launch codes', 0)], speakers: {} });
+    await sync.flushServerSync();
+    // Another tab/browser wipes the DB.
+    const { meetingStore } = await import('@/lib/meeting-db/store');
+    meetingStore().deleteAll();
+    // This stale browser edits its copy and syncs, then pulls.
+    store.renameSession(id, 'Secret v2');
+    await sync.flushServerSync();
+    await sync.pullFromServer();
+    await sync.flushServerSync();
+    expect(store.listSessions()).toEqual([]);
+    const db = readDb();
+    expect(db.list()).toEqual([]);
+    expect(db.get(id)).toBeNull();
+    db.close();
+    expect(JSON.parse(localStorage.getItem('mn.sync.pending.v1')!)).toEqual({ save: [], remove: [] });
+  });
+
+  it('deleteAllOnServer empties the DB, forgets queued saves and returns false when offline', async () => {
+    const sync = await import('./server-sync');
+    await sync.startServerSync();
+    const store = await import('./session-store');
+    const id = store.persistSession({ title: 'One', segments: [line('a', 'alpha', 0)], speakers: {} });
+    await sync.flushServerSync();
+    online = false;
+    expect(await sync.deleteAllOnServer()).toBe(false);
+    online = true;
+    store.renameSession(id, 'One!');
+    expect(await sync.deleteAllOnServer()).toBe(true);
+    expect(JSON.parse(localStorage.getItem('mn.sync.pending.v1')!)).toEqual({ save: [], remove: [] });
+    const db = readDb();
+    expect(db.list()).toEqual([]);
+    expect(db.deletedIds()).toEqual([id]);
     db.close();
   });
 
