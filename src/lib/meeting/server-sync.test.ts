@@ -151,6 +151,9 @@ describe('server sync', () => {
     const { listSessions, openSession } = await import('./session-store');
     const { getNotes } = await import('./notes');
     expect(listSessions().map((s) => s.sessionId)).toContain('from-disk');
+    // The list entry comes first; the transcript when the meeting is opened.
+    expect(localStorage.getItem('mn.session.from-disk.v1')).toBeNull();
+    expect(await sync.ensureMeetingLoaded('from-disk')).toBe(true);
     expect(openSession('from-disk')?.segments.map((s) => s.text)).toEqual([
       'Let us look at the quarterly budget.',
       'We ship the café export on Friday.',
@@ -175,6 +178,7 @@ describe('server sync', () => {
     const after = await import('./session-store');
     const { getNotes } = await import('./notes');
     expect(after.listSessions().map((s) => s.sessionId)).toEqual([id]);
+    await sync.ensureMeetingLoaded(id);
     expect(after.openSession(id)?.segments.map((s) => s.text)).toEqual(['cut the travel line']);
     expect(getNotes(id).decisions.map((d) => d.text)).toEqual(['No travel in Q1']);
   });
@@ -275,6 +279,78 @@ describe('deleted meetings and the one-time migration notice', () => {
     expect(localStorage.getItem(sync.MIGRATED_KEY)).not.toBeNull();
     window.removeEventListener(sync.MIGRATED_EVENT, onEvent);
     expect(events).toHaveLength(1);
+  });
+});
+
+describe('localStorage holds only unsent edits and the open meeting', () => {
+  const transcriptKey = (id: string) => `mn.session.${id}.v1`;
+  const notesKey = (id: string) => `mn.notes.v1.${id}`;
+
+  it('drops the transcript and notes of a meeting once the server has them, but not of the open one', async () => {
+    const sync = await import('./server-sync');
+    await sync.startServerSync();
+    const store = await import('./session-store');
+    const { addDecision } = await import('./notes');
+    const { loadIdleSession } = await import('./store');
+    const closed = store.persistSession({ title: 'Closed', segments: [line('a', 'old news', 0)], speakers: {} });
+    addDecision(closed, 'Ship it');
+    const open = store.persistSession({ title: 'Open', segments: [line('b', 'on screen', 0)], speakers: {} });
+    addDecision(open, 'Keep it');
+    const shown = store.openSession(open)!;
+    loadIdleSession(open, { segments: shown.segments, speakers: shown.speakers, startedAt: shown.startedAt ?? null });
+    online = false;
+    await sync.flushServerSync();
+    // Unsent: everything stays.
+    expect(localStorage.getItem(transcriptKey(closed))).not.toBeNull();
+
+    online = true;
+    await sync.flushServerSync();
+    expect(localStorage.getItem(transcriptKey(closed))).toBeNull();
+    expect(localStorage.getItem(notesKey(closed))).toBeNull();
+    expect(localStorage.getItem(transcriptKey(open))).not.toBeNull();
+    expect(localStorage.getItem(notesKey(open))).not.toBeNull();
+    expect(store.listSessions().map((s) => s.title).sort()).toEqual(['Closed', 'Open']);
+
+    expect(await sync.ensureMeetingLoaded(closed)).toBe(true);
+    expect(store.openSession(closed)?.segments.map((s) => s.text)).toEqual(['old news']);
+  });
+
+  it('never sends a dropped meeting back without its transcript', async () => {
+    const sync = await import('./server-sync');
+    await sync.startServerSync();
+    const store = await import('./session-store');
+    const { addAction, getNotes } = await import('./notes');
+    const id = store.persistSession({ title: 'Kept whole', segments: [line('a', 'every word', 0)], speakers: {} });
+    addAction(id, 'Write it up');
+    await sync.flushServerSync();
+    expect(localStorage.getItem(transcriptKey(id))).toBeNull();
+
+    // Renamed from the list while offline: it waits rather than going up empty.
+    online = false;
+    store.renameSession(id, 'Kept whole v2');
+    await sync.flushServerSync();
+    expect(JSON.parse(localStorage.getItem('mn.sync.pending.v1')!).save).toEqual([id]);
+
+    online = true;
+    await sync.flushServerSync();
+    const db = readDb();
+    const stored = db.get(id)!;
+    db.close();
+    expect(stored.title).toBe('Kept whole v2');
+    expect(stored.segments.map((s) => s.text)).toEqual(['every word']);
+    expect(stored.notes.actions.map((a) => a.text)).toEqual(['Write it up']);
+    expect(getNotes(id).actions).toEqual([]); // dropped again once sent
+  });
+
+  it('finds a dropped transcript through the DB search', async () => {
+    const sync = await import('./server-sync');
+    expect(await sync.searchMeetingIds('quarterly')).toBeNull(); // nothing sent before start
+    await sync.startServerSync();
+    const store = await import('./session-store');
+    const id = store.persistSession({ title: 'Finance', segments: [line('a', 'quarterly budget review', 0)], speakers: {} });
+    await sync.flushServerSync();
+    expect(localStorage.getItem(transcriptKey(id))).toBeNull();
+    expect(await sync.searchMeetingIds('budget')).toEqual(new Set([id]));
   });
 });
 

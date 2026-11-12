@@ -79,6 +79,26 @@ function writeNotes(sessionId: string, notes: Notes): void {
   notify(sessionId);
 }
 
+/** Take in notes from the meetings DB (`server-sync.ts`): stored and shown, not queued back. */
+export function adoptNotes(sessionId: string, notes: Notes): void {
+  if (typeof window === 'undefined' || !sessionId) return;
+  try {
+    window.localStorage.setItem(notesKey(sessionId), JSON.stringify(notes));
+  } catch {
+    // Best-effort, like every other local write.
+  }
+  notify(sessionId);
+}
+
+/** Whether this browser holds the session's notes (it drops them once the DB has them). */
+export function hasLocalNotes(sessionId: string): boolean {
+  try {
+    return typeof window !== 'undefined' && window.localStorage.getItem(notesKey(sessionId)) !== null;
+  } catch {
+    return false;
+  }
+}
+
 function newId(): string {
   try {
     if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();

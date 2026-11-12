@@ -33,6 +33,7 @@ import {
   getClientSessionId,
   type AutosavedSession,
 } from '@/lib/meeting/persist';
+import { ensureMeetingLoaded } from '@/lib/meeting/server-sync';
 import {
   useMeeting,
   meeting,
@@ -216,20 +217,29 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
   const [otherRecording, setOtherRecording] = useState(false);
   useEffect(() => {
     if (!initialSessionId) return;
-    try {
-      if (getTranscriptSessionId() === initialSessionId) {
-        setOtherRecording(false); // eslint-disable-line react-hooks/set-state-in-effect
-        return;
-      }
-      const saved = sessionExists(initialSessionId) ? openSession(initialSessionId) : null;
-      const loaded = loadIdleSession(
-        initialSessionId,
-        saved && { segments: saved.segments, speakers: saved.speakers, startedAt: saved.startedAt ?? null },
-      );
-      setOtherRecording(!loaded);
-    } catch {
-      // Best-effort — the live path must never break.
+    if (getTranscriptSessionId() === initialSessionId) {
+      setOtherRecording(false); // eslint-disable-line react-hooks/set-state-in-effect
+      return;
     }
+    let cancelled = false;
+    // The transcript may live only in the DB (localStorage keeps the open
+    // meeting and unsent edits); offline, what this browser has is shown.
+    void ensureMeetingLoaded(initialSessionId).then(() => {
+      if (cancelled || getTranscriptSessionId() === initialSessionId) return;
+      try {
+        const saved = sessionExists(initialSessionId) ? openSession(initialSessionId) : null;
+        const loaded = loadIdleSession(
+          initialSessionId,
+          saved && { segments: saved.segments, speakers: saved.speakers, startedAt: saved.startedAt ?? null },
+        );
+        setOtherRecording(!loaded);
+      } catch {
+        // Best-effort — the live path must never break.
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [initialSessionId]);
 
   // Keyboard shortcuts help overlay.

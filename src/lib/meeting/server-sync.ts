@@ -1,10 +1,13 @@
-import type { StoredMeeting } from '@/lib/meeting-db/types';
-import { getNotes } from './notes';
+import type { MeetingSummaryRow, StoredMeeting } from '@/lib/meeting-db/types';
+import { getNotes, hasLocalNotes } from './notes';
 import { loadAutosavedSession, loadSessionTranscript } from './persist';
 import {
+  adoptMeetingSummary,
   adoptStoredMeeting,
   archiveAutosavedSession,
+  cacheMeetingContent,
   deleteSession,
+  evictMeetingContent,
   getSessionMetadata,
   listSessions,
 } from './session-store';
@@ -12,12 +15,14 @@ import { getTranscriptSessionId, isCaptureActive } from './store';
 
 /**
  * Keeps the server's meetings DB (`/api/meetings`, see `src/lib/meeting-db`)
- * in step with this browser. The session store still works on localStorage
- * synchronously; every change it makes is queued here and written to the
- * server a second later, so the DB on disk holds every meeting. When the
- * server cannot be reached the ids wait in `mn.sync.pending.v1` and go out on
- * the next change, the next start or when the browser is back online, so
- * localStorage is the crash- and offline-safe copy, not the archive.
+ * in step with this browser. The DB is the archive. The session store still
+ * works on localStorage synchronously; every change it makes is queued here
+ * and written to the server a second later. When the server cannot be reached
+ * the ids wait in `mn.sync.pending.v1` and go out on the next change, the next
+ * start or when the browser is back online. Once the server confirms a
+ * meeting, its transcript and notes leave localStorage unless it is the open
+ * meeting (`evictSynced`); `ensureMeetingLoaded` fetches them again. Meetings
+ * deleted in the DB stay deleted (`dropDeleted`).
  *
  * `startServerSync` (called once by the app shell) also:
  * - moves the browser's existing meetings and autosave into the DB once
@@ -201,6 +206,9 @@ export function flushServerSync(): Promise<void> {
     }
     for (const id of pending.save) {
       const gen = generation.get(id) ?? 0;
+      // An edit to a meeting whose transcript lives only in the DB: fetch it
+      // first, so the copy sent back is whole. Offline it waits in the queue.
+      if (!(await ensureMeetingLoaded(id))) continue;
       const meeting = buildStoredMeeting(id);
       const sent = meeting ? await send('PUT', id, meeting) : 'done';
       if (sent === 'retry') continue;
@@ -214,10 +222,64 @@ export function flushServerSync(): Promise<void> {
       const now = readPending();
       writeJson(PENDING_KEY, { ...now, save: now.save.filter((x) => x !== id) });
     }
+    evictSynced();
   })().finally(() => {
     flushing = null;
   });
   return flushing;
+}
+
+/** True when this browser holds the session's transcript (its own copy or the autosave). */
+function hasLocalTranscript(id: string): boolean {
+  return loadSessionTranscript(id) !== null || loadAutosavedSession()?.sessionId === id;
+}
+
+/** The meeting on screen or being recorded: its copy stays in localStorage. */
+function isOpen(id: string): boolean {
+  return getTranscriptSessionId() === id || loadAutosavedSession()?.sessionId === id;
+}
+
+/**
+ * Make sure this browser holds a meeting's transcript and notes, fetching
+ * them from the DB when it dropped them (`evictSynced`) or never had them.
+ * Fills in only what is missing, so unsent local edits survive. False when
+ * the DB could not be reached; true when there is nothing more to get.
+ */
+export async function ensureMeetingLoaded(id: string): Promise<boolean> {
+  const local = getSessionMetadata(id) !== null;
+  // Only a meeting the server confirmed can have been dropped here.
+  const dropped = readJson<Record<string, number>>(SYNCED_KEY, {})[id] !== undefined;
+  if (local && (!dropped || (hasLocalTranscript(id) && hasLocalNotes(id)))) return true;
+  try {
+    const res = await fetch(`/api/meetings/${encodeURIComponent(id)}`, { cache: 'no-store' });
+    if (res.status === 404 || res.status === 410) return true;
+    if (!res.ok) return false;
+    const { meeting } = (await res.json()) as { meeting: StoredMeeting };
+    if (local) cacheMeetingContent(meeting);
+    else {
+      adoptStoredMeeting(meeting);
+      markSynced(id, meeting.updatedAt);
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * localStorage keeps only what the DB lacks and the open meeting: the
+ * transcript and notes of every other meeting the server confirmed are
+ * dropped (the index entry stays, for the list). `ensureMeetingLoaded`
+ * brings them back when the meeting is opened.
+ */
+export function evictSynced(): void {
+  const pending = readPending();
+  const synced = readJson<Record<string, number>>(SYNCED_KEY, {});
+  for (const s of listSessions()) {
+    const at = synced[s.sessionId];
+    if (at === undefined || at < s.updatedAt || pending.save.includes(s.sessionId) || isOpen(s.sessionId)) continue;
+    evictMeetingContent(s.sessionId);
+  }
 }
 
 /**
@@ -268,13 +330,13 @@ export async function migrateBrowserMeetings(): Promise<MigrationResult | null> 
  * session being recorded, are never overwritten. Returns how many it adopted.
  */
 export async function pullFromServer(): Promise<number> {
-  const list: { id: string; updatedAt: number }[] = [];
+  const list: MeetingSummaryRow[] = [];
   let deleted: string[] = [];
   try {
     for (;;) {
       const res = await fetch(`/api/meetings?limit=${LIST_PAGE}&offset=${list.length}`, { cache: 'no-store' });
       if (!res.ok) return 0;
-      const body = (await res.json()) as { meetings: { id: string; updatedAt: number }[]; deleted?: string[] };
+      const body = (await res.json()) as { meetings: MeetingSummaryRow[]; deleted?: string[] };
       list.push(...body.meetings);
       deleted = body.deleted ?? [];
       if (body.meetings.length < LIST_PAGE) break;
@@ -300,19 +362,43 @@ export async function pullFromServer(): Promise<number> {
     if (isCaptureActive() && getTranscriptSessionId() === row.id) continue;
     const local = getSessionMetadata(row.id);
     if (local && (synced[row.id] ?? local.updatedAt) >= row.updatedAt) continue;
-    try {
-      const res = await fetch(`/api/meetings/${encodeURIComponent(row.id)}`, { cache: 'no-store' });
-      if (!res.ok) continue;
-      const { meeting } = (await res.json()) as { meeting: StoredMeeting };
-      adoptStoredMeeting(meeting);
-      markSynced(meeting.id, meeting.updatedAt);
-      adopted += 1;
-    } catch {
-      // Next start tries again.
+    // Only the list entry comes over; the transcript and notes are fetched
+    // when the meeting is opened. An older local copy is dropped, except of
+    // the open meeting, which is replaced whole.
+    if (isOpen(row.id)) {
+      try {
+        const res = await fetch(`/api/meetings/${encodeURIComponent(row.id)}`, { cache: 'no-store' });
+        if (!res.ok) continue;
+        adoptStoredMeeting(((await res.json()) as { meeting: StoredMeeting }).meeting);
+      } catch {
+        continue; // Next pull tries again.
+      }
+    } else {
+      evictMeetingContent(row.id);
+      adoptMeetingSummary(row);
     }
+    markSynced(row.id, row.updatedAt);
+    adopted += 1;
   }
+  evictSynced();
   if (adopted > 0 && typeof window !== 'undefined') window.dispatchEvent(new Event('mn:sessions-changed'));
   return adopted;
+}
+
+/**
+ * Ids of the meetings whose title, notes or transcript match `query` in the
+ * DB, for the sidebar search over transcripts this browser dropped. Null
+ * before `startServerSync` or when the server cannot be reached.
+ */
+export async function searchMeetingIds(query: string): Promise<Set<string> | null> {
+  if (!enabled || !query.trim()) return null;
+  try {
+    const res = await fetch(`/api/meetings?q=${encodeURIComponent(query)}`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    return new Set(((await res.json()) as { meetings: { id: string }[] }).meetings.map((m) => m.id));
+  } catch {
+    return null;
+  }
 }
 
 /** Turn syncing on: migrate once, push what is queued, pull what is missing, and retry while offline. */

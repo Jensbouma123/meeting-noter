@@ -67,10 +67,14 @@ reads another database.
 ## How meetings get there
 
 The app saves each change through its own API (`/api/meetings`) about a second
-after it happens. The browser keeps a copy too, as the safety net: when the
-server is not running the changes wait in the browser and are sent on the next
-start. On the first start of this version the meetings already in the browser
-are copied into the database once; the app confirms it with a message.
+after it happens. The database is the archive: the browser keeps only changes
+not yet saved and the meeting that is open, and fetches any other meeting from
+the database when you open it. When the server is not running the changes wait
+in the browser and are sent on the next start, so clearing the browser's data
+loses nothing that was saved. A meeting deleted in one browser stays deleted;
+another browser drops its copy instead of sending it back. On the first start
+of this version the meetings already in the browser are copied into the
+database once; the app confirms it with a message, once per database.
 
 Updating or reinstalling keeps the database. `uninstall.sh` keeps it as well,
 unless you run it with `--delete-meetings`.

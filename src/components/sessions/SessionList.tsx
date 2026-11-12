@@ -41,6 +41,7 @@ import {
 import { formatClock } from '@/lib/meeting/export';
 import type { CaptureMode } from '@/lib/meeting/types';
 import { loadSessionTranscript } from '@/lib/meeting/persist';
+import { searchMeetingIds } from '@/lib/meeting/server-sync';
 import { filterSessions, groupSessionsByDay } from '@/lib/meeting/session-groups';
 import { purgeExpiredSessions } from '@/lib/meeting/retention';
 import { loadSettings } from '@/components/meeting/types';
@@ -228,10 +229,22 @@ export function SessionSidebar({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounced(query, 200);
-  const groups = useMemo(
-    () => groupSessionsByDay(filterSessions(sessions, debouncedQuery, transcriptText)),
-    [sessions, debouncedQuery],
-  );
+  // The DB's matches cover transcripts this browser no longer holds.
+  const [serverHits, setServerHits] = useState<{ query: string; ids: Set<string> } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    void searchMeetingIds(debouncedQuery).then((ids) => {
+      if (!cancelled && ids) setServerHits({ query: debouncedQuery, ids });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedQuery]);
+  const groups = useMemo(() => {
+    const hits = serverHits?.query === debouncedQuery ? serverHits.ids : null;
+    const transcriptOf = (id: string) => (hits?.has(id) ? debouncedQuery : transcriptText(id));
+    return groupSessionsByDay(filterSessions(sessions, debouncedQuery, transcriptOf));
+  }, [sessions, debouncedQuery, serverHits]);
 
   // Opened from the headers' "Show meetings" buttons below lg.
   useEffect(() => {

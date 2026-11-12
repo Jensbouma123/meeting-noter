@@ -20,9 +20,9 @@ import {
 } from './store';
 import { resetDiarization } from './diarization-bridge';
 import { requestPersistentStorage } from './persistent-storage';
-import { notesKey } from './notes';
+import { adoptNotes, hasLocalNotes, notesKey } from './notes';
 import { queueMeetingDelete, queueMeetingSync } from './server-sync';
-import type { StoredMeeting } from '@/lib/meeting-db/types';
+import type { MeetingSummaryRow, StoredMeeting } from '@/lib/meeting-db/types';
 
 // ---------------------------------------------------------------------------
 // Session index: persisted map of sessionId → session metadata.
@@ -443,40 +443,73 @@ export function archiveAutosavedSession(): string | null {
 }
 
 /**
- * Take in a meeting from the server's DB (`pullFromServer` in `server-sync.ts`):
- * its index entry, transcript and notes replace this browser's copy. Queues
- * nothing, since the server already has it.
+ * The index entry of a meeting in the server's DB (`pullFromServer` in
+ * `server-sync.ts`) replaces this browser's. Queues nothing, since the server
+ * already has it.
  */
-export function adoptStoredMeeting(meeting: StoredMeeting): void {
+export function adoptMeetingSummary(row: MeetingSummaryRow): void {
   const index = readSessionIndex();
   const entry: SessionEntry = {
     version: INDEX_VERSION,
-    sessionId: meeting.id,
-    title: meeting.title,
-    segmentCount: meeting.segments.length,
-    durationSeconds: meeting.durationSeconds,
-    createdAt: meeting.createdAt,
-    updatedAt: meeting.updatedAt,
-    isDraft: meeting.segments.length === 0,
-    ...(meeting.captureMode ? { captureMode: meeting.captureMode } : {}),
+    sessionId: row.id,
+    title: row.title,
+    segmentCount: row.segmentCount,
+    durationSeconds: row.durationSeconds,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    isDraft: row.isDraft,
+    ...(row.captureMode ? { captureMode: row.captureMode } : {}),
   };
-  const existingIdx = index.sessions.findIndex((s) => s.sessionId === meeting.id);
+  const existingIdx = index.sessions.findIndex((s) => s.sessionId === row.id);
   if (existingIdx >= 0) index.sessions[existingIdx] = entry;
   else index.sessions.push(entry);
   writeSessionIndex(index);
-  saveSessionTranscript({
-    sessionId: meeting.id,
-    title: meeting.title,
-    segments: meeting.segments.map((s) => ({ ...s, final: true })),
-    speakers: meeting.speakers,
-    startedAt: meeting.startedAt,
-  });
-  try {
-    localStorage.setItem(notesKey(meeting.id), JSON.stringify(meeting.notes));
-  } catch {
-    // Best-effort, like every other local write.
-  }
   notifySessionsChanged();
+}
+
+/**
+ * A meeting's transcript and notes from the server's DB. With `replace` they
+ * replace this browser's copy; without, only what this browser lacks is
+ * filled in, so unsent local edits survive.
+ */
+export function cacheMeetingContent(meeting: StoredMeeting, opts: { replace?: boolean } = {}): void {
+  if (opts.replace || !loadSessionTranscript(meeting.id)) {
+    saveSessionTranscript({
+      sessionId: meeting.id,
+      title: meeting.title,
+      segments: meeting.segments.map((s) => ({ ...s, final: true })),
+      speakers: meeting.speakers,
+      startedAt: meeting.startedAt,
+    });
+  }
+  if (opts.replace || !hasLocalNotes(meeting.id)) adoptNotes(meeting.id, meeting.notes);
+}
+
+/** Drop this browser's copy of a meeting's transcript and notes once the DB holds them. */
+export function evictMeetingContent(sessionId: string): void {
+  removeSessionTranscript(sessionId);
+  try {
+    localStorage.removeItem(notesKey(sessionId));
+  } catch {
+    // Best-effort: a copy left behind is only a cache.
+  }
+}
+
+/** Take in a whole meeting from the server's DB: index entry, transcript and notes. */
+export function adoptStoredMeeting(meeting: StoredMeeting): void {
+  adoptMeetingSummary({
+    id: meeting.id,
+    title: meeting.title,
+    createdAt: meeting.createdAt,
+    updatedAt: meeting.updatedAt,
+    startedAt: meeting.startedAt,
+    durationSeconds: meeting.durationSeconds,
+    segmentCount: meeting.segments.length,
+    captureMode: meeting.captureMode,
+    isDraft: meeting.segments.length === 0,
+    speakers: [],
+  });
+  cacheMeetingContent(meeting, { replace: true });
 }
 
 /**
