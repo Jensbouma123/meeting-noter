@@ -11,6 +11,7 @@ import { ProgressTrack } from '@/components/common/ProgressTrack';
 import { NotesPanel } from '@/components/notes/NotesPanel';
 import type { Segment } from '@/lib/meeting/types';
 import { useT } from '@/lib/i18n/useT';
+import { addNameToVocabulary } from '@/lib/vocabulary/names';
 import {
   Badge,
   Button,
@@ -20,6 +21,7 @@ import {
   HStack,
   Input,
   Text,
+  useToast,
   VStack,
 } from '@jensbouma123/acciva-ui';
 
@@ -183,6 +185,8 @@ function RailTabs({
   trailing?: React.ReactNode;
 }) {
   const t = useT('rail');
+  const ts = useT('settings');
+  const { toast } = useToast();
   const onKeyDown = (e: React.KeyboardEvent) => {
     const i = RAIL_TABS.indexOf(active);
     let next: number;
@@ -240,8 +244,13 @@ function formatDuration(seconds: number): string {
 
 /** Speaker directory + talk-time sidebar. Reads live from the meeting store
  *  (via `useSpeakerStats`), so it takes no props — it's self-sufficient. */
+/** Meetings that already showed the "names added to your words" note. */
+const notedSessions = new Set<string>();
+
 export function RightRail({ sessionId, segments = [] }: { sessionId: string; segments?: Segment[] }) {
   const t = useT('rail');
+  const ts = useT('settings');
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<RailTab>('participants');
   // Initial render must match the server (expanded); the real preference —
   // a saved choice, or the narrow-screen default — loads after mount.
@@ -297,6 +306,10 @@ export function RightRail({ sessionId, segments = [] }: { sessionId: string; seg
     const trimmed = nameDraft.trim();
     if (trimmed.length > 0) {
       meeting.renameSpeaker(editingSpeakerId, trimmed);
+      if (addNameToVocabulary(trimmed) > 0 && !notedSessions.has(sessionId)) {
+        notedSessions.add(sessionId);
+        toast({ title: ts('vocab.nameNote') });
+      }
     }
     setEditingSpeakerId(null);
   };

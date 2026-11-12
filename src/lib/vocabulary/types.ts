@@ -4,6 +4,8 @@ export interface VocabularyEntry {
   word: string;
   /** How the model has misheard it ("from now"); replaced by `word` afterwards. */
   variants: string[];
+  /** Set when the word was added by the app from a meeting (a speaker's name), not typed by the user. */
+  source?: 'meeting';
 }
 
 /** What the speech engine needs to favour the user's words while decoding. */

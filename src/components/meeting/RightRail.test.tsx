@@ -3,13 +3,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { RightRail } from './RightRail';
 import { LanguageContext } from '@/lib/i18n/LanguageContext';
+import { ToastProvider } from '@jensbouma123/acciva-ui';
 
 vi.mock('@/components/notes/NotesPanel', () => ({ NotesPanel: () => <div>notes-panel</div> }));
 
 function view(lang: 'en' | 'nl' = 'en') {
   return render(
     <LanguageContext.Provider value={lang}>
-      <RightRail sessionId="s1" />
+      <ToastProvider>
+        <RightRail sessionId="s1" />
+      </ToastProvider>
     </LanguageContext.Provider>,
   );
 }

@@ -22,13 +22,13 @@ export function mergeEntries(
   existing: readonly VocabularyEntry[],
   incoming: readonly VocabularyEntry[],
 ): VocabularyEntry[] {
-  const out = existing.map((e) => ({ word: e.word, variants: [...e.variants] }));
+  const out = existing.map((e) => ({ ...e, variants: [...e.variants] }));
   for (const entry of incoming) {
     const word = clean(entry.word);
     if (!word) continue;
     let target = out.find((e) => e.word.toLowerCase() === word.toLowerCase());
     if (!target) {
-      target = { word, variants: [] };
+      target = { word, variants: [], ...(entry.source ? { source: entry.source } : {}) };
       out.push(target);
     }
     for (const variant of entry.variants.map(clean)) {

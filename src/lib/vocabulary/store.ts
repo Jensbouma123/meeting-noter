@@ -34,7 +34,7 @@ function parseEntries(value: unknown): VocabularyEntry[] {
   for (const item of value) {
     if (!item || typeof item.word !== 'string') continue;
     const variants = Array.isArray(item.variants) ? item.variants.filter((v: unknown) => typeof v === 'string') : [];
-    entries.push({ word: item.word, variants });
+    entries.push({ word: item.word, variants, ...(item.source === 'meeting' ? { source: 'meeting' as const } : {}) });
   }
   return mergeEntries([], entries);
 }

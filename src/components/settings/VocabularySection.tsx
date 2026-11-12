@@ -121,6 +121,11 @@ export function VocabularySection() {
                   <Text size="sm" weight="medium" className="truncate">
                     {entry.word}
                   </Text>
+                  {entry.source === 'meeting' && (
+                    <Text size="xs" variant="muted" className="truncate text-text-muted">
+                      {t('vocab.fromMeeting')}
+                    </Text>
+                  )}
                   {entry.variants.length > 0 && (
                     <Text size="xs" variant="muted" className="truncate">
                       {fill(t('vocab.alsoFixes'), { list: entry.variants.join(', ') })}

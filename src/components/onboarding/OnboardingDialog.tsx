@@ -21,6 +21,7 @@ import { VocabularyAddField } from '@/components/settings/VocabularyAddField';
 import type { AppSettings } from '@/components/meeting/types';
 import { useT } from '@/lib/i18n/useT';
 import { useVocabulary } from '@/lib/vocabulary/store';
+import { addNameToVocabulary } from '@/lib/vocabulary/names';
 import { finishOnboarding, useOnboardingOpen } from '@/lib/onboarding/store';
 
 const STEPS = ['welcome', 'who', 'models', 'words', 'done'] as const;
@@ -158,6 +159,7 @@ function OnboardingSteps({
               value={settings.ownerName}
               onChange={(e) => onSettingsChange({ ...settings, ownerName: e.target.value })}
               placeholder={t('who.placeholder')}
+              onBlur={() => addNameToVocabulary(settings.ownerName)}
               autoComplete="name"
             />
           </VStack>
