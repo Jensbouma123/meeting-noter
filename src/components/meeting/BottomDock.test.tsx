@@ -2,7 +2,7 @@
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import type { CaptureMode } from '@/lib/meeting';
+import type { CaptureMode, Status } from '@/lib/meeting';
 import { BottomDock } from './BottomDock';
 import { NO_MODEL_PROGRESS } from './modelReadiness';
 import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, loadSettings } from './types';
@@ -14,11 +14,16 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function renderDock(mode: CaptureMode, onModeChange: (m: CaptureMode) => void = () => {}, onOpenAdvanced: () => void = () => {}) {
-  render(
+function dockElement(
+  status: Status,
+  mode: CaptureMode,
+  onModeChange: (m: CaptureMode) => void = () => {},
+  onOpenAdvanced: () => void = () => {},
+) {
+  return (
     <LanguageContext.Provider value="nl">
       <BottomDock
-        status="idle"
+        status={status}
         mode={mode}
         modelReadiness="ready"
         modelProgress={NO_MODEL_PROGRESS}
@@ -29,8 +34,16 @@ function renderDock(mode: CaptureMode, onModeChange: (m: CaptureMode) => void = 
         onResume={() => {}}
         onOpenAdvanced={onOpenAdvanced}
       />
-    </LanguageContext.Provider>,
+    </LanguageContext.Provider>
   );
+}
+
+function renderDock(mode: CaptureMode, onModeChange: (m: CaptureMode) => void = () => {}, onOpenAdvanced: () => void = () => {}) {
+  render(dockElement('idle', mode, onModeChange, onOpenAdvanced));
+}
+
+function renderDockWithStatus(status: Status, mode: CaptureMode) {
+  return render(dockElement(status, mode));
 }
 
 describe('capture mode toggle', () => {
@@ -51,6 +64,21 @@ describe('capture mode toggle', () => {
     await waitFor(() => expect(screen.queryByRole('tooltip', { hidden: true })).toBeNull());
     fireEvent.focus(both);
     expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent('Neemt je microfoon en het geluid van je gesprek op (Teams, Zoom, Meet).');
+  });
+
+  it('shows exactly one tooltip per option on hover, also while recording', () => {
+    const { rerender } = renderDockWithStatus('idle', 'both');
+    const [mic] = screen.getAllByRole('tab');
+    fireEvent.mouseEnter(mic);
+    expect(screen.getAllByRole('tooltip', { hidden: true })).toHaveLength(1);
+    fireEvent.mouseLeave(mic);
+
+    rerender(dockElement('live', 'both'));
+    const [liveMic] = screen.getAllByRole('tab');
+    fireEvent.mouseEnter(liveMic);
+    const tooltips = screen.getAllByRole('tooltip', { hidden: true });
+    expect(tooltips).toHaveLength(1);
+    expect(tooltips[0]).toHaveTextContent('Neemt alleen je microfoon op. Stop de opname om de audiobron te wijzigen.');
   });
 
   it('still reports the selection', () => {

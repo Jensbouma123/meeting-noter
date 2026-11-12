@@ -248,7 +248,8 @@ export function BottomDock({
               <TabList aria-label={t('audioSource')}>
                 {/* Tab forwards no handlers, so the tooltip trigger is a wrapper element:
                     hover and focus (focusin bubbles) both reach it. */}
-                <Tooltip content={t('micTip')}>
+                {/* One tooltip per option: while locked, the lock hint is part of that option's text. */}
+                <Tooltip content={isRecordingActive ? t('micTipLocked') : t('micTip')}>
                   <span className="inline-flex">
                   <Tab value="mic" disabled={isRecordingActive} className="touch-target-44">
                     <HStack as="span" spacing="xs" className="items-center">
@@ -258,7 +259,7 @@ export function BottomDock({
                   </Tab>
                   </span>
                 </Tooltip>
-                <Tooltip content={t('micCallTip')}>
+                <Tooltip content={isRecordingActive ? t('micCallTipLocked') : t('micCallTip')}>
                   <span className="inline-flex">
                   <Tab value="both" disabled={isRecordingActive} className="touch-target-44">
                     <HStack as="span" spacing="xs" className="items-center">
@@ -271,13 +272,7 @@ export function BottomDock({
               </TabList>
             </Tabs>
           );
-          return isRecordingActive ? (
-            <Tooltip content={t('changeSourceTip')}>
-              <div className="shrink-0">{tabs}</div>
-            </Tooltip>
-          ) : (
-            <div className="shrink-0">{tabs}</div>
-          );
+          return <div className="shrink-0">{tabs}</div>;
         })()}
 
         {showCallAudioMissing && (
