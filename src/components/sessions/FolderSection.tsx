@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   Badge,
   Button,
@@ -49,6 +49,16 @@ export function useFoldersT() {
 const FOCUS = 'focus-visible:outline-2 focus-visible:outline-offset-1';
 const MEETING_MIME = 'application/x-mn-meeting';
 const FOLDER_MIME = 'application/x-mn-folder';
+const PLAIN_PREFIX = 'mn-folder-item:';
+
+function readDragItem(dataTransfer: DataTransfer): { kind: 'meeting' | 'folder'; id: string } | null {
+  const meeting = dataTransfer.getData(MEETING_MIME);
+  if (meeting) return { kind: 'meeting', id: meeting };
+  const folder = dataTransfer.getData(FOLDER_MIME);
+  if (folder) return { kind: 'folder', id: folder };
+  const match = /^mn-folder-item:(meeting|folder):(.+)$/.exec(dataTransfer.getData('text/plain'));
+  return match ? { kind: match[1] as 'meeting' | 'folder', id: match[2] } : null;
+}
 
 /* -------------------------------------------------------------------------- */
 /* Controller: data, mutations and the dialogs they need.                      */
@@ -63,7 +73,7 @@ export interface FolderController {
   renamingId: string | null;
   setRenamingId: (id: string | null) => void;
   /** Create a folder (named by the default name) and put it into rename mode. */
-  addFolder: (parentId: string | null) => Promise<void>;
+  addFolder: (parentId: string | null) => void;
   rename: (id: string, name: string) => Promise<void>;
   dropMeeting: (meetingId: string, folderId: string | null) => Promise<void>;
   dropFolder: (folderId: string, parentId: string | null) => Promise<void>;
@@ -81,6 +91,7 @@ export function useFolderController(sessions: readonly SessionMetadata[]): Folde
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [moveTarget, setMoveTarget] = useState<MoveTarget | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<FolderRow | null>(null);
+  const [createParentId, setCreateParentId] = useState<string | null | undefined>(undefined);
 
   const refresh = useCallback(async () => {
     const [f, m] = await Promise.all([fetchFolders(), fetchMeetingFolders()]);
@@ -114,13 +125,15 @@ export function useFolderController(sessions: readonly SessionMetadata[]): Folde
     [toast, t],
   );
 
-  const addFolder = useCallback(
-    async (parentId: string | null) => {
-      const r = await createFolder(t('defaultName'), parentId);
-      if (report(r) && r.ok) setRenamingId(r.folder.id);
-    },
-    [report, t],
-  );
+  const addFolder = useCallback((parentId: string | null) => setCreateParentId(parentId), []);
+  const createNewFolder = useCallback(async (name: string, parentId: string | null) => {
+    const normalized = name.trim().toLocaleLowerCase();
+    if (!normalized || folders.some((folder) => folder.parentId === parentId && folder.name.trim().toLocaleLowerCase() === normalized)) return false;
+    const result = await createFolder(name.trim(), parentId);
+    if (!report(result) || !result.ok) return false;
+    setCreateParentId(undefined);
+    return true;
+  }, [folders, report]);
   const rename = useCallback(
     async (id: string, name: string) => {
       setRenamingId(null);
@@ -175,6 +188,14 @@ export function useFolderController(sessions: readonly SessionMetadata[]): Folde
 
   const dialogs = (
     <>
+      {createParentId !== undefined && (
+        <CreateFolderDialog
+          initialParentId={createParentId}
+          folders={folders}
+          onClose={() => setCreateParentId(undefined)}
+          onCreate={createNewFolder}
+        />
+      )}
       <MoveToDialog target={moveTarget} folders={folders} meetingFolders={meetingFolders} onClose={() => setMoveTarget(null)} onMove={doMove} />
       <DeleteFolderDialog
         folder={deleteTarget}
@@ -211,6 +232,91 @@ interface MoveToDialogProps {
   meetingFolders: Record<string, string | null>;
   onClose: () => void;
   onMove: (target: MoveTarget, dest: string | null) => void;
+}
+
+function CreateFolderDialog({
+  initialParentId,
+  folders,
+  onClose,
+  onCreate,
+}: {
+  initialParentId: string | null;
+  folders: FolderRow[];
+  onClose: () => void;
+  onCreate: (name: string, parentId: string | null) => Promise<boolean>;
+}) {
+  const t = useFoldersT();
+  const [name, setName] = useState('');
+  const [parentId, setParentId] = useState(initialParentId);
+  const [error, setError] = useState('');
+  const submit = async () => {
+    if (!name.trim()) {
+      setError(t('nameRequired'));
+      return;
+    }
+    const duplicate = folders.some((folder) => folder.parentId === parentId && folder.name.trim().toLocaleLowerCase() === name.trim().toLocaleLowerCase());
+    if (duplicate) {
+      setError(t('nameDuplicate'));
+      return;
+    }
+    if (await onCreate(name, parentId)) onClose();
+    else setError(t('errorGeneric'));
+  };
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title={t('newFolder')}
+      footer={
+        <div className="dialog-actions flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="outline" onClick={onClose}>{t('cancel')}</Button>
+          <Button variant="primary" onClick={() => void submit()}>{t('create')}</Button>
+        </div>
+      }
+    >
+      <VStack spacing="sm">
+        <Input
+          size="sm"
+          value={name}
+          autoFocus
+          maxLength={200}
+          aria-label={t('name')}
+          placeholder={t('namePlaceholder')}
+          onChange={(event) => {
+            setName(event.target.value);
+            setError('');
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              void submit();
+            } else if (event.key === 'Escape') {
+              event.preventDefault();
+              onClose();
+            }
+          }}
+        />
+        <label className="flex flex-col gap-1 text-sm">
+          <span>{t('location')}</span>
+          <select
+            aria-label={t('location')}
+            value={parentId ?? ''}
+            onChange={(event) => {
+              setParentId(event.target.value || null);
+              setError('');
+            }}
+            className="min-h-10 rounded-md border border-border-subtle bg-surface px-3 text-sm"
+          >
+            <option value="">{t('topLevel')}</option>
+            {folderPickerOptions(folders).map((folder) => (
+              <option key={folder.id} value={folder.id}>{`${'　'.repeat(folder.depth)}${folder.name}`}</option>
+            ))}
+          </select>
+        </label>
+        {error && <Text role="alert" size="xs" variant="muted">{error}</Text>}
+      </VStack>
+    </Modal>
+  );
 }
 
 /** Keyboard-friendly alternative to drag and drop: a list of destination buttons. */
@@ -308,7 +414,12 @@ function dragProps(mime: string, id: string) {
   return {
     draggable: true,
     onDragStart: (e: React.DragEvent) => {
+      // A meeting inside a folder bubbles through its draggable folder row; keep
+      // the source identity so the parent cannot replace it with the folder id.
+      e.stopPropagation();
       e.dataTransfer.setData(mime, id);
+      // Safari needs a text/plain payload before it starts a native drag.
+      e.dataTransfer.setData('text/plain', `${PLAIN_PREFIX}${mime === MEETING_MIME ? 'meeting' : 'folder'}:${id}`);
       e.dataTransfer.effectAllowed = 'move';
     },
   };
@@ -392,23 +503,15 @@ export function FolderTree({ controller, sessions, renderSession }: FolderTreePr
 /** Appears while something is dragged: drop here to take it out of its folder. */
 function RootDropZone({ controller, label }: { controller: FolderController; label: string }) {
   const [over, setOver] = useState(false);
-  const [dragging, setDragging] = useState(false);
   useEffect(() => {
-    const start = (e: DragEvent) => setDragging(!!e.dataTransfer?.types.some((x) => x === MEETING_MIME || x === FOLDER_MIME));
-    const end = () => {
-      setDragging(false);
-      setOver(false);
-    };
-    window.addEventListener('dragstart', start);
-    window.addEventListener('dragend', end);
-    window.addEventListener('drop', end);
+    const clear = () => setOver(false);
+    window.addEventListener('dragend', clear);
+    window.addEventListener('drop', clear);
     return () => {
-      window.removeEventListener('dragstart', start);
-      window.removeEventListener('dragend', end);
-      window.removeEventListener('drop', end);
+      window.removeEventListener('dragend', clear);
+      window.removeEventListener('drop', clear);
     };
   }, []);
-  if (!dragging) return null;
   return (
     <div
       onDragOver={(e) => {
@@ -419,10 +522,9 @@ function RootDropZone({ controller, label }: { controller: FolderController; lab
       onDrop={(e) => {
         e.preventDefault();
         setOver(false);
-        const m = e.dataTransfer.getData(MEETING_MIME);
-        const f = e.dataTransfer.getData(FOLDER_MIME);
-        if (m) void controller.dropMeeting(m, null);
-        else if (f) void controller.dropFolder(f, null);
+        const item = readDragItem(e.dataTransfer);
+        if (item?.kind === 'meeting') void controller.dropMeeting(item.id, null);
+        else if (item?.kind === 'folder') void controller.dropFolder(item.id, null);
       }}
       className={`mx-2 mb-1 rounded-md border border-dashed px-2 py-1.5 text-xs text-muted-foreground ${over ? 'border-primary-500 bg-surface-hover' : 'border-border-subtle'}`}
     >
@@ -448,8 +550,16 @@ function FolderItem({ node, depth, controller, counts, byFolder, collapsed, onTo
   const expanded = !collapsed.has(folder.id);
   const meetings = byFolder.get(folder.id) ?? [];
   const [over, setOver] = useState(false);
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const renaming = controller.renamingId === folder.id;
   const hasContent = node.children.length > 0 || meetings.length > 0;
+  const clearHoverTimer = () => {
+    if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    hoverTimer.current = null;
+  };
+  useEffect(() => () => {
+    if (hoverTimer.current) clearTimeout(hoverTimer.current);
+  }, []);
 
   return (
     <li>
@@ -459,16 +569,30 @@ function FolderItem({ node, depth, controller, counts, byFolder, collapsed, onTo
           e.preventDefault();
           e.stopPropagation();
           setOver(true);
+          if (!expanded && hasContent && !hoverTimer.current) {
+            hoverTimer.current = setTimeout(() => {
+              hoverTimer.current = null;
+              onToggle(folder.id);
+            }, 600);
+          }
         }}
-        onDragLeave={() => setOver(false)}
+        onDragLeave={(e) => {
+          if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+          clearHoverTimer();
+          setOver(false);
+        }}
+        onDragEnd={() => {
+          clearHoverTimer();
+          setOver(false);
+        }}
         onDrop={(e) => {
           e.preventDefault();
           e.stopPropagation();
+          clearHoverTimer();
           setOver(false);
-          const m = e.dataTransfer.getData(MEETING_MIME);
-          const f = e.dataTransfer.getData(FOLDER_MIME);
-          if (m) void controller.dropMeeting(m, folder.id);
-          else if (f) void controller.dropFolder(f, folder.id);
+          const item = readDragItem(e.dataTransfer);
+          if (item?.kind === 'meeting') void controller.dropMeeting(item.id, folder.id);
+          else if (item?.kind === 'folder') void controller.dropFolder(item.id, folder.id);
         }}
         style={{ paddingLeft: `${depth * 0.75}rem` }}
         className={`group flex items-center gap-1 rounded-md pr-1 ${over ? 'bg-surface-hover outline outline-2 -outline-offset-2 outline-primary-500' : 'hover:bg-surface-hover'}`}
