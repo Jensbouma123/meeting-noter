@@ -1,14 +1,14 @@
 import { DatabaseSync, type SQLOutputValue } from 'node:sqlite';
 import type { CaptureMode, Source, Speaker } from '../meeting/types';
 import type { ActionItem, Decision } from '../meeting/notes';
-import { speakerNames, summaryText, transcriptText } from './markdown';
+import { searchSummary, speakerNames, summaryText, transcriptText } from './markdown';
 import type { MeetingSearchHit, MeetingSummaryRow, StoredMeeting, StoredSegment } from './types';
 
 /**
  * The meetings database: one SQLite file (`meetings.db`, see `paths.ts`) that
  * the Next.js API routes write and the MCP server reads. Tables:
- * - `meetings`: one row per meeting, with the notes as JSON and the summary
- *   text rendered from them;
+ * - `meetings`: one row per meeting, with the notes and participants as JSON
+ *   and the summary text rendered from them;
  * - `segments`: the final transcript lines, in order;
  * - `speakers`: each meeting's speaker labels;
  * - `meetings_fts`: FTS5 over title, summary and transcript, its rowid the
@@ -17,7 +17,7 @@ import type { MeetingSearchHit, MeetingSummaryRow, StoredMeeting, StoredSegment 
  * so there is no native module to build per arch.
  */
 
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS meetings (
@@ -33,7 +33,8 @@ CREATE TABLE IF NOT EXISTS meetings (
   speaker_names TEXT NOT NULL DEFAULT '[]',
   summary TEXT NOT NULL DEFAULT '',
   notes TEXT NOT NULL DEFAULT '{"actions":[],"decisions":[]}',
-  markdown_file TEXT
+  markdown_file TEXT,
+  participants TEXT
 );
 CREATE TABLE IF NOT EXISTS segments (
   meeting_id TEXT NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
@@ -129,6 +130,9 @@ export class MeetingsDb {
     const version = num(this.db.prepare('PRAGMA user_version').get()?.user_version ?? 0);
     if (version < SCHEMA_VERSION) {
       this.db.exec(SCHEMA);
+      // v3: participants. `CREATE TABLE IF NOT EXISTS` leaves an older table without the column.
+      const columns = this.db.prepare('PRAGMA table_info(meetings)').all().map((c) => String(c.name));
+      if (!columns.includes('participants')) this.db.exec('ALTER TABLE meetings ADD COLUMN participants TEXT');
       this.db.exec(`PRAGMA user_version = ${SCHEMA_VERSION}`);
     }
     this.db.exec("INSERT INTO meetings_fts (meetings_fts, rank) VALUES ('secure-delete', 1)");
@@ -195,19 +199,20 @@ export class MeetingsDb {
         summary: summaryText(meeting),
         notes: JSON.stringify(meeting.notes),
         markdown_file: opts.markdownFile ?? null,
+        participants: meeting.participants === null ? null : JSON.stringify(meeting.participants),
       };
       this.db
         .prepare(
           `INSERT INTO meetings (id, title, created_at, updated_at, started_at, duration_seconds, segment_count,
-             capture_mode, is_draft, speaker_names, summary, notes, markdown_file)
+             capture_mode, is_draft, speaker_names, summary, notes, markdown_file, participants)
            VALUES (:id, :title, :created_at, :updated_at, :started_at, :duration_seconds, :segment_count,
-             :capture_mode, :is_draft, :speaker_names, :summary, :notes, :markdown_file)
+             :capture_mode, :is_draft, :speaker_names, :summary, :notes, :markdown_file, :participants)
            ON CONFLICT(id) DO UPDATE SET title = excluded.title, created_at = excluded.created_at,
              updated_at = excluded.updated_at, started_at = excluded.started_at,
              duration_seconds = excluded.duration_seconds, segment_count = excluded.segment_count,
              capture_mode = excluded.capture_mode, is_draft = excluded.is_draft,
              speaker_names = excluded.speaker_names, summary = excluded.summary, notes = excluded.notes,
-             markdown_file = excluded.markdown_file`,
+             markdown_file = excluded.markdown_file, participants = excluded.participants`,
         )
         .run(params);
       const rowid = num(this.db.prepare('SELECT rowid FROM meetings WHERE id = ?').get(meeting.id)!.rowid);
@@ -233,7 +238,7 @@ export class MeetingsDb {
       this.db.prepare('DELETE FROM meetings_fts WHERE rowid = ?').run(rowid);
       this.db
         .prepare('INSERT INTO meetings_fts (rowid, title, summary, transcript) VALUES (?, ?, ?, ?)')
-        .run(rowid, meeting.title, params.summary, transcriptText(meeting));
+        .run(rowid, meeting.title, searchSummary(meeting), transcriptText(meeting));
       return 'written';
     });
     // A cleared transcript: the old lines sit in the WAL until it is emptied.
@@ -366,6 +371,7 @@ export class MeetingsDb {
       segments,
       speakers,
       notes,
+      participants: parseJson<string[] | null>(row.participants, null),
     };
   }
 }

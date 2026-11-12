@@ -1,5 +1,6 @@
 import type { MeetingSummaryRow, StoredMeeting } from '@/lib/meeting-db/types';
 import { getNotes, hasLocalNotes } from './notes';
+import { getStoredParticipants } from './participants';
 import { loadAutosavedSession, loadSessionTranscript } from './persist';
 import {
   adoptMeetingSummary,
@@ -135,7 +136,7 @@ export function queueMeetingDelete(sessionId: string): void {
 /**
  * A session as the DB stores it, built from localStorage: the index entry,
  * the session's own transcript (or the autosave slot when it is the newer
- * copy of this session) and its notes. Null for an unknown session.
+ * copy of this session), its notes and its participants. Null for an unknown session.
  */
 export function buildStoredMeeting(sessionId: string, now = Date.now()): StoredMeeting | null {
   const meta = getSessionMetadata(sessionId);
@@ -161,6 +162,7 @@ export function buildStoredMeeting(sessionId: string, now = Date.now()): StoredM
     segments,
     speakers: transcript?.speakers ?? {},
     notes: getNotes(sessionId),
+    participants: getStoredParticipants(sessionId),
   };
 }
 

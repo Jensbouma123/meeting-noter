@@ -1,5 +1,7 @@
 import { isSerializedSpeakerState, type SpeakerStates } from '@/lib/diarization/browser/speaker-state';
 import type { Segment, Source, Speaker } from './types';
+import { queueMeetingSync } from './server-sync';
+import { isCaptureActive } from './store';
 
 /**
  * Crash-safe autosave for the live meeting transcript.
@@ -74,9 +76,23 @@ export function saveAutosavedSession(input: AutosaveInput): void {
   } catch {
     // Ignore quota / serialization failures — autosave is best-effort.
   }
+  // An edit to a saved meeting (a speaker named, a word fixed) changes only
+  // this copy, so it is queued for the meetings DB here; otherwise the DB
+  // keeps the old text and `evictSynced` later drops the edited copy. While
+  // recording, Stop's `persistSession` sends the whole meeting instead.
+  const before = isCaptureActive() ? undefined : loadSessionTranscript(input.sessionId);
   // The single autosave slot is overwritten by the next session, so each
   // session also keeps its own copy.
   saveSessionTranscript(input);
+  if (before !== undefined && transcriptChanged(before, loadSessionTranscript(input.sessionId))) {
+    queueMeetingSync(input.sessionId);
+  }
+}
+
+function transcriptChanged(a: AutosavedSession | null, b: AutosavedSession | null): boolean {
+  if (!b) return false;
+  if (!a) return true;
+  return JSON.stringify([a.segments, a.speakers]) !== JSON.stringify([b.segments, b.speakers]);
 }
 
 // ---------------------------------------------------------------------------

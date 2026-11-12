@@ -7,7 +7,7 @@ Meeting Noter keeps every meeting on this Mac, in
 ~/Library/Application Support/Meeting Noter/meetings/      one Markdown file per meeting
 ```
 
-The Markdown files (title, date, speakers, summary, transcript) can be read by
+The Markdown files (title, date, participants, speakers, summary, transcript) can be read by
 any tool. For AI agents there is also an MCP server that reads the same
 database, read-only. It has three tools:
 

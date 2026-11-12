@@ -73,6 +73,24 @@ function parseNotes(v: unknown): Notes {
   return { actions, decisions };
 }
 
+/** Caps a name like the participants editor does. */
+const MAX_PARTICIPANT = 40;
+const MAX_PARTICIPANTS = 200;
+
+function parseParticipants(v: unknown): string[] | null {
+  if (!Array.isArray(v)) return null;
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const name of v.slice(0, MAX_PARTICIPANTS)) {
+    if (!isStr(name)) continue;
+    const clean = name.trim().replace(/\s+/g, ' ').slice(0, MAX_PARTICIPANT);
+    if (!clean || seen.has(clean.toLowerCase())) continue;
+    seen.add(clean.toLowerCase());
+    out.push(clean);
+  }
+  return out;
+}
+
 export function parseStoredMeeting(v: unknown): StoredMeeting | null {
   if (!isObj(v) || !isMeetingId(v.id)) return null;
   if (!isNum(v.createdAt) || !isNum(v.updatedAt)) return null;
@@ -91,5 +109,6 @@ export function parseStoredMeeting(v: unknown): StoredMeeting | null {
     segments,
     speakers: parseSpeakers(v.speakers),
     notes: parseNotes(v.notes),
+    participants: parseParticipants(v.participants),
   };
 }

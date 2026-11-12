@@ -23,6 +23,7 @@ export function sampleMeeting(over: Partial<StoredMeeting> = {}): StoredMeeting 
       decisions: [{ id: 'd1', text: 'Freeze the scope' }],
       actions: [{ id: 'a1', text: 'Draft the release notes', ownerName: 'Anna', done: false }],
     },
+    participants: ['Jens', 'Anna'],
     ...over,
   };
 }

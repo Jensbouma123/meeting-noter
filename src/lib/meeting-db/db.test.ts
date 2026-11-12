@@ -119,6 +119,29 @@ describe('MeetingsDb', () => {
     expect(db.deletedIds()).toEqual(['meeting-1']);
   });
 
+  it('round-trips participants, keeps null apart from an empty list and searches their names', () => {
+    const db = openDb();
+    db.upsert(sampleMeeting({ participants: ['Marieke', 'Joost'] }));
+    db.upsert(sampleMeeting({ id: 'never-asked', participants: null }));
+    db.upsert(sampleMeeting({ id: 'skipped', participants: [] }));
+    expect(db.get('meeting-1')?.participants).toEqual(['Marieke', 'Joost']);
+    expect(db.get('never-asked')?.participants).toBeNull();
+    expect(db.get('skipped')?.participants).toEqual([]);
+    expect(db.search('Joost').map((h) => h.id)).toEqual(['meeting-1']);
+  });
+
+  it('adds the participants column to a v2 DB and keeps its meetings', () => {
+    const file = path.join(tmpDir(), 'meetings.db');
+    const v2 = new MeetingsDb(file);
+    v2.upsert(sampleMeeting());
+    v2.db.exec('ALTER TABLE meetings DROP COLUMN participants; PRAGMA user_version = 2;');
+    v2.close();
+    const db = new MeetingsDb(file);
+    expect(db.get('meeting-1')?.participants).toBeNull();
+    db.upsert(sampleMeeting({ updatedAt: Date.now(), participants: ['Noor'] }));
+    expect(db.get('meeting-1')?.participants).toEqual(['Noor']);
+  });
+
   it('opens read-only alongside a writer and sees its commits', () => {
     const file = path.join(tmpDir(), 'meetings.db');
     const writer = new MeetingsDb(file);
@@ -137,7 +160,7 @@ describe('MeetingStore', () => {
     const first = path.join(dir, 'meetings', markdownFileName(sampleMeeting()));
     const md = fs.readFileSync(first, 'utf8');
     expect(md).toMatch(/^# Roadmap sync\n/);
-    expect(md).toContain('## Speakers\n\n- Jens\n- Anna');
+    expect(md).toContain('## Participants\n\n- Jens\n- Anna\n\n## Speakers\n\n- Jens\n- Anna');
     expect(md).toContain('- [ ] Draft the release notes (Anna)');
     expect(md).toContain('[00:02] Jens: Let us look at the quarterly budget.');
     expect(md.indexOf('[00:02]')).toBeLessThan(md.indexOf('[00:40]'));
@@ -172,6 +195,14 @@ describe('parseStoredMeeting', () => {
     const parsed = parseStoredMeeting(raw)!;
     expect(parsed.segments.map((s) => s.id)).toEqual(['f']);
     expect(parsed.segments[0]).not.toHaveProperty('words');
+  });
+
+  it('cleans participants and reads a missing list as never asked', () => {
+    expect(parseStoredMeeting({ ...sampleMeeting(), participants: [' Anna ', 'anna', 3, '', 'Jan'] })!.participants)
+      .toEqual(['Anna', 'Jan']);
+    const { participants: _omit, ...older } = sampleMeeting();
+    expect(parseStoredMeeting(older)!.participants).toBeNull();
+    expect(parseStoredMeeting({ ...sampleMeeting(), participants: [] })!.participants).toEqual([]);
   });
 
   it('refuses ids that are unsafe in a path and missing timestamps', () => {
@@ -229,7 +260,7 @@ describe('deleting leaves no meeting text on disk', () => {
   it('clearing a transcript (re-save without lines) scrubs the old text', () => {
     const file = path.join(tmpDir(), 'meetings.db');
     const db = fill(file);
-    db.upsert(sampleMeeting({ updatedAt: Date.UTC(2026, 10, 3, 11, 0), segments: [], speakers: {}, notes: { actions: [], decisions: [] }, title: 'Untitled' }));
+    db.upsert(sampleMeeting({ updatedAt: Date.UTC(2026, 10, 3, 11, 0), segments: [], speakers: {}, notes: { actions: [], decisions: [] }, participants: null, title: 'Untitled' }));
     const bytes = rawBytes(file);
     for (const s of ['café export', 'quarterly budget', 'Freeze the scope', 'release notes', 'Anna', 'Jens']) {
       expect(bytes, s).not.toContain(s);

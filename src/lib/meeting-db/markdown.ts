@@ -47,6 +47,12 @@ export function summaryText(meeting: StoredMeeting): string {
   return lines.join('\n');
 }
 
+/** What full-text search indexes beside the title: the participants' names and the notes. */
+export function searchSummary(meeting: StoredMeeting): string {
+  const names = meeting.participants ?? [];
+  return [names.length > 0 ? `Participants: ${names.join(', ')}` : '', summaryText(meeting)].filter(Boolean).join('\n');
+}
+
 /** One `[MM:SS] Speaker: text` line per stored segment, in time order. */
 export function transcriptLines(meeting: StoredMeeting): string[] {
   return meeting.segments
@@ -86,12 +92,14 @@ export function markdownFileName(meeting: StoredMeeting): string {
   return `${meetingDate(meeting)}-${slug || 'meeting'}-${id}.md`;
 }
 
-/** The Markdown file: title, date, speakers, summary and transcript. */
+/** The Markdown file: title, date, participants, speakers, summary and transcript. */
 export function renderMeetingMarkdown(meeting: StoredMeeting): string {
   const out = [`# ${meeting.title}`, ''];
   out.push(`- Date: ${meetingDateTime(meeting)}`);
   if (meeting.durationSeconds !== null) out.push(`- Duration: ${formatClock(meeting.durationSeconds)}`);
   out.push(`- Meeting id: ${meeting.id}`, '');
+  const participants = meeting.participants ?? [];
+  if (participants.length > 0) out.push('## Participants', '', ...participants.map((p) => `- ${p}`), '');
   const speakers = speakerNames(meeting);
   out.push('## Speakers', '', ...(speakers.length > 0 ? speakers.map((s) => `- ${s}`) : ['(none)']), '');
   const summary = summaryText(meeting);

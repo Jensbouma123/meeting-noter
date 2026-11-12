@@ -28,6 +28,8 @@ export interface StoredMeeting {
   segments: StoredSegment[];
   speakers: Record<string, Speaker>;
   notes: Notes;
+  /** Who was in the meeting; null when nobody was ever asked (an empty list is a skipped question). */
+  participants: string[] | null;
 }
 
 /** A meeting's row without its transcript, for lists. */

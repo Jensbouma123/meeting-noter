@@ -1,12 +1,15 @@
 /**
- * Who is in a meeting: a short list of names per session, kept in
- * `localStorage` beside the session's other data, plus the names used most
- * recently (one-click suggestions for the next meeting). Names also join the
- * word list through `addNameToVocabulary`, so transcripts spell them right.
- * Nothing here assigns a name to a speaker.
+ * Who is in a meeting: a short list of names per session, plus the names used
+ * most recently (one-click suggestions for the next meeting). The list is
+ * meeting data like the notes: the meetings DB holds it (`participants` on
+ * `StoredMeeting`), and the `localStorage` copy is a cache that every change
+ * queues for the server and `server-sync.ts` drops and fetches back. Names
+ * also join the word list through `addNameToVocabulary`, so transcripts spell
+ * them right. Nothing here assigns a name to a speaker.
  */
 import { useSyncExternalStore } from 'react';
 import { addNameToVocabulary } from '@/lib/vocabulary/names';
+import { queueMeetingSync } from './server-sync';
 
 const SESSION_KEY_PREFIX = 'mn.participants.';
 const SESSION_KEY_SUFFIX = '.v1';
@@ -88,6 +91,32 @@ export function getParticipants(sessionId: string): string[] {
   return readList(sessionParticipantsKey(sessionId));
 }
 
+/** The stored list, or null when the question was never answered on this browser (or the copy was dropped). */
+export function getStoredParticipants(sessionId: string): string[] | null {
+  return hasAskedParticipants(sessionId) ? getParticipants(sessionId) : null;
+}
+
+/** Take in the DB's list for a meeting (`cacheMeetingContent`). Queues nothing: the server already has it. */
+export function adoptParticipants(sessionId: string, names: readonly string[] | null): void {
+  try {
+    if (names === null) window.localStorage.removeItem(sessionParticipantsKey(sessionId));
+    else window.localStorage.setItem(sessionParticipantsKey(sessionId), JSON.stringify(uniqueNames(names)));
+  } catch {
+    // Best-effort, like every other local write.
+  }
+  for (const fn of listeners) fn();
+}
+
+/** Drop this browser's copy of a meeting's list (delete, or once the DB holds it). */
+export function removeParticipants(sessionId: string): void {
+  adoptParticipants(sessionId, null);
+}
+
+/** Every per-meeting list key (not the recents), for the storage sweep. */
+export function isSessionParticipantsKey(key: string): boolean {
+  return key.startsWith(SESSION_KEY_PREFIX) && key.endsWith(SESSION_KEY_SUFFIX) && key !== RECENT_PARTICIPANTS_KEY;
+}
+
 /** Whether the "Who is in this meeting?" step was already answered (even with Skip). */
 export function hasAskedParticipants(sessionId: string): boolean {
   try {
@@ -111,6 +140,7 @@ export function setParticipants(sessionId: string, names: readonly string[]): st
   } catch {
     // Best-effort.
   }
+  queueMeetingSync(sessionId);
   for (const fn of listeners) fn();
   if (clean.length > 0) {
     for (const name of clean) addNameToVocabulary(name);

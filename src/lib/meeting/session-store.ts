@@ -24,6 +24,7 @@ import {
 import { resetDiarization } from './diarization-bridge';
 import { requestPersistentStorage } from './persistent-storage';
 import { adoptNotes, hasLocalNotes, notesKey } from './notes';
+import { adoptParticipants, hasAskedParticipants, isSessionParticipantsKey, removeParticipants, sessionParticipantsKey } from './participants';
 import { queueMeetingDelete, queueMeetingSync } from './server-sync';
 import { indexKey, removeIndex } from '@/lib/semantic-search/store';
 import type { MeetingSummaryRow, StoredMeeting } from '@/lib/meeting-db/types';
@@ -311,7 +312,7 @@ export function isSessionRecording(sessionId: string): boolean {
   return isCaptureActive() && getTranscriptSessionId() === sessionId;
 }
 
-/** Browser copies of a meeting kept beside its transcript: the semantic index (quotes the text) and, on delete, the notes. */
+/** Browser copies of a meeting kept beside its transcript: the semantic index (quotes the text) and, on delete, the notes and participants. */
 function removeMeetingCaches(sessionId: string, opts: { notes: boolean }): void {
   removeIndex(sessionId);
   if (!opts.notes) return;
@@ -320,24 +321,25 @@ function removeMeetingCaches(sessionId: string, opts: { notes: boolean }): void 
   } catch {
     // Best-effort, like every other local write.
   }
+  removeParticipants(sessionId);
 }
 
 /**
  * Remove every meeting key left in localStorage (transcripts, speaker states,
- * notes, search indexes) except the meeting being recorded's. Catches orphans
+ * notes, participants, search indexes) except the meeting being recorded's. Catches orphans
  * no index entry points to. Never throws.
  */
 export function sweepMeetingStorage(keepSessionId: string | null): void {
   try {
     const keep = new Set<string>();
     if (keepSessionId) {
-      for (const k of [sessionTranscriptKey(keepSessionId), speakerStateKey(keepSessionId), notesKey(keepSessionId), indexKey(keepSessionId)]) keep.add(k);
+      for (const k of [sessionTranscriptKey(keepSessionId), speakerStateKey(keepSessionId), notesKey(keepSessionId), indexKey(keepSessionId), sessionParticipantsKey(keepSessionId)]) keep.add(k);
     }
     const doomed: string[] = [];
     for (let i = 0; i < localStorage.length; i += 1) {
       const key = localStorage.key(i);
       if (!key || keep.has(key)) continue;
-      if (/^mn\.(session\.|speaker-state\.|notes\.v1\.|semindex\.)/.test(key) || key === 'mn.semindex.ids.v1') doomed.push(key);
+      if (/^mn\.(session\.|speaker-state\.|notes\.v1\.|semindex\.)/.test(key) || key === 'mn.semindex.ids.v1' || isSessionParticipantsKey(key)) doomed.push(key);
     }
     for (const key of doomed) localStorage.removeItem(key);
   } catch {
@@ -511,7 +513,7 @@ export function adoptMeetingSummary(row: MeetingSummaryRow): void {
 }
 
 /**
- * A meeting's transcript and notes from the server's DB. With `replace` they
+ * A meeting's transcript, notes and participants from the server's DB. With `replace` they
  * replace this browser's copy; without, only what this browser lacks is
  * filled in, so unsent local edits survive.
  */
@@ -526,9 +528,13 @@ export function cacheMeetingContent(meeting: StoredMeeting, opts: { replace?: bo
     });
   }
   if (opts.replace || !hasLocalNotes(meeting.id)) adoptNotes(meeting.id, meeting.notes);
+  // A server list replaces only when it holds one; null never wipes a local answer.
+  if (meeting.participants !== null && (opts.replace || !hasAskedParticipants(meeting.id))) {
+    adoptParticipants(meeting.id, meeting.participants);
+  }
 }
 
-/** Drop this browser's copy of a meeting's transcript and notes once the DB holds them. */
+/** Drop this browser's copy of a meeting's transcript, notes and participants once the DB holds them. */
 export function evictMeetingContent(sessionId: string): void {
   removeSessionTranscript(sessionId);
   try {
@@ -536,6 +542,7 @@ export function evictMeetingContent(sessionId: string): void {
   } catch {
     // Best-effort: a copy left behind is only a cache.
   }
+  removeParticipants(sessionId);
 }
 
 /** Take in a whole meeting from the server's DB: index entry, transcript and notes. */
