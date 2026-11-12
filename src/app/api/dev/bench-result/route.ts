@@ -21,6 +21,7 @@
 
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { readJson } from '@/lib/meeting-db/http';
 import { refuseForeign } from '@/lib/lifecycle/request-guard';
 import { benchResultsDir, disambiguate, resultFileName } from './helpers';
 
@@ -43,40 +44,14 @@ export async function POST(request: Request): Promise<Response> {
   // bodies, before reading anything.
   const refused = refuseForeign(request);
   if (refused) return refused;
-  const declared = Number(request.headers.get('content-length'));
-  if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) {
-    return Response.json(
-      { ok: false, error: `body is ${declared} bytes, over the ${MAX_BODY_BYTES}-byte cap` },
-      { status: 413 },
-    );
+  // readJson counts bytes while streaming: past the cap it cancels the body and answers 413.
+  const body = await readJson(request, MAX_BODY_BYTES);
+  if (!body.ok) return body.response;
+  const parsed = body.value;
+  if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return Response.json({ ok: false, error: 'body is not a JSON object' }, { status: 400 });
   }
-
-  let raw: string;
-  try {
-    raw = await request.text();
-  } catch {
-    return Response.json({ ok: false, error: 'could not read the request body' }, { status: 400 });
-  }
-  if (Buffer.byteLength(raw, 'utf8') > MAX_BODY_BYTES) {
-    return Response.json(
-      { ok: false, error: `body is ${Buffer.byteLength(raw, 'utf8')} bytes, over the ${MAX_BODY_BYTES}-byte cap` },
-      { status: 413 },
-    );
-  }
-
-  let payload: Record<string, unknown>;
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
-      throw new Error('not a JSON object');
-    }
-    payload = parsed as Record<string, unknown>;
-  } catch (err) {
-    return Response.json(
-      { ok: false, error: `body is not a JSON object: ${err instanceof Error ? err.message : String(err)}` },
-      { status: 400 },
-    );
-  }
+  const payload = parsed as Record<string, unknown>;
 
   const dir = benchResultsDir();
   const name = resultFileName(payload);

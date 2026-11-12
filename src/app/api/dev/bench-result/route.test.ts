@@ -166,6 +166,36 @@ describe('POST', () => {
     expect(res.status).toBe(413);
   });
 
+  it('stops reading a chunked oversized body once the cap is passed, answers 413', async () => {
+    const dir = tmpDir();
+    env.ASR_BENCH_RESULT_DIR = dir;
+    const encoder = new TextEncoder();
+    const chunk = encoder.encode('x'.repeat(300_000));
+    let pulled = 0;
+    const stream = new ReadableStream<Uint8Array>(
+      {
+        pull(controller) {
+          pulled += 1;
+          if (pulled > 10) controller.close();
+          else controller.enqueue(chunk);
+        },
+      },
+      { highWaterMark: 0 }, // pull only on read, so `pulled` counts what the server read
+    );
+    const res = await POST(
+      new Request('http://localhost:3000/api/dev/bench-result', {
+        method: 'POST',
+        headers: { host: 'localhost:3000', 'content-type': 'application/json' },
+        body: stream,
+        duplex: 'half',
+      } as RequestInit),
+    );
+    expect(res.status).toBe(413);
+    // 300 kB chunks pass the 1 MB cap on the fourth read: the other six must never be pulled.
+    expect(pulled).toBeLessThan(10);
+    expect(fs.existsSync(dir) ? fs.readdirSync(dir) : []).toHaveLength(0);
+  });
+
   it('keeps a retried run instead of overwriting the previous one', async () => {
     const dir = tmpDir();
     env.ASR_BENCH_RESULT_DIR = dir;
