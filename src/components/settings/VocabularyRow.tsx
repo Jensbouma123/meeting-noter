@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useState, type KeyboardEvent } from 'react';
 import { Button, Input, Text, VStack } from '@jensbouma123/acciva-ui';
 import { Check, Pencil, X } from 'lucide-react';
 import { useT } from '@/lib/i18n/useT';
@@ -25,12 +25,6 @@ export function VocabularyRow({ entry }: { entry: VocabularyEntry }) {
   const [error, setError] = useState<string | null>(null);
   const [variantDraft, setVariantDraft] = useState('');
   const [variantError, setVariantError] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (editing) inputRef.current?.select();
-  }, [editing]);
-
   const startEdit = () => {
     setDraft(entry.word);
     setError(null);
@@ -75,7 +69,8 @@ export function VocabularyRow({ entry }: { entry: VocabularyEntry }) {
         {editing ? (
           <div className="flex w-full items-center gap-1">
             <Input
-              ref={inputRef}
+              autoFocus
+              onFocus={(e) => e.currentTarget.select()}
               value={draft}
               onChange={(e) => {
                 setDraft(e.target.value);

@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Badge, Heading, Modal, ScrollView, Tab, TabList, TabPanel, Tabs, VStack } from '@jensbouma123/acciva-ui';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useT } from '@/lib/i18n/useT';
 import { SETTINGS_SECTIONS, type SettingsSectionId } from './sections';
 
@@ -13,18 +14,6 @@ interface SettingsDialogProps {
   /** Section ids that should show a red attention dot in the sidebar (e.g. a failed download). */
   alertSections?: SettingsSectionId[];
   children: ReactNode;
-}
-
-function useIsSmUp(): boolean {
-  const [isSmUp, setIsSmUp] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 640px)');
-    const update = () => setIsSmUp(mq.matches);
-    update();
-    mq.addEventListener('change', update);
-    return () => mq.removeEventListener('change', update);
-  }, []);
-  return isSmUp;
 }
 
 /**
@@ -41,7 +30,7 @@ export function SettingsDialog({
   children,
 }: SettingsDialogProps) {
   const t = useT('settings');
-  const isSmUp = useIsSmUp();
+  const isSmUp = useMediaQuery('(min-width: 640px)');
   const activeMeta = SETTINGS_SECTIONS.find((s) => s.id === activeSection);
 
   const tabs = SETTINGS_SECTIONS.map((section) => {
