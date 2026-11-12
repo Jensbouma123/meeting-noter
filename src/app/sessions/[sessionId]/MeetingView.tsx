@@ -825,6 +825,8 @@ export default function MeetingView({ initialSessionId }: MeetingViewProps) {
             onPause={pauseRecording}
             onResume={resumeRecording}
             onOpenAdvanced={() => openSettings('advanced')}
+            micDeviceId={settings.micDeviceId}
+            onMicDeviceChange={(micDeviceId) => handleSettingsChange({ ...settings, micDeviceId })}
           />
           <CaptureDiagnostics />
         </VStack>

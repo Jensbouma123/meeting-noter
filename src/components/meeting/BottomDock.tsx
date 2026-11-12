@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { getCallAudioMissing, getMeetingDiagnostics, subscribeCallAudio, type CaptureMode, type Status } from '@/lib/meeting';
 import { callAudioHint } from '@/lib/meeting/call-audio-hint';
 import { LevelMeter } from './LevelMeter';
+import { MicPicker } from './MicPicker';
 import { useReleaseOnUnmount } from './useReleaseOnUnmount';
 import type { ModelProgressView, ModelReadiness } from './modelReadiness';
 import { Activity, Download, Mic, Pause, Play, Square, VolumeX, PhoneCall } from 'lucide-react';
@@ -40,6 +41,9 @@ interface BottomDockProps {
   onPause: () => void;
   onResume: () => void;
   onOpenAdvanced: () => void;
+  /** Saved microphone (`'default'` = system default); same value as Settings › Microphone. */
+  micDeviceId?: string;
+  onMicDeviceChange?: (deviceId: string) => void;
 }
 
 function formatElapsed(totalSeconds: number): string {
@@ -59,6 +63,8 @@ export function BottomDock({
   onPause,
   onResume,
   onOpenAdvanced,
+  micDeviceId = 'default',
+  onMicDeviceChange = () => {},
 }: BottomDockProps) {
   const t = useT('dock');
   const [metersOpen, setMetersOpen] = useState(false);
@@ -274,6 +280,9 @@ export function BottomDock({
           );
           return <div className="shrink-0">{tabs}</div>;
         })()}
+
+        {/* The capture pipeline opens the microphone once at start, so the choice is locked while recording. */}
+        <MicPicker value={micDeviceId} onChange={onMicDeviceChange} locked={isRecordingActive} />
 
         {showCallAudioMissing && (
           <HStack spacing="xs" align="center" className="shrink-0 gap-1">

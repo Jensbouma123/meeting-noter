@@ -28,6 +28,10 @@ export const dock = {
     stopTip: 'Stop recording (R).',
     pauseTip: 'Pause recording (Space).',
     resumeTip: 'Resume recording (Space).',
+    chooseMic: 'Choose microphone',
+    micLockedTip: 'Stop recording to change microphone',
+    defaultMic: 'Default',
+    micN: 'Microphone {n}',
   },
   nl: {
     record: 'Opnemen',
@@ -58,5 +62,9 @@ export const dock = {
     stopTip: 'Opname stoppen (R).',
     pauseTip: 'Opname pauzeren (Spatie).',
     resumeTip: 'Opname hervatten (Spatie).',
+    chooseMic: 'Microfoon kiezen',
+    micLockedTip: 'Stop de opname om de microfoon te wijzigen',
+    defaultMic: 'Standaard',
+    micN: 'Microfoon {n}',
   },
 } as const;
