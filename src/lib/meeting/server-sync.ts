@@ -203,8 +203,11 @@ export function flushServerSync(): Promise<void> {
  */
 export async function migrateBrowserMeetings(): Promise<MigrationResult | null> {
   if (readJson<unknown>(MIGRATED_KEY, null)) return null;
-  // Only when nothing records: archiving would otherwise file a live transcript.
-  if (!isCaptureActive()) archiveAutosavedSession();
+  // An autosave no session owns yet (a crash before it was filed) gets its
+  // entry; one that has an entry is read by buildStoredMeeting as it is, so a
+  // second run sends the same `updatedAt`. Never while recording.
+  const autosaved = loadAutosavedSession();
+  if (autosaved && !isCaptureActive() && !getSessionMetadata(autosaved.sessionId)) archiveAutosavedSession();
   // Each keeps its index time as `updatedAt`, so importing it twice is a no-op.
   const meetings = listSessions()
     .map((s) => buildStoredMeeting(s.sessionId, s.updatedAt))
