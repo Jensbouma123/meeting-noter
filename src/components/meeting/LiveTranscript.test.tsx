@@ -505,7 +505,11 @@ describe('LiveTranscript ready state', () => {
         />
       </LanguageContext.Provider>,
     );
-    fireEvent.click(screen.getByRole('button', { name: /record/i }));
+    const record = screen.getByRole('button', { name: /record/i });
+    // Outline, like the other secondary actions (e.g. Share): never the solid primary fill.
+    expect(record.classList.contains('bg-transparent')).toBe(true);
+    expect(record.classList.contains('bg-primary-600')).toBe(false);
+    fireEvent.click(record);
     expect(onStart).toHaveBeenCalledTimes(1);
   });
 });

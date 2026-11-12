@@ -595,7 +595,7 @@ export function LiveTranscript({
                 modelReady ? (
                   <div className="flex flex-col items-center gap-2">
                     <Button
-                      variant="primary"
+                      variant="outline"
                       size={{ base: 'md', md: 'sm' }}
                       onClick={onStartRecording}
                       leadingIcon={<Circle className="size-3 fill-current" aria-hidden="true" />}
