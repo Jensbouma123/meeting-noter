@@ -21,6 +21,7 @@
 
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { refuseForeign } from '@/lib/lifecycle/request-guard';
 import { benchResultsDir, disambiguate, resultFileName } from './helpers';
 
 export const runtime = 'nodejs';
@@ -37,12 +38,11 @@ export async function POST(request: Request): Promise<Response> {
     return new Response('Not found', { status: 404 });
   }
 
-  // Dev-only, but any page in the browser can fire a CORS-simple POST here, so
-  // refuse cross-origin callers and oversized bodies before reading anything.
-  const origin = request.headers.get('origin');
-  if (origin !== null && origin !== new URL(request.url).origin) {
-    return Response.json({ ok: false, error: 'cross-origin request refused' }, { status: 403 });
-  }
+  // Dev-only, but any page in the browser can fire a CORS-simple POST here, and a
+  // DNS-rebinding page can reach it under a foreign Host: refuse both, and oversized
+  // bodies, before reading anything.
+  const refused = refuseForeign(request);
+  if (refused) return refused;
   const declared = Number(request.headers.get('content-length'));
   if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) {
     return Response.json(

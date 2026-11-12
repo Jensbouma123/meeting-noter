@@ -42,11 +42,12 @@ afterEach(() => {
   for (const dir of dirs.splice(0)) fs.rmSync(dir, { recursive: true, force: true });
 });
 
+/** Node's Request sets no Host header, so every test call names the local one a browser would send. */
 const post = (body: unknown) =>
   POST(
     new Request('http://localhost:3000/api/dev/bench-result', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { host: 'localhost:3000', 'content-type': 'application/json' },
       body: typeof body === 'string' ? body : JSON.stringify(body),
     }),
   );
@@ -116,7 +117,35 @@ describe('POST', () => {
     const res = await POST(
       new Request('http://localhost:3000/api/dev/bench-result', {
         method: 'POST',
-        headers: { 'content-type': 'text/plain', origin: 'https://evil.example' },
+        headers: { host: 'localhost:3000', 'content-type': 'text/plain', origin: 'https://evil.example' },
+        body: JSON.stringify({ variant: 'x' }),
+      }),
+    );
+    expect(res.status).toBe(403);
+    expect(fs.existsSync(dir) ? fs.readdirSync(dir) : []).toHaveLength(0);
+  });
+
+  it('refuses a DNS-rebinding POST (foreign Host, no Origin) and writes nothing', async () => {
+    const dir = tmpDir();
+    env.ASR_BENCH_RESULT_DIR = dir;
+    const res = await POST(
+      new Request('http://evil.example:3000/api/dev/bench-result', {
+        method: 'POST',
+        headers: { host: 'evil.example:3000', 'content-type': 'application/json' },
+        body: JSON.stringify({ variant: 'x' }),
+      }),
+    );
+    expect(res.status).toBe(403);
+    expect(fs.existsSync(dir) ? fs.readdirSync(dir) : []).toHaveLength(0);
+  });
+
+  it('refuses a POST with no Host header and writes nothing', async () => {
+    const dir = tmpDir();
+    env.ASR_BENCH_RESULT_DIR = dir;
+    const res = await POST(
+      new Request('http://localhost:3000/api/dev/bench-result', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ variant: 'x' }),
       }),
     );
@@ -130,7 +159,7 @@ describe('POST', () => {
     const res = await POST(
       new Request('http://localhost:3000/api/dev/bench-result', {
         method: 'POST',
-        headers: { 'content-type': 'application/json', 'content-length': '5000000' },
+        headers: { host: 'localhost:3000', 'content-type': 'application/json', 'content-length': '5000000' },
         body: '{}',
       }),
     );
