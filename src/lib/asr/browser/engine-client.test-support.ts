@@ -13,12 +13,12 @@ export class FakeWorker {
     FakeWorker.instances.push(this);
   }
 
-  addEventFakeWorkerListener(type: string, fn: FakeWorkerListener): void {
+  addEventListener(type: string, fn: FakeWorkerListener): void {
     if (!this.listeners.has(type)) this.listeners.set(type, new Set());
     this.listeners.get(type)!.add(fn);
   }
 
-  removeEventFakeWorkerListener(type: string, fn: FakeWorkerListener): void {
+  removeEventListener(type: string, fn: FakeWorkerListener): void {
     this.listeners.get(type)?.delete(fn);
   }
 
