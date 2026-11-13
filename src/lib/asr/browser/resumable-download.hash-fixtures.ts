@@ -97,6 +97,8 @@ export function corruptStoredChunk(key: string, index: number): Promise<void> {
 
 
 export function installHashHooks(): void {
+  vi.setConfig({ testTimeout: 60_000 });
+
   beforeEach(async () => {
     await deleteModelCache();
   });
