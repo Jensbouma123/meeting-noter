@@ -9,8 +9,8 @@ beforeAll(() => {
   HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
 });
 
-vi.mock('@/lib/meeting/export', async (load) => {
-  const actual = await load<typeof import('@/lib/meeting/export')>();
+vi.mock('@/lib/meeting/export-browser', async (load) => {
+  const actual = await load<typeof import('@/lib/meeting/export-browser')>();
   return { ...actual, copyToClipboard: vi.fn().mockResolvedValue(true), downloadFile: vi.fn() };
 });
 
@@ -27,7 +27,7 @@ describe('ShareDialog', () => {
   });
 
   it('previews and copies the transcript with a confirmation', async () => {
-    const exp = await import('@/lib/meeting/export');
+    const exp = await import('@/lib/meeting/export-browser');
     render(<ShareDialog {...base} segments={[seg]} />);
     const preview = screen.getByRole('region', { name: 'Preview of what you will share' });
     expect(preview).toHaveTextContent('Planning');
@@ -42,7 +42,7 @@ describe('ShareDialog', () => {
   });
 
   it('offers email with subject and body, and download', async () => {
-    const exp = await import('@/lib/meeting/export');
+    const exp = await import('@/lib/meeting/export-browser');
     render(<ShareDialog {...base} segments={[seg]} />);
     const href = screen.getByRole('link', { name: 'Send by email' }).getAttribute('href')!;
     expect(href).toContain('subject=Meeting%20transcript%3A%20Planning');
@@ -52,7 +52,7 @@ describe('ShareDialog', () => {
   });
 
   it('keeps transcript formats under Advanced and reports clipboard failures', async () => {
-    const exp = await import('@/lib/meeting/export');
+    const exp = await import('@/lib/meeting/export-browser');
     vi.mocked(exp.copyToClipboard).mockResolvedValueOnce(false);
     render(<ShareDialog {...base} segments={[seg]} />);
     expect(screen.getByText('Advanced')).toBeInTheDocument();
@@ -61,7 +61,7 @@ describe('ShareDialog', () => {
   });
 
   it.each(['live', 'reopened saved'])('copies only the transcript with speakers and timestamps (%s session)', async () => {
-    const exp = await import('@/lib/meeting/export');
+    const exp = await import('@/lib/meeting/export-browser');
     const segs = [
       { ...seg, id: 'a', text: 'We should ship on Friday', start: 5, end: 8 },
       { ...seg, id: 'b', speaker: 'sp2', text: 'Agreed, Friday works', start: 65, end: 68 },
@@ -69,7 +69,7 @@ describe('ShareDialog', () => {
     ];
     const speakers = { sp1: { id: 'sp1', label: 'Anna' }, sp2: { id: 'sp2', label: 'Ben' } } as never;
     render(<ShareDialog {...base} segments={segs} speakers={speakers} />);
-    const expected = (await import('@/lib/meeting/export')).formatExport('txt', segs.filter((s) => s.final), speakers, 'Planning');
+    const expected = (await import('@/lib/meeting/export-formats')).formatExport('txt', segs.filter((s) => s.final), speakers, 'Planning');
     fireEvent.click(screen.getByRole('button', { name: 'Copy transcript' }));
     await screen.findByRole('status');
     const text = vi.mocked(exp.copyToClipboard).mock.calls.at(-1)![0];

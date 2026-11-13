@@ -1,4 +1,4 @@
-import { formatClock, resolveSpeakerLabel, tidyText } from '../meeting/export';
+import { formatClock, resolveSpeakerLabel, tidyText } from '../meeting/transcript-format';
 import type { Segment } from '../meeting/types';
 import type { StoredMeeting, StoredSegment } from './types';
 import type { FolderRow } from './types';

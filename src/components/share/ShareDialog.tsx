@@ -4,7 +4,10 @@ import { Alert, Button, Modal, VStack } from '@jensbouma123/acciva-ui';
 import { Copy } from 'lucide-react';
 import { useState } from 'react';
 import { useT } from '@/lib/i18n/useT';
-import { copyToClipboard, downloadFile, exportFilename, formatExport, formatMeta, finalSegments, type ExportFormat } from '@/lib/meeting/export';
+import { copyToClipboard, downloadFile } from '@/lib/meeting/export-browser';
+import { exportFilename, formatExport, formatMeta } from '@/lib/meeting/export-formats';
+import { finalSegments } from '@/lib/meeting/transcript-format';
+import { type ExportFormat } from '@/lib/meeting/types/export';
 import type { Segment, Speaker } from '@/lib/meeting/types';
 
 export interface ShareDialogProps {

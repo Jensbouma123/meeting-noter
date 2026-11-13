@@ -1,4 +1,4 @@
-import { formatClock } from '@/lib/meeting/export';
+import { formatClock } from '@/lib/meeting/transcript-format';
 
 export function formatDuration(seconds: number | null): string {
   if (seconds === null || seconds <= 0) return '—';
