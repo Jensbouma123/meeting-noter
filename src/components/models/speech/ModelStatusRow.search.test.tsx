@@ -24,7 +24,7 @@ const base: ModelEntry = {
   wasCancelled: false,
   isReady: false,
 };
-const prep = { phase: 'idle' } as never;
+const prep = { engine: { stage: null } } as never;
 
 function show(patch: Partial<ModelEntry>) {
   render(<ModelStatusRow entry={{ ...base, ...patch }} preparation={prep} />);
