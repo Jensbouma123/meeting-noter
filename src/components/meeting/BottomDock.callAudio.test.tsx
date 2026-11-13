@@ -5,8 +5,6 @@ import { cleanup, fireEvent, render, screen, act } from '@testing-library/react'
 import { LanguageContext } from '@/lib/i18n/LanguageContext';
 import { NO_MODEL_PROGRESS } from './modelReadiness';
 
-// The indicator only shows when the capture pipeline reported missing call
-// audio; that flag lives in the meeting store and is set by a real capture.
 const capture = { missing: true, listeners: new Set<() => void>() };
 vi.mock('@/lib/meeting', () => ({
   getCallAudioMissing: () => capture.missing,
@@ -62,8 +60,6 @@ describe('missing call audio indicator', () => {
     renderDock();
     const live = screen.getByRole('status');
     expect(live).toHaveTextContent(/Call audio isn't being recorded/);
-    // A button's children are presentational, so a live region inside one is
-    // never announced.
     expect(screen.getByRole('button', { name: /No call audio/ })).not.toContainElement(live);
   });
 

@@ -1,16 +1,8 @@
 import { Badge, Button } from '@jensbouma123/acciva-ui';
 import { Download, TriangleAlert } from 'lucide-react';
 import type { Status } from '@/lib/meeting';
-import type { SettingsSectionId } from '@/components/settings/sections';
 import type { ModelProgressView, ModelReadiness } from './modelReadiness';
-
-interface TopBarStatusBadgeProps {
-  t: (key: string) => string;
-  status: Status;
-  modelReadiness: ModelReadiness;
-  modelProgress: ModelProgressView;
-  onOpenSettings: (section?: SettingsSectionId) => void;
-}
+import type { TopBarStatusBadgeProps } from './TopBarStatusBadge.types';
 
 function modelPillLabel(
   t: (key: string) => string,
