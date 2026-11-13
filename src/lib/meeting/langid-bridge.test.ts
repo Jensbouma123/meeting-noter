@@ -1,10 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-/**
- * The bridge's session state: which sources detection can be (re)started for,
- * the user's override, and how two sources' detections become one language.
- */
-
 const fakes = vi.hoisted(() => ({
   detectors: [] as Array<{ emit: (code: string, confidence: number) => void; pushes: unknown[][] }>,
 }));
@@ -55,12 +50,10 @@ describe('language-ID bridge', () => {
 
     setLanguageOverride('nl');
     startLangId(['mic', 'system']);
-    // Locked: no model loaded for output that would be discarded.
     expect(fakes.detectors).toHaveLength(0);
 
     setLanguageOverride('auto');
     expect(fakes.detectors).toHaveLength(2);
-    // The chip stops claiming a pick straight away, not 20 s later.
     expect(getState().language).toMatchObject({ code: 'nl', locked: false });
   });
 
@@ -116,13 +109,10 @@ describe('language-ID bridge', () => {
     const [samples, transfer] = fakes.detectors[0].pushes[0] as [Float32Array, boolean];
     expect(Array.from(samples)).toEqual([0.5, -0.5]);
     expect(transfer).toBe(true);
-    // The caller's Int16 frame is untouched (ASR still reads it).
     expect(pcm.byteLength).toBe(4);
   });
 
   describe('ASR language hint', () => {
-    // Prompting the ASR with a detected language made Dutch meetings decode
-    // as English-looking garbage; on auto the ASR detects per fragment itself.
     it('on auto, detections never prompt the ASR with a language', async () => {
       const { startLangId } = await import('./langid-bridge');
       const { getAsrLanguageHint } = await import('@/lib/asr/browser/language-hint');

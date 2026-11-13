@@ -12,7 +12,7 @@ import {
   detectAsrBackend,
 } from '@/lib/asr/browser';
 import { registerDiarizationModel } from '@/lib/meeting/diarization-bridge';
-import { registerLangIdModel } from '@/lib/meeting/langid-bridge';
+import { registerLangIdModel } from '@/lib/meeting/langid-registry';
 
 /* ------------------------------------------------------------------ */
 /* ModelRegistryProvider — orchestrates the consent dialog + progress   */
