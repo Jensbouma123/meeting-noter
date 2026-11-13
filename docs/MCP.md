@@ -9,7 +9,7 @@ Meeting Noter keeps every meeting on this Mac, in
 
 The Markdown files (title, date, participants, speakers, summary, transcript) can be read by
 any tool. For AI agents there is also an MCP server that reads the same
-database, read-only. It has four tools:
+database, read-only. It has five tools:
 
 | Tool | What it does |
 | --- | --- |
@@ -17,6 +17,7 @@ database, read-only. It has four tools:
 | `search_meetings` | Full-text search over titles, summaries and transcripts (`query`, `limit`, `folderId`, `includeSubfolders`) |
 | `list_folders` | Every folder: id, name, parent folder and full path |
 | `get_meeting` | One meeting by `id`, as Markdown (default) or `format: "json"` |
+| `get_active_meeting` | The meeting open in Meeting Noter as Markdown, with `is_live` (true while it is being recorded). No arguments. When no meeting is open it says so instead |
 
 Nothing leaves the Mac: the server talks to the agent over stdio and only opens
 the database file.
@@ -39,6 +40,15 @@ top level. `list_folders` returns every folder with its `id`, `name`,
 
 ## Setup
 
+The fastest way: open Meeting Noter, go to **Settings › Connect AI assistant**
+and click **Connect** next to Claude Desktop, Claude Code or Codex. The app
+writes the same entry the manual steps below write, and shows the status of
+each assistant (connected, not connected, or not found on this Mac). Connecting
+Claude Desktop first asks you to confirm: the app backs up
+`claude_desktop_config.json` next to the original (the backup path is shown)
+and only then edits it. **Disconnect** removes the entry again. If an
+assistant is not found, or the one-click step fails, use the manual steps.
+
 The installer ships the server as one file. Replace `YOU` with your macOS user
 name (`whoami`); config files do not expand `~`.
 
@@ -49,6 +59,17 @@ claude mcp add --scope user meeting-noter -- \
   "$HOME/Library/Application Support/Meeting Noter/app/node/bin/node" \
   "$HOME/Library/Application Support/Meeting Noter/app/mcp/meetings-mcp.mjs"
 ```
+
+**Codex** — run once in Terminal (Codex CLI keeps its MCP servers in
+`~/.codex/config.toml`):
+
+```bash
+codex mcp add meeting-noter -- \
+  "$HOME/Library/Application Support/Meeting Noter/app/node/bin/node" \
+  "$HOME/Library/Application Support/Meeting Noter/app/mcp/meetings-mcp.mjs"
+```
+
+Check it with `codex mcp list`.
 
 **Claude Desktop** — Settings › Developer › Edit Config, add to
 `~/Library/Application Support/Claude/claude_desktop_config.json`, then restart
