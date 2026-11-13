@@ -1,4 +1,5 @@
-import { INITIAL_STATE, type CaptureMode, type Levels, type MeetingState, type Segment, type Source, type Speaker } from './types';
+import { INITIAL_STATE } from './initial-state';
+import type { CaptureMode, Levels, MeetingState, Segment, Source, Speaker } from './types';
 import { useSyncExternalStore } from 'react';
 import { applyVocabularyToSegment } from '@/lib/vocabulary/replace';
 import { getPreparedVocabulary } from '@/lib/vocabulary/store';
