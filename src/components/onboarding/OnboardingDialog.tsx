@@ -9,13 +9,10 @@ import {
   retryDownload,
 } from '@/lib/asr/browser';
 import { useModelSizesKnown } from '@/components/models/useModelSizesKnown';
-import {
-  getServerSnapshot,
-  getState,
-  recordConsent,
-  setDialogVisible,
-  subscribeRegistry,
-} from '@/lib/asr/browser/model-registry';
+import { getServerSnapshot, getState } from '@/lib/asr/browser/model-registry-snapshot';
+import { recordConsent } from '@/lib/asr/browser/model-registry-consent';
+import { setDialogVisible } from '@/lib/asr/browser/model-registry-dialog';
+import { subscribeRegistry } from '@/lib/asr/browser/model-registry-state';
 import { ProgressTrack } from '@/components/common/ProgressTrack';
 import { VocabularyAddField } from '@/components/settings/VocabularyAddField';
 import type { AppSettings } from '@/components/meeting/types';

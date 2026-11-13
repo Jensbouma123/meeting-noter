@@ -1,4 +1,4 @@
-import type { AsrBackend } from './model-manifest';
+import type { AsrBackend } from './types/model-manifest';
 import { notifyListeners, registryState } from './model-registry-state';
 
 export function setActiveBackend(backend: AsrBackend): void {

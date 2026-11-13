@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto';
 import { describe, expect, it, vi } from 'vitest';
-import { PARAKEET_TDT_V3_WEBGPU } from '@/lib/asr/browser/model-manifest';
+import { PARAKEET_TDT_V3_WEBGPU } from '@/lib/asr/browser/model-manifest-parakeet';
 import { voice } from '@/lib/asr/test-signals';
 import { lowConfidenceSpans } from './browser-asr';
 import { consentAndCache } from './asr-test-cache';
@@ -27,7 +27,7 @@ describe('the overlap second pass on the live engine', () => {
     const asr = await loadWebgpuAsr();
     await consentAndCache(PARAKEET_TDT_V3_WEBGPU);
     expect(await asr.ensureBrowserASRReady()).toBe(true);
-    const store = await import('./store');
+    const store = { ...(await import('./session-reset')), ...(await import('./store-core')) };
     store.resetSession('both');
     const overlap = await import('./overlap-retranscribe');
     for (let i = 0; i < 50; i += 1) overlap.pushOverlapAudio('mic', frame(i), i * 1600);

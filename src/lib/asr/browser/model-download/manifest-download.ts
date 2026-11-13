@@ -1,4 +1,4 @@
-import type { AsrModelManifest } from '../model-manifest';
+import type { AsrModelManifest } from '../types/model-manifest';
 import type { ModelDownloadProgress } from '../types/download-progress';
 import { ensureHfFileCached } from './hf-file-download';
 import { categorizeManifestFile } from './manifest-file-role';

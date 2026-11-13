@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto';
 import { describe, expect, it, vi } from 'vitest';
-import { PARAKEET_TDT_V3_WEBGPU } from '@/lib/asr/browser/model-manifest';
+import { PARAKEET_TDT_V3_WEBGPU } from '@/lib/asr/browser/model-manifest-parakeet';
 import { voice } from '@/lib/asr/test-signals';
 import { consentAndCache } from './asr-test-cache';
 import { installAsrTestLifecycle, loadWebgpuAsr } from './asr-test-setup';
@@ -28,7 +28,7 @@ describe('live audio windows', () => {
     const asr = await loadWebgpuAsr();
     await consentAndCache(PARAKEET_TDT_V3_WEBGPU);
     expect(await asr.ensureBrowserASRReady()).toBe(true);
-    const store = await import('./store');
+    const store = { ...(await import('./session-reset')), ...(await import('./store-core')) };
     store.resetSession('both');
     return { asr, store };
   }

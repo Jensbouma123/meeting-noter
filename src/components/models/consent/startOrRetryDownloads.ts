@@ -1,5 +1,6 @@
 import { initiateDownloads, retryDownload, type ModelEntry } from '@/lib/asr/browser';
-import { recordConsent, setDialogVisible } from '@/lib/asr/browser/model-registry';
+import { recordConsent } from '@/lib/asr/browser/model-registry-consent';
+import { setDialogVisible } from '@/lib/asr/browser/model-registry-dialog';
 
 export function acceptConsentAndStartDownloads(entries: Record<string, ModelEntry>) {
   const keys = Object.keys(entries);

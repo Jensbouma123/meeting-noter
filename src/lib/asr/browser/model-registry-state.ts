@@ -1,10 +1,5 @@
-import type { AsrBackend } from './model-manifest';
-import type {
-  ConsentState,
-  ModelEntry,
-  ModelProgress,
-  RegistryState,
-} from './types/model-registry';
+import type { AsrBackend } from './types/model-manifest';
+import type { ConsentState, ModelEntry, ModelProgress, RegistryState } from './types/model-registry';
 
 export const registryState = {
   entries: {} as Record<string, ModelEntry>,

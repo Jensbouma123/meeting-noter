@@ -1,12 +1,6 @@
 import { activeAsrManifest } from './backend-detect';
-import {
-  hubOptionsFor,
-  manifestForVariant,
-  webgpuEncoderOf,
-  WEBGPU_ENCODER_FALLBACKS,
-  type AsrBackend,
-  type AsrModelManifest,
-} from './model-manifest';
+import { hubOptionsFor, manifestForVariant, webgpuEncoderOf, WEBGPU_ENCODER_FALLBACKS } from './model-manifest-selection';
+import type { AsrBackend, AsrModelManifest } from './types/model-manifest';
 import { setActiveBackend } from './model-registry-dialog';
 import { persistEntries, readPersistedConsent, readPersistedEntries } from './model-registry-persistence';
 import { emptyProgress, notifyListeners, registryState } from './model-registry-state';

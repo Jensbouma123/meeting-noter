@@ -61,7 +61,7 @@ describe('model preparation progress', () => {
   });
   it('reports the download as real bytes, and stops reporting it once cached', async () => {
     const asr = await loadBrowserAsr();
-    const registry = await import('@/lib/asr/browser/model-registry');
+    const registry = { ...(await import('@/lib/asr/browser/model-registry-register')), ...(await import('@/lib/asr/browser/model-registry-status')), ...(await import('@/lib/asr/browser/model-registry-consent')), ...(await import('@/lib/asr/browser/model-registry-progress')) };
     registry.recordConsent('accepted', ['parakeet-ttd']);
     const entry = registry.getModelStatus('parakeet-ttd');
     expect(entry).toBeDefined();

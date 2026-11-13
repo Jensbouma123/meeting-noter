@@ -9,8 +9,10 @@ import {
   deleteDownloadedModels,
   initiateDownloads,
 } from './browser-asr-download-manager';
-import { getState, recordConsent, registerModel } from './model-registry';
-import { PARAKEET_TDT_V3_WASM } from './model-manifest';
+import { getState } from './model-registry-snapshot';
+import { recordConsent } from './model-registry-consent';
+import { registerModel } from './model-registry-register';
+import { PARAKEET_TDT_V3_WASM } from './model-manifest-parakeet';
 
 const KEY = 'parakeet-ttd';
 const FILE_SIZE = 4096;

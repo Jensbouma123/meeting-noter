@@ -1,6 +1,8 @@
-import { manifestForBackend, manifestForVariant, probeModelSize } from './model-manifest';
-import { getState, setEstimatedSize } from './model-registry';
-import type { ModelEntry } from './model-registry';
+import { manifestForBackend, manifestForVariant } from './model-manifest-selection';
+import { probeModelSize } from './model-manifest-size-probe';
+import { getState } from './model-registry-snapshot';
+import { setEstimatedSize } from './model-registry-status';
+import type { ModelEntry } from './types/model-registry';
 import { sizeProbes } from './browser-asr-download-state';
 
 export function manifestForEntry(entry: Pick<ModelEntry, 'backend' | 'variant'>) {

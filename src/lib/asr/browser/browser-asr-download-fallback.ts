@@ -1,7 +1,7 @@
 import { activeAsrManifest, forceNextWebgpuEncoder, forceWasmBackend } from './backend-detect';
-import { webgpuEncoderOf } from './model-manifest';
-import { registerManifest } from './model-registry';
-import type { ModelEntry } from './model-registry';
+import { webgpuEncoderOf } from './model-manifest-selection';
+import { registerManifest } from './model-registry-register';
+import type { ModelEntry } from './types/model-registry';
 import { manifestForEntry } from './browser-asr-download-sizes';
 
 export function fallBackAfterMissingEncoder(entry: ModelEntry, err: unknown): boolean {

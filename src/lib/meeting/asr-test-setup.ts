@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, vi } from 'vitest';
-import { PARAKEET_TDT_V3_WEBGPU } from '@/lib/asr/browser/model-manifest';
+import { PARAKEET_TDT_V3_WEBGPU } from '@/lib/asr/browser/model-manifest-parakeet';
 import type { AsrEngineTestState } from './types/asr-test';
 import { resetEngineState } from './asr-test-engine-state';
 import { clearModelCache, seedManifestCache, stubWebgpuAdapter } from './asr-test-cache';
@@ -34,7 +34,7 @@ export async function loadWebgpuAsr(): Promise<typeof import('./browser-asr')> {
   await seedManifestCache(PARAKEET_TDT_V3_WEBGPU);
   const mod = await import('./browser-asr');
   mod.registerDefaultModels('webgpu');
-  const registry = await import('@/lib/asr/browser/model-registry');
+  const registry = { ...(await import('@/lib/asr/browser/model-registry-status')), ...(await import('@/lib/asr/browser/model-registry-consent')) };
   registry.markCached('parakeet-ttd');
   registry.recordConsent('accepted', ['parakeet-ttd']);
   return mod;

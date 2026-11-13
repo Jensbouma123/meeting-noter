@@ -1,4 +1,4 @@
-import type { AsrModelManifest } from './model-manifest';
+import type { AsrModelManifest } from './types/model-manifest';
 import type { BrowserASRConfig } from './types';
 
 export function configFromManifest(manifest: AsrModelManifest, language = 'nl'): BrowserASRConfig {

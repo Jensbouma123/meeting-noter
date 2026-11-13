@@ -1,7 +1,8 @@
 import { Download } from 'lucide-react';
 import { Button } from '@jensbouma123/acciva-ui';
 import { cancelDownloads } from '@/lib/asr/browser';
-import { recordConsent, resetConsent, setDialogVisible } from '@/lib/asr/browser/model-registry';
+import { recordConsent, resetConsent } from '@/lib/asr/browser/model-registry-consent';
+import { setDialogVisible } from '@/lib/asr/browser/model-registry-dialog';
 import { useT } from '@/lib/i18n/useT';
 import type { ConsentFooterProps } from './types';
 

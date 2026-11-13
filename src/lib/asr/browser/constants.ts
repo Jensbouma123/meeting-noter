@@ -1,5 +1,5 @@
 import { configFromManifest } from './config-from-manifest';
-import { PARAKEET_TDT_V3_WEBGPU } from './model-manifest';
+import { PARAKEET_TDT_V3_WEBGPU } from './model-manifest-parakeet';
 import type { BrowserASRConfig } from './types';
 
 export const DEFAULT_BROWSER_ASR_CONFIG: BrowserASRConfig = configFromManifest(PARAKEET_TDT_V3_WEBGPU);

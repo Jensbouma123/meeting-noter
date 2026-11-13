@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { PARAKEET_TDT_V3_WEBGPU } from '@/lib/asr/browser/model-manifest';
+import { PARAKEET_TDT_V3_WEBGPU } from '@/lib/asr/browser/model-manifest-parakeet';
 import {
   LOAD_MARKER,
   downloadModel,
@@ -56,7 +56,7 @@ describe('a fully downloaded speech model', () => {
     stubModelNetwork(PARAKEET_TDT_V3_WEBGPU);
     await downloadModel();
 
-    const registry = await import('@/lib/asr/browser/model-registry');
+    const registry = { ...(await import('@/lib/asr/browser/model-registry-register')) };
     expect(registry.getModelStatus('parakeet-ttd')?.status).toBe('cached');
     await new Promise((resolve) => setTimeout(resolve, 50));
     const { areModelFilesCached } = await import('@/lib/asr/browser/resumable-download');
@@ -77,7 +77,7 @@ describe('a fully downloaded speech model', () => {
 
     vi.resetModules();
     stubPageStorage(page);
-    const registry = await import('@/lib/asr/browser/model-registry');
+    const registry = { ...(await import('@/lib/asr/browser/model-registry-register')) };
     registry.initRegistry();
     registry.registerDefaultModels('webgpu');
     const asr = await import('@/lib/meeting/browser-asr');

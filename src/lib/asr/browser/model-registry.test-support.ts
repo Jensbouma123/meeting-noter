@@ -2,8 +2,20 @@ import { vi } from 'vitest';
 
 export const KEY = 'parakeet-ttd';
 
+export async function importFullRegistry() {
+  return {
+    ...(await import('./model-registry-register')),
+    ...(await import('./model-registry-state')),
+    ...(await import('./model-registry-snapshot')),
+    ...(await import('./model-registry-dialog')),
+    ...(await import('./model-registry-status')),
+    ...(await import('./model-registry-progress')),
+    ...(await import('./model-registry-consent')),
+  };
+}
+
 export async function loadRegistry() {
-  const mod = await import('./model-registry');
+  const mod = await importFullRegistry();
   mod.initRegistry();
   mod.registerModel({
     key: KEY,

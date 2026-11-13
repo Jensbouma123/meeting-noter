@@ -5,7 +5,7 @@ import {
   chunkCountFor,
   planChunkRanges,
 } from './resumable-download';
-import { PARAKEET_TDT_V3 } from './model-manifest';
+import { PARAKEET_TDT_V3 } from './model-manifest-parakeet';
 
 describe('chunk arithmetic', () => {
   it('puts an exact multiple of the chunk size in whole chunks, with no empty one after it', () => {

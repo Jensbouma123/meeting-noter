@@ -28,59 +28,19 @@ export {
   type InitStage,
   type ModelProgressStage,
 } from './model-progress';
-export {
-  subscribeRegistry,
-  getState,
-  getServerSnapshot,
-  registerModel,
-  registerManifest,
-  registerDefaultModels,
-  setActiveBackend,
-  initRegistry,
-  getModelStatus,
-  markCached,
-  markNotCached,
-  markFailed,
-  markCancelled,
-  markUnavailable,
-  updateProgress,
-  setEstimatedSize,
-  recordConsent,
-  resetConsent,
-  resetAllEntries,
-  setDialogVisible,
-  openDialog,
-  closeDialog,
-  notifyListeners,
-  isConsentGiven,
-  hasNeverBeenPrompted,
-  type ModelEntry,
-  type ModelEntryConfig,
-  type ModelStatus,
-  type ModelProgress,
-  type ConsentChoice,
-  type ConsentState,
-  type AsrBackend,
-} from './model-registry';
-export {
-  PARAKEET_TDT_V3,
-  PARAKEET_TDT_V3_WEBGPU,
-  PARAKEET_TDT_V3_WEBGPU_FP16,
-  PARAKEET_TDT_V3_WASM,
-  WEBGPU_ENCODER_FALLBACKS,
-  asrManifestFallbackOrder,
-  manifestForBackend,
-  webgpuManifestForEncoder,
-  webgpuEncoderOf,
-  nextWebgpuEncoder,
-  FP16_ENCODER_URL,
-  Q4F16_ENCODER_URL,
-  hubOptionsFor,
-  probeModelSize,
-  type AsrModelManifest,
-  type EncoderQuant,
-  type WebgpuEncoderQuant,
-} from './model-manifest';
+export { subscribeRegistry, notifyListeners } from './model-registry-state';
+export { getState, getServerSnapshot } from './model-registry-snapshot';
+export { registerModel, registerManifest, registerDefaultModels, initRegistry, getModelStatus } from './model-registry-register';
+export { setActiveBackend, setDialogVisible, openDialog, closeDialog } from './model-registry-dialog';
+export { markCached, markNotCached, markFailed, markCancelled, markUnavailable, setEstimatedSize, resetAllEntries } from './model-registry-status';
+export { updateProgress } from './model-registry-progress';
+export { recordConsent, resetConsent, isConsentGiven, hasNeverBeenPrompted } from './model-registry-consent';
+export type { ModelEntry, ModelEntryConfig, ModelStatus, ModelProgress, ConsentChoice, ConsentState } from './types/model-registry';
+export type { AsrBackend } from './types/model-manifest';
+export { PARAKEET_TDT_V3, PARAKEET_TDT_V3_WEBGPU, PARAKEET_TDT_V3_WEBGPU_FP16, PARAKEET_TDT_V3_WASM, FP16_ENCODER_URL, Q4F16_ENCODER_URL } from './model-manifest-parakeet';
+export { WEBGPU_ENCODER_FALLBACKS, asrManifestFallbackOrder, manifestForBackend, webgpuManifestForEncoder, webgpuEncoderOf, nextWebgpuEncoder, hubOptionsFor } from './model-manifest-selection';
+export { probeModelSize } from './model-manifest-size-probe';
+export type { AsrModelManifest, EncoderQuant, WebgpuEncoderQuant } from './types/model-manifest';
 export {
   detectAsrBackend,
   activeAsrManifest,

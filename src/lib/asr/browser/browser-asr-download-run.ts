@@ -3,8 +3,9 @@ import {
   isDownloadCancelled,
   type ModelDownloadProgress,
 } from './resumable-download';
-import * as registry from './model-registry';
-import type { ModelEntry } from './model-registry';
+import { markCached, markCancelled, markDownloading, markFailed, markNotCached } from './model-registry-status';
+import { updateProgress } from './model-registry-progress';
+import type { ModelEntry } from './types/model-registry';
 import { describeDownloadError } from './browser-asr-download-error';
 import { manifestForEntry } from './browser-asr-download-sizes';
 import { currentAttempts, downloadHandlers } from './browser-asr-download-state';
@@ -26,7 +27,7 @@ function cumulativeProgressReporter(key: string, total: number, isCurrent: () =>
     const throughput = dt > 0 && !p.resuming ? Math.max(0, delta / dt) : 0;
     const timeRem = throughput > 0 ? Math.max(0, (total - loaded) / throughput) : 0;
 
-    registry.updateProgress(key, loaded, total, p.file, throughput, timeRem, p.resuming);
+    updateProgress(key, loaded, total, p.file, throughput, timeRem, p.resuming);
 
     prevLoaded = loaded;
     prevTime = now;
@@ -39,7 +40,7 @@ export async function downloadEntryFiles(key: string, entry: ModelEntry): Promis
   const isCurrent = () => currentAttempts.get(key) === attempt;
 
   const total = entry.estimatedSizeBytes;
-  registry.markDownloading(key, total);
+  markDownloading(key, total);
 
   const cacheWarnings: string[] = [];
   const onProgress = cumulativeProgressReporter(key, total, isCurrent);
@@ -59,18 +60,18 @@ export async function downloadEntryFiles(key: string, entry: ModelEntry): Promis
     }
     if (!isCurrent()) return;
     if (cacheWarnings.length > 0) {
-      registry.markNotCached(key, cacheWarnings[cacheWarnings.length - 1]);
+      markNotCached(key, cacheWarnings[cacheWarnings.length - 1]);
       return;
     }
-    registry.updateProgress(key, total, total, '', 0, 0);
-    registry.markCached(key);
+    updateProgress(key, total, total, '', 0, 0);
+    markCached(key);
   } catch (err) {
     if (!isCurrent()) throw err;
     if (isDownloadCancelled(err)) {
-      registry.markCancelled(key);
+      markCancelled(key);
       throw err;
     }
-    registry.markFailed(key, describeDownloadError(err));
+    markFailed(key, describeDownloadError(err));
     throw err;
   } finally {
     if (isCurrent()) currentAttempts.delete(key);

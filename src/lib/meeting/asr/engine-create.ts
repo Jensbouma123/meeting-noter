@@ -4,7 +4,7 @@ import {
   type AsrEngine,
   type AsrModelManifest,
 } from '@/lib/asr/browser';
-import { webgpuEncoderOf } from '@/lib/asr/browser/model-manifest';
+import { webgpuEncoderOf } from '@/lib/asr/browser/model-manifest-selection';
 import { asrState } from './state';
 import { buildEngineEvents } from './engine-events';
 import { stepDownAfterWebgpuFailure } from './webgpu-fallback';

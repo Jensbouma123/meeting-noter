@@ -1,5 +1,7 @@
 import { getAsrModelFamily } from './model-family';
-import { PARAKEET_TDT_V3_WEBGPU, webgpuEncodersAvailable, type AsrBackend } from './model-manifest';
+import { PARAKEET_TDT_V3_WEBGPU } from './model-manifest-parakeet';
+import { webgpuEncodersAvailable } from './model-manifest-selection';
+import type { AsrBackend } from './types/model-manifest';
 
 interface NavigatorGPU {
   requestAdapter?: () => Promise<unknown>;

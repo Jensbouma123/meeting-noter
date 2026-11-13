@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto';
 import { describe, expect, it, vi } from 'vitest';
-import { PARAKEET_TDT_V3_WEBGPU } from '@/lib/asr/browser/model-manifest';
+import { PARAKEET_TDT_V3_WEBGPU } from '@/lib/asr/browser/model-manifest-parakeet';
 import { consentAndCache } from './asr-test-cache';
 import { installAsrTestLifecycle, loadBrowserAsr, loadWebgpuAsr } from './asr-test-setup';
 
@@ -83,7 +83,8 @@ describe('post-stop transcription with speaker turns', () => {
     const asr = await loadBrowserAsr();
     await consentAndCache();
     await asr.resolveAsrBackend();
-    const { getState, resetSession } = await import('./store');
+    const { getState } = await import('./store-core');
+    const { resetSession } = await import('./session-reset');
     resetSession('system');
     asr.setSpeakerTimeline({
       speakerFor: (_source, start, end) => ((start + end) / 2 < 20 ? 'system:0' : 'system:1'),

@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import type { PARAKEET_TDT_V3_WEBGPU } from '@/lib/asr/browser/model-manifest';
+import type { PARAKEET_TDT_V3_WEBGPU } from '@/lib/asr/browser/model-manifest-parakeet';
 
 export const LOAD_MARKER = 'mn.asr-load-in-progress.v1';
 const CONTENT = new Uint8Array(64).map((_, i) => i % 251);
@@ -57,7 +57,7 @@ export function stubPageStorage(
 }
 
 export async function downloadModel(): Promise<void> {
-  const registry = await import('@/lib/asr/browser/model-registry');
+  const registry = { ...(await import('@/lib/asr/browser/model-registry-snapshot')), ...(await import('@/lib/asr/browser/model-registry-consent')), ...(await import('@/lib/asr/browser/model-registry-register')) };
   const manager = await import('@/lib/asr/browser/browser-asr-download-manager');
   registry.registerDefaultModels('webgpu');
   registry.recordConsent('accepted', ['parakeet-ttd']);
@@ -65,7 +65,7 @@ export async function downloadModel(): Promise<void> {
 }
 
 export async function readiness(): Promise<string> {
-  const registry = await import('@/lib/asr/browser/model-registry');
+  const registry = { ...(await import('@/lib/asr/browser/model-registry-snapshot')), ...(await import('@/lib/asr/browser/model-registry-consent')), ...(await import('@/lib/asr/browser/model-registry-register')) };
   const asr = await import('@/lib/meeting/browser-asr');
   const { deriveModelReadiness } = await import('./modelReadiness');
   const progress = asr.getBrowserASRProgress();

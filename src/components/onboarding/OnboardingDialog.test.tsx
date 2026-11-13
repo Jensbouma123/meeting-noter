@@ -33,15 +33,24 @@ const recordConsent = vi.fn();
 const initiateDownloads = vi.fn(() => Promise.resolve());
 const setDialogVisible = vi.fn();
 
-vi.mock('@/lib/asr/browser/model-registry', async (importOriginal) => ({
+vi.mock('@/lib/asr/browser/model-registry-state', async (importOriginal) => ({
   ...(await importOriginal<object>()),
   subscribeRegistry: (fn: () => void) => {
     registry.listeners.add(fn);
     return () => registry.listeners.delete(fn);
   },
+}));
+vi.mock('@/lib/asr/browser/model-registry-snapshot', async (importOriginal) => ({
+  ...(await importOriginal<object>()),
   getState: () => registry.snapshot,
   getServerSnapshot: () => registry.snapshot,
+}));
+vi.mock('@/lib/asr/browser/model-registry-consent', async (importOriginal) => ({
+  ...(await importOriginal<object>()),
   recordConsent: (...a: unknown[]) => recordConsent(...a),
+}));
+vi.mock('@/lib/asr/browser/model-registry-dialog', async (importOriginal) => ({
+  ...(await importOriginal<object>()),
   setDialogVisible: (...a: unknown[]) => setDialogVisible(...a),
 }));
 vi.mock('@/lib/asr/browser', async (importOriginal) => ({

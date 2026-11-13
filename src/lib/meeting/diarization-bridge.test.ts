@@ -70,7 +70,7 @@ describe('diarization bridge — status', () => {
     const { registry, bridge, store } = await modules();
     bridge.registerDiarizationModel('webgpu');
     registry.recordConsent('accepted', [bridge.DIARIZATION_REGISTRY_KEY]);
-    (await import('@/lib/asr/browser/model-registry')).markDownloading(bridge.DIARIZATION_REGISTRY_KEY, 1);
+    (await import('@/lib/asr/browser/model-registry-status')).markDownloading(bridge.DIARIZATION_REGISTRY_KEY, 1);
 
     bridge.startDiarization(['mic']);
     expect(fakes.created).toEqual([]);

@@ -2,7 +2,9 @@
 
 import { useId, useSyncExternalStore } from 'react';
 import { formatBytes } from '@/lib/asr/browser';
-import { subscribeRegistry, getState, getServerSnapshot, setDialogVisible } from '@/lib/asr/browser/model-registry';
+import { subscribeRegistry } from '@/lib/asr/browser/model-registry-state';
+import { getState, getServerSnapshot } from '@/lib/asr/browser/model-registry-snapshot';
+import { setDialogVisible } from '@/lib/asr/browser/model-registry-dialog';
 import { Modal, Text, VStack } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { describePreparation, isPreparing } from '../preparation/describePreparation';

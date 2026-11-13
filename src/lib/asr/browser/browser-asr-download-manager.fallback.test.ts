@@ -24,7 +24,7 @@ describe('a missing WebGPU encoder', () => {
     vi.stubEnv('NODE_ENV', 'development');
     const { registry, manager, downloader } = await load();
     const detect = await import('./backend-detect');
-    const { PARAKEET_TDT_V3_WEBGPU } = await import('./model-manifest');
+    const { PARAKEET_TDT_V3_WEBGPU } = await import('./model-manifest-parakeet');
     detect.resetAsrBackendDetectionForTests();
 
     registry.registerManifest(PARAKEET_TDT_V3_WEBGPU);
@@ -52,7 +52,7 @@ describe('a missing WebGPU encoder', () => {
   it('does not fall back on a non-404 failure', async () => {
     vi.stubEnv('NODE_ENV', 'development');
     const { registry, manager, downloader } = await load();
-    const { PARAKEET_TDT_V3_WEBGPU } = await import('./model-manifest');
+    const { PARAKEET_TDT_V3_WEBGPU } = await import('./model-manifest-parakeet');
     registry.registerManifest(PARAKEET_TDT_V3_WEBGPU);
     registry.recordConsent('accepted', [PARAKEET_TDT_V3_WEBGPU.key]);
     vi.mocked(downloader.downloadParakeetModelResumable).mockRejectedValue(
@@ -72,7 +72,7 @@ describe('saved choice migration', () => {
     vi.stubEnv('NEXT_PUBLIC_FP16_ENCODER_URL', '');
     vi.stubGlobal('window', {});
     const first = await load();
-    const { PARAKEET_TDT_V3_WEBGPU } = await import('./model-manifest');
+    const { PARAKEET_TDT_V3_WEBGPU } = await import('./model-manifest-parakeet');
     first.registry.registerManifest(PARAKEET_TDT_V3_WEBGPU);
     first.registry.markFailed(PARAKEET_TDT_V3_WEBGPU.key, 'Download failed: Failed to download encoder-model.q4f16.onnx: 404');
     first.registry.recordConsent('accepted', [PARAKEET_TDT_V3_WEBGPU.key]);

@@ -1,10 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import {
-  PARAKEET_TDT_V3_WEBGPU,
-  PARAKEET_TDT_V3_WEBGPU_FP16,
-  PARAKEET_TDT_V3_WASM,
-  probeModelSize,
-} from './model-manifest';
+import { PARAKEET_TDT_V3_WEBGPU, PARAKEET_TDT_V3_WEBGPU_FP16, PARAKEET_TDT_V3_WASM } from './model-manifest-parakeet';
+import { probeModelSize } from './model-manifest-size-probe';
 describe('declared file sizes', () => {
   it.each([
     ['webgpu-q4f16', PARAKEET_TDT_V3_WEBGPU],
@@ -61,7 +57,10 @@ describe('which WebGPU encoders are offered', () => {
     vi.resetModules();
     vi.unstubAllEnvs();
     for (const [k, v] of Object.entries(env)) vi.stubEnv(k, v);
-    const manifest = await import('./model-manifest');
+    const manifest = {
+      ...(await import('./model-manifest-parakeet')),
+      ...(await import('./model-manifest-selection')),
+    };
     const detect = await import('./backend-detect');
     return { manifest, detect };
   }

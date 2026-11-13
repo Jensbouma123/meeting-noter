@@ -5,12 +5,7 @@ import {
   PARAKEET_TDT_V3_WEBGPU,
   PARAKEET_TDT_V3_WEBGPU_FP16,
 } from './model-manifest-parakeet';
-import type {
-  AsrBackend,
-  AsrModelManifest,
-  ManifestRuntimeOptions,
-  WebgpuEncoderQuant,
-} from './types/model-manifest';
+import type { AsrBackend, AsrModelManifest, ManifestRuntimeOptions, WebgpuEncoderQuant } from './types/model-manifest';
 
 function encoderAvailable(envUrl: string | undefined): boolean {
   return (envUrl !== undefined && envUrl !== '') || process.env.NODE_ENV !== 'production';

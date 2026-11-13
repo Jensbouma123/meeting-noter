@@ -45,7 +45,7 @@ export async function seedManifestCache(manifest: ManifestFiles): Promise<void> 
 
 export async function consentAndCache(manifest: ManifestFiles = WASM_MANIFEST): Promise<void> {
   await seedManifestCache(manifest);
-  const registry = await import('@/lib/asr/browser/model-registry');
+  const registry = { ...(await import('@/lib/asr/browser/model-registry-status')), ...(await import('@/lib/asr/browser/model-registry-consent')) };
   registry.markCached('parakeet-ttd');
   registry.recordConsent('accepted', ['parakeet-ttd']);
 }

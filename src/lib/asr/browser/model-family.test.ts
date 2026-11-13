@@ -7,14 +7,9 @@ import {
   subscribeAsrModelFamily,
 } from './model-family';
 import { activeAsrManifest, forceNextWebgpuEncoder, resetAsrBackendDetectionForTests } from './backend-detect';
-import {
-  NEMOTRON_ASR_WASM,
-  NEMOTRON_ASR_WEBGPU,
-  PARAKEET_TDT_V3_WASM,
-  PARAKEET_TDT_V3_WEBGPU,
-  PARAKEET_TDT_V3_WEBGPU_FP16,
-  manifestForVariant,
-} from './model-manifest';
+import { NEMOTRON_ASR_WASM, NEMOTRON_ASR_WEBGPU } from './model-manifest-nemotron';
+import { PARAKEET_TDT_V3_WASM, PARAKEET_TDT_V3_WEBGPU, PARAKEET_TDT_V3_WEBGPU_FP16 } from './model-manifest-parakeet';
+import { manifestForVariant } from './model-manifest-selection';
 import { categorizeManifestFile } from './resumable-download';
 import { configFromManifest } from './config-from-manifest';
 

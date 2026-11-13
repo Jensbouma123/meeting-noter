@@ -53,7 +53,7 @@ describe('a model load that killed the tab', () => {
 
     expect(asr.didPreviousModelLoadCrash()).toBe(false);
     expect(store.has(MARKER)).toBe(false);
-    const registry = await import('@/lib/asr/browser/model-registry');
+    const registry = { ...(await import('@/lib/asr/browser/model-registry-snapshot')), ...(await import('@/lib/asr/browser/model-registry-consent')) };
     expect(registry.getState().activeBackend).toBe('wasm');
     expect(registry.hasNeverBeenPrompted()).toBe(true);
     expect(registry.getState().dialogVisible).toBe(true);

@@ -1,17 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import {
-  NEMOTRON_ASR_WEBGPU,
-  PARAKEET_TDT_V3_WEBGPU,
-  PARAKEET_TDT_V3_WEBGPU_FP16,
-  PARAKEET_TDT_V3_WASM,
-  WEBGPU_ENCODER_FALLBACKS,
-  asrManifestFallbackOrder,
-  manifestForBackend,
-  nextWebgpuEncoder,
-  webgpuEncoderOf,
-  webgpuManifestForEncoder,
-  type AsrModelManifest,
-} from './model-manifest';
+import { NEMOTRON_ASR_WEBGPU } from './model-manifest-nemotron';
+import { PARAKEET_TDT_V3_WEBGPU, PARAKEET_TDT_V3_WEBGPU_FP16, PARAKEET_TDT_V3_WASM } from './model-manifest-parakeet';
+import { WEBGPU_ENCODER_FALLBACKS, asrManifestFallbackOrder, manifestForBackend, nextWebgpuEncoder, webgpuEncoderOf, webgpuManifestForEncoder } from './model-manifest-selection';
+import type { AsrModelManifest } from './types/model-manifest';
 describe.each([
   ['webgpu', PARAKEET_TDT_V3_WEBGPU],
   ['wasm', PARAKEET_TDT_V3_WASM],

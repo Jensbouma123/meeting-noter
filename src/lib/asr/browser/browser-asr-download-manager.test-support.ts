@@ -27,14 +27,20 @@ export function installLocalStorage(): void {
 }
 
 export async function load() {
-  const registry = await import('./model-registry');
+  const registry = {
+    ...(await import('./model-registry-register')),
+    ...(await import('./model-registry-status')),
+    ...(await import('./model-registry-consent')),
+    ...(await import('./model-registry-snapshot')),
+    ...(await import('./model-registry-progress')),
+  };
   const manager = await import('./browser-asr-download-manager');
   const downloader = await import('./resumable-download');
   registry.initRegistry();
   return { registry, manager, downloader };
 }
 
-export function registerTestModel(registry: typeof import('./model-registry'), key: string): void {
+export function registerTestModel(registry: { registerModel: typeof import('./model-registry-register').registerModel }, key: string): void {
   registry.registerModel({
     key,
     modelRepo: `test/${key}`,
