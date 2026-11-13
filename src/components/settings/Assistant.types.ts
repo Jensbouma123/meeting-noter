@@ -19,6 +19,7 @@ export interface AssistantCardProps {
   busy: boolean;
   error: string | null;
   confirm: { configPath: string; backupPath: string } | null;
+  restartNotice: boolean;
   onConnect: (confirmed: boolean) => void;
   onDisconnect: () => void;
   onCancelConfirm: () => void;

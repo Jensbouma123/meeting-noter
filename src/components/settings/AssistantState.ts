@@ -10,6 +10,7 @@ export function useAssistantState() {
   const [busyId, setBusyId] = useState<AssistantId | null>(null);
   const [errors, setErrors] = useState<Partial<Record<AssistantId, string>>>({});
   const [confirmFor, setConfirmFor] = useState<Partial<Record<AssistantId, AssistantPending>>>({});
+  const [restart, setRestart] = useState<Partial<Record<AssistantId, boolean>>>({});
 
   useEffect(() => {
     let live = true;
@@ -32,6 +33,7 @@ export function useAssistantState() {
     } else if (result.ok) {
       setConfirmFor((c) => ({ ...c, [id]: undefined }));
       setAssistants((list) => list && list.map((a) => (a.id === id ? { ...a, status: result.status } : a)));
+      setRestart((r) => ({ ...r, [id]: true }));
     } else {
       setErrors((e) => ({ ...e, [id]: result.error }));
     }
@@ -43,6 +45,7 @@ export function useAssistantState() {
     busyId,
     errors,
     confirmFor,
+    restart,
     connect: (id: AssistantId, confirmed: boolean) => run(id, () => connectAssistant(id, confirmed)),
     disconnect: (id: AssistantId) => run(id, () => disconnectAssistant(id)),
     cancelConfirm: (id: AssistantId) => setConfirmFor((c) => ({ ...c, [id]: undefined })),

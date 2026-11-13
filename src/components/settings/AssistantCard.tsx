@@ -1,6 +1,6 @@
 'use client';
 
-import { Alert, Badge, Button } from '@jensbouma123/acciva-ui';
+import { Alert, Badge, Button, Text } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { AssistantDetails } from './AssistantDetails';
 import { AssistantConfirm } from './AssistantConfirm';
@@ -12,7 +12,7 @@ import type { AssistantCardProps } from './Assistant.types';
 
 const BADGE = { connected: 'success', 'needs-repair': 'warning', 'not-connected': 'neutral', 'not-found': 'warning' } as const;
 
-export function AssistantCard({ assistant, busy, error, confirm, onConnect, onDisconnect, onCancelConfirm }: AssistantCardProps) {
+export function AssistantCard({ assistant, busy, error, confirm, restartNotice, onConnect, onDisconnect, onCancelConfirm }: AssistantCardProps) {
   const t = useT('assistant');
   const { id, status, canAutoConnect, manualCommand, configPath } = assistant;
   const isDesktop = id === 'claude-desktop';
@@ -44,6 +44,7 @@ export function AssistantCard({ assistant, busy, error, confirm, onConnect, onDi
       {isDesktop && confirm && (
         <AssistantConfirm backupPath={confirm.backupPath} busy={busy} onConfirm={() => onConnect(true)} onCancel={onCancelConfirm} />
       )}
+      {restartNotice && <Text size="xs" variant="muted" className="px-4 pb-3">{t(`restart.${id}`)}</Text>}
       {error && <Alert variant="danger" layout="inline">{t('error')}</Alert>}
     </div>
   );

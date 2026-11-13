@@ -25,6 +25,7 @@ export function AssistantSection() {
               busy={state.busyId === a.id}
               error={state.errors[a.id] ?? null}
               confirm={state.confirmFor[a.id] ?? null}
+              restartNotice={!!state.restart[a.id]}
               onConnect={(confirmed) => void state.connect(a.id, confirmed)}
               onDisconnect={() => void state.disconnect(a.id)}
               onCancelConfirm={() => state.cancelConfirm(a.id)}
