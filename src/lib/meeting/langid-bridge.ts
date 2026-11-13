@@ -34,6 +34,7 @@ import {
 import { createLanguageDetector, type LanguageDetector } from '@/lib/langid';
 import { languageNameFor } from '@/lib/langid/languages';
 import { createLanguageSwitcher } from '@/lib/langid/decision';
+import { setAsrLanguageHint } from '@/lib/asr/browser/language-hint';
 import {
   LANGID_MODEL_REPO,
   LANGID_MODEL_REVISION,
@@ -117,6 +118,10 @@ let activeSources: Source[] = [];
  *  agreeing detections (or one very sure one) to replace the current one. */
 const switcher = createLanguageSwitcher();
 
+/* Detections only drive the chip, never the ASR prompt: prompting the encoder
+ * with a detected language made Dutch meetings decode as English-looking
+ * garbage, while `auto` lets it detect per fragment. Only a manual pick
+ * prompts the ASR. */
 function applyDetection(code: string, confidence: number): void {
   const accepted = switcher.offer({ code, confidence });
   if (languageLocked || !accepted) return;
@@ -210,6 +215,7 @@ export function stopLangId(): void {
 export function setLanguageOverride(code: string): void {
   if (code === 'auto') {
     languageLocked = false;
+    setAsrLanguageHint(null);
     // Detection kept running underneath while locked, so its latest result
     // applies at once. With none yet, the override stays shown but is no
     // longer marked as picked — otherwise the chip reads "locked" for the
@@ -225,6 +231,7 @@ export function setLanguageOverride(code: string): void {
     return;
   }
   languageLocked = true;
+  setAsrLanguageHint(code);
   setState({ language: { code, name: languageNameFor(code), locked: true, confidence: 1 } });
 }
 
@@ -232,4 +239,5 @@ export function setLanguageOverride(code: string): void {
 export function resetLanguageOverride(): void {
   languageLocked = false;
   switcher.reset();
+  setAsrLanguageHint(null);
 }

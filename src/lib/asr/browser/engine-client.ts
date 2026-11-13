@@ -25,6 +25,7 @@ import { createLocalAsrEngine, type LocalAsrEngine } from './engine-factory';
 import { isSafariEngine } from './backend-detect';
 import { debugEnabled } from './quiet-console';
 import type { EngineCall, EngineWorkerIn, EngineWorkerOut } from './engine-protocol';
+import { getAsrLanguageHint, subscribeAsrLanguageHint } from './language-hint';
 import { getVocabularyBiasConfig, subscribeVocabulary } from '@/lib/vocabulary/store';
 import type { VocabularyBiasConfig } from '@/lib/vocabulary/types';
 import type {
@@ -52,6 +53,8 @@ export interface AsrEngine {
   disable(): void;
   lockLanguage(): void;
   unlockLanguage(): void;
+  /** Language to prompt the model with (null = detect); follows `language-hint.ts`. */
+  setLanguageHint(code: string | null): void;
   /** The user's word list, favoured while decoding (`src/lib/vocabulary`). */
   setVocabulary(config: VocabularyBiasConfig): void;
 }
@@ -107,6 +110,8 @@ class WorkerBrowserASREngine implements AsrEngine {
   /** The word list the engine decodes with; follows the store until `disable()`. */
   private vocabulary: VocabularyBiasConfig = getVocabularyBiasConfig();
   private readonly unfollowVocabulary: () => void;
+  private languageHint: string | null = getAsrLanguageHint();
+  private readonly unfollowLanguageHint: () => void;
   /** Why the worker went away, once it has crashed. */
   private crashed: string | null = null;
   private nextCallId = 0;
@@ -116,6 +121,7 @@ class WorkerBrowserASREngine implements AsrEngine {
     this.config = config;
     this.events = events;
     this.unfollowVocabulary = subscribeVocabulary(() => this.setVocabulary(getVocabularyBiasConfig()));
+    this.unfollowLanguageHint = subscribeAsrLanguageHint(() => this.setLanguageHint(getAsrLanguageHint()));
   }
 
   get isReady(): boolean {
@@ -189,6 +195,7 @@ class WorkerBrowserASREngine implements AsrEngine {
   disable(): void {
     this.disabled = true;
     this.unfollowVocabulary();
+    this.unfollowLanguageHint();
     if (this.local) {
       this.local.disable();
       return;
@@ -216,6 +223,12 @@ class WorkerBrowserASREngine implements AsrEngine {
     this.languageLocked = false;
     if (this.local) this.local.unlockLanguage();
     else if (this.worker) void this.call({ method: 'unlockLanguage' }).catch(() => undefined);
+  }
+
+  setLanguageHint(code: string | null): void {
+    this.languageHint = code;
+    if (this.local) this.local.setLanguageHint(code);
+    else if (this.worker) void this.call({ method: 'setLanguageHint', args: { code } }).catch(() => undefined);
   }
 
   setVocabulary(config: VocabularyBiasConfig): void {
@@ -287,6 +300,7 @@ class WorkerBrowserASREngine implements AsrEngine {
       this.config.cpuThreads === undefined && isSafariEngine() ? { ...this.config, cpuThreads: 1 } : this.config;
     this.post({ type: 'init', config, debug: debugEnabled() });
     if (this.languageLocked) void this.call({ method: 'lockLanguage' }).catch(() => undefined);
+    if (this.languageHint) void this.call({ method: 'setLanguageHint', args: { code: this.languageHint } }).catch(() => undefined);
     if (this.vocabulary.words.length > 0) {
       void this.call({ method: 'setVocabulary', args: this.vocabulary }).catch(() => undefined);
     }
@@ -296,6 +310,7 @@ class WorkerBrowserASREngine implements AsrEngine {
   private runOnPage(): LocalAsrEngine {
     const engine = createLocalAsrEngine(this.config, this.events);
     if (this.languageLocked) engine.lockLanguage();
+    if (this.languageHint) engine.setLanguageHint(this.languageHint);
     if (this.vocabulary.words.length > 0) engine.setVocabulary(this.vocabulary);
     this.local = engine;
     return engine;

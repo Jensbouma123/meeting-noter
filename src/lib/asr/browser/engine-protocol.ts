@@ -25,6 +25,7 @@ export type EngineCall =
   | { method: 'stop' }
   | { method: 'lockLanguage' }
   | { method: 'unlockLanguage' }
+  | { method: 'setLanguageHint'; args: { code: string | null } }
   | { method: 'setVocabulary'; args: VocabularyBiasConfig };
 
 export type EngineWorkerIn =

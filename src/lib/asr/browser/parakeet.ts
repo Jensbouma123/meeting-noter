@@ -667,7 +667,12 @@ export class BrowserASREngine {
       final: isFinal,
     };
     if (result.words?.length) {
-      seg.words = result.words.map((w) => ({ text: w.text, start: w.start_time, end: w.end_time }));
+      seg.words = result.words.map((w) => ({
+        text: w.text,
+        start: w.start_time,
+        end: w.end_time,
+        ...(typeof w.confidence === 'number' ? { confidence: w.confidence } : {}),
+      }));
     }
 
     if (isFinal) {
@@ -697,6 +702,9 @@ export class BrowserASREngine {
       confidence: 0.5,
     };
   }
+
+  /** Parakeet takes no language; the hint is accepted and ignored. */
+  setLanguageHint(_code: string | null): void {}
 
   /** Lock the detected language. */
   lockLanguage(): void {

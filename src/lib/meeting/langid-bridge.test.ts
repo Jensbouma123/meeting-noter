@@ -119,4 +119,37 @@ describe('language-ID bridge', () => {
     // The caller's Int16 frame is untouched (ASR still reads it).
     expect(pcm.byteLength).toBe(4);
   });
+
+  describe('ASR language hint', () => {
+    // Prompting the ASR with a detected language made Dutch meetings decode
+    // as English-looking garbage; on auto the ASR detects per fragment itself.
+    it('on auto, detections never prompt the ASR with a language', async () => {
+      const { startLangId } = await import('./langid-bridge');
+      const { getAsrLanguageHint } = await import('@/lib/asr/browser/language-hint');
+      startLangId(['mic']);
+      const [mic] = fakes.detectors;
+
+      mic.emit('nl', 0.95);
+      mic.emit('nl', 0.95);
+      expect(getAsrLanguageHint()).toBeNull();
+      mic.emit('en', 0.95);
+      mic.emit('en', 0.95);
+      mic.emit('en', 0.95);
+      expect(getAsrLanguageHint()).toBeNull();
+    });
+
+    it('a manual pick wins, and auto hands the ASR back to detection', async () => {
+      const { startLangId, setLanguageOverride } = await import('./langid-bridge');
+      const { getAsrLanguageHint } = await import('@/lib/asr/browser/language-hint');
+      startLangId(['mic']);
+      fakes.detectors[0].emit('nl', 0.9);
+
+      setLanguageOverride('de');
+      fakes.detectors[0].emit('en', 0.95);
+      expect(getAsrLanguageHint()).toBe('de');
+
+      setLanguageOverride('auto');
+      expect(getAsrLanguageHint()).toBeNull();
+    });
+  });
 });

@@ -77,6 +77,8 @@ export class NemotronASREngine {
   private segmentBuffer = '';
   private currentSegmentId = '';
   private languageLocked = false;
+  /** Language the encoder is prompted with; null = it detects per fragment. */
+  private languageHint: string | null = null;
   /** ORT sessions take one `run()` at a time; calls queue here. */
   private queue: Promise<unknown> = Promise.resolve();
   private readonly vocabulary = new BiaserSlot();
@@ -265,7 +267,7 @@ export class NemotronASREngine {
     this.status = 'transcribing';
     this.events.onStatusChange('transcribing');
     try {
-      const result = await this._serial(() => recognizer.recognize(audio, { langId: PROMPT_LANG_ID, biaser: this.vocabulary.get() }));
+      const result = await this._serial(() => recognizer.recognize(audio, { langId: this._langId(), biaser: this.vocabulary.get() }));
       const segments = this._buildSegments(result.text, result.words, audio.length, source, speakerLabel, isFinal);
       for (const seg of segments) this.events.onSegment(seg);
       return { segments, language: this._buildLanguageInfo(), error: null };
@@ -285,7 +287,7 @@ export class NemotronASREngine {
     const recognizer = this.recognizer;
     if (!recognizer || !this.isReady) return { text: '', words: [], error: 'Model not ready' };
     try {
-      const result = await this._serial(() => recognizer.recognize(audio, { langId: PROMPT_LANG_ID, biaser: this.vocabulary.get() }));
+      const result = await this._serial(() => recognizer.recognize(audio, { langId: this._langId(), biaser: this.vocabulary.get() }));
       return { text: result.text, words: result.words, error: null };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -314,6 +316,15 @@ export class NemotronASREngine {
     this.status = 'disabled';
     this.loadingPromise = null;
     this.events.onStatusChange('disabled');
+  }
+
+  /** Prompt the encoder with `code` from the next inference on (null = auto). */
+  setLanguageHint(code: string | null): void {
+    this.languageHint = code;
+  }
+
+  private _langId(): number {
+    return nemotronLangId(this.languageHint ?? 'auto');
   }
 
   lockLanguage(): void {
