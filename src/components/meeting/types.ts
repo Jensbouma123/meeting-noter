@@ -1,5 +1,5 @@
 import type { CaptureMode, SystemVia } from '@/lib/meeting';
-import type { RetentionChoice } from '@/lib/meeting/retention';
+import type { RetentionChoice } from '@/lib/meeting/types/retention';
 
 export interface AppSettings {
   mode: CaptureMode;

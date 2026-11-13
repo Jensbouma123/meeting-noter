@@ -1,19 +1,4 @@
-import type { ActionItem, Decision } from './types/notes';
-import type { useT } from '@/lib/i18n/useT';
-
-type SummaryTranslator = ReturnType<typeof useT<'summary'>>;
-
-export interface BuildSummaryOptions {
-  title: string;
-  date: string;
-  durationS: number;
-  participants: readonly string[];
-  decisions: readonly Decision[];
-  actions: readonly ActionItem[];
-  transcript?: string;
-  format: 'md' | 'txt';
-  t: SummaryTranslator;
-}
+import type { BuildSummaryOptions } from './types/summary';
 
 function duration(seconds: number): string {
   const total = Math.max(0, Math.round(seconds));
@@ -25,7 +10,6 @@ function duration(seconds: number): string {
   return `${remaining}s`;
 }
 
-/** Build a localized Markdown or plain text meeting summary. */
 export function buildSummary(options: BuildSummaryOptions): string {
   const { title, date, durationS, participants, decisions, actions, transcript, format, t } = options;
   const markdown = format === 'md';

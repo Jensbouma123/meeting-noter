@@ -1,12 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import {
-  DEFAULT_RETENTION,
-  expiredSessionIds,
-  parseRetention,
-  purgeExpiredSessions,
-  retentionCutoff,
-} from './retention';
+import { DEFAULT_RETENTION, expiredSessionIds, parseRetention, purgeExpiredSessions, retentionCutoff } from './retention';
 import { requestPersistentStorage } from './persistent-storage';
 import { createDraftSession, listSessions } from './session-store';
 

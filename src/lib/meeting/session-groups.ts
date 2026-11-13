@@ -1,21 +1,7 @@
-/** Pure helpers for the meeting list: day grouping and search. */
-
-export interface GroupableSession {
-  sessionId: string;
-  title: string;
-  createdAt: number;
-}
-
-export interface SessionGroup<T> {
-  /** Stable key: `today`, `yesterday`, `d:YYYY-M-D` or `m:YYYY-M`. */
-  key: string;
-  label: string;
-  sessions: T[];
-}
+import type { GroupableSession, SessionGroup } from './types/session-groups';
 
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 
-/** Sessions sorted newest first, grouped by local calendar day (this week) then month. */
 export function groupSessionsByDay<T extends GroupableSession>(
   sessions: readonly T[],
   now: number = Date.now(),
@@ -60,10 +46,6 @@ export function groupSessionsByDay<T extends GroupableSession>(
   return groups;
 }
 
-/**
- * Case-insensitive match on title or transcript text. `transcriptOf` is
- * called only for sessions whose title did not already match.
- */
 export function filterSessions<T extends GroupableSession>(
   sessions: readonly T[],
   query: string,
