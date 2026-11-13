@@ -2,11 +2,14 @@
 import { renderHook, act } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  ASSISTANT_SEEN_STORAGE_KEY,
   ONBOARDING_STORAGE_KEY,
+  finishAssistantOnboarding,
   finishOnboarding,
   openOnboarding,
   resetOnboardingForTests,
   restartOnboarding,
+  shouldShowAssistantOnboarding,
   shouldShowOnboarding,
   useOnboardingOpen,
 } from './store';
@@ -86,5 +89,20 @@ describe('onboarding store', () => {
     expect(result.current).toBe(false);
     act(() => openOnboarding());
     expect(result.current).toBe(true);
+  });
+
+  it('assistant onboarding shows for a finished user who never saw it, then never again', () => {
+    localStorage.setItem(ONBOARDING_STORAGE_KEY, '1');
+    expect(shouldShowAssistantOnboarding()).toBe(true);
+    finishAssistantOnboarding();
+    expect(localStorage.getItem(ASSISTANT_SEEN_STORAGE_KEY)).toBe('1');
+    resetOnboardingForTests();
+    expect(shouldShowAssistantOnboarding()).toBe(false);
+  });
+
+  it('assistant onboarding waits while the full onboarding is open, and finishing it counts as seen', () => {
+    expect(shouldShowAssistantOnboarding()).toBe(false);
+    finishOnboarding();
+    expect(shouldShowAssistantOnboarding()).toBe(false);
   });
 });

@@ -2,8 +2,11 @@ import { useSyncExternalStore } from 'react';
 
 export const ONBOARDING_STORAGE_KEY = 'mn.onboarding.done';
 
+export const ASSISTANT_SEEN_STORAGE_KEY = 'mn.onboarding.assistant.seen';
+
 let reopened = false;
 let finished = false;
+let assistantSeen = false;
 const listeners = new Set<() => void>();
 
 function emit(): void {
@@ -26,6 +29,27 @@ function isDone(): boolean {
   }
 }
 
+function isAssistantSeen(): boolean {
+  try {
+    return localStorage.getItem(ASSISTANT_SEEN_STORAGE_KEY) === '1';
+  } catch {
+    return assistantSeen;
+  }
+}
+
+export function shouldShowAssistantOnboarding(): boolean {
+  if (typeof window === 'undefined') return false;
+  return !shouldShowOnboarding() && !isAssistantSeen();
+}
+
+export function finishAssistantOnboarding(): void {
+  assistantSeen = true;
+  try {
+    localStorage.setItem(ASSISTANT_SEEN_STORAGE_KEY, '1');
+  } catch {}
+  emit();
+}
+
 export function shouldShowOnboarding(): boolean {
   if (typeof window === 'undefined') return false;
   return reopened || (forcedByUrl() && !finished) || !isDone();
@@ -34,8 +58,10 @@ export function shouldShowOnboarding(): boolean {
 export function finishOnboarding(): void {
   reopened = false;
   finished = true;
+  assistantSeen = true;
   try {
     localStorage.setItem(ONBOARDING_STORAGE_KEY, '1');
+    localStorage.setItem(ASSISTANT_SEEN_STORAGE_KEY, '1');
   } catch {}
   emit();
 }
@@ -57,6 +83,7 @@ export function restartOnboarding(): void {
 export function resetOnboardingForTests(): void {
   reopened = false;
   finished = false;
+  assistantSeen = false;
   emit();
 }
 
@@ -67,4 +94,8 @@ function subscribe(fn: () => void): () => void {
 
 export function useOnboardingOpen(): boolean {
   return useSyncExternalStore(subscribe, shouldShowOnboarding, () => false);
+}
+
+export function useAssistantOnboardingOpen(): boolean {
+  return useSyncExternalStore(subscribe, shouldShowAssistantOnboarding, () => false);
 }
