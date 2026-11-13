@@ -25,7 +25,7 @@
  * side.
  */
 
-import type { LiveSegmentUpdate } from '@/lib/asr/live-chunker';
+import type { LiveSegmentUpdate } from '@/lib/asr/types';
 import type { SpeakerTimeline } from './browser-asr';
 import { replaceSegmentFamily, upsertSegment } from './store';
 import { CAPTURE_SAMPLE_RATE } from './pcm';

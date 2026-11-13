@@ -24,7 +24,8 @@
  * until they accept.
  */
 
-import { setOverlapTranscriber, type TimedWord } from './overlap-retranscribe';
+import { setOverlapTranscriber } from './overlap-retranscribe';
+import type { TimedWord } from './types/overlap-retranscribe';
 import {
   createBrowserASREngine,
   type AsrEngine,
@@ -59,7 +60,8 @@ import { beginLiveFlush, endLiveFlush, updateLiveFlush } from './live-flush-prog
 import { replaceSegmentFamily, upsertSegment } from '@/lib/meeting/store';
 import { attributeSpeakers } from '@/lib/meeting/speaker-attribution';
 import { publishLiveUpdate } from '@/lib/meeting/speaker-attribution';
-import { LiveChunker, type LiveWindowRequest } from '@/lib/asr/live-chunker';
+import { LiveChunker } from '@/lib/asr/live-chunker';
+import type { LiveWindowRequest } from '@/lib/asr/types';
 import { CAPTURE_SAMPLE_RATE, int16ToFloat32 } from './pcm';
 import type { LowConfSpan, Segment, SegmentWord } from '@/lib/meeting/types';
 import type { BrowserSegment, BrowserLanguageInfo } from '@/lib/asr/browser';
