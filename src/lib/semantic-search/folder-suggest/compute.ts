@@ -1,13 +1,7 @@
+import type { SuggestionInput } from './types/suggestion-input';
 import { meetingCentroid } from './centroid';
 import { folderCentroids, suggestFolder } from './suggest';
 import type { FolderSuggestion } from './types/folder-suggestion';
-
-export interface SuggestionInput {
-  sessionIds: readonly string[];
-  meetingFolders: Record<string, string | null>;
-  declined: Record<string, string[]>;
-  loadVectors: (meetingId: string) => Float32Array[] | null;
-}
 
 export function computeFolderSuggestions(input: SuggestionInput): Record<string, FolderSuggestion> {
   const { sessionIds, meetingFolders, declined, loadVectors } = input;

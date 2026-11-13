@@ -5,8 +5,6 @@ import {
   createFolder,
   deleteFolder,
   fetchFolders,
-  fetchDeclinedSuggestions,
-  declineFolderSuggestion,
   fetchMeetingFolders,
   moveFolder,
   moveMeeting,
@@ -103,23 +101,6 @@ describe('folders-api writes', () => {
     expect(calls[0].url).toBe('/api/meetings/m%201/folder');
     expect(calls[0].init?.method).toBe('PUT');
     expect(JSON.parse(calls[0].init?.body as string)).toEqual({ folderId: null });
-  });
-
-  it('declineFolderSuggestion PUTs the folder id and announces a change', async () => {
-    replies.push(reply(200, { ok: true }));
-    const seen = vi.fn();
-    window.addEventListener(FOLDERS_CHANGED_EVENT, seen);
-    await declineFolderSuggestion('m 1', 'f1');
-    window.removeEventListener(FOLDERS_CHANGED_EVENT, seen);
-    expect(calls[0].url).toBe('/api/meetings/m%201/folder-suggestion');
-    expect(calls[0].init?.method).toBe('PUT');
-    expect(JSON.parse(calls[0].init?.body as string)).toEqual({ folderId: 'f1' });
-    expect(seen).toHaveBeenCalledTimes(1);
-  });
-
-  it('fetchDeclinedSuggestions maps meeting ids to declined folder ids', async () => {
-    replies.push(reply(200, { ok: true, meetings: [{ id: 'm1', folderSuggestionDeclined: ['a'] }, { id: 'm2' }] }));
-    await expect(fetchDeclinedSuggestions()).resolves.toEqual({ m1: ['a'], m2: [] });
   });
 
   it('surfaces the server error code, such as a cycle, without throwing', async () => {
