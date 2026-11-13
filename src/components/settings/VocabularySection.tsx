@@ -20,7 +20,8 @@ import {
   setVocabularyStrength,
   useVocabulary,
 } from '@/lib/vocabulary/store';
-import { formatWordCsv, formatWordList, parseWordFile } from '@/lib/vocabulary/text-format';
+import { formatWordCsv, formatWordList } from '@/lib/vocabulary/format-word-list';
+import { parseWordFile } from '@/lib/vocabulary/parse-word-file';
 import { VocabularyAddField, vocabularyFill as fill, vocabularyWordCount } from './VocabularyAddField';
 import { VocabularyRow } from './VocabularyRow';
 import { SettingsGroup, SettingsRow, SettingsStackedRow } from './SettingsRow';

@@ -6,7 +6,7 @@
 import { useSyncExternalStore } from 'react';
 import { DEFAULT_BIAS_STRENGTH, MAX_BIAS_STRENGTH } from './constants';
 import { prepareVocabulary, type Prepared } from './replace';
-import { mergeEntries } from './text-format';
+import { mergeEntries } from './merge-entries';
 import type { VocabularyBiasConfig, VocabularyEntry } from './types';
 
 export const VOCABULARY_STORAGE_KEY = 'mn.vocabulary';

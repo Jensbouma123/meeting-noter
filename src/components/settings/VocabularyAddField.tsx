@@ -5,7 +5,7 @@ import { Button, HStack, Input, Text, VStack } from '@jensbouma123/acciva-ui';
 import { Plus } from 'lucide-react';
 import { useT } from '@/lib/i18n/useT';
 import { addVocabularyEntries } from '@/lib/vocabulary/store';
-import { parseWordList } from '@/lib/vocabulary/text-format';
+import { parseWordList } from '@/lib/vocabulary/parse-word-list';
 
 export const vocabularyFill = (text: string, values: Record<string, string | number>) =>
   text.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key] ?? ''));
