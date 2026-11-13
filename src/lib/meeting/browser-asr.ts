@@ -61,6 +61,7 @@ import {
   transcribeRecordedAudio,
   type PostStopProgress,
 } from './post-stop-transcription';
+import { beginLiveFlush, endLiveFlush, updateLiveFlush } from './live-flush-progress';
 import { replaceSegmentFamily, upsertSegment } from '@/lib/meeting/store';
 import { attributeSpeakers } from '@/lib/meeting/speaker-attribution';
 import { publishLiveUpdate } from '@/lib/meeting/speaker-attribution';
@@ -1524,6 +1525,9 @@ const liveServedAt = new Map<'mic' | 'system', number>();
 let liveServeCounter = 0;
 /** Stop is draining the chunkers: no new window may start behind it. */
 let liveFlushing = false;
+/** Bumped whenever the chunkers are cleared: a window that answers after
+ *  that belongs to a finished recording and must not write to the store. */
+let liveGeneration = 0;
 
 function liveChunker(source: 'mic' | 'system'): LiveChunker {
   let chunker = liveChunkers.get(source);
@@ -1693,10 +1697,13 @@ async function recognizeLiveWindow(
   req: LiveWindowRequest,
 ): Promise<boolean> {
   const chunker = liveChunker(source);
+  const generation = liveGeneration;
   transcribeInFlight = true;
   try {
     const startedAt = debugEnabled() ? performance.now() : 0;
     const result = await engine.recognize(req.audio);
+    // Stop gave up on this window and closed its segment already.
+    if (generation !== liveGeneration) return false;
     if (startedAt) {
       const replyAt = performance.now();
       console.debug(
@@ -1735,36 +1742,75 @@ async function recognizeLiveWindow(
     }
     return true;
   } catch (err) {
+    if (generation !== liveGeneration) return false;
     liveShowing.delete(source);
     chunker.abort();
     console.error('[asr] Live transcription failed', err);
     return false;
   } finally {
-    transcribeInFlight = false;
+    // A stale window must not clear the flag a newer recording's window holds.
+    if (generation === liveGeneration) transcribeInFlight = false;
   }
 }
 
-/** Transcribe whatever live audio is still buffered and close each source's
- *  segment. Called on Stop, before the session state is reset. */
+/** How long Stop waits for an inference still running before it gives up on
+ *  it and closes the open segment with the words already shown. */
+export const LIVE_FLUSH_WAIT_MS = 30_000;
+/** Most windows Stop reads per source: a backlog at the cap takes two or
+ *  three; the bound only stops a window that commits nothing from looping. */
+const LIVE_FLUSH_MAX_WINDOWS = 6;
+const LIVE_FLUSH_POLL_MS = 50;
+
+function liveBufferedSamples(): number {
+  let samples = 0;
+  for (const chunker of liveChunkers.values()) samples += chunker.bufferedSamples;
+  return samples;
+}
+
+/**
+ * Transcribe whatever live audio is still buffered and close each source's
+ * segment. Called on Stop, before the session state is reset.
+ *
+ * Inference can fall behind real time, so this may have up to two capped
+ * windows per source to read; their progress is published for the dock's
+ * "Finishing transcription" state. Every segment ends final: one whose last
+ * window cannot run (the engine gone, an inference that failed or is still
+ * stuck after `LIVE_FLUSH_WAIT_MS`) is closed with the words already shown,
+ * and a stuck window's late answer is dropped (`liveGeneration`).
+ */
 export async function flushLiveAudio(): Promise<void> {
   liveFlushing = true;
+  beginLiveFlush(liveBufferedSamples());
   try {
+    // Wait out an inference that is still running (it holds the engine).
+    for (let waited = 0; transcribeInFlight && waited < LIVE_FLUSH_WAIT_MS; waited += LIVE_FLUSH_POLL_MS) {
+      await new Promise((resolve) => setTimeout(resolve, LIVE_FLUSH_POLL_MS));
+    }
+    updateLiveFlush(liveBufferedSamples());
     for (const source of ['mic', 'system'] as const) {
-      // Wait out an inference that is still running (it holds the engine).
-      for (let i = 0; transcribeInFlight && i < 100; i += 1) {
-        await new Promise((resolve) => setTimeout(resolve, 50));
+      const chunker = liveChunkers.get(source);
+      if (!chunker) continue;
+      for (let i = 0; i < LIVE_FLUSH_MAX_WINDOWS; i += 1) {
+        const engine = browserEngine?.isReady ? browserEngine : null;
+        const req = engine ? chunker.take(true) : null;
+        if (!engine || !req) break;
+        const ok = await recognizeLiveWindow(engine, source, req);
+        updateLiveFlush(liveBufferedSamples());
+        if (!ok || req.final) break;
       }
-      const engine = browserEngine?.isReady ? browserEngine : null;
-      const req = engine ? liveChunkers.get(source)?.take(true) : null;
-      if (engine && req) await recognizeLiveWindow(engine, source, req);
+      for (const update of chunker.finish()) {
+        publishLiveUpdate(source, update, speakerTimeline, () => speakerLabeler(source, new Float32Array(0)));
+      }
     }
   } finally {
     liveFlushing = false;
+    endLiveFlush();
     clearLiveAudio();
   }
 }
 
 function clearLiveAudio(): void {
+  liveGeneration += 1;
   liveChunkers.clear();
   liveServedAt.clear();
   liveShowing.clear();

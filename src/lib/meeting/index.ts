@@ -346,6 +346,10 @@ async function runStop(): Promise<void> {
     // than a transcript that appears minutes later with nothing indicating
     // what happened. Never throws (see `transcribeRecordedAudioAfterStop`).
     await transcribeRecordedAudioAfterStop();
+    // Its segments are attributed against turns that end where the diarizer
+    // stopped, so the recording's last words come out pending; no turn will
+    // ever arrive for them now.
+    confirmAllSegments();
   }
   setState({ status: 'idle' });
 }

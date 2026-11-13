@@ -5,6 +5,7 @@ import { getCallAudioMissing, getMeetingDiagnostics, subscribeCallAudio, type Ca
 import { callAudioHint } from '@/lib/meeting/call-audio-hint';
 import { MicPicker } from './MicPicker';
 import { useReleaseOnUnmount } from './useReleaseOnUnmount';
+import { useFinishingPercent } from './useFinishingPercent';
 import type { ModelProgressView, ModelReadiness } from './modelReadiness';
 import { Circle, Download, Mic, Pause, Play, Square, VolumeX, PhoneCall } from 'lucide-react';
 import { Button, Divider, Tab, TabList, Tabs, Tooltip } from '@jensbouma123/acciva-ui';
@@ -82,6 +83,13 @@ export function BottomDock({
   const isConnecting = status === 'connecting' || status === 'requesting';
   const isStopping = status === 'stopping';
   const isRecordingActive = isLive || isPaused || isConnecting;
+  const inputsLocked = isRecordingActive || isStopping;
+  // Stop returns at once, but the buffered audio is still being transcribed:
+  // Record stays away until that is done, so the dock never looks idle while
+  // the last line is still growing.
+  const finishingPercent = useFinishingPercent();
+  const finishingLabel =
+    finishingPercent === null ? t('finishing') : t('finishingPercent').replace('{percent}', String(finishingPercent));
 
   // "Call audio not included" — set by lib/meeting when Both/Call mode
   // couldn't attach a system-audio source (declined, unsupported, no audio
@@ -161,14 +169,24 @@ export function BottomDock({
       <div className="flex flex-wrap items-center justify-center gap-1.5 rounded-[26px] border border-border-subtle bg-surface/90 p-1.5 shadow-elevation-3 backdrop-blur-md">
         {/* Recording group: Record, which becomes Stop + clock, then pause once it runs. */}
         <div className="flex shrink-0 items-center gap-1">
-          {isRecordingActive ? (
+          {isStopping ? (
+            <Button
+              variant="ghost"
+              size="md"
+              disabled
+              loading
+              tooltip={t('finishingTip')}
+              aria-label={finishingLabel}
+              className={`shrink-0 whitespace-nowrap tabular-nums ${ROUND}`}
+            >
+              {finishingLabel}
+            </Button>
+          ) : isRecordingActive ? (
             <>
               <Button
                 variant="ghost"
                 size="md"
                 onClick={onStop}
-                disabled={isStopping}
-                loading={isStopping}
                 tooltip={t('stopTip')}
                 aria-label={`${t('stop')}, ${formatElapsed(elapsedSeconds)}${isPaused ? `, ${t('paused')}` : ''}`}
                 leadingIcon={<Square className="!size-3.5 fill-current" />}
@@ -220,17 +238,17 @@ export function BottomDock({
               {/* Tab forwards no handlers, so the tooltip trigger is a wrapper element:
                   hover and focus (focusin bubbles) both reach it. One tooltip per
                   option: while locked, the lock hint is part of that option's text. */}
-              <Tooltip content={isRecordingActive ? t('micTipLocked') : t('micTip')}>
+              <Tooltip content={inputsLocked ? t('micTipLocked') : t('micTip')}>
                 <span className="inline-flex">
-                  <Tab value="mic" disabled={isRecordingActive} className={`gap-1.5 ${ROUND}`}>
+                  <Tab value="mic" disabled={inputsLocked} className={`gap-1.5 ${ROUND}`}>
                     <Mic aria-hidden="true" />
                     <span className="sr-only md:not-sr-only">{t('mic')}</span>
                   </Tab>
                 </span>
               </Tooltip>
-              <Tooltip content={isRecordingActive ? t('micCallTipLocked') : t('micCallTip')}>
+              <Tooltip content={inputsLocked ? t('micCallTipLocked') : t('micCallTip')}>
                 <span className="inline-flex">
-                  <Tab value="both" disabled={isRecordingActive} className={`gap-1.5 whitespace-nowrap ${ROUND}`}>
+                  <Tab value="both" disabled={inputsLocked} className={`gap-1.5 whitespace-nowrap ${ROUND}`}>
                     <PhoneCall aria-hidden="true" />
                     <span className="sr-only md:not-sr-only">{t('micCall')}</span>
                   </Tab>
@@ -242,7 +260,7 @@ export function BottomDock({
           <MicPicker
             value={micDeviceId}
             onChange={onMicDeviceChange}
-            locked={isRecordingActive}
+            locked={inputsLocked}
             mode={mode}
             active={isLive}
             callMissing={showCallAudioMissing}

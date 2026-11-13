@@ -267,7 +267,10 @@ export class LiveChunker {
 
   /**
    * The audio to transcribe now: the open utterance, up to the cap. `force`
-   * ends the utterance with it (Stop). Returns `null` when there is nothing
+   * ends the utterance with it (Stop) once the window holds all that is
+   * buffered; a longer backlog is read a capped window at a time, each one
+   * committing its settled words like a live window, so Stop never cuts a
+   * word at the cap or drops the rest. Returns `null` when there is nothing
    * worth transcribing.
    */
   take(force = false): LiveWindowRequest | null {
@@ -282,7 +285,7 @@ export class LiveChunker {
       audio.set(part, filled);
       filled += part.length;
     }
-    const final = force || (size === this.bufLen && this.trailingQuiet >= this.cfg.pauseSamples);
+    const final = size === this.bufLen && (force || this.trailingQuiet >= this.cfg.pauseSamples);
     if (this.trailingQuiet >= this.cfg.earlyTailSamples) this.earlyTailTaken = true;
     this.firstTaken = true;
     this.inFlight = true;
@@ -376,6 +379,24 @@ export class LiveChunker {
     }
     this.show(updates, winEnd);
     return updates;
+  }
+
+  /**
+   * End the utterance without another inference (Stop, when its last window
+   * could not run): the open segment is closed with the words already
+   * recognised, and the audio no window will read is dropped.
+   */
+  finish(): LiveSegmentUpdate[] {
+    const updates: LiveSegmentUpdate[] = [];
+    if (this.hasOpenSegment()) this.close(updates, this.bufStart + this.bufLen);
+    this.dropBefore(this.bufStart + this.bufLen);
+    this.inFlight = false;
+    return updates;
+  }
+
+  /** Samples buffered and not yet read by a final window. */
+  get bufferedSamples(): number {
+    return this.bufLen;
   }
 
   /** Forget everything (a new recording). */

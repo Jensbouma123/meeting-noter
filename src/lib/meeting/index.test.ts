@@ -410,6 +410,22 @@ describe('meeting session lifecycle races', () => {
     await meeting.stop();
   });
 
+  it('leaves no segment "Identifying" once Stop has finished, including the post-stop pass\'s', async () => {
+    const { meeting } = await import('./index');
+    const { getState, upsertSegment } = await import('./store');
+    // The post-stop pass writes after the live lines were resolved; the
+    // diarizer never reached the recording's last words, so they are pending.
+    asr.transcribeRecordedAudioAfterStop.mockImplementationOnce(async () => {
+      upsertSegment({ id: 'tail', source: 'mic', speaker: 'mic:0', text: 'last words', start: 9, end: 10, final: true, unconfirmed: true });
+      return true;
+    });
+    await meeting.start({ mode: 'mic' });
+    await meeting.stop();
+
+    expect(getState().status).toBe('idle');
+    expect(getState().segments.map((s) => [s.id, !!s.unconfirmed])).toEqual([['tail', false]]);
+  });
+
   it('still flushes the live window on Stop after a mid-session fall to WASM', async () => {
     backend = 'webgpu';
     const { meeting } = await import('./index');

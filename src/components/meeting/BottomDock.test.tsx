@@ -173,6 +173,29 @@ describe('dock states', () => {
     expect(screen.queryByRole('button', { name: 'Pauzeren' })).toBeNull();
   });
 
+  it('stopping: no Record yet; a disabled "Finishing transcription" with the flush progress', async () => {
+    const flush = await import('@/lib/meeting/live-flush-progress');
+    flush.beginLiveFlush(1000);
+    flush.updateLiveFlush(600);
+    try {
+      const h = renderState('stopping');
+      expect(screen.queryByRole('button', { name: 'Opnemen (R).' })).toBeNull();
+      const finishing = screen.getByRole('button', { name: 'Transcriptie afronden… 40%' });
+      expect(finishing).toBeDisabled();
+      fireEvent.click(finishing);
+      expect(h.onStart).not.toHaveBeenCalled();
+      expect(h.onStop).not.toHaveBeenCalled();
+      expect(screen.getAllByRole('tab').every((tab) => (tab as HTMLButtonElement).disabled)).toBe(true);
+    } finally {
+      flush.endLiveFlush();
+    }
+  });
+
+  it('stopping without a measured flush: "Finishing transcription" without a percentage', () => {
+    renderState('stopping');
+    expect(screen.getByRole('button', { name: 'Transcriptie afronden…' })).toBeDisabled();
+  });
+
   it('shows exactly one tooltip for Stop', () => {
     renderState('live');
     const stop = screen.getByRole('button', { name: /^Opname stoppen/ });

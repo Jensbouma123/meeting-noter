@@ -244,6 +244,34 @@ describe('live chunking', () => {
     expect(retry.audio.length).toBe(24 * FRAME);
   });
 
+  it('finish() closes a shown segment as final when its last window cannot run (Stop)', () => {
+    const chunker = new LiveChunker(idFactory());
+    for (let i = 0; i < 15; i += 1) chunker.push(voice(FRAME, 0.3, i * FRAME), i * FRAME);
+    const shown = chunker.apply(chunker.take()!, [{ text: 'hello', start: 0.1, end: 0.5 }]);
+    expect(shown.map((u) => [u.text, u.final])).toEqual([['hello', false]]);
+    // The next window is still running when Stop gives up on it.
+    for (let i = 15; i < 30; i += 1) chunker.push(voice(FRAME, 0.3, i * FRAME), i * FRAME);
+    chunker.take();
+
+    const closed = chunker.finish();
+    expect(closed.map((u) => [u.id, u.text, u.final])).toEqual([[shown[0].id, 'hello', true]]);
+    expect(chunker.finish()).toEqual([]);
+    expect(chunker.take(true)).toBeNull();
+  });
+
+  it('reads a backlog longer than the cap on Stop a window at a time, ending the utterance with the last', () => {
+    const chunker = new LiveChunker(idFactory());
+    for (let i = 0; i < 180; i += 1) chunker.push(voice(FRAME, 0.3, i * FRAME), i * FRAME);
+    const first = chunker.take(true)!;
+    expect([first.audio.length, first.final]).toEqual([DEFAULT_LIVE_CHUNKER_CONFIG.maxWindowSamples, false]);
+    const recognize = recognizer(script(34));
+    chunker.apply(first, recognize(first.startSample, first.audio.length));
+    const last = chunker.take(true)!;
+    expect(last.final).toBe(true);
+    expect(last.startSample).toBeGreaterThan(first.startSample);
+    expect(last.startSample + last.audio.length).toBe(180 * FRAME);
+  });
+
   it('closes the open segment where a speaker turn ended', () => {
     const chunker = new LiveChunker(idFactory());
     for (let i = 0; i < 24; i += 1) chunker.push(voice(FRAME, 0.3, i * FRAME), i * FRAME);
