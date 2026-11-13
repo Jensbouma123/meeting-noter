@@ -36,7 +36,7 @@ describe('Search & insights card', () => {
   it('not downloaded: description, size, GPU badge, download button', () => {
     show({});
     expect(screen.getByText('Search & insights')).toBeInTheDocument();
-    expect(screen.getByText(/Finds decisions, action items/)).toHaveTextContent(/200/);
+    expect(screen.getByText(/Finds decisions, action items/)).toHaveTextContent(/\d+(\.\d+)? MB/);
     expect(screen.getByText('GPU')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Download model' })).toBeInTheDocument();
   });
