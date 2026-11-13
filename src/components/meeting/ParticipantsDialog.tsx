@@ -5,7 +5,8 @@ import { Button, Modal } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { uniqueNames } from '@/lib/meeting/participant-names';
 import { useRecentParticipants } from '@/lib/meeting/use-recent-participants';
-import { ParticipantsEditor } from './ParticipantsEditor';
+import { ParticipantsList } from './ParticipantsList';
+import { cleanName, knownPeople } from './participantList';
 import type { ParticipantsDialogProps } from './ParticipantsDialog.types';
 
 export function ParticipantsDialog({
@@ -19,6 +20,20 @@ export function ParticipantsDialog({
     initial.length > 0 ? initial : uniqueNames([ownerName]),
   );
   const recent = useRecentParticipants();
+  const [created, setCreated] = useState<string[]>([]);
+  const people = knownPeople([ownerName], recent, initial, created, names);
+  const toggle = (name: string) =>
+    setNames((cur) =>
+      cur.some((n) => n.toLowerCase() === name.toLowerCase())
+        ? cur.filter((n) => n.toLowerCase() !== name.toLowerCase())
+        : [...cur, name],
+    );
+  const create = (raw: string) => {
+    const name = cleanName(raw);
+    if (!name) return;
+    setCreated((cur) => [...cur, name]);
+    setNames((cur) => uniqueNames([...cur, name]));
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -51,13 +66,7 @@ export function ParticipantsDialog({
         </div>
       }
     >
-      <ParticipantsEditor
-        id="participants-add"
-        names={names}
-        suggestions={recent}
-        onChange={setNames}
-        onEmptyEnter={() => onStart(names)}
-      />
+      <ParticipantsList people={people} selected={names} onToggle={toggle} onCreate={create} />
     </Modal>
   );
 }

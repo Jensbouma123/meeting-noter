@@ -16,6 +16,25 @@ function show(over: Partial<React.ComponentProps<typeof ParticipantsDialog>> = {
   );
   return { onSkip, onStart };
 }
+const box = (n: string) => screen.getByRole('checkbox', { name: n });
+const search = () => screen.getByLabelText('Search people') as HTMLInputElement;
+const seed = () => setParticipants('old', ['Anna', 'Piet', 'Sam', 'Els', 'Bram']);
+
+beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ParticipantsDialog } from './ParticipantsDialog';
+import { setParticipants } from '@/lib/meeting/participants';
+import { LanguageContext } from '@/lib/i18n/LanguageContext';
+
+function show(over: Partial<React.ComponentProps<typeof ParticipantsDialog>> = {}) {
+  const onSkip = vi.fn();
+  const onStart = vi.fn();
+  render(
+    <LanguageContext.Provider value="en">
+      <ParticipantsDialog ownerName="Jens" initial={[]} onSkip={onSkip} onStart={onStart} {...over} />
+    </LanguageContext.Provider>,
+  );
+  return { onSkip, onStart };
+}
 const field = () => screen.getByLabelText('Add a name') as HTMLInputElement;
 
 beforeAll(() => {
@@ -26,15 +45,10 @@ beforeEach(() => localStorage.clear());
 afterEach(cleanup);
 
 describe('ParticipantsDialog', () => {
-  it('shows the question with the owner as a removable chip', () => {
-    const { onStart } = show();
+  it('lists known people with the owner checked', () => {
+    show();
     expect(screen.getByText('Who is in this meeting?')).toBeInTheDocument();
-    const chips = screen.getByRole('list', { name: 'People in this meeting' });
-    expect(chips).toHaveTextContent('Jens');
-    fireEvent.click(screen.getByRole('button', { name: 'Remove Jens' }));
-    expect(screen.queryByRole('list', { name: 'People in this meeting' })).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: 'Start' }));
-    expect(onStart).toHaveBeenCalledWith([]);
+    expect(box('Jens')).toBeChecked();
   });
 
   it('Skip starts immediately without saving names', () => {
@@ -44,31 +58,57 @@ describe('ParticipantsDialog', () => {
     expect(onStart).not.toHaveBeenCalled();
   });
 
-  it('Enter adds, commas split, and Enter on an empty field starts', () => {
+  it('checking and unchecking people drives the started names', () => {
+    setParticipants('old', ['Marieke']);
     const { onStart } = show();
-    fireEvent.change(field(), { target: { value: 'Anna, Piet' } });
-    fireEvent.change(field(), { target: { value: 'Anna, Piet, Sam' } });
-    fireEvent.keyDown(field(), { key: 'Enter' });
-    expect(screen.getByRole('list', { name: 'People in this meeting' })).toHaveTextContent('JensAnnaPietSam');
-    expect(onStart).not.toHaveBeenCalled();
-    fireEvent.keyDown(field(), { key: 'Enter' });
-    expect(onStart).toHaveBeenCalledWith(['Jens', 'Anna', 'Piet', 'Sam']);
-  });
-
-  it('offers recently used people as one-click suggestions, excluding the owner already shown as a chip', () => {
-    setParticipants('old', ['Marieke', 'Jens']);
-    const { onStart } = show();
-    fireEvent.focus(field());
-    expect(screen.getByText('Recently used')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('option', { name: 'Marieke' }));
-    expect(screen.getByRole('list', { name: 'People in this meeting' })).toHaveTextContent('JensMarieke');
+    fireEvent.click(box('Marieke'));
     fireEvent.click(screen.getByRole('button', { name: 'Start' }));
     expect(onStart).toHaveBeenCalledWith(['Jens', 'Marieke']);
+    cleanup();
+    const second = show();
+    fireEvent.click(box('Jens'));
+    fireEvent.click(screen.getByRole('button', { name: 'Start' }));
+    expect(second.onStart).toHaveBeenCalledWith([]);
+  });
+
+  it('hides search at 5 people and shows it above 5', () => {
+    setParticipants('old', ['Anna', 'Piet', 'Sam', 'Els']);
+    show();
+    expect(screen.getAllByRole('checkbox')).toHaveLength(5);
+    expect(screen.queryByLabelText('Search people')).toBeNull();
+    cleanup();
+    seed();
+    show();
+    expect(screen.getAllByRole('checkbox')).toHaveLength(6);
+    expect(search()).toBeInTheDocument();
+  });
+
+  it('search filters the list', () => {
+    seed();
+    show();
+    fireEvent.change(search(), { target: { value: 'an' } });
+    expect(screen.getByRole('checkbox', { name: 'Anna' })).toBeInTheDocument();
+    expect(screen.queryByRole('checkbox', { name: 'Piet' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Add' })).toBeNull();
+  });
+
+  it('an unmatched name shows an Add row on top that creates and checks the person', () => {
+    seed();
+    const { onStart } = show();
+    fireEvent.change(search(), { target: { value: 'Zoë' } });
+    const rows = screen.getAllByRole('listitem');
+    expect(rows[0]).toHaveTextContent('Zoë');
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+    expect(search().value).toBe('');
+    expect(box('Zoë')).toBeChecked();
+    fireEvent.click(screen.getByRole('button', { name: 'Start' }));
+    expect(onStart).toHaveBeenCalledWith(['Jens', 'Zoë']);
   });
 
   it('R starts at once, but not while typing', () => {
+    seed();
     const { onStart } = show();
-    fireEvent.keyDown(field(), { key: 'r' });
+    fireEvent.keyDown(search(), { key: 'r' });
     expect(onStart).not.toHaveBeenCalled();
     fireEvent.keyDown(window, { key: 'r' });
     expect(onStart).toHaveBeenCalledWith(['Jens']);
