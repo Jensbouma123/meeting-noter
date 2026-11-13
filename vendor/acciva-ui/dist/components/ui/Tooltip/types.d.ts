@@ -27,3 +27,36 @@ export interface TooltipChildProps {
     onKeyDown?: (e: KeyboardEvent) => void;
     style?: CSSProperties;
 }
+export interface TooltipGroupProps {
+    children: ReactNode;
+    /** ms after the group's bubble closes during which another trigger still opens with no delay. Default `300`. */
+    skipDelay?: number;
+}
+/** What a grouped Tooltip publishes to its group's single bubble while it is open. */
+export interface TooltipSlot {
+    owner: object;
+    id: string;
+    anchorName: string;
+    content: ReactNode;
+    side: TooltipSide;
+    maxWidth: number | string;
+    triggerRef: React.RefObject<HTMLElement | null>;
+    hide: () => void;
+    touchOpenRef: React.RefObject<boolean>;
+}
+/** The bubble as it looked just before a hand-off: the morph starts from here. */
+export interface TooltipMorphFrom {
+    rect: DOMRect;
+    arrow: string;
+    placed: string | undefined;
+    content: ReactNode;
+}
+/** The channel a grouped Tooltip uses to drive its `TooltipGroup`'s single bubble. */
+export interface TooltipGroupApi {
+    /** True while the group's bubble is open or closed less than `skipDelay` ago: open with no delay. */
+    warm: () => boolean;
+    publish: (slot: TooltipSlot) => void;
+    clear: (owner: object) => void;
+    /** Ends a morph: drops the outgoing text layer. */
+    settle: () => void;
+}

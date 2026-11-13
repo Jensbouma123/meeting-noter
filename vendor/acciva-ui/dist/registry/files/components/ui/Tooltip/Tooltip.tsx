@@ -1,13 +1,11 @@
 "use client";
 
-import { isValidElement, useId, useRef, type CSSProperties, type ReactElement, type ReactNode } from "react";
+import { isValidElement, useContext, useId, useRef, type CSSProperties, type ReactElement, type ReactNode } from "react";
 import { assignRef } from "@/components/ui/Tooltip/refs";
-import { TEXT_SIZE } from "@/lib/sizing-tokens/index";
-import { SURFACE_SHADOW } from "@/lib/surface-tokens";
-import { cn } from "@/lib/utils";
-import { TOOLTIP_FILL } from "@/components/ui/Tooltip/constants";
-import type { TooltipChildProps, TooltipProps } from "@/components/ui/Tooltip/types";
-import { useTooltipBubble } from "@/components/ui/Tooltip/useTooltipBubble";
+import { TooltipGroupContext } from "@/components/ui/Tooltip/groupApi";
+import { TooltipBubble } from "@/components/ui/Tooltip/TooltipBubble";
+import type { TooltipChildProps, TooltipProps, TooltipSlot } from "@/components/ui/Tooltip/types";
+import { useGroupSlot } from "@/components/ui/Tooltip/useGroupSlot";
 import { useTriggerHandlers } from "@/components/ui/Tooltip/useTriggerHandlers";
 import { useTooltipOpen } from "@/components/ui/Tooltip/useTooltipOpen";
 
@@ -16,9 +14,11 @@ export function Tooltip({ content, children, side = "top", delay = 0, maxWidth =
   // Unique per instance: the trigger declares it, the bubble anchors to it (useId characters are not dashed-ident safe).
   const anchorName = `--tooltip-${tooltipId.replace(/[^\w-]/g, "")}`;
   const triggerRef = useRef<HTMLElement | null>(null);
-  const tooltipRef = useRef<HTMLDivElement | null>(null);
-  const [open, show, hide, leave, touch, touchOpenRef] = useTooltipOpen(delay, longPress, triggerRef);
-  const placed = useTooltipBubble(open, side, triggerRef, tooltipRef, hide, touchOpenRef);
+  const group = useContext(TooltipGroupContext);
+  const [open, show, hide, leave, touch, touchOpenRef, owner] = useTooltipOpen(delay, longPress, triggerRef, group?.warm);
+  const slot: TooltipSlot = { owner, id: tooltipId, anchorName, content, side, maxWidth, triggerRef, hide, touchOpenRef };
+  // Inside a TooltipGroup the group renders the one shared bubble; this instance only feeds it.
+  useGroupSlot(group, open, slot);
   // Read before the early return so the hook runs on every render; the handlers are unused when `children` is not an element.
   const childProps = (isValidElement(children) ? children.props : {}) as TooltipChildProps;
   const eventHandlers = useTriggerHandlers(childProps, show, hide, leave, touch);
@@ -74,30 +74,7 @@ export function Tooltip({ content, children, side = "top", delay = 0, maxWidth =
   return (
     <>
       {trigger}
-      {open ? (
-        <div
-          ref={tooltipRef}
-          role="tooltip"
-          id={tooltipId}
-          popover="manual"
-          data-side={side}
-          data-placed={placed}
-          style={
-            {
-              positionAnchor: anchorName,
-              maxWidth: typeof maxWidth === "number" ? `${maxWidth}px` : maxWidth,
-            } as CSSProperties
-          }
-          className={cn(
-            "tooltip rounded-lg border border-solid px-3 py-2 font-medium text-foreground break-words whitespace-normal leading-relaxed",
-            TEXT_SIZE.xs,
-            TOOLTIP_FILL,
-            SURFACE_SHADOW.overlay,
-          )}
-        >
-          {content}
-        </div>
-      ) : null}
+      {open && !group ? <TooltipBubble {...slot} /> : null}
     </>
   );
 }

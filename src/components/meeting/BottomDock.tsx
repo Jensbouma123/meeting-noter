@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import { getMeetingDiagnostics } from '@/lib/meeting';
 import { callAudioHint } from '@/lib/meeting/call-audio-hint';
-import { Divider } from '@jensbouma123/acciva-ui';
+import { Divider, TooltipGroup } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { InputControls } from './InputControls';
 import { RecordControls } from './RecordControls';
@@ -70,38 +70,40 @@ export function BottomDock({
       <span role="status" className="sr-only">
         {showCallAudioMissing ? `${t('noCallAudio')}. ${callAudioMissingReason}` : ''}
       </span>
-      <div className="flex flex-wrap items-center justify-center gap-1.5 rounded-[26px] border border-border-subtle bg-surface/90 p-1.5 shadow-elevation-3 backdrop-blur-md">
-        <div className="flex shrink-0 items-center gap-1">
-          <RecordControls
-            isStopping={isStopping}
-            isRecordingActive={isRecordingActive}
-            isPaused={isPaused}
-            needsModel={needsModel}
-            recordDisabled={recordDisabled}
-            recordTooltip={recordTooltip}
-            finishingLabel={finishingLabel}
-            elapsedSeconds={elapsedSeconds}
-            onStart={onStart}
-            onStop={onStop}
-            onPause={onPause}
-            onResume={onResume}
+      <TooltipGroup>
+        <div className="flex flex-wrap items-center justify-center gap-1.5 rounded-[26px] border border-border-subtle bg-surface/90 p-1.5 shadow-elevation-3 backdrop-blur-md">
+          <div className="flex shrink-0 items-center gap-1">
+            <RecordControls
+              isStopping={isStopping}
+              isRecordingActive={isRecordingActive}
+              isPaused={isPaused}
+              needsModel={needsModel}
+              recordDisabled={recordDisabled}
+              recordTooltip={recordTooltip}
+              finishingLabel={finishingLabel}
+              elapsedSeconds={elapsedSeconds}
+              onStart={onStart}
+              onStop={onStop}
+              onPause={onPause}
+              onResume={onResume}
+            />
+          </div>
+
+          <Divider orientation="vertical" className="mx-1 hidden h-6 w-px shrink-0 sm:block" />
+
+          <InputControls
+            mode={mode}
+            inputsLocked={inputsLocked}
+            isLive={isLive}
+            micDeviceId={micDeviceId}
+            showCallAudioMissing={showCallAudioMissing}
+            callAudioMissingReason={callAudioMissingReason}
+            onModeChange={onModeChange}
+            onMicDeviceChange={onMicDeviceChange}
+            onOpenAdvanced={onOpenAdvanced}
           />
         </div>
-
-        <Divider orientation="vertical" className="mx-1 hidden h-6 w-px shrink-0 sm:block" />
-
-        <InputControls
-          mode={mode}
-          inputsLocked={inputsLocked}
-          isLive={isLive}
-          micDeviceId={micDeviceId}
-          showCallAudioMissing={showCallAudioMissing}
-          callAudioMissingReason={callAudioMissingReason}
-          onModeChange={onModeChange}
-          onMicDeviceChange={onMicDeviceChange}
-          onOpenAdvanced={onOpenAdvanced}
-        />
-      </div>
+      </TooltipGroup>
     </nav>
   );
 }

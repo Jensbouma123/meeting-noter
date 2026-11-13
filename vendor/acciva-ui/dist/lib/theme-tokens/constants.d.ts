@@ -35,4 +35,4 @@ export type BadgePalette = (typeof BADGE_PALETTES)[number];
 export declare const ACTION_PALETTES: readonly ["primary", "secondary", "accent"];
 export declare const BADGE_LABEL_STEP: Readonly<Record<ThemeMode, TailwindStep>>;
 export declare const BADGE_FILL_STEP: Readonly<Record<ThemeMode, TailwindStep>>;
-export declare const LINK_STEP: Readonly<Record<ThemeMode, 500 | 400 | 100 | 700 | 300 | 50 | 200 | 600 | 800 | 900 | 950>>;
+export declare const LINK_STEP: Readonly<Record<ThemeMode, 500 | 400 | 300 | 100 | 700 | 50 | 200 | 600 | 800 | 900 | 950>>;

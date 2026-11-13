@@ -69,3 +69,50 @@
   top: calc(var(--tooltip-tip) - var(--spacing));
   border-width: 0 0 1px 1px;
 }
+
+/* TooltipGroup hand-off (useTooltipMorph.ts). JS pins the bubble at the old rect under
+   `data-morph="from"` (no transitions), then flips to `"to"` with the new endpoints, so CSS glides
+   position, size and the arrow (registered, so it interpolates) while the text layers cross-fade.
+   `"swap"` (side change) drops the bubble to transparent so it fades back in at its new side.
+   The `prefers-reduced-motion` kill switch zeroes both durations (SC 2.3.3); JS also skips. */
+@property --tooltip-arrow {
+  syntax: "<length-percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+.tooltip-body {
+  position: relative;
+}
+.tooltip-layer[data-layer="out"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+.tooltip[data-morph] .tooltip-body {
+  height: 100%;
+  overflow: clip;
+}
+.tooltip[data-morph="from"],
+.tooltip[data-morph="from"] .tooltip-layer {
+  transition: none;
+}
+.tooltip[data-morph="from"] [data-layer="out"] {
+  opacity: 1;
+}
+.tooltip[data-morph="from"] [data-layer="in"] {
+  opacity: 0;
+}
+.tooltip[data-morph="to"] {
+  transition-property: opacity, translate, width, height, --tooltip-arrow;
+  transition-duration:
+    var(--motion-feedback), var(--motion-spatial), var(--motion-spatial), var(--motion-spatial),
+    var(--motion-spatial);
+  transition-timing-function: var(--motion-ease-standard);
+}
+.tooltip[data-morph="to"] .tooltip-layer {
+  transition: opacity var(--motion-feedback) var(--motion-ease-standard);
+}
+.tooltip[data-morph="swap"] {
+  opacity: 0;
+  transition: none;
+}

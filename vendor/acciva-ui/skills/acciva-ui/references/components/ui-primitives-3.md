@@ -50,9 +50,11 @@
 - **Spec:** `.agents/components/Toast.md`
 
 ### 34. Tooltip
-- **Import:** `import { Tooltip } from "@jensbouma123/acciva-ui"`
+- **Import:** `import { Tooltip, TooltipGroup } from "@jensbouma123/acciva-ui"`
 - **Category:** Primitive
 - **Purpose:** Accessible hover and focus contextual helper labels.
+- **Single open:** at most one Tooltip is visible app-wide; opening one closes the previous (no provider).
+- **TooltipGroup:** wrap a toolbar/icon bar (`<TooltipGroup skipDelay={300}>`) so its Tooltips share one bubble: while it is open, or closed under `skipDelay` ms ago, the next trigger skips its `delay`, and the bubble glides to it (reduced motion: instant). Web only.
 - **Gotcha:** on touch, holding the trigger ~500ms opens the tooltip (`longPress`, default true; auto-dismisses ~1.5s after release, click suppressed once) — never the only route to the name (SC 2.5.1). Shows instantly by default (`delay={0}`); pass `delay={ms}` only when a hover-intent pause is wanted.
 - **Apple:** `AccivaTooltip` (`apple/Sources/AccivaUI/Components/Tooltip/Tooltip.swift`) — same `side` (popover-arrow hint)/`delay` (seconds, touch hold)/`maxWidth`; always the trigger's accessibility hint, `.help()` on macOS, long-press popover on iOS/visionOS (stays a popover on iPhone); `View.accivaTooltip(_:side:delay:maxWidth:)` modifier; works on disabled controls.
 - **Edge:** near a screen edge it aligns to the trigger's edge (edge-aligned `position-try` fallbacks), never covers the trigger, and is bounded by safe-area insets — no consumer code.
