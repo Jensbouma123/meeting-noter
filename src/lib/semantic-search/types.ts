@@ -1,3 +1,5 @@
+import type { EmbedWorkerProgress } from './embed-progress.types';
+
 export const EMBEDDING_DIM = 768;
 
 export interface Embedder {
@@ -83,7 +85,7 @@ export type EmbedWorkerOut = { id: number; vectors: Float32Array[] } | { id: num
 
 export interface EmbedWorkerLike {
   postMessage(msg: EmbedWorkerIn): void;
-  onmessage: ((e: { data: EmbedWorkerOut }) => void) | null;
+  onmessage: ((e: { data: EmbedWorkerOut | EmbedWorkerProgress }) => void) | null;
   onerror: ((e: { message?: string }) => void) | null;
   terminate(): void;
 }

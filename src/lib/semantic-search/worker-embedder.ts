@@ -1,3 +1,4 @@
+import { reportEmbedFailed, reportEmbedProgress, reportEmbedReady } from './embed-progress';
 import { EMBEDDING_DIM, type EmbedWorkerLike, type WorkerEmbedder } from './types';
 
 export function createWorkerEmbedder(
@@ -14,6 +15,7 @@ export function createWorkerEmbedder(
   >();
 
   const failAll = (message: string) => {
+    reportEmbedFailed(message);
     for (const p of pending.values()) p.reject(new Error(message));
     pending.clear();
     worker?.terminate();
@@ -24,11 +26,21 @@ export function createWorkerEmbedder(
     if (worker) return worker;
     const w = spawn();
     w.onmessage = (e) => {
-      const p = pending.get(e.data.id);
+      const data = e.data;
+      if ('progress' in data) {
+        reportEmbedProgress(data.progress.file, data.progress.loaded, data.progress.total);
+        return;
+      }
+      const p = pending.get(data.id);
       if (!p) return;
-      pending.delete(e.data.id);
-      if ('error' in e.data) p.reject(new Error(e.data.error));
-      else p.resolve(e.data.vectors);
+      pending.delete(data.id);
+      if ('error' in data) {
+        reportEmbedFailed(data.error);
+        p.reject(new Error(data.error));
+      } else {
+        reportEmbedReady();
+        p.resolve(data.vectors);
+      }
     };
     w.onerror = (e) => failAll(e.message ?? 'embedding worker crashed');
     worker = w;

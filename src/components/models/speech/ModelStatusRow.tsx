@@ -8,11 +8,14 @@ import { FailedRow } from './FailedRow';
 import { ProgressRow } from './ProgressRow';
 import { StatusBadge } from './StatusBadge';
 import { StatusIcon } from './StatusIcon';
+import { useModelCopy } from './useModelCopy';
 import type { ModelStatusRowProps } from './types';
 
 export function ModelStatusRow({ entry, preparation }: ModelStatusRowProps) {
   const t = useT('models');
   const isAsr = (entry.kind ?? 'asr') === 'asr';
+  const showBackend = isAsr || entry.kind === 'search';
+  const copy = useModelCopy(entry);
   const preparing = isPreparing(preparation) && isAsr;
   return (
     <Card variant="bordered" padding="md" className="w-full">
@@ -21,18 +24,18 @@ export function ModelStatusRow({ entry, preparation }: ModelStatusRowProps) {
           <HStack spacing="sm" className="min-w-0">
             <StatusIcon status={entry.status} preparing={preparing} />
             <Text weight="semibold" size="sm" truncate>
-              {entry.displayName}
+              {copy.name}
             </Text>
           </HStack>
           <HStack spacing="xs" className="shrink-0">
-            {isAsr && <BackendBadge backend={entry.backend} />}
+            {showBackend && <BackendBadge backend={entry.backend} />}
             <StatusBadge status={preparing ? 'downloading' : entry.status} />
           </HStack>
         </HStack>
 
-        {entry.description && entry.status !== 'failed' && !preparing && (
+        {copy.description && entry.status !== 'failed' && !preparing && (
           <Text size="xs" variant="muted">
-            {entry.description}
+            {copy.description}
           </Text>
         )}
 

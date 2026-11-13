@@ -9,6 +9,7 @@ import {
 } from '@/lib/asr/browser';
 import { registerDiarizationModel } from '@/lib/meeting/diarization-registry';
 import { registerLangIdModel } from '@/lib/meeting/langid-registry';
+import { registerSearchModel } from '@/lib/semantic-search/model-registry';
 
 export function useRegisterModelsOnMount() {
   useEffect(() => {
@@ -18,6 +19,7 @@ export function useRegisterModelsOnMount() {
       registerDefaultModels(backend);
       registerDiarizationModel(backend);
       registerLangIdModel(backend);
+      registerSearchModel();
       autoResumeConsentedDownloads();
     })();
   }, []);
