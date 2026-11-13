@@ -11,15 +11,10 @@ import {
   VStack,
 } from '@jensbouma123/acciva-ui';
 import { useLanguage, useT } from '@/lib/i18n/useT';
-import type { Language } from '@/lib/i18n/types';
+import { defaultMeetingName } from './defaultMeetingName';
+import type { NewSessionDialogProps } from './NewSessionDialog.types';
 
 const MAX_NAME_LENGTH = 80;
-
-interface NewSessionDialogProps {
-  open: boolean;
-  onClose: () => void;
-  onCreate: (sessionId: string, title: string) => void;
-}
 
 export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogProps) {
   const t = useT('sidebar');
@@ -29,9 +24,6 @@ export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogPr
   const [isSubmitting, setIsSubmitting] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
 
-  // Reset the draft whenever the dialog opens, and put focus on the name field
-  // (effects run after Modal's own open pass, so this wins over its default of
-  // the first button, Annuleren) so Enter starts the meeting right away.
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect -- reset state on open */
     if (open) {
@@ -42,7 +34,7 @@ export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogPr
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [open]);
 
-  const handleSubmit = useCallback(() => {
+  const submitSessionName = useCallback(() => {
     const trimmed = draft.trim() || defaultMeetingName(language);
     setIsSubmitting(true);
     try {
@@ -66,7 +58,7 @@ export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogPr
           </Button>
           <Button
             variant="primary"
-            onClick={handleSubmit}
+            onClick={submitSessionName}
             loading={isSubmitting}
           >
             {t('create')}
@@ -91,7 +83,7 @@ export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogPr
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
-                handleSubmit();
+                submitSessionName();
               }
             }}
             id="session-name"
@@ -113,19 +105,4 @@ export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogPr
       </VStack>
     </Modal>
   );
-}
-
-function defaultMeetingName(language: Language): string {
-  const now = new Date();
-  const date = new Intl.DateTimeFormat(language === 'nl' ? 'nl-NL' : 'en-US', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-  }).format(now);
-  const time = new Intl.DateTimeFormat(language === 'nl' ? 'nl-NL' : 'en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-  }).format(now);
-  return `Meeting ${date}, ${time}`;
 }

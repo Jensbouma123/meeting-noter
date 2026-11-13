@@ -1,4 +1,5 @@
 export { SessionSidebar } from './SessionSidebar';
 export type { SessionSidebarProps } from './rail/types';
 export { NewSessionDialog } from './NewSessionDialog';
-export { HomeLayout, type HomeLayoutProps } from './HomeLayout';
+export { HomeLayout } from './HomeLayout';
+export type { HomeLayoutProps } from './HomeLayout.types';

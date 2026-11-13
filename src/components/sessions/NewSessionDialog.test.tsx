@@ -57,8 +57,6 @@ describe('NewSessionDialog', () => {
   });
 
   it('names the meeting in the interface language, not the browser language', () => {
-    // An English browser with the app set to Dutch: the weekday and month have
-    // to be Dutch, or the saved meeting title is half-translated.
     vi.stubGlobal('navigator', { language: 'en-US' });
     const onCreate = start('nl');
     const title = onCreate.mock.calls[0][1] as string;

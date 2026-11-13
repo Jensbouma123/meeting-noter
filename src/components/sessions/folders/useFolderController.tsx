@@ -9,9 +9,8 @@ import {
   moveFolder,
   moveMeeting,
   renameFolder,
-  type ApiResult,
-  type FolderDeleteMode,
 } from '@/lib/folders/folders-api';
+import type { ApiResult, FolderDeleteMode } from '@/lib/folders/types';
 import { canMoveFolder, folderSubtreeIds } from '@/lib/folders/folder-tree';
 import { CreateFolderDialog } from './CreateFolderDialog';
 import { DeleteFolderDialog } from './DeleteFolderDialog';

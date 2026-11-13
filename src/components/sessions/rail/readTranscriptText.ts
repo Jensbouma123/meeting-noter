@@ -1,4 +1,4 @@
-import { loadSessionTranscript } from '@/lib/meeting/persist';
+import { loadSessionTranscript } from '@/lib/meeting/session-transcript-storage';
 
 export function readTranscriptText(sessionId: string): string {
   const t = loadSessionTranscript(sessionId);
