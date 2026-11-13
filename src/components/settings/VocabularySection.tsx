@@ -14,7 +14,7 @@ import {
 import { Download, MoreHorizontal, Upload } from 'lucide-react';
 import { useT } from '@/lib/i18n/useT';
 import { downloadFile } from '@/lib/meeting/export';
-import { DEFAULT_BIAS_STRENGTH } from '@/lib/vocabulary/bias';
+import { DEFAULT_BIAS_STRENGTH } from '@/lib/vocabulary/constants';
 import {
   addVocabularyEntries,
   setVocabularyStrength,

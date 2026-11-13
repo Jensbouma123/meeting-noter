@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_BIAS_STRENGTH, MAX_BIAS_STRENGTH } from './bias';
+import { DEFAULT_BIAS_STRENGTH, MAX_BIAS_STRENGTH } from './constants';
 import {
   VOCABULARY_STORAGE_KEY,
   addFixedWord,

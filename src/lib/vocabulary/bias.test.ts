@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { BiaserSlot, ContextBiaser, argmax, pieceText } from './bias';
+import { argmax } from './argmax';
+import { ContextBiaser } from './bias';
+import { BiaserSlot } from './biaser-slot';
+import { pieceText } from './piece-text';
 
-// A toy SentencePiece vocabulary: id = index.
 const VOCAB = ['<blk>', '▁from', '▁Fr', 'om', 'am', 'na', '▁now', '▁', 'Fram', '▁Framna', '▁to', 'pic', 'n', 'a'];
 const id = (piece: string) => VOCAB.indexOf(piece);
 

@@ -4,7 +4,7 @@
  * word") without going through the settings dialog's state.
  */
 import { useSyncExternalStore } from 'react';
-import { DEFAULT_BIAS_STRENGTH, MAX_BIAS_STRENGTH } from './bias';
+import { DEFAULT_BIAS_STRENGTH, MAX_BIAS_STRENGTH } from './constants';
 import { prepareVocabulary, type Prepared } from './replace';
 import { mergeEntries } from './text-format';
 import type { VocabularyBiasConfig, VocabularyEntry } from './types';
