@@ -6,13 +6,14 @@
  *   - pcm: 1600 Int16LE mono samples @ 16 kHz (100 ms), transferable.
  *   - rms: 0..1 RMS level of the frame (for meters; not sent to server).
  *
- * Resampling is a fractional box average: input samples accumulate until
- * they cover one 16 kHz output period, then the mean is emitted. Leftover
- * fractions carry across process() calls, so block boundaries are seamless.
- * No allocations per output frame beyond the frame buffer itself.
+ * Resampling is band-limited (`resampler.js`): a low-pass at 7.2 kHz keeps
+ * 8–24 kHz content from folding into the speech band. Its state carries
+ * across process() calls, so block boundaries are seamless. No allocations
+ * per output frame beyond the frame buffer itself.
  */
 
-const OUT_RATE = 16000;
+import { Resampler } from './resampler.js';
+
 const FRAME_SAMPLES = 1600; // 100 ms
 
 class Pcm16Processor extends AudioWorkletProcessor {
@@ -20,12 +21,10 @@ class Pcm16Processor extends AudioWorkletProcessor {
     super();
     const opts = (options && options.processorOptions) || {};
     const inRate = opts.inputSampleRate || sampleRate;
-    this._ratio = inRate / OUT_RATE; // input samples per output sample
+    this._resampler = new Resampler(inRate);
+    this._emitSample = (x) => this._emit(x);
     this._buf = new Int16Array(FRAME_SAMPLES);
     this._n = 0;
-    this._acc = 0;
-    this._accN = 0;
-    this._phase = 0; // fractional input samples carried into the next output period
     this._sumSq = 0;
     this._sumN = 0;
   }
@@ -54,16 +53,7 @@ class Pcm16Processor extends AudioWorkletProcessor {
       for (let i = 0; i < frames; i++) {
         let mono = input[0][i];
         for (let c = 1; c < channels; c++) mono += input[c][i];
-        mono /= channels;
-        this._acc += mono;
-        this._accN += 1;
-        this._phase += 1;
-        if (this._phase >= this._ratio) {
-          this._phase -= this._ratio;
-          this._emit(this._acc / this._accN);
-          this._acc = 0;
-          this._accN = 0;
-        }
+        this._resampler.push(mono / channels, this._emitSample);
       }
     }
     return true;
