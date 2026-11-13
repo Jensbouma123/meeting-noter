@@ -30,7 +30,7 @@ export function TopBarActions({
 
   return (
     <>
-      <HStack spacing="xs" align="center" data-testid="topbar-actions" className="min-w-0 shrink-0 gap-0.5 sm:gap-1">
+      <HStack spacing="xs" align="center" data-testid="topbar-actions" className="mn-tips-below min-w-0 shrink-0 gap-0.5 sm:gap-1">
         <Button
           variant="ghost"
           size="sm"

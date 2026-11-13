@@ -1,0 +1,29 @@
+.tooltip.tooltip[data-morph="to"] {
+  transition-property: opacity;
+  transition-duration: var(--motion-feedback);
+}
+
+.tooltip.tooltip[data-morph="to"] .tooltip-layer {
+  transition-duration: var(--motion-feedback);
+}
+
+@supports (anchor-name: --a) {
+  .mn-tips-below .tooltip[data-side] {
+    margin-block: calc(var(--spacing) * 2);
+    margin-inline: var(--overlay-gutter);
+    justify-self: safe anchor-center;
+    align-self: normal;
+    position-area: block-end span-all;
+    position-try-fallbacks: flip-block;
+    transition-delay: 500ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mn-tips-below .tooltip[data-side] {
+    transition-delay: 0ms;
+  }
+  .tooltip.tooltip[data-morph="to"] {
+    transition-duration: 0ms;
+  }
+}

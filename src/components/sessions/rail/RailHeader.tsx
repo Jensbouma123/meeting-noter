@@ -16,7 +16,7 @@ export function RailHeader({ sessionCount, open, onNewSession, onToggle }: RailH
           {sessionCount}
         </Badge>
       </HStack>
-      <HStack spacing="xs" className="shrink-0">
+      <HStack spacing="xs" className="mn-tips-below shrink-0">
         <Button
           variant="ghost"
           size="sm"
