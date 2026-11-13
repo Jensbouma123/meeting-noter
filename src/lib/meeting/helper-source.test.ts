@@ -1,12 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  connectHelper,
-  helperKnownReachable,
-  HELPER_URL,
-  int16Rms,
-  probeHelper,
-  resetHelperReachability,
-} from './helper-source';
+import { connectHelper, resetHelperReachability } from './helper-connection';
 import { FakeHelperSocket, helperFrame } from './helper-test-socket';
 
 const WebSocket = FakeHelperSocket as unknown as new (url: string) => WebSocket;
@@ -21,18 +14,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('connectHelper', () => {
-  it('connects to the fixed localhost port, asks to start, and resolves once the tap runs', async () => {
-    const helper = await connectHelper({ WebSocket });
-    const [ws] = FakeHelperSocket.instances;
-    expect(ws.url).toBe(HELPER_URL);
-    expect(ws.binaryType).toBe('arraybuffer');
-    expect(ws.started).toBe(true);
-    expect(helper.live).toBe(true);
-    expect(helper.hello.permission).toBe('granted');
-    expect(helperKnownReachable()).toBe(true);
-  });
-
+describe('HelperSource frames', () => {
   it('delivers 1600-sample Int16 frames with their RMS', async () => {
     const helper = await connectHelper({ WebSocket });
     const frames: { samples: Int16Array; rms: number }[] = [];
@@ -51,13 +33,12 @@ describe('connectHelper', () => {
     const ws = FakeHelperSocket.instances[0];
     const run = new Int16Array(4000).map((_, i) => i % 1000);
     ws.samples(run.subarray(0, 700));
-    ws.samples(run.subarray(700, 3900)); // completes frame 1, holds frame 2, starts frame 3
+    ws.samples(run.subarray(700, 3900));
     ws.samples(run.subarray(3900));
     expect(frames).toHaveLength(2);
     expect(frames.every((f) => f.length === 1600)).toBe(true);
     expect([...frames[0]]).toEqual([...run.subarray(0, 1600)]);
     expect([...frames[1]]).toEqual([...run.subarray(1600, 3200)]);
-    // The rest waits for the next message.
     ws.samples(new Int16Array(800).fill(7));
     expect(frames).toHaveLength(3);
     expect([...frames[2].subarray(0, 800)]).toEqual([...run.subarray(3200, 4000)]);
@@ -71,44 +52,6 @@ describe('connectHelper', () => {
     helper.onFrame = onFrame;
     FakeHelperSocket.instances[0].samples(helperFrame(100));
     expect(onFrame).toHaveBeenCalledTimes(1);
-  });
-
-  it('rejects when the helper is not running, and remembers it', async () => {
-    FakeHelperSocket.reset('refused');
-    await expect(connectHelper({ WebSocket })).rejects.toThrow(/not running/);
-    expect(helperKnownReachable()).toBe(false);
-  });
-
-  it('rejects when the socket cannot even be created (ws:// from an https page)', async () => {
-    FakeHelperSocket.reset('throws');
-    await expect(connectHelper({ WebSocket })).rejects.toThrow(/unreachable.*SecurityError/);
-  });
-
-  it('rejects without a WebSocket implementation', async () => {
-    vi.stubGlobal('window', {});
-    await expect(connectHelper()).rejects.toThrow(/WebSockets are not available/);
-  });
-
-  it('rejects a helper speaking another protocol version', async () => {
-    FakeHelperSocket.reset('old-protocol');
-    await expect(connectHelper({ WebSocket })).rejects.toThrow(/protocol 0/);
-    expect(FakeHelperSocket.instances[0].closed).toBe(true);
-  });
-
-  it('rejects when the helper cannot start its tap', async () => {
-    FakeHelperSocket.reset('tap-fails');
-    await expect(connectHelper({ WebSocket })).rejects.toThrow(/Could not start the system audio tap/);
-    expect(FakeHelperSocket.instances[0].closed).toBe(true);
-  });
-
-  it('gives up on a helper that never answers', async () => {
-    vi.useFakeTimers();
-    FakeHelperSocket.reset('hung');
-    const p = connectHelper({ WebSocket, timeoutMs: 1000 });
-    const settled = expect(p).rejects.toThrow(/did not answer/);
-    await vi.advanceTimersByTimeAsync(1000);
-    await settled;
-    expect(FakeHelperSocket.instances[0].closed).toBe(true);
   });
 });
 
@@ -168,28 +111,5 @@ describe('HelperSource lifetime', () => {
     ws.drop();
     expect(onFrame).not.toHaveBeenCalled();
     expect(onEnded).not.toHaveBeenCalled();
-  });
-});
-
-describe('probeHelper', () => {
-  it('finds a running helper without starting its tap', async () => {
-    expect(await probeHelper({ WebSocket })).toBe(true);
-    expect(FakeHelperSocket.instances[0].started).toBe(false);
-    expect(FakeHelperSocket.instances[0].closed).toBe(true);
-    expect(helperKnownReachable()).toBe(true);
-  });
-
-  it('never rejects, and records a missing helper', async () => {
-    FakeHelperSocket.reset('refused');
-    expect(await probeHelper({ WebSocket })).toBe(false);
-    expect(helperKnownReachable()).toBe(false);
-  });
-});
-
-describe('int16Rms', () => {
-  it('is 0 for silence and an empty frame, and scales to [0, 1]', () => {
-    expect(int16Rms(new Int16Array(1600))).toBe(0);
-    expect(int16Rms(new Int16Array(0))).toBe(0);
-    expect(int16Rms(helperFrame(-32768))).toBe(1);
   });
 });

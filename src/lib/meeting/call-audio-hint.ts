@@ -1,13 +1,5 @@
 import type { CaptureDiagnostics } from './capture';
 
-/**
- * What to tell the user when call audio is missing, from what the capture
- * saw. A share that never attached needs its audio toggle; one that attached
- * but stays silent needs a different fix per surface. A shared screen or
- * window carries system audio only when macOS lets Chrome record it
- * ("System Audio Recording"); without that it delivers exact digital
- * silence, which no setting in this app can bring back.
- */
 export function callAudioHint(diag: CaptureDiagnostics | null): string {
   const lost =
     "Call audio isn't being recorded, so other participants won't be transcribed (headphones don't leak into the mic).";

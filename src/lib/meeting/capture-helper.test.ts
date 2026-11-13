@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Capture, SAFARI_MIC_NEEDS_HELPER, SILENT_SHARE_FRAMES } from './capture';
-import { probeHelper, resetHelperReachability } from './helper-source';
+import { probeHelper, resetHelperReachability } from './helper-connection';
 import { FakeHelperSocket, helperFrame } from './helper-test-socket';
 
 /**

@@ -1,5 +1,7 @@
 import { isSafariEngine } from '@/lib/asr/browser/is-safari-engine';
-import { connectHelper, helperKnownReachable, probeHelper, type HelperMic, type HelperSource } from './helper-source';
+import { connectHelper, helperKnownReachable, probeHelper } from './helper-connection';
+import type { HelperSource } from './helper-source';
+import type { HelperMic } from './types/helper';
 import type { Source } from './types';
 
 export interface FrameHandler {
