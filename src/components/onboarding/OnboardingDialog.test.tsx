@@ -53,7 +53,8 @@ vi.mock('@/lib/asr/browser', async (importOriginal) => ({
 }));
 
 import { OnboardingDialog as Dialog } from './OnboardingDialog';
-import { DEFAULT_SETTINGS, type AppSettings } from '@/components/meeting/types';
+import type { AppSettings } from '@/components/meeting/types';
+import { DEFAULT_SETTINGS } from '@/components/meeting/settingsStorage';
 
 let lastSettings: AppSettings = DEFAULT_SETTINGS;
 function OnboardingDialog() {

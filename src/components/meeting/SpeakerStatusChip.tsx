@@ -1,15 +1,9 @@
 'use client';
 
-import type { DiarizationStatus } from '@/lib/meeting/types';
 import { useT } from '@/lib/i18n/useT';
 import { Button, Tooltip } from '@jensbouma123/acciva-ui';
 import { TriangleAlert } from 'lucide-react';
-import type { SettingsSectionId } from '@/components/settings/sections';
-
-interface SpeakerStatusChipProps {
-  status: DiarizationStatus | undefined;
-  onOpenSettings: (section?: SettingsSectionId) => void;
-}
+import type { SpeakerStatusChipProps } from './SpeakerStatusChip.types';
 
 export function SpeakerStatusChip({ status, onOpenSettings }: SpeakerStatusChipProps) {
   const t = useT('topbar');

@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SETTINGS_SECTIONS } from '@/components/settings/sections';
 import { resetVocabularyForTests } from '@/lib/vocabulary/store';
 import { SettingsSheet } from './SettingsSheet';
-import { DEFAULT_SETTINGS } from './types';
+import { DEFAULT_SETTINGS } from './settingsStorage';
 
 vi.mock('@/components/models', () => ({ useAnyModelFailed: () => false }));
 vi.mock('@/components/settings/GeneralSection', () => ({ GeneralSection: () => <div>general</div> }));

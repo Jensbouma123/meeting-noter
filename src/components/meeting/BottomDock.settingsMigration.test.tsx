@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest';
-import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, loadSettings } from './types';
+import { DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, loadSettings } from './settingsStorage';
 
 afterEach(() => {
   localStorage.clear();

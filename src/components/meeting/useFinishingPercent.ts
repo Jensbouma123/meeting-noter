@@ -12,11 +12,6 @@ import {
   subscribeLiveFlush,
 } from '@/lib/meeting/live-flush-progress';
 
-/**
- * How far Stop has got transcribing what was still buffered (0-100), or
- * `null` while that is not measured: the live flush's progress, else the
- * post-stop pass's on a device that transcribes after Stop.
- */
 export function useFinishingPercent(): number | null {
   const live = useSyncExternalStore(subscribeLiveFlush, getLiveFlushProgress, getServerLiveFlushProgress);
   const postStop = useSyncExternalStore(

@@ -35,7 +35,7 @@ function checkIsMock(): boolean {
       if (urlParams.get('demo') === '1') return true;
       if (localStorage.getItem('mn.mock') === '1') return true;
     } catch {
-      // Safe fallback
+      return false;
     }
   }
   return false;
@@ -58,7 +58,6 @@ export const meeting = {
     const activeMeeting = isMock ? mockMeeting.meeting : realMeeting.meeting;
     return activeMeeting.stop();
   },
-  /** End the session because its view is going away; the mock has no tracks to release. */
   release(): Promise<void> {
     const isMock = checkIsMock();
     return isMock ? mockMeeting.meeting.stop() : realMeeting.meeting.release();
@@ -78,7 +77,6 @@ export const meeting = {
     const activeMeeting = isMock ? mockMeeting.meeting : realMeeting.meeting;
     activeMeeting.renameSpeaker(id, label);
   },
-  /** "Fix this word": save the spelling to the word list and correct the open transcript. */
   fixWord(heard: string, word: string): void {
     const isMock = checkIsMock();
     const activeMeeting = isMock ? mockMeeting.meeting : realMeeting.meeting;
@@ -89,13 +87,11 @@ export const meeting = {
     const activeMeeting = isMock ? mockMeeting.meeting : realMeeting.meeting;
     activeMeeting.setLanguage(code);
   },
-  /** Enable browser-native ASR (parakeet.js) — the only transcription engine; there is no server. */
   enableBrowserASR(): void {
     const isMock = checkIsMock();
     if (isMock) return;
     realMeeting.enableBrowserASR?.();
   },
-  /** Disable browser-native ASR. No transcription runs until it's re-enabled. */
   disableBrowserASR(): void {
     const isMock = checkIsMock();
     if (isMock) return;

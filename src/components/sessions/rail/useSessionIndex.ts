@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useToast } from '@jensbouma123/acciva-ui';
 import { clearSessionTranscript, deleteSession, isSessionRecording, listSessions, type SessionMetadata } from '@/lib/meeting/session-store';
 import { purgeExpiredSessions } from '@/lib/meeting/retention';
-import { loadSettings } from '@/components/meeting/types';
+import { loadSettings } from '@/components/meeting/settingsStorage';
 import { useT } from '@/lib/i18n/useT';
 
 export function useSessionIndex() {

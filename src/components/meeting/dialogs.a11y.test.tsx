@@ -8,6 +8,7 @@ import { RecordTargetDialog } from './RecordTargetDialog';
 import { ShortcutsHelp } from './ShortcutsHelp';
 import { ShareDialog } from '@/components/share/ShareDialog';
 import { SettingsDialog } from '@/components/settings/SettingsDialog';
+import type { DialogCase as Case } from './dialogs.a11y.types';
 
 beforeAll(() => {
   HTMLDialogElement.prototype.showModal ||= function (this: HTMLDialogElement) {
@@ -16,7 +17,6 @@ beforeAll(() => {
   HTMLDialogElement.prototype.close ||= function (this: HTMLDialogElement) {
     this.removeAttribute('open');
   };
-  // jsdom has no matchMedia; the settings dialog picks its layout with it.
   window.matchMedia ??= ((query: string) => ({
     matches: false,
     media: query,
@@ -33,12 +33,6 @@ afterEach(() => {
   cleanup();
   localStorage.clear();
 });
-
-interface Case {
-  name: string;
-  title: { en: string; nl: string };
-  render: (onClose: () => void) => React.ReactElement;
-}
 
 const CASES: Case[] = [
   {
@@ -85,7 +79,6 @@ const CASES: Case[] = [
   },
 ];
 
-/** Escape reaches a native modal as a `cancel` event; jsdom never fires it itself. */
 function escape(dialog: HTMLElement) {
   fireEvent(dialog, new Event('cancel', { cancelable: true }));
 }
@@ -102,7 +95,6 @@ for (const testCase of CASES) {
         );
         const dialog = screen.getByRole('dialog', { name: testCase.title[language] });
         expect(dialog).toHaveAttribute('open');
-        // A native modal is inert behind itself, so focus must start inside.
         expect(dialog.contains(document.activeElement)).toBe(true);
       });
     }
@@ -120,8 +112,6 @@ for (const testCase of CASES) {
       render(
         <LanguageContext.Provider value="en">{testCase.render(vi.fn())}</LanguageContext.Provider>,
       );
-      // The library's own close control. Its label is hardcoded English in
-      // acciva-ui (`aria-label="Close dialog"`), so match either language.
       expect(screen.getByRole('button', { name: /close dialog|dialoog sluiten/i, hidden: true })).toBeInTheDocument();
     });
   });

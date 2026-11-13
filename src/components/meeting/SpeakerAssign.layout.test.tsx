@@ -33,7 +33,7 @@ describe('SpeakerAssign rail name layout', () => {
     );
     const button = screen.getByRole('button', { name: 'Change who this is: Jens' });
     const menuRoot = button.parentElement as HTMLElement;
-    expect(menuRoot).toHaveClass('inline-block'); // acciva-ui's shrink-to-fit wrapper
+    expect(menuRoot).toHaveClass('inline-block');
     const wrap = screen.getByTestId('speaker-assign-wrap');
     expect(menuRoot.parentElement).toBe(wrap);
     expect(wrap).toHaveClass('w-full', 'min-w-0', '[&>div]:block', '[&>div]:w-full');

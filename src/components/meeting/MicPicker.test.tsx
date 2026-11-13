@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MicPicker } from './MicPicker';
 import { LanguageContext } from '@/lib/i18n/LanguageContext';
-import { loadSettings, saveSettings, DEFAULT_SETTINGS } from './types';
+import { loadSettings, saveSettings, DEFAULT_SETTINGS } from './settingsStorage';
 
 const DEVICES = [
   { deviceId: 'default', kind: 'audioinput', label: 'Default - Built-in' },
