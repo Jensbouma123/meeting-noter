@@ -246,7 +246,7 @@ describe('meeting.start()', () => {
   it('buffers the recording and says so on a device without WebGPU', async () => {
     const { meeting } = await import('./index');
     const { getBrowserASRPhase, getBrowserASRStatusMessage } = await import('./browser-asr');
-    const { bufferedSeconds } = await import('./post-stop-transcription');
+    const { bufferedSeconds } = await import('./post-stop-buffer');
 
     await meeting.start({ mode: 'mic' });
     expect(getBrowserASRPhase()).toBe('post-stop');

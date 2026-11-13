@@ -1,15 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import {
-  CHUNK_SAMPLES,
-  MAX_BUFFERED_SAMPLES_PER_SOURCE,
-  appendPostStopAudio,
-  bufferedSeconds,
-  chunkWindows,
-  chunkWindowsFromChunks,
-  getPostStopProgress,
-  resetPostStopTranscriptionForTests,
-  transcribeRecordedAudio,
-} from './post-stop-transcription';
+import { CHUNK_SAMPLES, MAX_BUFFERED_SAMPLES_PER_SOURCE } from './post-stop-constants';
+import { appendPostStopAudio, bufferedSeconds, resetPostStopTranscriptionForTests } from './post-stop-buffer';
+import { getPostStopProgress } from './post-stop-progress';
+import { transcribeRecordedAudio } from './post-stop-transcription';
+import { chunkWindows, chunkWindowsFromChunks } from './post-stop-windows';
 
 function ramp(length: number, start = 0): Int16Array {
   const out = new Int16Array(length);
@@ -63,7 +57,7 @@ describe('appendPostStopAudio', () => {
 
 describe('transcribeRecordedAudio', () => {
   it('continues past a failing window and advances chunksDone while running', async () => {
-    const samples = CHUNK_SAMPLES * 3 + 10; // 4 windows
+    const samples = CHUNK_SAMPLES * 3 + 10;
     appendPostStopAudio('mic', ramp(samples).buffer as ArrayBuffer);
     const calls: number[] = [];
     const seen: number[] = [];

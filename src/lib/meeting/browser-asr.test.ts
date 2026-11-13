@@ -954,7 +954,7 @@ describe('post-stop transcription on a CPU-only device', () => {
 
     asr.beginRecordedAudioCapture();
     for (let i = 0; i < 5; i += 1) asr.bufferRecordedAudio('mic', frame());
-    const { bufferedSeconds } = await import('./post-stop-transcription');
+    const { bufferedSeconds } = await import('./post-stop-buffer');
     expect(bufferedSeconds().mic).toBeCloseTo(0.5, 5);
   });
 
@@ -1006,7 +1006,7 @@ describe('post-stop transcription on a CPU-only device', () => {
 
   it('releases the buffer after transcribing, so a stop cannot duplicate a transcript', async () => {
     const asr = await loadPostStopAsr();
-    const { bufferedSeconds } = await import('./post-stop-transcription');
+    const { bufferedSeconds } = await import('./post-stop-buffer');
 
     asr.beginRecordedAudioCapture();
     asr.bufferRecordedAudio('mic', frame());
@@ -1066,7 +1066,7 @@ describe('post-stop transcription on a CPU-only device', () => {
 
     asr.beginRecordedAudioCapture();
     asr.bufferRecordedAudio('mic', frame());
-    const { hasBufferedAudio } = await import('./post-stop-transcription');
+    const { hasBufferedAudio } = await import('./post-stop-buffer');
     expect(hasBufferedAudio()).toBe(true);
 
     expect(await asr.transcribeRecordedAudioAfterStop()).toBe(false);
@@ -1086,7 +1086,7 @@ describe('the transcription mode of a recording', () => {
   it('sends frames held before the probe answered to the live path on a WebGPU device', async () => {
     const asr = await loadWebgpuAsr();
     await consentAndCache(PARAKEET_TDT_V3_WEBGPU);
-    const { bufferedSeconds } = await import('./post-stop-transcription');
+    const { bufferedSeconds } = await import('./post-stop-buffer');
 
     asr.beginRecordedAudioCapture();
     for (let i = 0; i < 5; i += 1) asr.bufferRecordedAudio('mic', frame(), i * 1600);

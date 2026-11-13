@@ -97,12 +97,8 @@ export {
   type BrowserASRProgress,
   type SpeakerLabeler,
 } from './browser-asr';
-export {
-  getServerPostStopProgress,
-  subscribePostStopTranscription,
-  type PostStopProgress,
-  type PostStopPhase,
-} from './post-stop-transcription';
+export { getServerPostStopProgress, subscribePostStopTranscription } from './post-stop-progress';
+export type { PostStopProgress, PostStopPhase } from './types/post-stop';
 
 // Module-level session singletons: one live session at a time.
 let capture: Capture | null = null;

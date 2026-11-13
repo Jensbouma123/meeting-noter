@@ -51,16 +51,10 @@ import {
 import { webgpuEncoderOf } from '@/lib/asr/browser/model-manifest';
 import { getAsrModelFamily, setAsrModelFamily, type AsrModelFamily } from '@/lib/asr/browser/model-family';
 import { debugEnabled } from '@/lib/asr/browser/quiet-console';
-import {
-  appendPostStopAudio,
-  beginPostStopCapture,
-  clearPostStopCapture,
-  getPostStopProgress,
-  hasBufferedAudio,
-  isPostStopTranscriptionRunning,
-  transcribeRecordedAudio,
-  type PostStopProgress,
-} from './post-stop-transcription';
+import { appendPostStopAudio, beginPostStopCapture, clearPostStopCapture, hasBufferedAudio } from './post-stop-buffer';
+import { getPostStopProgress, isPostStopTranscriptionRunning } from './post-stop-progress';
+import { transcribeRecordedAudio } from './post-stop-transcription';
+import type { PostStopProgress } from './types/post-stop';
 import { beginLiveFlush, endLiveFlush, updateLiveFlush } from './live-flush-progress';
 import { replaceSegmentFamily, upsertSegment } from '@/lib/meeting/store';
 import { attributeSpeakers } from '@/lib/meeting/speaker-attribution';
@@ -505,7 +499,7 @@ export function getPostStopTranscriptionProgress(): PostStopProgress | null {
  *  pipeline uses it to refuse a new recording that would interleave with one
  *  still being transcribed. */
 export { isPostStopTranscriptionRunning };
-export { getServerPostStopProgress, subscribePostStopTranscription } from './post-stop-transcription';
+export { getServerPostStopProgress, subscribePostStopTranscription } from './post-stop-progress';
 
 /** Enable browser ASR. Lazy-loads the model on first transcription call. */
 export function enableBrowserASR(): void {
