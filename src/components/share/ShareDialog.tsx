@@ -26,7 +26,7 @@ export function ShareDialog({ open, onClose, title, segments, speakers }: ShareD
 
   return <Modal open={open} onClose={onClose} title={t('title')} size="md" footer={<Button variant="ghost" onClick={onClose}>{t('close')}</Button>}>
     {!hasTranscript ? <p className="text-sm text-muted-foreground">{t('noTranscript')}</p> : <VStack spacing="md" className="w-full">
-      <section aria-label={t('previewLabel')} className="max-h-72 w-full overflow-y-auto rounded-md border border-border p-4 text-sm" tabIndex={0}>
+      <section aria-label={t('previewLabel')} className="max-h-72 w-full overflow-y-auto rounded-md border border-border-soft p-4 text-sm" tabIndex={0}>
         <pre className="whitespace-pre-wrap font-sans">{transcriptText('txt')}</pre>
       </section>
       <Button variant="primary" size="lg" className="w-full justify-center" leadingIcon={<Copy className="size-4" aria-hidden="true" />} onClick={() => void copy(transcriptText('txt'))}>{t('copyTranscript')}</Button>

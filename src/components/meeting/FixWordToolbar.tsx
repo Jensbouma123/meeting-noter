@@ -13,7 +13,7 @@ export function FixWordToolbar({ barRef, placement, onOpen }: FixWordToolbarProp
       role="toolbar"
       aria-label={t('fixWord.button')}
       data-side={placement?.side}
-      className="fixed z-40 flex items-center rounded-lg border border-border bg-elevation-3 p-0.5 text-foreground shadow-elevation-3 dark:bg-elevation-4"
+      className="fixed z-40 flex items-center rounded-lg border border-border-soft bg-elevation-3 p-0.5 text-foreground shadow-elevation-3 dark:bg-elevation-4"
       style={{ top: placement?.top ?? 0, left: placement?.left ?? 0, visibility: placement ? 'visible' : 'hidden' }}
     >
       <Button
@@ -29,7 +29,7 @@ export function FixWordToolbar({ barRef, placement, onOpen }: FixWordToolbarProp
       <span
         aria-hidden="true"
         data-testid="fix-word-pointer"
-        className={`absolute size-2 -translate-x-1/2 rotate-45 border-border bg-elevation-3 dark:bg-elevation-4 ${
+        className={`absolute size-2 -translate-x-1/2 rotate-45 border-border-soft bg-elevation-3 dark:bg-elevation-4 ${
           placement?.side === 'below' ? '-top-1 border-l border-t' : '-bottom-1 border-b border-r'
         }`}
         style={{ left: placement?.arrowX ?? 0 }}

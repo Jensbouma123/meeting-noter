@@ -17,7 +17,7 @@ export function BenchReportSection({ report, onCopied }: BenchReportSectionProps
     onCopied();
   };
   return (
-    <section style={{ marginTop: '1rem', border: '1px solid #888', padding: '0.75rem' }}>
+    <section style={{ marginTop: '1rem', border: '1px solid var(--border-soft)', padding: '0.75rem' }}>
       <h2>
         {report.backend}/{report.encoderQuant}: mean RTF {report.meanRtf.toFixed(3)}
       </h2>

@@ -1,0 +1,20 @@
+:root {
+  --border: #7b827d;
+  --border-soft: #b9c0ba;
+}
+
+html[data-theme="dark"] {
+  --border: #5f6560;
+  --border-soft: #2a2f2b;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) {
+    --border: #5f6560;
+    --border-soft: #2a2f2b;
+  }
+}
+
+@theme inline {
+  --color-border-soft: var(--border-soft);
+}

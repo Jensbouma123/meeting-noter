@@ -72,7 +72,7 @@ export default function Home() {
               <Heading as="h1" size="xl" weight="semibold">{t('title')}</Heading>
               <Text variant="muted">{t('subtitle')}</Text>
             </VStack>
-            <section aria-labelledby="home-how-it-works" className="w-full rounded-xl border border-border bg-elevation-1 p-5 text-left">
+            <section aria-labelledby="home-how-it-works" className="w-full rounded-xl border border-border-soft bg-elevation-1 p-5 text-left">
               <Heading id="home-how-it-works" as="h2" size="md" weight="medium">{t('heading')}</Heading>
               <ol className="mt-3 list-decimal space-y-2 pl-5">
                 <li><Text>{t('step1')}</Text></li>

@@ -41,7 +41,7 @@ export function TranscriptEmptyState({ modelReady, modelReadiness, onStartRecord
                 </Button>
                 <Text size="xs" variant="muted">
                   {t('orPress')}{' '}
-                  <kbd className="rounded border border-border px-1.5 font-mono text-[0.7rem] text-muted-foreground">R</kbd>
+                  <kbd className="rounded border border-border-soft px-1.5 font-mono text-[0.7rem] text-muted-foreground">R</kbd>
                 </Text>
               </div>
             ) : !preparing ? (
@@ -55,7 +55,7 @@ export function TranscriptEmptyState({ modelReady, modelReadiness, onStartRecord
             ) : undefined
           }
         />
-        <div className="flex w-fit max-w-full items-start gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-left">
+        <div className="flex w-fit max-w-full items-start gap-2 rounded-lg border border-border-soft bg-muted/40 px-3 py-2 text-left">
           <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
           <Text size="xs" variant="muted">
             {t('callTip')}

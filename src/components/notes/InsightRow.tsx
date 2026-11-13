@@ -4,7 +4,7 @@ import { formatClock } from '@/lib/meeting/transcript-format';
 import type { InsightRowProps } from './InsightSuggestions.types';
 
 export function InsightRow({ insight, speakerLabel, t, onJump, onAdd, onDismiss }: InsightRowProps) {
-  return <li className="flex min-w-0 flex-col gap-1 rounded-md border border-border p-2">
+  return <li className="flex min-w-0 flex-col gap-1 rounded-md border border-border-soft p-2">
     <Text size="sm" className="min-w-0 break-words">&ldquo;{insight.text}&rdquo;</Text>
     <div className="flex min-w-0 items-center gap-1">
       <Text size="xs" className="min-w-0 flex-1 truncate text-muted-foreground">
