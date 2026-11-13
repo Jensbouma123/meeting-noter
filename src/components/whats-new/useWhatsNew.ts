@@ -5,17 +5,16 @@ import { CURRENT_VERSION } from '@/components/update/constants';
 import { SAMPLE_NOTES, usePreview } from './preview';
 import type { WhatsNewData } from './whatsNew.types';
 
+const PREVIEW_DATA: WhatsNewData = { version: CURRENT_VERSION, notes: SAMPLE_NOTES, pageUrl: null };
 const URL_PATH = '/api/app/whats-new';
 
 export function useWhatsNew() {
   const preview = usePreview();
-  const [data, setData] = useState<WhatsNewData | null>(null);
+  const [fetched, setData] = useState<WhatsNewData | null>(null);
+  const [previewClosed, setPreviewClosed] = useState(false);
+  const data = preview === 'whats-new' ? (previewClosed ? null : PREVIEW_DATA) : fetched;
 
   useEffect(() => {
-    if (preview === 'whats-new') {
-      setData({ version: CURRENT_VERSION, notes: SAMPLE_NOTES, pageUrl: null });
-      return;
-    }
     if (preview) return;
     let active = true;
     void (async () => {
@@ -30,8 +29,8 @@ export function useWhatsNew() {
   }, [preview]);
 
   const close = () => {
+    if (preview) { setPreviewClosed(true); return; }
     setData(null);
-    if (preview) return;
     void fetch(URL_PATH, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Meeting-Noter': '1' }, body: '{}' }).catch(() => undefined);
   };
 

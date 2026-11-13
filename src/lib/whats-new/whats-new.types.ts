@@ -9,3 +9,5 @@ export interface WhatsNewPayload {
   notes: string | null;
   pageUrl: string | null;
 }
+
+export type FetchedNotes = { notes: string | null; pageUrl: string | null };

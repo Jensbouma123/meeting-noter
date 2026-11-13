@@ -1,9 +1,9 @@
 import bundled from '../../../release-notes.json';
 import { MAX_NOTES, RELEASE_BY_TAG_API } from './constants';
 
-type Fetched = { notes: string | null; pageUrl: string | null };
+import type { FetchedNotes } from './whats-new.types';
 
-export async function fetchReleaseNotes(version: string, fetchFn: typeof fetch = fetch): Promise<Fetched> {
+export async function fetchReleaseNotes(version: string, fetchFn: typeof fetch = fetch): Promise<FetchedNotes> {
   const local = (bundled as Record<string, string>)[version] ?? null;
   try {
     const res = await fetchFn(`${RELEASE_BY_TAG_API}v${version}`, {

@@ -3,16 +3,9 @@
 import { Button, Modal } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { MarkdownNotes } from './MarkdownNotes';
+import type { ReleaseNotesDialogProps } from './whatsNew.types';
 
-interface Props {
-  open: boolean;
-  onClose: () => void;
-  title: string;
-  notes: string | null;
-  pageUrl?: string | null;
-}
-
-export function ReleaseNotesDialog({ open, onClose, title, notes, pageUrl }: Props) {
+export function ReleaseNotesDialog({ open, onClose, title, notes, pageUrl }: ReleaseNotesDialogProps) {
   const t = useT('update');
   const link = pageUrl && /^https?:\/\//.test(pageUrl) ? pageUrl : null;
   return (

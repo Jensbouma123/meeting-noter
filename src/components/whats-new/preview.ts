@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 
-export type PreviewKind = 'update' | 'whats-new';
+import type { PreviewKind } from './whatsNew.types';
 
 export const SAMPLE_NOTES = `## What's new
 
