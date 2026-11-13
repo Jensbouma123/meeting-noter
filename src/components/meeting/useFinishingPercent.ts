@@ -5,7 +5,7 @@ import {
   getPostStopProgress,
   getServerPostStopProgress,
   subscribePostStopTranscription,
-} from '@/lib/meeting/post-stop-transcription';
+} from '@/lib/meeting/post-stop-progress';
 import {
   getLiveFlushProgress,
   getServerLiveFlushProgress,

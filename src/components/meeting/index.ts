@@ -13,3 +13,4 @@ export * from './BottomDock';
 export * from './TopBar';
 export * from './RightRail';
 export * from './SettingsSheet';
+export * from './TranscriptTurn.types';

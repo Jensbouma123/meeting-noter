@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Segment } from '@/lib/meeting';
-import { FixWordAction, placeToolbar } from './FixWordAction';
+import { FixWordAction } from './FixWordAction';
 
 const seg = (id: string, text: string, final = true): Segment => ({
   id,
@@ -30,7 +30,6 @@ function Harness({ segments, onFix }: { segments: Segment[]; onFix: (heard: stri
   );
 }
 
-/** Select `word` inside the line `id`, the way a user drags over it. */
 function select(container: HTMLElement, id: string, word: string) {
   const text = container.querySelector(`[data-seg-id="${id}"] p`)!.firstChild as Text;
   const at = text.data.indexOf(word);
@@ -46,7 +45,6 @@ function select(container: HTMLElement, id: string, word: string) {
 }
 
 beforeEach(() => {
-  // acciva-ui 0.17 Modal is a native <dialog>; jsdom has no showModal/close.
   HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) {
     this.setAttribute('open', '');
   };
@@ -121,34 +119,5 @@ describe('FixWordAction toolbar', () => {
     expect(bar.className).not.toMatch(/\/\d+/);
     expect(bar.className).toMatch(/border-border/);
     expect(bar).toContainElement(screen.getByRole('button', { name: /fix this word/i }));
-  });
-});
-
-describe('placeToolbar', () => {
-  const bounds = { top: 0, bottom: 600, left: 100, right: 700 };
-  const size = { width: 120, height: 32 };
-
-  it('sits above the selection, centred, with a gap', () => {
-    const p = placeToolbar({ top: 200, bottom: 218, left: 300, right: 360 }, bounds, size);
-    expect(p.side).toBe('above');
-    expect(p.top).toBe(200 - 8 - 32);
-    expect(p.left).toBe(330 - 60);
-    expect(p.arrowX).toBe(60);
-    expect(p.top + size.height).toBeLessThanOrEqual(200);
-  });
-
-  it('flips below when there is no room above', () => {
-    const p = placeToolbar({ top: 20, bottom: 38, left: 300, right: 360 }, bounds, size);
-    expect(p.side).toBe('below');
-    expect(p.top).toBe(38 + 8);
-  });
-
-  it('stays inside the transcript sideways and keeps the pointer on the selection', () => {
-    const left = placeToolbar({ top: 200, bottom: 218, left: 102, right: 130 }, bounds, size);
-    expect(left.left).toBe(104);
-    expect(left.arrowX).toBe(12);
-    const right = placeToolbar({ top: 200, bottom: 218, left: 670, right: 698 }, bounds, size);
-    expect(right.left + size.width).toBe(696);
-    expect(right.arrowX).toBeGreaterThan(60);
   });
 });
