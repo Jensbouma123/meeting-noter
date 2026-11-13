@@ -25,7 +25,6 @@ describe('speaker labels when call audio never attached', () => {
   it('defaultLabel numbers mic:0 like any other diarized speaker instead of "You"', () => {
     expect(defaultLabel('mic:0', 'both', true)).toBe('Speaker 1');
     expect(defaultLabel('mic:1', 'both', true)).toBe('Speaker 2');
-    // Unaffected when call audio did attach.
     expect(defaultLabel('mic:0', 'both', false)).toBe('You');
   });
 
