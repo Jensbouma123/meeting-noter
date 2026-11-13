@@ -19,7 +19,7 @@ afterEach(resetBridge);
 describe('diarization bridge — open turns', () => {
   it('labels new speech with an open turn\'s speaker, replaces it when it grows, and cuts only at closed ends', async () => {
     const { bridge, store } = await consentedAndCached();
-    const asr = await import('./browser-asr');
+    const asr = await import('./asr/speaker');
     const timeline = vi.spyOn(asr, 'setSpeakerTimeline');
     const labeler = vi.spyOn(asr, 'setSpeakerLabeler');
     bridge.startDiarization(['mic']);
@@ -44,7 +44,7 @@ describe('diarization bridge — open turns', () => {
 
   it('does not cut at the end of a turn split only for running long', async () => {
     const { bridge } = await consentedAndCached();
-    const asr = await import('./browser-asr');
+    const asr = await import('./asr/speaker');
     const timeline = vi.spyOn(asr, 'setSpeakerTimeline');
     bridge.startDiarization(['mic']);
     const emit = fakes.turn.get('mic')!;
@@ -58,7 +58,7 @@ describe('diarization bridge — open turns', () => {
 
   it('does not cut at the end of a back-channel the other speaker talks through', async () => {
     const { bridge } = await consentedAndCached();
-    const asr = await import('./browser-asr');
+    const asr = await import('./asr/speaker');
     const timeline = vi.spyOn(asr, 'setSpeakerTimeline');
     bridge.startDiarization(['mic']);
     const emit = fakes.turn.get('mic')!;
@@ -75,7 +75,7 @@ describe('diarization bridge — open turns', () => {
 
   it('still cuts where the speaker changes or pauses', async () => {
     const { bridge } = await consentedAndCached();
-    const asr = await import('./browser-asr');
+    const asr = await import('./asr/speaker');
     const timeline = vi.spyOn(asr, 'setSpeakerTimeline');
     bridge.startDiarization(['mic']);
     const emit = fakes.turn.get('mic')!;
