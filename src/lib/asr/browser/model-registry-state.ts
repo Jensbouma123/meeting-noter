@@ -54,3 +54,7 @@ export function subscribe(fn: () => void): () => void {
     listeners.delete(fn);
   };
 }
+
+export function subscribeRegistry(fn: () => void): () => void {
+  return subscribe(fn);
+}
