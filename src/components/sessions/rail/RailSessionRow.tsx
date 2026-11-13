@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { useState, useSyncExternalStore, type MouseEvent } from 'react';
 import { Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, ListItem, Text } from '@jensbouma123/acciva-ui';
 import { ArrowRight, Eraser, FolderInput, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { isSessionRecording } from '@/lib/meeting/session-delete';
@@ -21,8 +21,13 @@ export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete, o
   const count = openCount(session.sessionId);
   const base = `${formatTime(session.createdAt)} · ${formatDuration(session.durationSeconds)}`;
   const subtitle = pathLabel ? `${pathLabel} · ${base}` : base;
+  const [menuOpen, setMenuOpen] = useState(false);
+  const openMenuOnContext = (e: MouseEvent) => {
+    e.preventDefault();
+    setMenuOpen(true);
+  };
   return (
-    <div className="group relative w-full">
+    <div className="group relative w-full" onContextMenu={openMenuOnContext}>
       <ListItem
         title={session.title}
         subtitle={subtitle}
@@ -47,7 +52,7 @@ export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete, o
       />
       {suggestion && <FolderSuggestionChip title={session.title} suggestion={suggestion} />}
       <div className="absolute right-1 top-1/2 -translate-y-1/2">
-        <DropdownMenu>
+        <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
           <DropdownMenuTrigger>
             <Button
               variant="ghost"

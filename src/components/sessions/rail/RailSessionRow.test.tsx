@@ -48,6 +48,15 @@ describe('RailSessionRow more menu', () => {
     openMenu('Standup');
     expect(screen.getByRole('menuitem', { name: 'Open', hidden: true })).toBeInTheDocument();
   });
+
+  it('opens the same menu on right-click and suppresses the native context menu', () => {
+    render(row(draft(), { isActive: false }));
+    const target = screen.getByRole('button', { name: 'More actions for “Standup”' }).closest('.group') as HTMLElement;
+    const notPrevented = fireEvent.contextMenu(target);
+    expect(notPrevented).toBe(false);
+    expect(screen.getByRole('menuitem', { name: 'Open', hidden: true })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Delete meeting', hidden: true })).toBeInTheDocument();
+  });
 });
 
 describe('RailSessionRow recording badge', () => {
