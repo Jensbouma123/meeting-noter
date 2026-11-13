@@ -12,13 +12,7 @@ import { MelFrontend } from './mel';
 import { SpeakerCache } from './speaker-cache';
 import { TurnTracker } from './turns';
 import type {
-  DiarizerCoreOptions,
-  SortformerRunner,
-  Source,
-  SpeakerCacheSnapshot,
-  SpeakerTurn,
-  StreamingMode,
-  TurnSpan,
+  DiarizerCoreOptions, SortformerRunner, Source, SpeakerCacheSnapshot, SpeakerTurn, StreamingMode, TurnSpan,
 } from './types';
 
 export class DiarizerCore {

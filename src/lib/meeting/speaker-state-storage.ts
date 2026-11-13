@@ -1,4 +1,5 @@
-import { isSerializedSpeakerState, type SpeakerStates } from '@/lib/diarization/browser/speaker-state';
+import { isSerializedSpeakerState } from '@/lib/diarization/browser/speaker-state';
+import type { SpeakerStates } from '@/lib/diarization/browser/types';
 import { isStorageAvailable } from './storage-available';
 import type { Source } from './types';
 import type { StoredSpeakerState } from './types/autosave';

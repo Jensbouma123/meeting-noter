@@ -1,4 +1,4 @@
-import type { SpeakerStates } from '@/lib/diarization/browser/speaker-state';
+import type { SpeakerStates } from '@/lib/diarization/browser/types';
 import type { Segment, Speaker } from './segment';
 
 export interface AutosaveInput {

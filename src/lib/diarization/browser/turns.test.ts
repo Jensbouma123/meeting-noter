@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { TurnTracker } from './turns';
+import type { TurnTrackerOptions } from './types';
 
 const FRAME = 0.01;
 
-/** Probabilities for `speakers` channels from per-channel activity strings
- *  ('#' = active, anything else = silent), one character per frame. */
 function frames(...channels: string[]): Float32Array {
   const n = channels[0].length;
   const out = new Float32Array(n * channels.length);
@@ -16,15 +15,7 @@ function frames(...channels: string[]): Float32Array {
 
 function tracker(
   numSpeakers: number,
-  opts: {
-    threshold?: number;
-    offThreshold?: number;
-    overlapThreshold?: number;
-    maxGapSec?: number;
-    minTurnSec?: number;
-    maxOpenSec?: number;
-    provisional?: boolean;
-  } = {},
+  opts: Partial<Omit<TurnTrackerOptions, 'numSpeakers' | 'frameSec'>> = {},
 ) {
   return new TurnTracker({ numSpeakers, frameSec: FRAME, maxGapSec: 0.03, minTurnSec: 0.03, maxOpenSec: 1, ...opts });
 }
@@ -62,19 +53,15 @@ describe('TurnTracker', () => {
   });
 
   it('keeps a run on while it stays above offThreshold, and only opens one above threshold', () => {
-    // 0.9 above both; 0.4 between offThreshold and threshold; 0.1 below both.
     const probs = (values: number[]) => Float32Array.from(values);
     const t = tracker(1, { threshold: 0.5, offThreshold: 0.3, maxGapSec: 0 });
-    // A run at 0.4 alone never opens.
     expect(t.push(probs([0.4, 0.4, 0.4, 0.1]))).toEqual([]);
-    // Opened at 0.9, it holds through 0.4 until the 0.1.
     expect(rounded(t.push(probs([0.9, 0.9, 0.4, 0.4, 0.1, 0.4, 0.1])))).toEqual([
       { speaker: 0, start: 0.04, end: 0.08 },
     ]);
   });
 
   it('holds a second, weaker speaker through an overlap with offThreshold', () => {
-    // Speaker 1's probability dips to 0.35 while speaker 0 dominates.
     const n = 12;
     const probs = new Float32Array(n * 2);
     for (let f = 0; f < n; f += 1) {
@@ -101,7 +88,6 @@ describe('TurnTracker', () => {
       return rounded([...t.push(probs), ...t.flush()]).filter((s) => s.speaker === 1);
     };
     expect(spans({})).toEqual([]);
-    // 0.45 opens speaker 1 at frame 2 (speaker 0 is on), and it holds to the end.
     expect(spans({ overlapThreshold: 0.4 })).toEqual([{ speaker: 1, start: 0.02, end: 0.08 }]);
   });
 
@@ -111,7 +97,6 @@ describe('TurnTracker', () => {
     expect(rounded(first)).toEqual([{ speaker: 0, start: 0, end: 0.1 }]);
     const rest = t.flush();
     expect(rounded(rest)).toEqual([{ speaker: 0, start: 0.1, end: 0.12 }]);
-    // Only the split end says the speaker goes on talking.
     expect(first[0].continues).toBe(true);
     expect(rest[0].continues).toBeUndefined();
   });
@@ -123,7 +108,6 @@ describe('TurnTracker', () => {
       [0, false, 0.05],
       [1, false, 0.05],
     ]);
-    // No growth, nothing new; a blip is never reported.
     expect(t.push(frames('.', '.'))).toEqual([]);
     const blip = tracker(1, { provisional: true });
     expect(blip.push(frames('.##'))).toEqual([]);

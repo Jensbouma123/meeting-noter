@@ -1,17 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createDiarizer } from './index';
-import { seedSpeakerStates, takeReportedSpeakerStates, type SerializedSpeakerState } from './speaker-state';
-
-/**
- * The diarization worker's lifecycle, which is a memory decision: one worker
- * (and therefore one pair of ~32 MB ONNX sessions) for the page, released when
- * the last diarizer goes away.
- *
- * It was already shared *while* recording, but never released — so a tab that
- * had recorded once held the sessions for its whole life. On a device that is
- * already near the ceiling with a 670 MB speech model (the Safari tab crashes
- * this app hit), "between recordings" is exactly when the memory matters.
- */
+import { seedSpeakerStates, takeReportedSpeakerStates } from './speaker-handoff';
+import type { SerializedSpeakerState } from './types';
 
 class FakeWorker {
   static instances: FakeWorker[] = [];
@@ -58,7 +48,6 @@ describe('createDiarizer — one worker, released with the last diarizer', () =>
   it('shares the worker across sources and keeps it until the last one goes', () => {
     const mic = createDiarizer({ source: 'mic' });
     const system = createDiarizer({ source: 'system' });
-    // Two sources, one worker: the models are loaded once, not twice.
     expect(FakeWorker.instances).toHaveLength(1);
 
     mic.dispose();
@@ -98,7 +87,6 @@ describe('createDiarizer — one worker, released with the last diarizer', () =>
     expect(first.posted.filter((m) => (m as { type: string }).type === 'push')).toHaveLength(1);
     expect((first.posted[first.posted.length - 1] as { type: string }).type).toBe('dispose');
 
-    // A new recording gets a new worker rather than reusing a terminated one.
     const again = createDiarizer({ source: 'mic' });
     expect(FakeWorker.instances).toHaveLength(2);
     again.dispose();

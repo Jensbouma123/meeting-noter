@@ -1,18 +1,5 @@
-import { beforeEach, describe, expect, it } from 'vitest';
-import {
-  deserializeSpeakerState,
-  reportSpeakerState,
-  seedSpeakerStates,
-  serializeSpeakerState,
-  speakerSeedFor,
-  takeReportedSpeakerStates,
-} from './speaker-state';
-
-/**
- * The speaker cache's stored form. float16 halves it against the storage
- * quota; the model is q4f16, so the embeddings it produced were fp16-sized
- * already.
- */
+import { describe, expect, it } from 'vitest';
+import { deserializeSpeakerState, serializeSpeakerState } from './speaker-state';
 
 const SHAPE = { hiddenSize: 4, numSpeakers: 2 };
 
@@ -33,7 +20,6 @@ describe('serializeSpeakerState / deserializeSpeakerState', () => {
     const back = deserializeSpeakerState(JSON.parse(text), SHAPE)!;
     expect(back.numFrames).toBe(2);
     expect(back.compressed).toBe(true);
-    // Nearest float16: within half a unit in the last place (11 bits).
     values.forEach((v, i) => expect(Math.abs(back.embeds[i] - v)).toBeLessThanOrEqual(Math.abs(v) * 2 ** -11 + 2 ** -25));
     expect(back.probs[0]).toBeCloseTo(0.9, 3);
     expect(back.probs[3]).toBeCloseTo(0.001, 4);
@@ -54,29 +40,5 @@ describe('serializeSpeakerState / deserializeSpeakerState', () => {
     expect(deserializeSpeakerState({ ...state, embeds: '%%%' }, SHAPE)).toBeNull();
     expect(deserializeSpeakerState(null, SHAPE)).toBeNull();
     expect(deserializeSpeakerState('state', SHAPE)).toBeNull();
-  });
-});
-
-describe('speaker state hand-off', () => {
-  beforeEach(() => seedSpeakerStates(null));
-
-  it('seeds every diarizer of a source until the next recording reseeds', () => {
-    const state = serializeSpeakerState(snapshot([1, 2, 3, 4], [0, 1]), SHAPE);
-    seedSpeakerStates({ mic: state, system: { bogus: true } as never });
-    expect(speakerSeedFor('mic')).toBe(state);
-    expect(speakerSeedFor('mic')).toBe(state);
-    expect(speakerSeedFor('system')).toBeUndefined();
-    seedSpeakerStates(null);
-    expect(speakerSeedFor('mic')).toBeUndefined();
-  });
-
-  it('hands over reported states once, and forgets an earlier recording\'s', () => {
-    const state = serializeSpeakerState(snapshot([1, 2, 3, 4], [0, 1]), SHAPE);
-    reportSpeakerState('system', state);
-    expect(takeReportedSpeakerStates()).toEqual({ system: state });
-    expect(takeReportedSpeakerStates()).toEqual({});
-    reportSpeakerState('mic', state);
-    seedSpeakerStates(null);
-    expect(takeReportedSpeakerStates()).toEqual({});
   });
 });

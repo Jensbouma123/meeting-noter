@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { SortformerOutput, SortformerRunner } from '@/lib/diarization/browser/core';
-import type { SpeakerTurn } from '@/lib/diarization/browser/types';
+import type { SortformerOutput, SortformerRunner, SpeakerTurn } from '@/lib/diarization/browser/types';
 
 /**
  * Appending a recording to a session keeps who-is-who: record, persist,
@@ -70,7 +69,10 @@ const fake = vi.hoisted(() => ({
 vi.mock('./diarization-bridge', () => {
   const shape = { hiddenSize: HIDDEN, numSpeakers: SPEAKERS };
   const mode = { chunkLength: 9, rightContext: 4, fifoLength: 30, updatePeriod: 20 };
-  const speakerState = () => import('@/lib/diarization/browser/speaker-state');
+  const speakerState = async () => ({
+    ...(await import('@/lib/diarization/browser/speaker-handoff')),
+    ...(await import('@/lib/diarization/browser/speaker-state')),
+  });
   return {
     startDiarization(sources: string[]) {
       void (async () => {

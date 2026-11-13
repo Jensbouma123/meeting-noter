@@ -1,12 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { MelFrontend, slaneyMelFilterbank } from './mel';
-
-/**
- * Reference values from transformers' `NemotronAsrStreamingFeatureExtractor`
- * with the model repo's `preprocessor_config.json` (torch 2.x, librosa
- * filters), on the signal `tones()` builds. On 20 s of real meeting audio fed
- * in odd-sized pieces the frontend matched that extractor to 1e-5.
- */
+import { MelFrontend } from './mel';
+import { slaneyMelFilterbank } from './mel-filterbank';
 
 function tones(): Float32Array {
   const out = new Float32Array(8000);
@@ -78,12 +72,10 @@ describe('MelFrontend', () => {
 
   it('emits a frame only once its window is complete, and floor(samples / 160) in total', () => {
     const mel = new MelFrontend();
-    // Frame t reaches sample 160 t + 199.
     expect(mel.push(new Float32Array(199)).length).toBe(0);
     expect(mel.push(new Float32Array(1)).length).toBe(128);
     expect(mel.push(new Float32Array(160)).length).toBe(128);
     expect(mel.framesEmitted).toBe(2);
-    // 1000 samples in all: floor(1000 / 160) = 6 frames.
     mel.push(new Float32Array(640));
     mel.finish();
     expect(mel.framesEmitted).toBe(6);

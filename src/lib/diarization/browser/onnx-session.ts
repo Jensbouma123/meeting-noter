@@ -36,14 +36,10 @@ export async function createSession(
   const base: ort.InferenceSession.SessionOptions = externalData ? { externalData } : {};
 
   const hasWebGpu = typeof navigator !== 'undefined' && 'gpu' in navigator;
-  if (hasWebGpu) {
-    try {
-      const session = await create(model, { ...base, executionProviders: ['webgpu'], logSeverityLevel: 3 });
-      return { session, backend: 'webgpu' };
-    } catch {
-      /* fall through to the WASM execution provider */
-    }
-  }
+  const webGpuSession = hasWebGpu
+    ? await create(model, { ...base, executionProviders: ['webgpu'], logSeverityLevel: 3 }).catch(() => null)
+    : null;
+  if (webGpuSession) return { session: webGpuSession, backend: 'webgpu' };
   const session = await create(model, { ...base, executionProviders: ['wasm'], logSeverityLevel: 3 });
   return { session, backend: 'wasm' };
 }

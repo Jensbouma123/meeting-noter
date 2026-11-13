@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { SerializedSpeakerState } from '@/lib/diarization/browser/speaker-state';
+import type { SerializedSpeakerState } from '@/lib/diarization/browser/types';
 import { MAX_SPEAKER_STATES, loadSpeakerState, removeSpeakerState, saveSpeakerState, speakerStateKey } from './speaker-state-storage';
 import { saveSessionTranscript, sessionTranscriptKey } from './session-transcript-storage';
 

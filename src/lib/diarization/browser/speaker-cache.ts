@@ -1,16 +1,6 @@
 import { DEFAULT_SPEAKER_CACHE_CONFIG } from './constants';
-import {
-  compressFrames,
-  compressionBudget,
-  poolProbsToEncoderRate,
-  scoreFrames,
-} from './speaker-cache-compression';
-import type {
-  CompressedFrames,
-  CompressionBudget,
-  SpeakerCacheConfig,
-  SpeakerCacheSnapshot,
-} from './types';
+import { compressFrames, compressionBudget, poolProbsToEncoderRate, scoreFrames } from './speaker-cache-compression';
+import type { CompressedFrames, CompressionBudget, SpeakerCacheConfig, SpeakerCacheSnapshot } from './types';
 
 export class SpeakerCache {
   readonly config: SpeakerCacheConfig;
