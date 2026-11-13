@@ -1,0 +1,49 @@
+.mn-chip-success {
+  color: var(--foreground);
+  background-color: var(--badge-success-background);
+  border: 1px solid var(--color-success-300);
+}
+
+html[data-theme="dark"] .mn-chip-success {
+  border-color: var(--color-success-800);
+}
+
+.mn-chip-warning {
+  color: var(--foreground);
+  background-color: var(--badge-warning-background);
+  border: 1px solid var(--color-warning-300);
+}
+
+html[data-theme="dark"] .mn-chip-warning {
+  border-color: var(--color-warning-800);
+}
+
+.mn-chip-danger {
+  color: var(--foreground);
+  background-color: var(--badge-danger-background);
+  border: 1px solid var(--color-danger-300);
+}
+
+html[data-theme="dark"] .mn-chip-danger {
+  border-color: var(--color-danger-800);
+}
+
+.mn-chip-info {
+  color: var(--foreground);
+  background-color: var(--badge-info-background);
+  border: 1px solid var(--color-info-300);
+}
+
+html[data-theme="dark"] .mn-chip-info {
+  border-color: var(--color-info-800);
+}
+
+.mn-chip-primary {
+  color: var(--foreground);
+  background-color: var(--badge-primary-background);
+  border: 1px solid var(--color-primary-300);
+}
+
+html[data-theme="dark"] .mn-chip-primary {
+  border-color: var(--color-primary-800);
+}

@@ -9,6 +9,7 @@
    `bg-primary-500` / `text-muted-foreground` utility. Never copy this file
    into `src/` — a vendored duplicate drifts from the published one. */
 @import "../lib/theme/tokens.css";
+@import "./status-chips.css";
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 

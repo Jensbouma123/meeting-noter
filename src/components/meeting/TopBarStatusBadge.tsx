@@ -21,25 +21,25 @@ function RecordingStatusBadge({ t, status }: { t: (key: string) => string; statu
   switch (status) {
     case 'live':
       return (
-        <Badge variant="success" dot size="sm">
+        <Badge variant="success" className="mn-chip-success" dot size="sm">
           {t('recording')}
         </Badge>
       );
     case 'paused':
       return (
-        <Badge variant="warning" dot size="sm">
+        <Badge variant="warning" className="mn-chip-warning" dot size="sm">
           {t('paused')}
         </Badge>
       );
     case 'requesting':
       return (
-        <Badge variant="warning" size="sm">
+        <Badge variant="warning" className="mn-chip-warning" size="sm">
           {t('waiting')}
         </Badge>
       );
     case 'connecting':
       return (
-        <Badge variant="warning" size="sm">
+        <Badge variant="warning" className="mn-chip-warning" size="sm">
           {t('starting')}
         </Badge>
       );
@@ -51,7 +51,7 @@ function RecordingStatusBadge({ t, status }: { t: (key: string) => string; statu
       );
     default:
       return (
-        <Badge variant="danger" size="sm">
+        <Badge variant="danger" className="mn-chip-danger" size="sm">
           {t('recordingError')}
         </Badge>
       );

@@ -37,9 +37,9 @@ export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete, o
         trailing={<>
           {count > 0 && <Badge variant="neutral" size="xs">{t('openCount').replace('{n}', String(count))}</Badge>}
           {badgeState === 'recording' ? (
-            <Badge variant="danger" size="xs" dot>{t('recording')}</Badge>
+            <Badge variant="danger" className="mn-chip-danger" size="xs" dot>{t('recording')}</Badge>
           ) : badgeState === 'draft' ? (
-            <Badge variant="warning" size="xs">{t('notRecorded')}</Badge>
+            <Badge variant="warning" className="mn-chip-warning" size="xs">{t('notRecorded')}</Badge>
           ) : undefined}
         </>}
         className="w-full pr-10"

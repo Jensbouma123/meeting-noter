@@ -8,7 +8,7 @@ export function StatusBadge({ status }: { status: ModelEntry['status'] }) {
   const badge = SPEECH_STATUS_BADGE[status];
   if (!badge) return null;
   return (
-    <Badge variant={badge.variant} size="sm" dot>
+    <Badge variant={badge.variant} className={`mn-chip-${badge.variant}`} size="sm" dot>
       {t(badge.label)}
     </Badge>
   );
