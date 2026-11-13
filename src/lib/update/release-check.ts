@@ -1,3 +1,4 @@
+import bundled from '../../../release-notes.json';
 import { MAX_NOTES } from './constants';
 import type { ApplyBlockedReason, InstallInfo, Release, UpdateCheck } from './types';
 import { findNewerRelease, installerAssetsReady, RELEASES_API } from './version.mjs';
@@ -17,7 +18,7 @@ export function buildCheck(info: InstallInfo, rel: Release | null, running: bool
     latest: available ? rel.version : null,
     available,
     name: available ? rel.name : null,
-    notes: available && rel.notes ? rel.notes.slice(0, MAX_NOTES) : null,
+    notes: available ? (rel.notes ?? (bundled as Record<string, string>)[rel.version] ?? null)?.slice(0, MAX_NOTES) ?? null : null,
     publishedAt: available ? rel.publishedAt : null,
     pageUrl: available ? rel.pageUrl : null,
     installKind: info.kind,
