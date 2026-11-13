@@ -10,6 +10,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:update-e2e": "node scripts/installer/update-e2e.mjs",
+    "test:mcp-e2e": "node scripts/installer/mcp-smoke-e2e.mjs",
     "helper:build": "sh helper/build.sh",
     "helper": "sh helper/build.sh && ./helper/build/meeting-noter-audio-helper",
     "app": "node scripts/dev.mjs --prod",

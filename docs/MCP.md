@@ -89,6 +89,10 @@ Claude Desktop:
 Then ask, for example: *"Search my meetings for the budget freeze and list the
 action items."*
 
+## Packaged-app smoke test
+
+`npm run test:mcp-e2e` (macOS) reuses `build/installer/stage` or builds it with `scripts/installer/package.sh` (`--build` forces a rebuild). It resolves the script and node with the app's own resolver, starts the bundle with the bundled node against a temp `meetings.db`, asserts the five tools, and checks the `claude_desktop_config.json` entry in a temp file, never the real Claude config. `release.yml` runs it after `package.sh`.
+
 ## Running from source
 
 The installed app never builds the server: Claude Desktop's "Herstel nodig" repair only rewrites `claude_desktop_config.json`, pointing at `app/mcp/meetings-mcp.mjs` and the bundled `app/node/bin/node`. In a checkout, build the server once (and after pulling changes), then point the config at

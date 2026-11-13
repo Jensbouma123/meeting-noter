@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { MeetingsDb } from '../lib/meeting-db/db';
@@ -42,4 +43,10 @@ export async function connect(seed?: (db: MeetingsDb) => void, active?: { meetin
     return { text: res.content[0].text, isError: res.isError === true };
   };
   return { client, call, file };
+}
+
+export async function connectStdio(command: string, args: string[]): Promise<Client> {
+  const client = new Client({ name: 'smoke', version: '1.0.0' });
+  await client.connect(new StdioClientTransport({ command, args, stderr: 'ignore' }));
+  return client;
 }
