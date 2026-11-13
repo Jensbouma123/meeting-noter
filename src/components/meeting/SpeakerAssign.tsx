@@ -37,7 +37,7 @@ export function SpeakerAssign({
   const [draft, setDraft] = useState('');
   const unnamed = isUnnamedSpeakerLabel(label);
   const rail = appearance === 'rail';
-  const { nameRef, nameTruncated } = useNameTruncation(label, rail);
+  const { nameRef, nameTruncated } = useNameTruncation(label, rail || !unnamed);
   const free = new Set(unassignedParticipants(participants, otherLabels).map((n) => n.toLowerCase()));
 
   const assign = (name: string) => {
@@ -112,7 +112,7 @@ export function SpeakerAssign({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-  return rail && !unnamed ? (
+  return !unnamed ? (
     <div data-testid="speaker-assign-wrap" className="min-w-0 w-full [&>div]:block [&>div]:w-full">
       {menu}
     </div>

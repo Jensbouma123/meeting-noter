@@ -51,9 +51,15 @@ export function renderSpeakerAssignTrigger({
       data-testid="speaker-assign"
       aria-label={unnamed ? `${t('whoIsThis')} (${label})` : `${t('change')}: ${label}`}
       trailingIcon={<ChevronDown className="size-3 opacity-60" aria-hidden="true" />}
-      className={className}
+      className={`min-w-0 max-w-full justify-start ${className ?? ''}`}
     >
-      <span className={`truncate ${textClassName ?? ''}`}>{unnamed ? t('whoIsThis') : label}</span>
+      <span
+        ref={nameRef}
+        title={nameTruncated ? label : undefined}
+        className={`min-w-0 truncate text-left ${textClassName ?? ''}`}
+      >
+        {unnamed ? t('whoIsThis') : label}
+      </span>
     </Button>
   );
 }
