@@ -1,5 +1,5 @@
 import type { CaptureDiagnostics } from './capture';
-import type { DiarizationFeed } from '../diarization-bridge';
+import type { DiarizationFeed } from './diarization-bridge';
 import type { LiveAsrFeed } from '../browser-asr';
 import type { Source } from './basics';
 

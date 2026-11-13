@@ -1,5 +1,5 @@
 import { getLiveAsrFeed } from './browser-asr';
-import { getDiarizationFeed } from './diarization-bridge';
+import { getDiarizationFeed } from './diarization-feed';
 import { session } from './session-state';
 import type { Source } from './types';
 import type { FrameFeedCounts, MeetingDiagnostics } from './types/diagnostics';

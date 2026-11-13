@@ -204,7 +204,8 @@ describe('diarization bridge — word-level attribution', () => {
   });
 
   it('does not count turns touching for under MIN_OVERLAP_SECONDS as overlap', async () => {
-    const { startDiarization, MIN_OVERLAP_SECONDS } = await import('./diarization-bridge');
+    const { startDiarization } = await import('./diarization-bridge');
+    const { MIN_OVERLAP_SECONDS } = await import('./diarization-overlaps');
     const store = await import('./store');
     store.resetSession('mic');
     startDiarization(['mic']);
