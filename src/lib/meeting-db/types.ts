@@ -10,7 +10,7 @@ export interface StoredSegment {
   start: number;
   end: number;
   overlap?: SegmentOverlap;
-  /** Words the model was unsure of; the D1 "Words to check" scan reads them. Absent on meetings saved before v5. */
+  /** Words the model was unsure of; nothing reads them since D1 was removed. Absent on meetings saved before v5. */
   lowConfSpans?: LowConfSpan[];
 }
 

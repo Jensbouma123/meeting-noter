@@ -15,7 +15,6 @@
     "app": "node scripts/dev.mjs --prod",
     "helper:install": "sh helper/install-agent.sh",
     "helper:uninstall": "sh helper/install-agent.sh uninstall",
-    "postinstall": "node scripts/sync-ort.mjs",
     "mcp:build": "rolldown -c scripts/mcp/rolldown.config.mjs"
   },
   "dependencies": {

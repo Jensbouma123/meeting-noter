@@ -45,11 +45,6 @@ export const transcript = {
     'fixWord.says': 'The transcript says “{heard}”.',
     'fixWord.label': 'Correct spelling',
     'fixWord.placeholder': 'e.g. Framna',
-    'd1.reviewWordAria': 'Review word: {word}',
-    'd1.reviewWord': 'Review',
-    'd1.checkSpeaker': 'check speaker',
-    'd1.tagDecision': 'Decision',
-    'd1.tagActionItem': 'Action item',
   },
   nl: {
     ready: 'Klaar om op te nemen',
@@ -97,10 +92,5 @@ export const transcript = {
     'fixWord.says': 'Het transcript zegt “{heard}”.',
     'fixWord.label': 'Juiste spelling',
     'fixWord.placeholder': 'bijv. Framna',
-    'd1.reviewWordAria': 'Woord controleren: {word}',
-    'd1.reviewWord': 'Controleren',
-    'd1.checkSpeaker': 'spreker controleren',
-    'd1.tagDecision': 'Besluit',
-    'd1.tagActionItem': 'Actiepunt',
   },
 } as const;

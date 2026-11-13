@@ -27,7 +27,7 @@ function defaultEmbedder(): Embedder {
 
 /**
  * Stops the shared EmbeddingGemma 2 worker (~175 MB model) so it is never
- * resident beside ASR, diarization or D1. A later search or index spawns a
+ * resident beside ASR, or diarization. A later search or index spawns a
  * fresh one; in-flight embeds on it reject.
  */
 export function disposeSharedEmbedder(): void {
