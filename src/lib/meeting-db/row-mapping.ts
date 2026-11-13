@@ -15,7 +15,7 @@ export function parseJson<T>(raw: SQLOutputValue, fallback: T): T {
 }
 
 export const SUMMARY_COLUMNS =
-  'm.id, m.title, m.created_at, m.updated_at, m.started_at, m.duration_seconds, m.segment_count, m.capture_mode, m.is_draft, m.speaker_names, m.folder_id';
+  'm.id, m.title, m.created_at, m.updated_at, m.started_at, m.duration_seconds, m.segment_count, m.capture_mode, m.is_draft, m.speaker_names, m.folder_id, m.folder_suggestion_declined';
 
 export function toSummaryRow(row: SqlRow): MeetingSummaryRow {
   return {
@@ -30,5 +30,6 @@ export function toSummaryRow(row: SqlRow): MeetingSummaryRow {
     isDraft: num(row.is_draft) === 1,
     speakers: parseJson<string[]>(row.speaker_names, []),
     folderId: row.folder_id === null ? null : str(row.folder_id),
+    folderSuggestionDeclined: parseJson<string[]>(row.folder_suggestion_declined, []),
   };
 }

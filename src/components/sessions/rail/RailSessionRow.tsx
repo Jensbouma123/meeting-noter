@@ -6,11 +6,12 @@ import { subscribe as subscribeMeetingStore } from '@/lib/meeting/store-core';
 import { openCount } from '@/lib/meeting/notes';
 import { useT } from '@/lib/i18n/useT';
 import { useFoldersT } from '../folders/useFoldersT';
+import { FolderSuggestionChip } from './FolderSuggestionChip';
 import { formatDuration, formatTime } from './formatters';
 import { getRailBadgeState } from './getRailBadgeState';
 import type { RailSessionRowProps } from './types';
 
-export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete, onMove, pathLabel }: RailSessionRowProps) {
+export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete, onMove, pathLabel, suggestion }: RailSessionRowProps) {
   const t = useT('sidebar');
   const tf = useFoldersT();
   useSyncExternalStore(subscribeMeetingStore, () => isSessionRecording(session.sessionId), () => false);
@@ -44,6 +45,7 @@ export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete, o
         </>}
         className="w-full pr-10"
       />
+      {suggestion && <FolderSuggestionChip title={session.title} suggestion={suggestion} />}
       <div className="absolute right-1 top-1/2 -translate-y-1/2">
         <DropdownMenu>
           <DropdownMenuTrigger>

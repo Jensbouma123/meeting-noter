@@ -14,6 +14,7 @@ import { RailHeader } from './rail/RailHeader';
 import { RailSearch } from './rail/RailSearch';
 import { RailSessionRow } from './rail/RailSessionRow';
 import { useBackfillIndex } from './rail/useBackfillIndex';
+import { useFolderSuggestions } from './rail/useFolderSuggestions';
 import { useSessionIndex } from './rail/useSessionIndex';
 import { useSessionSearch } from './rail/useSessionSearch';
 import type { SessionSidebarProps } from './rail/types';
@@ -24,6 +25,7 @@ export function SessionSidebar({ activeSessionId, onOpenSession, onNewSession, o
   const { sessions, remove, clear } = useSessionIndex();
   useBackfillIndex(sessions.length);
   const folderCtl = useFolderController(sessions);
+  const suggestions = useFolderSuggestions(sessions, folderCtl.folders, folderCtl.meetingFolders);
   const [deleteTarget, setDeleteTarget] = useState<SessionMetadata | null>(null);
   const [clearTarget, setClearTarget] = useState<SessionMetadata | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -49,6 +51,7 @@ export function SessionSidebar({ activeSessionId, onOpenSession, onNewSession, o
       session={session}
       isActive={activeSessionId === session.sessionId}
       pathLabel={pathLabel}
+      suggestion={suggestions[session.sessionId]}
       onOpen={() => openSession(session.sessionId)}
       onClear={() => setClearTarget(session)}
       onDelete={() => setDeleteTarget(session)}

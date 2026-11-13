@@ -4,6 +4,7 @@ import { cleanFolderName } from './folder-name';
 import { readAllFolders } from './folder-queries';
 import { fileMeetingInFolder, insertFolder, renumberSiblings, reparentFolder, updateFolderName } from './folder-writes';
 import { deleteAllMeetingRows, deleteFolderRows, deleteMeetingRows } from './meeting-delete';
+import { declineFolderSuggestionRow } from './folder-suggestions';
 import { listMeetingRows, searchMeetingRows } from './meeting-queries';
 import { readMeeting } from './meeting-read';
 import { upsertMeetingRows } from './meeting-upsert';
@@ -108,6 +109,10 @@ export class MeetingsDb {
   setInsights(id: string, insights: InsightSet | null): boolean {
     const json = insights === null ? null : JSON.stringify(insights);
     return Number(this.db.prepare('UPDATE meetings SET insights = ? WHERE id = ?').run(json, id).changes) > 0;
+  }
+
+  declineFolderSuggestion(meetingId: string, folderId: string): boolean {
+    return declineFolderSuggestionRow(this.db, meetingId, folderId);
   }
 
   markdownFile(id: string): string | null {

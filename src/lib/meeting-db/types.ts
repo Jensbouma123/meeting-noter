@@ -43,6 +43,7 @@ export interface MeetingSummaryRow {
   isDraft: boolean;
   speakers: string[];
   folderId: string | null;
+  folderSuggestionDeclined: string[];
 }
 
 export interface MeetingSearchHit extends MeetingSummaryRow {

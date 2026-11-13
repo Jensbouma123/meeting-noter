@@ -36,6 +36,12 @@ export async function fetchMeetingFolders(): Promise<Record<string, string | nul
   return Object.fromEntries(r.meetings.map((m) => [m.id, m.folderId ?? null]));
 }
 
+export async function fetchDeclinedSuggestions(): Promise<Record<string, string[]> | null> {
+  const r = await call<{ meetings: { id: string; folderSuggestionDeclined?: string[] }[] }>('/api/meetings');
+  if (!r.ok) return null;
+  return Object.fromEntries(r.meetings.map((m) => [m.id, m.folderSuggestionDeclined ?? []]));
+}
+
 export async function createFolder(name: string, parentId: string | null): Promise<ApiResult<{ folder: FolderRow }>> {
   return changed(await call('/api/folders', json('POST', { name, parentId })));
 }
@@ -61,4 +67,8 @@ export async function deleteFolder(
 
 export async function moveMeeting(meetingId: string, folderId: string | null): Promise<ApiResult> {
   return changed(await call(`/api/meetings/${encodeURIComponent(meetingId)}/folder`, json('PUT', { folderId })));
+}
+
+export async function declineFolderSuggestion(meetingId: string, folderId: string): Promise<ApiResult> {
+  return changed(await call(`/api/meetings/${encodeURIComponent(meetingId)}/folder-suggestion`, json('PUT', { folderId })));
 }

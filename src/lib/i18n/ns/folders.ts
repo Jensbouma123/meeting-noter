@@ -12,6 +12,8 @@ export const folders = {
     deleteWithContentsDescription: '“{name}” and every meeting inside it are permanently deleted. This can’t be undone.',
     nameRequired: 'Enter a folder name.', nameDuplicate: 'A folder with this name already exists here.', moveIntoItself: 'You can’t move a folder into itself.',
     errorGeneric: 'Couldn’t update folders. Try again.',
+    suggestIn: 'Suggested folder: {folder}', accept: 'Move', decline: 'No thanks',
+    suggestAria: 'Move “{title}” to suggested folder “{folder}”', declineAria: 'Dismiss folder suggestion for “{title}”',
   },
   nl: {
     title: 'Mappen', newFolder: 'Nieuwe map', newSubfolder: 'Nieuwe submap', rename: 'Naam wijzigen', deleteFolder: 'Map verwijderen',
@@ -26,5 +28,7 @@ export const folders = {
     deleteWithContentsDescription: '“{name}” en alle meetings erin worden definitief verwijderd. Dit kun je niet ongedaan maken.',
     nameRequired: 'Vul een naam in voor de map.', nameDuplicate: 'Er bestaat hier al een map met deze naam.', moveIntoItself: 'Je kunt een map niet in zichzelf verplaatsen.',
     errorGeneric: 'Mappen bijwerken is niet gelukt. Probeer het opnieuw.',
+    suggestIn: 'Voorgestelde map: {folder}', accept: 'Verplaatsen', decline: 'Nee, bedankt',
+    suggestAria: '“{title}” verplaatsen naar voorgestelde map “{folder}”', declineAria: 'Mapvoorstel voor “{title}” negeren',
   },
 } as const;

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { SessionMetadata } from '@/lib/meeting/types/session-store';
 import type { SessionGroup } from '@/lib/meeting/types/session-groups';
+import type { FolderSuggestionView } from './folder-suggestion.types';
 import type { FolderController } from '../folders/types';
 
 export interface SessionSidebarProps {
@@ -25,6 +26,7 @@ export interface RailSessionRowProps {
   onDelete: () => void;
   onMove?: () => void;
   pathLabel?: string;
+  suggestion?: FolderSuggestionView;
 }
 
 export type RailBadgeState = 'recording' | 'draft' | 'none';

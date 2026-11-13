@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 6;
+export const SCHEMA_VERSION = 7;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS meetings (
@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS meetings (
   markdown_file TEXT,
   participants TEXT,
   folder_id TEXT,
-  insights TEXT
+  insights TEXT,
+  folder_suggestion_declined TEXT
 );
 CREATE TABLE IF NOT EXISTS segments (
   meeting_id TEXT NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
