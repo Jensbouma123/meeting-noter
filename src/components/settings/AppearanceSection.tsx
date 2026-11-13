@@ -1,7 +1,8 @@
 'use client';
 
 import { RadioGroup, Radio } from '@jensbouma123/acciva-ui';
-import { useThemePreference, type ThemePreference } from '@/components/meeting/ThemeSwitcher';
+import { useThemePreference } from '@/components/meeting/useThemePreference';
+import type { ThemePreference } from '@/components/meeting/ThemeSwitcher.types';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useT } from '@/lib/i18n/useT';
 import { SettingsGroup, SettingsStackedRow } from './SettingsRow';

@@ -6,7 +6,7 @@ import { act, cleanup, renderHook } from '@testing-library/react';
 const setMode = vi.fn();
 vi.mock('@jensbouma123/acciva-ui/theme', () => ({ useTheme: () => ({ setMode }) }));
 
-const { useThemePreference } = await import('./ThemeSwitcher');
+const { useThemePreference } = await import('./useThemePreference');
 
 beforeEach(() => {
   localStorage.clear();

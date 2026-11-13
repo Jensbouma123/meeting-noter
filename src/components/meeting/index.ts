@@ -1,4 +1,6 @@
 export * from './ThemeSwitcher';
+export * from './ThemeSwitcher.types';
+export * from './useThemePreference';
 export * from './modelReadiness';
 export * from './store';
 export * from './types';
