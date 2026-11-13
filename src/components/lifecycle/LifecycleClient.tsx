@@ -5,6 +5,7 @@ import { Alert } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { LanguageContext } from '@/lib/i18n/LanguageContext';
 import { useMeeting } from '@/components/meeting/store';
+import { purgeLegacyD1Storage } from '@/lib/legacy-purge/purge-legacy-d1';
 import { useServerHeartbeat } from '@/lib/lifecycle/useServerHeartbeat';
 
 export function LifecycleClient() {
@@ -14,6 +15,10 @@ export function LifecycleClient() {
   const [failed, setFailed] = useState(false);
 
   useServerHeartbeat(status === 'live' || status === 'paused' || status === 'connecting');
+
+  useEffect(() => {
+    void purgeLegacyD1Storage();
+  }, []);
 
   useEffect(() => {
     document.documentElement.lang = language;
