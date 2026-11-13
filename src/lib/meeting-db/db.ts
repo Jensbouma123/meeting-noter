@@ -7,6 +7,7 @@ import { deleteAllMeetingRows, deleteFolderRows, deleteMeetingRows } from './mee
 import { listMeetingRows, searchMeetingRows } from './meeting-queries';
 import { readMeeting } from './meeting-read';
 import { upsertMeetingRows } from './meeting-upsert';
+import type { InsightSet } from '../semantic-search/insights/types/insight-set';
 import { scrubDeletedText } from './scrub';
 import { prepareWritableDatabase } from './schema-migration';
 import { runInTransaction } from './transaction';
@@ -102,6 +103,11 @@ export class MeetingsDb {
 
   setMetaOnce(key: string, value: string): boolean {
     return Number(this.db.prepare('INSERT OR IGNORE INTO meta (key, value) VALUES (?, ?)').run(key, value).changes) > 0;
+  }
+
+  setInsights(id: string, insights: InsightSet | null): boolean {
+    const json = insights === null ? null : JSON.stringify(insights);
+    return Number(this.db.prepare('UPDATE meetings SET insights = ? WHERE id = ?').run(json, id).changes) > 0;
   }
 
   markdownFile(id: string): string | null {

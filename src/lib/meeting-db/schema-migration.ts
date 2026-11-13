@@ -14,6 +14,7 @@ export function prepareWritableDatabase(db: DatabaseSync): void {
     const meetingColumns = columnNames(db, 'meetings');
     if (!meetingColumns.includes('participants')) db.exec('ALTER TABLE meetings ADD COLUMN participants TEXT');
     if (!meetingColumns.includes('folder_id')) db.exec('ALTER TABLE meetings ADD COLUMN folder_id TEXT');
+    if (!meetingColumns.includes('insights')) db.exec('ALTER TABLE meetings ADD COLUMN insights TEXT');
     if (!columnNames(db, 'segments').includes('low_conf_spans')) db.exec('ALTER TABLE segments ADD COLUMN low_conf_spans TEXT');
     db.exec(`PRAGMA user_version = ${SCHEMA_VERSION}`);
   }

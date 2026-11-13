@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import type { InsightSet } from '../semantic-search/insights/types/insight-set';
 import { MeetingsDb } from './db';
 import { markdownFileName, markdownFolderPath, renderMeetingMarkdown } from './markdown';
 import { removeEmptyDirectories, removeMarkdownFile, resolveInsideRoot, writeMarkdownFile } from './markdown-files';
@@ -57,6 +58,13 @@ export class MeetingStore {
     this.db.moveMeeting(id, folderId);
     const meeting = this.db.get(id);
     if (meeting) this.save(meeting);
+  }
+
+  setInsights(id: string, insights: InsightSet | null): boolean {
+    if (!this.db.setInsights(id, insights)) return false;
+    const meeting = this.db.get(id);
+    if (meeting) this.save(meeting);
+    return true;
   }
 
   deleteFolder(id: string, mode: FolderDeleteMode): { folders: number; meetings: number } {

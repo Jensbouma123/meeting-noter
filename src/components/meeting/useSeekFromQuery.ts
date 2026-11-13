@@ -1,6 +1,7 @@
 import { useEffect, useRef, type RefObject } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { VirtualListHandle } from '@jensbouma123/acciva-ui';
+import { SEEK_EVENT } from '@/lib/meeting/seek-event';
 import { itemSegments } from './transcriptItems';
 import type { TranscriptItem } from './LiveTranscript.types';
 
@@ -20,4 +21,13 @@ export function useSeekFromQuery(listRef: RefObject<VirtualListHandle | null>, i
     done.current = raw;
     listRef.current.scrollToIndex(seekIndex(items, seconds), 'center');
   }, [raw, items, listRef]);
+
+  useEffect(() => {
+    const onSeek = (e: Event) => {
+      const seconds = (e as CustomEvent<number>).detail;
+      if (typeof seconds === 'number' && items.length > 0) listRef.current?.scrollToIndex(seekIndex(items, seconds), 'center');
+    };
+    window.addEventListener(SEEK_EVENT, onSeek);
+    return () => window.removeEventListener(SEEK_EVENT, onSeek);
+  }, [items, listRef]);
 }

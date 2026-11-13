@@ -1,4 +1,5 @@
 import { formatClock, resolveSpeakerLabel, tidyText } from '../meeting/transcript-format';
+import { insightsMarkdown } from './insights-markdown';
 import type { Segment } from '../meeting/types';
 import type { FolderRow, StoredMeeting, StoredSegment } from './types';
 
@@ -108,6 +109,7 @@ export function renderMeetingMarkdown(meeting: StoredMeeting): string {
   out.push('## Speakers', '', ...(speakers.length > 0 ? speakers.map((s) => `- ${s}`) : ['(none)']), '');
   const summary = summaryText(meeting);
   out.push('## Summary', '', summary || '(no decisions or action items)', '');
+  out.push(...insightsMarkdown(meeting));
   const transcript = transcriptLines(meeting).join('\n\n');
   out.push('## Transcript', '', transcript || '(empty)');
   return out.join('\n') + '\n';

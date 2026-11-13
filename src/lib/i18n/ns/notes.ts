@@ -24,6 +24,10 @@ export const notes = {
     dismissSuggestion: 'Dismiss suggestion',
     noDue: 'No due date',
     clearDue: 'Clear date',
+    suggestedDecisions: 'Suggested decisions',
+    suggestedActions: 'Suggested action items',
+    jump: 'Jump to transcript',
+    dismiss: 'Dismiss',
   },
   nl: {
     actions: 'Actiepunten',
@@ -50,5 +54,9 @@ export const notes = {
     dismissSuggestion: 'Suggestie negeren',
     noDue: 'Geen deadline',
     clearDue: 'Datum wissen',
+    suggestedDecisions: 'Voorgestelde besluiten',
+    suggestedActions: 'Voorgestelde actiepunten',
+    jump: 'Naar transcript',
+    dismiss: 'Negeren',
   },
 } as const;

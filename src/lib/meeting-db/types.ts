@@ -1,6 +1,7 @@
 import type { SQLOutputValue } from 'node:sqlite';
 import type { CaptureMode, LowConfSpan, SegmentOverlap, Source, Speaker } from '../meeting/types';
 import type { Notes } from '../meeting/types/notes';
+import type { InsightSet } from '../semantic-search/insights/types/insight-set';
 
 export interface StoredSegment {
   id: string;
@@ -27,6 +28,7 @@ export interface StoredMeeting {
   notes: Notes;
   participants: string[] | null;
   folderId?: string | null;
+  insights?: InsightSet | null;
 }
 
 export interface MeetingSummaryRow {

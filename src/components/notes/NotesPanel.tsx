@@ -6,6 +6,7 @@ import { addAction, addDecision, getNotes } from '@/lib/meeting/notes';
 import { subscribe } from '@/lib/meeting/notes-storage';
 import { suggestFromSegments } from '@/lib/meeting/note-suggestions';
 import { useT } from '@/lib/i18n/useT';
+import { InsightSuggestions } from './InsightSuggestions';
 import { ActionRow } from './ActionRow';
 import { DecisionRow } from './DecisionRow';
 import { NoteSection } from './NoteSection';
@@ -45,6 +46,8 @@ export function NotesPanel({ sessionId, speakers = [], segments = [] }: NotesPan
         onSave={(text) => addDecision(sessionId, text)}>
         {parsedNotes.decisions.map((item) => <DecisionRow key={item.id} item={item} sessionId={sessionId} t={t} />)}
       </NoteSection>
+
+      <InsightSuggestions sessionId={sessionId} speakers={speakers} t={t} />
 
       {suggestions.length > 0 && (
         <SuggestionsList suggestions={suggestions} sessionId={sessionId} t={t} onDismiss={dismiss} />
