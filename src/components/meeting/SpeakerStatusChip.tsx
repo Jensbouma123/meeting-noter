@@ -14,7 +14,7 @@ export function SpeakerStatusChip({ status, onOpenSettings }: SpeakerStatusChipP
   return (
     <Tooltip content={reason ? `${unavailable}: ${reason}` : unavailable}>
       <Button
-        variant="secondary"
+        variant="outline"
         size="xs"
         onClick={() => onOpenSettings('advanced')}
         leadingIcon={<TriangleAlert className="size-3.5 text-warning" aria-hidden="true" />}

@@ -18,7 +18,7 @@ export function AssistantCopyButton({ text, label }: AssistantCopyButtonProps) {
     }
   };
   return (
-    <Button variant="secondary" size="sm" onClick={() => void copy()}>
+    <Button variant="outline" size="sm" onClick={() => void copy()}>
       {copied ? t('copied') : label}
     </Button>
   );

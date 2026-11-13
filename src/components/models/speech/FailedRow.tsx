@@ -19,7 +19,7 @@ export function FailedRow({ entry }: { entry: ModelEntry }) {
           </Text>
         )}
       </VStack>
-      <Button variant="secondary" size="xs" onClick={() => void retryDownload(entry.key)} className="shrink-0">
+      <Button variant="outline" size="xs" onClick={() => void retryDownload(entry.key)} className="shrink-0">
         {t('action.retry')}
       </Button>
     </HStack>

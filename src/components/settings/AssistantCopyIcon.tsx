@@ -20,7 +20,7 @@ export function AssistantCopyIcon({ text }: AssistantCopyIconProps) {
   };
   return (
     <Button
-      variant="secondary"
+      variant="outline"
       size="sm"
       iconOnly
       tooltip={t('copy')}

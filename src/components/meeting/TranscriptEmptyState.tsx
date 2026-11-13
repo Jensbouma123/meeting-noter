@@ -46,7 +46,7 @@ export function TranscriptEmptyState({ modelReady, modelReadiness, onStartRecord
               </div>
             ) : !preparing ? (
               <Button
-                variant="secondary"
+                variant="outline"
                 size={{ base: 'md', md: 'sm' }}
                 onClick={() => onOpenSettings('advanced')}
               >

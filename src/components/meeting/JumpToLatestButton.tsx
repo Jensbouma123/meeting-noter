@@ -9,7 +9,7 @@ export function JumpToLatestButton({ onClick }: { onClick: () => void }) {
   return (
     <div className="pointer-events-auto absolute bottom-[calc(6.5rem+env(safe-area-inset-bottom))] left-1/2 z-30 -translate-x-1/2 animate-banner-enter">
       <Button
-        variant="secondary"
+        variant="outline"
         size={{ base: 'md', md: 'sm' }}
         onClick={onClick}
         leadingIcon={<ArrowDown className="size-3.5 animate-bounce text-primary motion-reduce:animate-none" />}

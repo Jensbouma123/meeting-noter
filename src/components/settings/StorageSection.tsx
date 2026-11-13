@@ -109,7 +109,7 @@ export function StorageSection({
           }
           control={
             persisted === false ? (
-              <Button variant="secondary" size={{ base: 'md', md: 'sm' }} onClick={requestStorageProtection} className="max-sm:w-full">
+              <Button variant="outline" size={{ base: 'md', md: 'sm' }} onClick={requestStorageProtection} className="max-sm:w-full">
                 {t('protectNow')}
               </Button>
             ) : null

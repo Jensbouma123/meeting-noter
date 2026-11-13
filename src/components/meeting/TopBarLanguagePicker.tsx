@@ -21,7 +21,7 @@ export function TopBarLanguagePicker({
     <DropdownMenu>
       <DropdownMenuTrigger>
         <Button
-          variant="secondary"
+          variant="outline"
           size="sm"
           leadingIcon={<Globe className="size-3" />}
           tooltip={

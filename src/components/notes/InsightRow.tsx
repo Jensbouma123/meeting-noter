@@ -15,7 +15,7 @@ export function InsightRow({ insight, speakerLabel, t, onJump, onAccept, onDismi
       </Text>
       <Button size="sm" variant="ghost" aria-label={`${t('jump')}: ${insight.text}`}
         leadingIcon={<ArrowUpRight aria-hidden="true" className="size-4" />} onClick={onJump}>{t('jump')}</Button>
-      <Button size="sm" variant="secondary" aria-label={`${t('accept')}: ${insight.text}`}
+      <Button size="sm" variant="outline" aria-label={`${t('accept')}: ${insight.text}`}
         leadingIcon={<Check aria-hidden="true" className="size-4" />} onClick={onAccept}>{t('accept')}</Button>
       <Button size="sm" variant="ghost" aria-label={`${t('dismiss')}: ${insight.text}`}
         leadingIcon={<X aria-hidden="true" className="size-4" />} onClick={onDismiss}>{t('dismiss')}</Button>

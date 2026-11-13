@@ -45,7 +45,7 @@ export function ModelStatusRow({ entry, preparation }: ModelStatusRowProps) {
 
         {(entry.status === 'not-downloaded' || entry.status === 'cancelled') && (
           <Button
-            variant="secondary"
+            variant="outline"
             size={{ base: 'md', md: 'sm' }}
             leadingIcon={<Download className="size-3.5" />}
             onClick={openDialog}

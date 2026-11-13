@@ -16,7 +16,7 @@ export function AsrProblemBanner({ problem, asrPhase, onDownloadModel, onOpenSet
       action={
         <Button
           size={{ base: 'md', md: 'sm' }}
-          variant="secondary"
+          variant="outline"
           onClick={() => (blocked ? onDownloadModel() : onOpenSettings('advanced'))}
         >
           {blocked ? t('downloadModel') : t('openSettings')}

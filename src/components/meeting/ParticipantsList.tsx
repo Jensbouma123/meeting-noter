@@ -42,7 +42,7 @@ export function ParticipantsList({ people, selected, onToggle, onCreate }: Parti
         {fresh && (
           <li className="flex min-h-11 items-center justify-between gap-2">
             <span className="truncate">{fresh}</span>
-            <Button variant="secondary" size="sm" onClick={() => create(fresh)}>
+            <Button variant="outline" size="sm" onClick={() => create(fresh)}>
               {t('add')}
             </Button>
           </li>

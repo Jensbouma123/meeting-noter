@@ -14,7 +14,7 @@ export function AssistantConfirm({ backupPath, busy, onConfirm, onCancel }: Assi
       <Text size="xs" variant="muted">{t('confirmRestart')}</Text>
       <div className="flex gap-2">
         <Button onClick={onConfirm} disabled={busy}>{t('confirmYes')}</Button>
-        <Button variant="secondary" onClick={onCancel} disabled={busy}>{t('cancel')}</Button>
+        <Button variant="outline" onClick={onCancel} disabled={busy}>{t('cancel')}</Button>
       </div>
     </div>
   );

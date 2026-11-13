@@ -82,7 +82,7 @@ export function UpdateDialog({ open, onClose, isRecording = false }: { open: boo
         {failed && <Alert variant="danger" layout="inline">{failedText}</Alert>}
         {failed && status?.detail && <Text size="sm">{status.detail}</Text>}
         {status?.percent !== null && status?.percent !== undefined && <Text size="sm">{status.percent}%</Text>}
-        {(failed || status?.state === 'done') && <Button variant="secondary" onClick={() => { setConfirmed(false); setFailed(false); setStatus(null); }}>{failed ? t('retry') : t('cancel')}</Button>}
+        {(failed || status?.state === 'done') && <Button variant="outline" onClick={() => { setConfirmed(false); setFailed(false); setStatus(null); }}>{failed ? t('retry') : t('cancel')}</Button>}
       </VStack>}
     </ConfirmDialog>
   );

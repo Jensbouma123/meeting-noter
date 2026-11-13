@@ -71,7 +71,7 @@ export function TopBarStatusBadge({
   const failed = modelReadiness === 'failed';
   return (
     <Button
-      variant={failed ? 'danger' : 'secondary'}
+      variant={failed ? 'danger' : 'outline'}
       size="xs"
       onClick={() => onOpenSettings('advanced')}
       tooltip={t('openAdvanced')}
