@@ -4,6 +4,8 @@ export interface SelectOption {
   value: string;
   label: string;
   disabled?: boolean;
+  /** Nesting level (0 = top). Indents the listbox row and sets `aria-level`; labels stay plain. */
+  depth?: number;
 }
 
 export interface SelectProps {

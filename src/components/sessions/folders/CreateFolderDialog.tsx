@@ -63,7 +63,8 @@ export function CreateFolderDialog({ initialParentId, folders, onClose, onCreate
             { value: '', label: t('topLevel') },
             ...folderPickerOptions(folders).map((folder) => ({
               value: folder.id,
-              label: `${'　'.repeat(folder.depth)}${folder.name}`,
+              label: folder.name,
+              depth: folder.depth,
             })),
           ]}
           onChange={(value) => {

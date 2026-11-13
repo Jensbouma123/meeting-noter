@@ -38,6 +38,17 @@ describe('creating folders', () => {
     await waitFor(() => expect(mutations('POST')[0].body).toBe(JSON.stringify({ name: 'Planning', parentId: 'a' })));
   });
 
+  it('lists nested locations with plain labels and aria-level', async () => {
+    renderTree();
+    await screen.findByText('Q1');
+    fireEvent.click(screen.getByRole('button', { name: 'New folder' }));
+    await screen.findByRole('textbox', { name: 'Folder name' });
+    fireEvent.click(screen.getByRole('combobox', { name: 'Location' }));
+    expect(await screen.findByRole('option', { name: 'Top level', hidden: true })).not.toHaveAttribute('aria-level');
+    expect(screen.getByRole('option', { name: 'Work', hidden: true })).toHaveAttribute('aria-level', '1');
+    expect(screen.getByRole('option', { name: 'Q1', hidden: true })).toHaveAttribute('aria-level', '2');
+  });
+
   it('rejects empty and duplicate names in the selected parent', async () => {
     renderTree();
     await screen.findByText('Q1');

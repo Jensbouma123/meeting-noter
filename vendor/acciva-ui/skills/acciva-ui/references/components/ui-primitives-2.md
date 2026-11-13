@@ -113,7 +113,7 @@
 ### 27. Select
 - **Import:** `import { Select } from "@jensbouma123/acciva-ui"`
 - **Category:** Primitive
-- **Purpose:** Standard dropdown menu for small lists of static choices. `size` (Input tiers) and `className` (trigger) props; the listbox is a top-layer anchored popover, so `overflow:hidden` ancestors do not clip it; it is capped at the space on the side it opened (minus `--overlay-gutter`), opens on the roomier side and scrolls inside.
-- **Apple:** `AccivaSelect` (`apple/Sources/AccivaUI/Components/Select/Select.swift`) — a token-styled `Menu` trigger over a native `Picker`; generic `Hashable` values, `Binding<Value?>`, placeholder and per-option `disabled`, optional `systemImage`, a leading icon, `size:` (Input tiers), and `noneLabel` to add a "none" row that clears the selection.
+- **Purpose:** Standard dropdown menu for small lists of static choices. `size` (Input tiers) and `className` (trigger) props; optional `option.depth` indents nested rows (folder trees) and sets `aria-level`; the listbox is a top-layer anchored popover, so `overflow:hidden` ancestors do not clip it; it is capped at the space on the side it opened (minus `--overlay-gutter`), opens on the roomier side and scrolls inside.
+- **Apple:** `AccivaSelect` (`apple/Sources/AccivaUI/Components/Select/Select.swift`) — a token-styled `Menu` trigger over a native `Picker`; generic `Hashable` values, `Binding<Value?>`, placeholder and per-option `disabled`, optional `systemImage`, a leading icon, `size:` (Input tiers), and `noneLabel` to add a "none" row that clears the selection; `AccivaSelectOption(depth:)` is data only (native menu cannot indent).
 - **Spec:** `.agents/components/Select.md`
 

@@ -18,6 +18,9 @@ interface SelectListboxProps {
   onActivate: Dispatch<SetStateAction<number>>;
 }
 
+/** Inline-start padding per nesting level (spacing tokens, static so Tailwind sees them); depth caps at 4. */
+const DEPTH_INDENT = ["ps-3", "ps-6", "ps-9", "ps-12", "ps-15"];
+
 function handleListMouseDown(event: ReactMouseEvent<HTMLUListElement>) {
   event.preventDefault();
 }
@@ -57,6 +60,8 @@ export function SelectListbox({
       )}
     >
       {options.map((option, index) => (
+        // ARIA 1.2 allows aria-level on option; the lint rule table predates it.
+        // eslint-disable-next-line jsx-a11y/role-supports-aria-props
         <HStack
           as="li"
           key={option.value}
@@ -67,10 +72,12 @@ export function SelectListbox({
           spacing="none"
           aria-selected={option.value === value}
           aria-disabled={option.disabled}
+          aria-level={option.depth === undefined ? undefined : option.depth + 1}
           onMouseEnter={() => onActivate(index)}
           onClick={() => onCommit(index)}
           className={cn(
-            "cursor-pointer rounded-md px-3 py-2 text-sm transition-colors",
+            "cursor-pointer rounded-md py-2 text-sm transition-colors",
+            option.depth ? `pe-3 ${DEPTH_INDENT[Math.min(option.depth, DEPTH_INDENT.length - 1)]}` : "px-3",
             option.value === value && "bg-primary-500/10 font-semibold text-primary-950 dark:bg-primary-400/15 dark:text-primary-100",
             index === activeIndex && !option.disabled && "bg-primary-500/15 text-primary-950 dark:bg-primary-400/25 dark:text-primary-50",
             option.value !== value && index !== activeIndex && "text-foreground hover:bg-elevation-2 active:bg-elevation-3 dark:hover:bg-elevation-3 dark:active:bg-elevation-4",
