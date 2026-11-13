@@ -16,15 +16,11 @@ function MeetingViewShell() {
   const router = useRouter();
   const { toast } = useToast();
   const params = useParams<{ sessionId?: string }>();
-  // The id is the `[sessionId]` route segment; `?id=` is kept for old links.
   const sessionId = params?.sessionId ?? searchParams.get('id') ?? undefined;
 
-  // Sidebar open state.
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // New session dialog state.
   const [newDialogOpen, setNewDialogOpen] = useState(false);
-  // Folder the dialog's meeting is filed in; cleared on close.
   const [newDialogFolderId, setNewDialogFolderId] = useState<string | null>(null);
 
   const openNewSession = useCallback((folderId?: string) => {
@@ -37,7 +33,7 @@ function MeetingViewShell() {
     setNewDialogFolderId(null);
   }, []);
 
-  const handleOpenSession = useCallback((sid: string) => {
+  const openSessionOrStartNew = useCallback((sid: string) => {
     if (!sid) {
       openNewSession();
       return;
@@ -45,7 +41,7 @@ function MeetingViewShell() {
     router.push(sessionPath(sid));
   }, [router, openNewSession]);
 
-  const handleNewSessionCreated = useCallback(async (_id: string, title: string) => {
+  const createDraftAndOpen = useCallback(async (_id: string, title: string) => {
     const folderId = newDialogFolderId;
     closeNewSession();
     try {
@@ -61,7 +57,7 @@ function MeetingViewShell() {
     <>
       <HomeLayout
         activeSessionId={sessionId ?? null}
-        onOpenSession={handleOpenSession}
+        onOpenSession={openSessionOrStartNew}
         onNewSession={openNewSession}
         sidebarOpen={sidebarOpen}
         onSidebarToggle={() => setSidebarOpen((p) => !p)}
@@ -69,11 +65,10 @@ function MeetingViewShell() {
         <MeetingView initialSessionId={sessionId} />
       </HomeLayout>
 
-      {/* New session dialog */}
       <NewSessionDialog
         open={newDialogOpen}
         onClose={closeNewSession}
-        onCreate={handleNewSessionCreated}
+        onCreate={createDraftAndOpen}
       />
     </>
   );

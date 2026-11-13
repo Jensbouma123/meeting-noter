@@ -1,16 +1,8 @@
 import { useMemo } from 'react';
 import { getBrowserASRStatusMessage } from '@/lib/meeting';
 import { useT } from '@/lib/i18n/useT';
-import type { BrowserASRPhase } from '@/lib/asr/browser/types';
 import { fillTemplate } from '../fillTemplate';
-import type { PostStopProgress } from '../types';
-
-interface AsrBannerStateParams {
-  isRecording: boolean;
-  asrEnabled: boolean;
-  asrPhase: BrowserASRPhase;
-  postStop: PostStopProgress;
-}
+import type { AsrBannerStateParams } from '../types';
 
 export function useAsrBannerState({ isRecording, asrEnabled, asrPhase, postStop }: AsrBannerStateParams) {
   const t = useT('meeting');

@@ -34,6 +34,28 @@ export interface StartRecordingParams {
   setResumeCandidate: Dispatch<SetStateAction<AutosavedSession | null>>;
 }
 
+export interface AsrBannerStateParams {
+  isRecording: boolean;
+  asrEnabled: boolean;
+  asrPhase: BrowserASRPhase;
+  postStop: PostStopProgress;
+}
+
+export interface SessionEditsParams {
+  initialSessionId?: string;
+  settings: AppSettings;
+  setTitle: Dispatch<SetStateAction<string>>;
+  setSettings: Dispatch<SetStateAction<AppSettings>>;
+}
+
+export interface MeetingToastsParams {
+  error: string | null;
+  warning: string | null;
+  modelPreparing: boolean;
+  modelReadiness: ModelReadiness;
+  asrProblem: string | null;
+}
+
 export interface MeetingBannerStateParams {
   initialSessionId?: string;
   otherRecording: boolean;

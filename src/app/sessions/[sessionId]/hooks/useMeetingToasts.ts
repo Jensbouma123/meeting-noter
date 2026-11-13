@@ -1,15 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useToast } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
-import type { ModelReadiness } from '../types';
-
-interface MeetingToastsParams {
-  error: string | null;
-  warning: string | null;
-  modelPreparing: boolean;
-  modelReadiness: ModelReadiness;
-  asrProblem: string | null;
-}
+import type { MeetingToastsParams } from '../types';
 
 export function useMeetingToasts({ error, warning, modelPreparing, modelReadiness, asrProblem }: MeetingToastsParams) {
   const t = useT('meeting');

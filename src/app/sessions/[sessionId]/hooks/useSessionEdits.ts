@@ -1,14 +1,8 @@
-import { useCallback, type Dispatch, type SetStateAction } from 'react';
+import { useCallback } from 'react';
 import { saveSettings, saveTitle, type AppSettings } from '@/components/meeting';
 import { renameSession } from '@/lib/meeting/session-store';
 import type { CaptureMode } from '@/lib/meeting';
-
-interface SessionEditsParams {
-  initialSessionId?: string;
-  settings: AppSettings;
-  setTitle: Dispatch<SetStateAction<string>>;
-  setSettings: Dispatch<SetStateAction<AppSettings>>;
-}
+import type { SessionEditsParams } from '../types';
 
 export function useSessionEdits({ initialSessionId, settings, setTitle, setSettings }: SessionEditsParams) {
   const changeTitle = useCallback((newTitle: string) => {
