@@ -12,12 +12,6 @@ import {
   type SessionLike,
 } from './nemotron-core';
 
-/**
- * The Nemotron engine's model half without ONNX Runtime: the frontend's
- * framing, the greedy RNNT loop against scripted sessions, and the word
- * grouping speaker attribution reads.
- */
-
 class FakeTensor implements OrtTensorLike {
   constructor(
     readonly type: string,
@@ -29,7 +23,6 @@ const ort: OrtLike = { Tensor: FakeTensor as unknown as OrtLike['Tensor'] };
 
 const { vocabSize, blankId, hidden, predHidden, chunkSamples } = NEMOTRON;
 
-/** Vocabulary: blank last, `<en-US>` special, the rest SentencePiece pieces. */
 function makeVocab(pieces: Record<number, string>): string[] {
   const vocab = Array.from({ length: vocabSize }, (_, i) => `p${i}`);
   vocab[0] = '<unk>';
@@ -38,13 +31,6 @@ function makeVocab(pieces: Record<number, string>): string[] {
   return vocab;
 }
 
-/**
- * Sessions that emit `script[globalFrame]` (in order) at that encoder frame.
- * The encoder tags each frame with its global index in element 0, so the
- * joint knows which frame it is looking at. The joint cannot see which of its
- * answers the loop keeps, so the test calls `markEmitted` from the decoder,
- * whose next input is exactly the token the loop committed.
- */
 function scriptedSessions(script: Record<number, number[]>) {
   let chunk = 0;
   const decoderInputs: number[] = [];
@@ -111,7 +97,7 @@ describe('NemotronMelStream', () => {
     const { mel, frames } = new NemotronMelStream().process(new Float32Array(chunkSamples));
     expect(frames).toBe(56);
     expect(mel.length).toBe(56 * 128);
-    // Silence is the log guard, not NaN or -Infinity.
+
     expect(mel[0]).toBeCloseTo(Math.log(NEMOTRON.logEps), 5);
   });
 
@@ -123,7 +109,7 @@ describe('NemotronMelStream', () => {
       const { mel } = stream.process(chunk);
       const frame = mel.subarray(30 * 128, 31 * 128);
       const peak = frame.indexOf(Math.max(...frame));
-      // Slaney: 1 kHz is mel 15 of ~45.2 at 8 kHz, so bin ≈ 15 / 45.2 * 129 - 1.
+
       expect(peak).toBeGreaterThanOrEqual(40);
       expect(peak).toBeLessThanOrEqual(44);
     }
@@ -165,8 +151,7 @@ describe('NemotronRecognizer', () => {
   it('decodes greedily across chunks, advancing the prediction net only on emissions', async () => {
     const script = { 2: [5], 9: [6, 7] };
     const s = scriptedSessions(script);
-    // Tie the joint's queue to what the loop committed: a committed token is
-    // the next decoder input.
+
     const decoderRun = s.sessions.decoder.run;
     s.sessions.decoder.run = async (feeds) => {
       const token = Number((feeds.targets.data as BigInt64Array)[0]);
@@ -184,20 +169,20 @@ describe('NemotronRecognizer', () => {
       [6, 9],
       [7, 9],
     ]);
-    // Blank seeds the net; each emission is fed back exactly once.
+
     expect(s.decoderInputs).toEqual([blankId, 5, 6, 7]);
     expect(result.words.map((w) => w.text)).toEqual(['a', 'bc']);
     expect(result.text).toBe('a bc');
-    // Emission lag corrected: frame 9 is 0.72 s, the word starts earlier.
+
     expect(result.words[1].start).toBeCloseTo(9 * NEMOTRON.frameSeconds - NEMOTRON_EMISSION_LEAD_S);
-    // Two audio chunks plus one flush chunk; the cache length is carried.
+
     expect(s.cacheLens).toEqual([BigInt(0), BigInt(1), BigInt(2)]);
     expect(s.langIds).toEqual([BigInt(0), BigInt(0), BigInt(0)]);
   });
 
   it('caps emissions per frame at maxSymbolsPerStep', async () => {
     const s = scriptedSessions({});
-    // A joint that never says blank on frame 0 and always says blank elsewhere.
+
     s.sessions.joint = {
       async run(feeds) {
         const enc = feeds.encoder_output.data as Float32Array;

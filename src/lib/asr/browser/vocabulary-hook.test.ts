@@ -5,7 +5,6 @@ import { hookParakeetVocabulary, type HookableParakeetModel } from './vocabulary
 const VOCAB = ['▁Fr', 'om', 'am', 'na', '<blk>'];
 const BLANK = 4;
 
-/** A model whose decoder replays fixed logits and whose `transcribe` runs the greedy loop over them. */
 function fakeModel(steps: number[][]) {
   let next = 0;
   const model = {
@@ -29,7 +28,6 @@ function fakeModel(steps: number[][]) {
   return model;
 }
 
-// "▁Fr" clearly, then "om" narrowly over "am", then "na".
 const STEPS = [
   [9, 0, 0, 0, 1],
   [0, 5, 3, 0, 1],
@@ -56,7 +54,7 @@ describe('hookParakeetVocabulary', () => {
     const model = fakeModel(STEPS);
     const biaser = new ContextBiaser(VOCAB, ['Framna'], 3);
     hookParakeetVocabulary(model as unknown as HookableParakeetModel, () => biaser);
-    biaser.advance(0); // a match left over from a previous window
+    biaser.advance(0);
     biaser.advance(2);
     expect(await model.transcribe()).toBe('▁Framna');
   });

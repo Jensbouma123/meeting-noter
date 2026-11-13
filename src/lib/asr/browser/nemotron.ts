@@ -1,13 +1,3 @@
-/**
- * Browser ASR engine for Nemotron 3.5 ASR streaming (0.6B int4) — the same
- * surface as `BrowserASREngine` in `parakeet.ts`, so `engine-client.ts`,
- * the worker and `browser-asr.ts` drive either one.
- *
- * The model half (frontend, encoder caches, RNNT decode) is
- * `nemotron-core.ts`; this file owns the lifecycle: resolving the seven files
- * out of the resumable cache, creating the three ONNX sessions under the same
- * stall watchdogs as Parakeet, warm-up, and turning results into segments.
- */
 import type * as Ort from 'onnxruntime-web';
 import { probeCachedModelFiles, downloadHfFileResumable, takeBlobUrlBytes, type DownloadProgress } from './resumable-download';
 import {
@@ -38,7 +28,7 @@ import type {
 } from './types';
 import { DEFAULT_BROWSER_ASR_CONFIG } from './constants';
 import { installQuietAsrConsole } from './quiet-console';
-import { BiaserSlot } from '@/lib/vocabulary/bias';
+import { BiaserSlot } from '@/lib/vocabulary/biaser-slot';
 import type { VocabularyBiasConfig } from '@/lib/vocabulary/types';
 
 installQuietAsrConsole();
@@ -48,11 +38,9 @@ function nextSegmentId(): string {
   return `browser-nemotron-${++segmentCounter}`;
 }
 
-/** The graph files and their external-data companions, by graph. */
 const GRAPHS = ['encoder', 'decoder', 'joint'] as const;
 type Graph = (typeof GRAPHS)[number];
 
-/** One file's bytes, taken out of the blob URL the downloader returned. */
 async function bytesOf(url: string): Promise<Uint8Array> {
   const held = takeBlobUrlBytes(url);
   if (held) return held;
@@ -60,12 +48,6 @@ async function bytesOf(url: string): Promise<Uint8Array> {
   return new Uint8Array(await res.arrayBuffer());
 }
 
-/**
- * The language the encoder is prompted with. The app's config language is
- * the Dutch pilot's fixed `nl`, not something a user chose for this
- * recording, so the model detects the language itself (`auto`) — the same
- * behaviour Parakeet has, which takes no language at all.
- */
 const PROMPT_LANG_ID = nemotronLangId('auto');
 
 export class NemotronASREngine {
@@ -77,9 +59,9 @@ export class NemotronASREngine {
   private segmentBuffer = '';
   private currentSegmentId = '';
   private languageLocked = false;
-  /** Language the encoder is prompted with; null = it detects per fragment. */
+
   private languageHint: string | null = null;
-  /** ORT sessions take one `run()` at a time; calls queue here. */
+
   private queue: Promise<unknown> = Promise.resolve();
   private readonly vocabulary = new BiaserSlot();
 
@@ -146,7 +128,6 @@ export class NemotronASREngine {
     );
   }
 
-  /** Resolve every file (cache or network), then build the three sessions. */
   private async _createRecognizer(): Promise<NemotronRecognizer> {
     const resolveWatchdog = startStallWatchdog(LOAD_STALL_MS, describeStall);
     const urls = new Map<string, string>();
@@ -206,11 +187,6 @@ export class NemotronASREngine {
     }
   }
 
-  /**
-   * One session per graph, one graph's bytes resident at a time. The encoder
-   * goes to WebGPU on a WebGPU config; the LSTM decoder and the joint are
-   * tiny per-step graphs that stay on WASM, as Parakeet's decoder does.
-   */
   private async _createSessions(urls: Map<string, string>): Promise<NemotronSessions> {
     const ort = (await import('onnxruntime-web')) as typeof Ort;
     configureOrt(ort, this.config);
@@ -230,7 +206,6 @@ export class NemotronASREngine {
     return sessions as unknown as NemotronSessions;
   }
 
-  /** One real chunk through every session: kernels compile here, not on the first frame. */
   private async _warmUp(): Promise<void> {
     if (!this.recognizer) return;
     try {
@@ -281,7 +256,6 @@ export class NemotronASREngine {
     }
   }
 
-  /** One window on its own: words with times from the window's start. */
   async recognize(audio: Float32Array): Promise<BrowserRecognizeResult> {
     await this.ensureLoaded();
     const recognizer = this.recognizer;
@@ -296,7 +270,6 @@ export class NemotronASREngine {
     }
   }
 
-  /** End the session's segment state; keep the model (see `BrowserASREngine.stop`). */
   async stop(): Promise<void> {
     this.segmentBuffer = '';
     this.currentSegmentId = '';
@@ -305,7 +278,6 @@ export class NemotronASREngine {
     segmentCounter = 0;
   }
 
-  /** The user's word list, favoured while decoding from the next inference on. */
   setVocabulary(config: VocabularyBiasConfig): void {
     this.vocabulary.setWords(config.words, config.strength);
   }
@@ -318,7 +290,6 @@ export class NemotronASREngine {
     this.events.onStatusChange('disabled');
   }
 
-  /** Prompt the encoder with `code` from the next inference on (null = auto). */
   setLanguageHint(code: string | null): void {
     this.languageHint = code;
   }
@@ -373,16 +344,11 @@ export class NemotronASREngine {
   }
 }
 
-/**
- * WASM paths and threads, as `parakeet.js`'s `initOrt` sets them for the
- * Parakeet engine: the CDN build matching the installed runtime unless the
- * page set its own, one thread on Safari or without `SharedArrayBuffer`.
- */
 function configureOrt(ort: typeof Ort, config: BrowserASRConfig): void {
   try {
     ort.env.logLevel = 'error';
   } catch {
-    // Not worth failing a load over.
+
   }
   if (!ort.env.wasm.wasmPaths) {
     const version = ort.env.versions?.common ?? '1.24.1';

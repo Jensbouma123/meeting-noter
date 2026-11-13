@@ -1,17 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
 
-/**
- * `parakeet.js` hardcodes `logSeverityLevel: 2` (Warning) for every ONNX
- * session it creates (`node_modules/parakeet.js/src/parakeet.js`'s
- * `baseSessionOptions`) and has no config knob to change it, so the benign
- * "VerifyEachNodeIsAssignedToAnEp"/"Unknown CPU vendor" notices keep printing
- * however the ASR worker configures `env.logLevel` on its own — a
- * session-scoped `logSeverityLevel` wins over the environment default.
- * `parakeet.ts` patches `ort.InferenceSession.create` itself to force the
- * severity up to 3 (Error) no matter what a caller — `parakeet.js` included —
- * asks for.
- */
-
 const createMock = vi.fn().mockResolvedValue({ inputNames: [], outputNames: [] });
 
 vi.mock('onnxruntime-web', () => {
@@ -25,8 +13,6 @@ vi.mock('onnxruntime-web', () => {
   };
 });
 
-// parakeet.ts only needs the named export to exist; its `fromUrls`/session
-// creation is never exercised here.
 vi.mock('parakeet.js', () => ({ ParakeetModel: class {} }));
 
 describe('ASR worker: ORT session log suppression', () => {

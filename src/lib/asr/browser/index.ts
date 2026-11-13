@@ -86,9 +86,9 @@ export {
   activeWebgpuEncoder,
   forceNextWebgpuEncoder,
   forceWasmBackend,
-  isSafariEngine,
   resetAsrBackendDetectionForTests,
 } from './backend-detect';
+export { isSafariEngine } from './is-safari-engine';
 export {
   getBrowserASRDownloadManager,
   initiateDownloads,

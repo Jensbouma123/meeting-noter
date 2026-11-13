@@ -1,6 +1,3 @@
-/** The language the ASR is told to expect (null = let the model detect it).
- *  Set by the meeting layer, followed by the engine client — the same shape
- *  as the vocabulary store. Engines that take no language ignore it. */
 let hint: string | null = null;
 const listeners = new Set<() => void>();
 

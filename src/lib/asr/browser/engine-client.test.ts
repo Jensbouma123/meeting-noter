@@ -1,22 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { BrowserASRConfig, BrowserASREvents, BrowserASRStatus } from './types';
 
-/**
- * The speech model runs in a worker, off the main thread.
- *
- * On the page, ORT's WASM backend ran every inference synchronously, so each
- * post-stop chunk froze the UI for tens of seconds, and even the WebGPU path
- * ran the mel preprocessor and the decoder loop between capture frames. These
- * tests pin the client's contract with that worker: the same surface and event
- * order the in-thread engine has, audio handed over as a transferred copy,
- * `disable()` as the real teardown, a dead worker surfacing as a failure
- * rather than a hang, and the in-thread engine as the fallback whenever the
- * worker cannot host the configured backend.
- *
- * `Worker` doesn't exist in Node, so one is stood in; `./parakeet` is replaced
- * so the fallback engine is observable and no ONNX runtime loads.
- */
-
 const local = vi.hoisted(() => ({ instances: [] as Array<{ config: unknown }> }));
 
 vi.mock('./parakeet', () => ({
@@ -66,7 +50,6 @@ class FakeWorker {
     this.terminated = true;
   }
 
-  /** Deliver a message from the worker, to listeners and `onmessage` alike. */
   emit(data: unknown): void {
     for (const fn of this.listeners.get('message') ?? []) fn({ data });
     this.onmessage?.({ data });
@@ -180,7 +163,7 @@ describe('createBrowserASREngine', () => {
     expect(sent).not.toBe(audio);
     expect(Array.from(sent)).toEqual([0.25, -0.5, 0.75]);
     expect(posted.transfer).toEqual([sent.buffer]);
-    // The caller's own window is untouched.
+
     expect(Array.from(audio)).toEqual([0.25, -0.5, 0.75]);
 
     const segment = { id: 'browser-1', source: 'mic', speaker: 'mic:0', text: 'hallo', start: 0, end: 1, final: true };

@@ -1,35 +1,6 @@
-/**
- * Nemotron 3.5 ASR streaming (0.6B, int4 ONNX) — the model-side half of the
- * engine: log-mel frontend, cache-aware encoder loop and greedy RNNT decode.
- *
- * `onnx-community/nemotron-3.5-asr-streaming-0.6b-onnx-int4` is a cache-aware
- * FastConformer-RNNT exported for 560 ms chunks. Unlike Parakeet's TDT graph
- * (one encoder pass over the whole window, a joint that also predicts a frame
- * skip), the encoder here takes one fixed-size chunk plus the attention and
- * convolution caches the previous chunk left behind, and the joint predicts
- * tokens only — one frame at a time, up to `maxSymbolsPerStep` per frame.
- *
- * Every step below is a port of onnxruntime-genai's reference implementation
- * (`src/models/nemotron_speech.cpp`, `preprocessing/nemotron_streaming_processor.cpp`
- * and onnxruntime-extensions' `nemo_mel_spectrogram.cc`), not a guess at NeMo:
- *
- * - mel: pre-emphasis 0.97 carried across chunks, left-only centre padding
- *   from the previous chunk's last 256 pre-emphasised samples, symmetric
- *   400-sample Hann, 512 FFT, 160 hop, Slaney-128 filterbank,
- *   `log(x + 2^-24)`, no per-feature normalisation — 56 frames per chunk;
- * - encoder input: the previous chunk's last 9 mel frames (zeros for the
- *   first) followed by this chunk's 56, time-major `[1, 65, 128]`;
- * - decode: LSTM prediction net seeded with the blank id, its state advanced
- *   only on a non-blank emission.
- *
- * No imports but types, so the Node bench (`scripts/asr-bench-nemotron.mjs`)
- * runs this very file under Node's type stripping with onnxruntime-web.
- */
-
 import type { BrowserWord } from './types';
 import type { ContextBiaser } from '../../vocabulary/bias';
 
-/** The export's constants (`genai_config.json` of the repo's `main`). */
 export const NEMOTRON = Object.freeze({
   sampleRate: 16000,
   nMels: 128,
@@ -38,7 +9,7 @@ export const NEMOTRON = Object.freeze({
   win: 400,
   preemph: 0.97,
   logEps: 2 ** -24,
-  /** 560 ms — the chunk size the encoder was exported for (fixed input shape). */
+
   chunkSamples: 8960,
   melFramesPerChunk: 56,
   preEncodeCache: 9,
@@ -51,16 +22,10 @@ export const NEMOTRON = Object.freeze({
   vocabSize: 13088,
   blankId: 13087,
   maxSymbolsPerStep: 10,
-  /** One encoder frame: 8x subsampling of the 10 ms mel hop. */
+
   frameSeconds: 0.08,
 });
 
-/**
- * `lang_id` values of the prompt-conditioned encoder (the `prompt_dictionary`
- * of the NeMo model config, as onnxruntime-genai's `examples/python/model-asr.py`
- * lists it). Only the ones this app can be asked for; `auto` makes the model
- * detect the language and emit a leading `<xx-XX>` token, which is dropped.
- */
 export const NEMOTRON_LANG_IDS: Readonly<Record<string, number>> = Object.freeze({
   en: 0,
   'en-US': 0,
@@ -74,17 +39,11 @@ export const NEMOTRON_LANG_IDS: Readonly<Record<string, number>> = Object.freeze
   auto: 101,
 });
 
-/** Language code → `lang_id`, `auto` for anything the table does not list. */
 export function nemotronLangId(language: string | undefined): number {
   if (!language) return NEMOTRON_LANG_IDS.auto;
   return NEMOTRON_LANG_IDS[language] ?? NEMOTRON_LANG_IDS[language.split('-')[0]] ?? NEMOTRON_LANG_IDS.auto;
 }
 
-/* ------------------------------------------------------------------ */
-/* Frontend                                                              */
-/* ------------------------------------------------------------------ */
-
-/** Slaney-scale mel filterbank with Slaney area normalisation, as sparse rows. */
 function slaneyFilterbank(): { start: Int32Array; weights: Float32Array[] } {
   const { nMels, nFft, sampleRate } = NEMOTRON;
   const bins = nFft / 2 + 1;
@@ -118,7 +77,6 @@ function slaneyFilterbank(): { start: Int32Array; weights: Float32Array[] } {
   return { start, weights };
 }
 
-/** In-place radix-2 FFT of a real frame; returns the power spectrum. */
 function makePowerSpectrum(n: number): (frame: Float32Array, out: Float32Array) => void {
   const levels = Math.log2(n);
   const rev = new Uint32Array(n);
@@ -161,11 +119,6 @@ function makePowerSpectrum(n: number): (frame: Float32Array, out: Float32Array) 
   };
 }
 
-/**
- * Streaming log-mel extractor: one `chunkSamples` block in, 56 time-major
- * frames out. State (the pre-emphasis sample and the 256-sample overlap) is
- * what makes consecutive chunks line up with a whole-file STFT.
- */
 export class NemotronMelStream {
   private readonly fb = slaneyFilterbank();
   private readonly window: Float32Array;
@@ -184,7 +137,6 @@ export class NemotronMelStream {
     this.lastSample = 0;
   }
 
-  /** `[frames, nMels]` time-major log-mel for one chunk. */
   process(chunk: Float32Array): { mel: Float32Array; frames: number } {
     const { nFft, hop, win, nMels, preemph, logEps } = NEMOTRON;
     const pad = nFft / 2;
@@ -221,18 +173,12 @@ export class NemotronMelStream {
   }
 }
 
-/* ------------------------------------------------------------------ */
-/* ONNX Runtime seam                                                     */
-/* ------------------------------------------------------------------ */
-
-/** The slice of an `ort.Tensor` this file reads. */
 export interface OrtTensorLike {
   readonly data: unknown;
   readonly dims: readonly number[];
   dispose?: () => void;
 }
 
-/** The slice of `onnxruntime-web` this file needs — injected, never imported. */
 export interface OrtLike {
   Tensor: new (
     type: 'float32' | 'int64',
@@ -251,11 +197,6 @@ export interface NemotronSessions {
   joint: SessionLike;
 }
 
-/* ------------------------------------------------------------------ */
-/* Recognition                                                           */
-/* ------------------------------------------------------------------ */
-
-/** One emitted token: its vocabulary id, global encoder frame and log-prob. */
 export interface NemotronToken {
   id: number;
   frame: number;
@@ -266,30 +207,20 @@ export interface NemotronResult {
   text: string;
   words: BrowserWord[];
   tokens: NemotronToken[];
-  /** Wall-clock ms to the first emitted non-special token, from call start. */
+
   firstTokenMs: number | null;
 }
 
-/** Parse `vocab.txt`: one piece per line, the line number is the id. */
 export function parseNemotronVocab(text: string): string[] {
   const lines = text.split('\n');
   if (lines.length > 0 && lines[lines.length - 1] === '') lines.pop();
   return lines.map((l) => l.replace(/\r$/, ''));
 }
 
-/** `<unk>`, `<blank>` and the `<xx-XX>` language tags — never text. */
 function isSpecialPiece(piece: string): boolean {
   return piece.length > 2 && piece.startsWith('<') && piece.endsWith('>');
 }
 
-/**
- * Group emitted tokens into words on SentencePiece's `▁` boundary.
- *
- * A word starts at the frame of its first token and ends one frame after its
- * last — the same convention as Parakeet's word times, so speaker attribution
- * reads both engines' words the same way. `offsetSeconds` shifts every time
- * (see `NEMOTRON_EMISSION_LEAD_S`).
- */
 export function tokensToWords(
   tokens: readonly NemotronToken[],
   vocab: readonly string[],
@@ -331,36 +262,21 @@ export function tokensToWords(
   return words;
 }
 
-/**
- * How early a word is placed relative to the frame its first token was
- * emitted on. A streaming RNNT emits once it is sure — after the word began —
- * so its raw frame times sit late: on the AMI bench (`asr-bench-nemotron.mjs`,
- * 345 words matched against Parakeet's) starts are a median 0.32 s later
- * (quartiles 0.32 / 0.40) and ends 0.24 s later. Speaker attribution reads
- * word times against diarization turns, so an uncorrected lag moves words
- * into the next speaker's turn. Four encoder frames.
- */
 export const NEMOTRON_EMISSION_LEAD_S = 4 * NEMOTRON.frameSeconds;
 
 export interface NemotronRecognizeOptions {
-  /** `lang_id` fed to the prompt-conditioned encoder (default `en`). */
+
   langId?: number;
-  /** Silent chunks appended so the last word is not cut off (default 1). */
+
   flushChunks?: number;
-  /** Shift every word time earlier by this much (default `NEMOTRON_EMISSION_LEAD_S`). */
+
   leadSeconds?: number;
-  /** Called after each encoder chunk — the bench's per-chunk clock. */
+
   onChunk?: (index: number, total: number) => void;
-  /** The user's word list, favoured while decoding (`vocabulary/bias.ts`). */
+
   biaser?: ContextBiaser | null;
 }
 
-/**
- * The model: three sessions and the vocabulary. Stateless between calls —
- * every `recognize()` starts from zero caches, because the app hands the
- * engine independent windows (`live-chunker.ts` re-reads the open utterance;
- * post-stop transcription sends fixed chunks).
- */
 export class NemotronRecognizer {
   private readonly ort: OrtLike;
   private readonly sessions: NemotronSessions;
@@ -372,7 +288,6 @@ export class NemotronRecognizer {
     this.vocab = vocab;
   }
 
-  /** The model's pieces, index = token id. */
   get pieces(): readonly string[] {
     return this.vocab;
   }
@@ -464,12 +379,11 @@ export class NemotronRecognizer {
   }
 }
 
-/** The LSTM prediction net: last emitted token plus `(h, c)`. */
 class PredictionState {
   private h: OrtTensorLike;
   private c: OrtTensorLike;
   private lastToken: number = NEMOTRON.blankId;
-  /** The prediction for `lastToken`, computed lazily and reused while blanks come. */
+
   private pending: { out: Float32Array; h: OrtTensorLike; c: OrtTensorLike } | null = null;
   private readonly ort: OrtLike;
   private readonly session: SessionLike;
@@ -482,7 +396,6 @@ class PredictionState {
     this.c = new ort.Tensor('float32', new Float32Array(size), [NEMOTRON.predLayers, 1, NEMOTRON.predHidden]);
   }
 
-  /** `[predHidden]` decoder output for the current token and state. */
   async output(): Promise<Float32Array> {
     if (!this.pending) {
       const out = await this.session.run({
@@ -490,13 +403,12 @@ class PredictionState {
         h_in: this.h,
         c_in: this.c,
       });
-      // `[1, 640, 1]` — the same bytes as the joint's `[1, 1, 640]`.
+
       this.pending = { out: out.decoder_output.data as Float32Array, h: out.h_out, c: out.c_out };
     }
     return this.pending.out;
   }
 
-  /** A token was emitted: the pending state becomes the state. */
   commit(token: number): void {
     if (!this.pending) throw new Error('commit() without output()');
     this.h.dispose?.();
@@ -515,14 +427,6 @@ class PredictionState {
   }
 }
 
-/**
- * Greedy RNNT over one chunk's encoder frames.
- *
- * The joint of frame `t` depends only on that frame and the prediction state,
- * so while the state is unchanged every remaining frame goes through the joint
- * in one call and the first non-blank wins — frame by frame only when a token
- * is emitted. Same result as the reference's one-frame loop, far fewer calls.
- */
 async function greedyDecodeChunk(
   ort: OrtLike,
   joint: SessionLike,
@@ -544,7 +448,7 @@ async function greedyDecodeChunk(
       decoder_output: new ort.Tensor('float32', dec, [1, 1, predHidden]),
     });
     const logits = out.joint_output.data as Float32Array;
-    // The prediction state is the same for every row, so one bonus serves them all.
+
     const bonus = biaser ? biaser.currentBonus() : null;
     let hit = -1;
     let best: number = blankId;

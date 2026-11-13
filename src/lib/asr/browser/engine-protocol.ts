@@ -1,5 +1,3 @@
-/** Messages between `engine-client.ts` (page) and `engine-worker.ts` (the
- *  worker that owns the speech model). Types only — imported by both sides. */
 import type {
   BrowserASRConfig,
   BrowserASRLoadProgress,
@@ -33,8 +31,7 @@ export type EngineWorkerIn =
   | ({ type: 'call'; callId: number } & EngineCall);
 
 export type EngineWorkerOut =
-  /** Posted once, as the worker starts: whether WebGPU exists in *this*
-   *  scope — the page's adapter probe says nothing about a worker's. */
+
   | { type: 'hello'; webgpu: boolean }
   | { type: 'status'; status: BrowserASRStatus; ready: boolean }
   | { type: 'segment'; segment: BrowserSegment }

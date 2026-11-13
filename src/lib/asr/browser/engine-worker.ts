@@ -1,13 +1,3 @@
-/** Speech-model worker: owns the speech model (Parakeet or Nemotron, see
- *  `engine-factory.ts`) and its ONNX sessions, so
- *  reading the model out of IndexedDB, session creation, the JS mel
- *  preprocessor and every inference run off the main thread. On the WASM
- *  backend ORT runs synchronously (`ort.env.wasm.proxy = false`), so on the
- *  page each post-stop chunk froze the UI for tens of seconds.
- *
- *  One engine per worker, created by the first `init`; `engine-client.ts`
- *  owns the worker and terminates it on `disable()`, which is what finally
- *  releases the sessions (parakeet.js 1.4.4 has no `release()`). */
 import { createLocalAsrEngine, type LocalAsrEngine } from './engine-factory';
 import { setQuietAsrConsoleDebug } from './quiet-console';
 import type { EngineWorkerIn, EngineWorkerOut } from './engine-protocol';
