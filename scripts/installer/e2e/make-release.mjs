@@ -5,12 +5,21 @@ import { ASSET } from './constants.mjs';
 import { standInServerSource } from './server-source.mjs';
 
 const UPDATE_SOURCE_EXCLUDED = (name) => !name.endsWith('.ts') || name.includes('.test.') || name === 'test-fixtures.ts';
+const JSON_IMPORT = /from '((?:\.\.\/)+[\w./-]+\.json)'/g;
+
+function inlineJsonImports(source, updateDir, serverDir) {
+  return source.replace(JSON_IMPORT, (_, rel) => {
+    const name = path.basename(rel);
+    copyFileSync(path.resolve(updateDir, rel), path.join(serverDir, name));
+    return `from './${name}' with { type: 'json' }`;
+  });
+}
 
 function copyUpdateSources(repo, serverDir) {
   const updateDir = path.join(repo, 'src/lib/update');
   for (const file of readdirSync(updateDir).filter((n) => !UPDATE_SOURCE_EXCLUDED(n))) {
     const source = readFileSync(path.join(updateDir, file), 'utf8').replace(/from '(\.\/[\w-]+)'/g, "from '$1.ts'");
-    writeFileSync(path.join(serverDir, file), source);
+    writeFileSync(path.join(serverDir, file), inlineJsonImports(source, updateDir, serverDir));
   }
   copyFileSync(path.join(updateDir, 'version.mjs'), path.join(serverDir, 'version.mjs'));
 }

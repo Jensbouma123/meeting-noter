@@ -15,5 +15,11 @@ export function createInstallState(root) {
     return { ok: left.length === 0, left: left.join(', ') };
   }
 
-  return { read, userFilesIntact, noLeftovers };
+  function serverLogTail(lines = 40) {
+    const log = path.join(root, 'logs/server.log');
+    if (!existsSync(log)) return `no ${log}`;
+    return `server.log (last ${lines} lines):\n${read('logs/server.log').trimEnd().split('\n').slice(-lines).join('\n')}`;
+  }
+
+  return { read, userFilesIntact, noLeftovers, serverLogTail };
 }

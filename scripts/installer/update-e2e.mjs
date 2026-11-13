@@ -67,7 +67,8 @@ try {
   latest = await makeRelease('1.0.0');
   const install = await run('/bin/bash', ['-c', 'curl -fsSL "$MEETING_NOTER_INSTALL_URL" | bash'], env);
   check(install.code === 0, 'install.sh installs 1.0.0', install.out);
-  check((await client.appStatus())?.version === '1.0.0', '1.0.0 serves');
+  const serves = (await client.appStatus())?.version === '1.0.0';
+  check(serves, '1.0.0 serves', serves ? '' : installState.serverLogTail());
   for (const [file, body] of Object.entries(USER_FILES)) {
     mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
     writeFileSync(path.join(root, file), body);
