@@ -1,7 +1,5 @@
 import { vi } from 'vitest';
 
-export type Progress = { loaded: number; total: number; file: string; resuming: boolean };
-
 export function deferred() {
   let resolve!: () => void;
   let reject!: (err: unknown) => void;

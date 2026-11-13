@@ -5,8 +5,8 @@ import {
   installLocalStorage,
   load,
   registerTestModel,
-  type Progress,
 } from './browser-asr-download-manager.test-support';
+import type { DownloadProgressEvent } from './types';
 
 vi.mock('./resumable-download', () => ({
   downloadParakeetModelResumable: vi.fn(),
@@ -130,7 +130,7 @@ describe('progress across files', () => {
     registerTestModel(registry, 'a');
     registry.recordConsent('accepted', ['a']);
     const seen: number[] = [];
-    manager.registerDownloadHandler('test', async (onProgress: (p: Progress) => void) => {
+    manager.registerDownloadHandler('test', async (onProgress: (p: DownloadProgressEvent) => void) => {
       for (const [file, loaded] of [
         ['encoder', 300],
         ['encoder', 600],

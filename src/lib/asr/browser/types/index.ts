@@ -28,3 +28,5 @@ export type { RecognizedWords } from './recognized-words';
 export type { HookableParakeetModel } from './hookable-parakeet-model';
 export type { WorkerConnectOutcome, WorkerHandlers } from './worker-connect';
 export type { ManifestFiles } from './manifest-files';
+export type { FakeWorkerListener } from './fake-worker-listener';
+export type { DownloadProgressEvent } from './download-progress-event';

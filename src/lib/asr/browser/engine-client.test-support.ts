@@ -1,26 +1,24 @@
-import type { BrowserASRConfig, BrowserASREvents, BrowserASRStatus } from './types';
-
-type Listener = (ev: { data?: unknown; message?: string; preventDefault?: () => void }) => void;
+import type { BrowserASRConfig, BrowserASREvents, BrowserASRStatus, FakeWorkerListener } from './types';
 
 export class FakeWorker {
   static instances: FakeWorker[] = [];
-  readonly listeners = new Map<string, Set<Listener>>();
+  readonly listeners = new Map<string, Set<FakeWorkerListener>>();
   readonly posted: Array<{ message: Record<string, unknown>; transfer: Transferable[] }> = [];
-  onmessage: Listener | null = null;
-  onerror: Listener | null = null;
-  onmessageerror: Listener | null = null;
+  onmessage: FakeWorkerListener | null = null;
+  onerror: FakeWorkerListener | null = null;
+  onmessageerror: FakeWorkerListener | null = null;
   terminated = false;
 
   constructor() {
     FakeWorker.instances.push(this);
   }
 
-  addEventListener(type: string, fn: Listener): void {
+  addEventFakeWorkerListener(type: string, fn: FakeWorkerListener): void {
     if (!this.listeners.has(type)) this.listeners.set(type, new Set());
     this.listeners.get(type)!.add(fn);
   }
 
-  removeEventListener(type: string, fn: Listener): void {
+  removeEventFakeWorkerListener(type: string, fn: FakeWorkerListener): void {
     this.listeners.get(type)?.delete(fn);
   }
 
