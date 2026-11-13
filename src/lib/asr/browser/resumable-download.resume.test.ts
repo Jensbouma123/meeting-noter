@@ -2,21 +2,11 @@ import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { downloadHfFileResumable } from './resumable-download';
 
-/**
- * Simulates "refresh mid-download": a first attempt whose network stream
- * drops partway through (a real page refresh tears down the fetch exactly
- * like this — the reader just stops producing bytes), followed by a second
- * attempt against a server that honors an HTTP Range request. Uses
- * `fake-indexeddb` so the partial-progress bookkeeping this module writes
- * to IndexedDB is real, not mocked away.
- */
-
 const REPO = 'test-org/test-repo';
 const FILE = 'weights.bin';
 const REVISION = 'main';
 const FULL_CONTENT = new Uint8Array(1000).map((_, i) => i % 256);
 const ETAG = '"fixed-etag-for-this-file"';
-
 function treeApiResponse(): Response {
   return new Response(
     JSON.stringify([{ type: 'file', path: FILE, size: FULL_CONTENT.length }]),
@@ -31,8 +21,6 @@ function headResponse(): Response {
   });
 }
 
-/** A body stream that yields bytes up to `breakAt` and then dies — a stand-in
- *  for a page refresh severing the connection mid-stream. */
 function droppedConnectionStream(breakAt: number): ReadableStream<Uint8Array> {
   let sent = 0;
   return new ReadableStream({
@@ -75,7 +63,6 @@ describe('downloadHfFileResumable — refresh mid-download', () => {
   });
 
   it('resumes with a Range request after a dropped connection, and validates the final size', async () => {
-    // --- "Session 1": the connection dies after 400 of 1000 bytes. ---
     vi.stubGlobal(
       'fetch',
       vi.fn(async (input: string | URL, init?: RequestInit) => {
@@ -89,8 +76,6 @@ describe('downloadHfFileResumable — refresh mid-download', () => {
 
     await expect(downloadHfFileResumable(REPO, FILE, REVISION)).rejects.toThrow();
 
-    // --- "Session 2" (post-refresh): a fresh module-level call, server now
-    // honors Range and returns the remainder. ---
     requestLog = [];
     vi.stubGlobal(
       'fetch',
@@ -120,18 +105,14 @@ describe('downloadHfFileResumable — refresh mid-download', () => {
       onProgress: (p) => progressEvents.push({ loaded: p.loaded, resuming: p.resuming }),
     });
 
-    // It actually asked for a Range starting somewhere past zero — proof
-    // this was a resume, not a fresh restart from byte zero.
     const getRequest = requestLog.find((r) => r.method === 'GET');
     expect(getRequest?.range).toMatch(/^bytes=\d+-$/);
     const resumedFrom = Number(/^bytes=(\d+)-$/.exec(getRequest!.range!)![1]);
     expect(resumedFrom).toBeGreaterThan(0);
     expect(resumedFrom).toBeLessThan(FULL_CONTENT.length);
 
-    // The UI signal for "Resuming…" fired before real bytes started flowing.
     expect(progressEvents.some((e) => e.resuming)).toBe(true);
 
-    // The assembled file is complete and byte-correct, not a splice error.
     const res = await fetch(blobUrl);
     const finalBytes = new Uint8Array(await res.arrayBuffer());
     expect(finalBytes).toEqual(FULL_CONTENT);
@@ -150,15 +131,13 @@ describe('downloadHfFileResumable — refresh mid-download', () => {
     );
     await expect(downloadHfFileResumable(REPO, `restart-${FILE}`, REVISION)).rejects.toThrow();
 
-    // This "server" always answers with a full 200, even to a Range request —
-    // simulating a CDN edge that doesn't support partial content.
     vi.stubGlobal(
       'fetch',
       vi.fn(async (input: string | URL, init?: RequestInit) => {
         const url = String(input);
         if (url.includes('/api/models/')) return treeApiResponse();
         if (init?.method === 'HEAD') return headResponse();
-        return new Response(fullStream(0), { status: 200 }); // ignores Range
+        return new Response(fullStream(0), { status: 200 });
       }),
     );
 

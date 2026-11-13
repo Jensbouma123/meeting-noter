@@ -8,12 +8,6 @@ import {
   getRepoFileMeta,
 } from './resumable-download';
 
-/**
- * Timeouts on the HF metadata lookup. A stalled tree request must not hang a
- * download: a cached file is served past the deadline, a failed lookup is not
- * remembered, and a lookup that never answers gives up.
- */
-
 const REVISION = 'main';
 
 function content(length: number): Uint8Array {
@@ -29,7 +23,6 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-/** Serve one file whole; the tree API answers normally. */
 function serveRepo(file: string, bytes: Uint8Array): ReturnType<typeof vi.fn> {
   const fn = vi.fn(async (input: string | URL, init?: RequestInit) => {
     const url = String(input);
@@ -44,7 +37,6 @@ function serveRepo(file: string, bytes: Uint8Array): ReturnType<typeof vi.fn> {
   return fn;
 }
 
-/** A fetch whose requests never answer, and which fail only when aborted. */
 function stalledFetch(): ReturnType<typeof vi.fn> {
   const fn = vi.fn(
     (_input: string | URL, init?: RequestInit) =>
@@ -102,8 +94,6 @@ describe('the HF metadata lookup never hangs a download', () => {
     serveRepo(file, bytes);
     await downloadHfFileResumable(repo, file, REVISION);
 
-    // A fresh module instance has an empty tree memo, so the only listing it
-    // can see is the stalled one; the file itself stays in the shared cache.
     vi.resetModules();
     const fresh = await import('./resumable-download');
     const stalled = stalledFetch();

@@ -6,17 +6,6 @@ import {
   downloadHfFileResumable,
 } from './resumable-download';
 
-/**
- * Per-file URL overrides (`fileUrlOverrides` in `model-manifest.ts`) — for
- * manifest files no public repo ships, like the self-built fp16 encoder.
- *
- * The contract: the bytes come from the override origin, while everything
- * else (cache key, resume, validation, probing) behaves exactly as for a
- * hosted file. In particular the downloader must never touch the
- * Hugging Face resolve URL for an overridden file — that URL 404s by
- * construction (the file is what is missing upstream).
- */
-
 const REPO = 'test/url-override-repo';
 const FILE = 'encoder-model.fp16.onnx';
 const OVERRIDE_URL = '/models/parakeet-tdt-0.6b-v3-webgpu/encoder-model.fp16.onnx';
@@ -28,9 +17,6 @@ function content(length: number): Uint8Array<ArrayBuffer> {
 }
 
 describe('urlOverride', () => {
-  // Small on purpose: fake-indexeddb structured-clones every chunk, so
-  // megabytes here are seconds of test time. One partial-chunk file still
-  // exercises fetch → cache → blob-URL end to end.
   const bytes = content(513 * 1024 + 17);
   let requestedUrls: string[];
   let requestedMethods: Array<string | undefined>;
@@ -46,7 +32,6 @@ describe('urlOverride', () => {
         requestedUrls.push(url);
         requestedMethods.push(init?.method);
         if (url.includes('/api/models/')) {
-          // The upstream tree does NOT list the file — it is self-hosted.
           return new Response(JSON.stringify([{ type: 'file', path: 'vocab.txt', size: 9 }]), {
             status: 200,
             headers: { 'content-type': 'application/json' },
