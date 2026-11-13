@@ -3,11 +3,12 @@ import { withConfirmation } from './speaker-confirmation';
 import { mergeFamily, segmentFamilyRoot } from './speaker-family';
 import { splitBySpeaker } from './speaker-split';
 import { line, turnsAt } from './speaker-test-helpers';
-import * as store from './store';
+import * as storeAppendMode from './append-mode';
+import * as storeSessionReset from './session-reset';
 
 afterEach(() => {
-  store.cancelAppend();
-  store.resetSession('mic');
+  storeAppendMode.cancelAppend();
+  storeSessionReset.resetSession('mic');
 });
 
 describe('splitBySpeaker', () => {

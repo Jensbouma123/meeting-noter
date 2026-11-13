@@ -1,7 +1,7 @@
 import type { StoredMeeting } from '@/lib/meeting-db/types';
 import { ensureMeetingLoaded, evictSynced } from './meeting-loader';
 import { deleteSession, getSessionMetadata } from './session-store';
-import { getTranscriptSessionId, isCaptureActive } from './store';
+import { getTranscriptSessionId, isCaptureActive } from './transcript-session';
 import { buildStoredMeeting } from './stored-meeting';
 import { syncState } from './sync-state';
 import { PENDING_KEY, markSynced, readPending, writeJson } from './sync-storage';

@@ -16,7 +16,7 @@ afterEach(resetBridges);
 describe('diarization bridge — failures and lookup', () => {
   it('disposes a diarizer whose worker errors and raises a warning (F1)', async () => {
     const { startDiarization } = await import('./diarization-bridge');
-    const store = await import('./store');
+    const store = { ...(await import('./session-reset')), ...(await import('./store-core')), ...(await import('./segment-store')), ...(await import('./append-mode')) };
     store.resetSession('mic');
     startDiarization(['mic']);
 
@@ -28,7 +28,7 @@ describe('diarization bridge — failures and lookup', () => {
 
   it('relabels an appended recording on its own capture clock, leaving the earlier transcript alone', async () => {
     const { startDiarization } = await import('./diarization-bridge');
-    const store = await import('./store');
+    const store = { ...(await import('./session-reset')), ...(await import('./store-core')), ...(await import('./segment-store')), ...(await import('./append-mode')) };
     store.resetSession('mic');
     store.upsertSegment({ id: 'old', source: 'mic', speaker: 'mic:0', text: 'before', start: 0, end: 60, final: true });
     store.armAppend();
@@ -48,7 +48,7 @@ describe('diarization bridge — failures and lookup', () => {
 
   it('keeps a long early turn overlapping a late segment among many turns (F2)', async () => {
     const { startDiarization } = await import('./diarization-bridge');
-    const store = await import('./store');
+    const store = { ...(await import('./session-reset')), ...(await import('./store-core')), ...(await import('./segment-store')), ...(await import('./append-mode')) };
     store.resetSession('system');
     startDiarization(['system']);
     const emit = fakes.turnListeners.get('system')!;

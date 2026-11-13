@@ -1,5 +1,5 @@
 import type { BrowserASREvents, BrowserSegment } from '@/lib/asr/browser';
-import { replaceSegmentFamily, upsertSegment } from '../store';
+import { replaceSegmentFamily, upsertSegment } from '../segment-store';
 import { attributeSpeakers } from '../speaker-attribution';
 import { asrState } from './state';
 import { notifyBrowserListeners } from './listeners';

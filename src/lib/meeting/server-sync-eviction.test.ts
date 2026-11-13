@@ -13,7 +13,7 @@ describe('localStorage holds only unsent edits and the open meeting', () => {
     await sync.startServerSync();
     const store = await import('./session-store');
     const { addDecision } = await import('./notes');
-    const { loadIdleSession } = await import('./store');
+    const { loadIdleSession } = await import('./session-reset');
     const closed = store.persistSession({ title: 'Closed', segments: [line('a', 'old news', 0)], speakers: {} });
     addDecision(closed, 'Ship it');
     const open = store.persistSession({ title: 'Open', segments: [line('b', 'on screen', 0)], speakers: {} });

@@ -29,7 +29,7 @@ describe('diarization bridge', () => {
 
   it('relabels a segment once a turn covering it closes', async () => {
     const { startDiarization } = await import('./diarization-bridge');
-    const store = await import('./store');
+    const store = { ...(await import('./session-reset')), ...(await import('./segment-store')), ...(await import('./store-core')) };
     store.resetSession('system');
     startDiarization(['system']);
     store.upsertSegment({ id: 'a', source: 'system', speaker: 'system:0', text: 'hi', start: 10, end: 12, final: true });

@@ -29,7 +29,7 @@ describe('diarization bridge — word-level attribution', () => {
 
   it('splits a line already final when a late turn shows the speaker changed inside it', async () => {
     const { startDiarization } = await import('./diarization-bridge');
-    const store = await import('./store');
+    const store = { ...(await import('./session-reset')), ...(await import('./segment-store')), ...(await import('./store-core')) };
     store.resetSession('mic');
     startDiarization(['mic']);
     const emit = fakes.turnListeners.get('mic')!;
@@ -46,7 +46,7 @@ describe('diarization bridge — word-level attribution', () => {
 
   it('moves the boundary of a split line when a later turn corrects it', async () => {
     const { startDiarization } = await import('./diarization-bridge');
-    const store = await import('./store');
+    const store = { ...(await import('./session-reset')), ...(await import('./segment-store')), ...(await import('./store-core')) };
     store.resetSession('mic');
     startDiarization(['mic']);
     const emit = fakes.turnListeners.get('mic')!;
@@ -64,7 +64,7 @@ describe('diarization bridge — word-level attribution', () => {
 
   it('marks the words where two speakers talk at once, each word in its own speaker\'s part', async () => {
     const { startDiarization } = await import('./diarization-bridge');
-    const store = await import('./store');
+    const store = { ...(await import('./session-reset')), ...(await import('./segment-store')), ...(await import('./store-core')) };
     store.resetSession('mic');
     startDiarization(['mic']);
     const emit = fakes.turnListeners.get('mic')!;
@@ -84,7 +84,7 @@ describe('diarization bridge — word-level attribution', () => {
   it('does not count turns touching for under MIN_OVERLAP_SECONDS as overlap', async () => {
     const { startDiarization } = await import('./diarization-bridge');
     const { MIN_OVERLAP_SECONDS } = await import('./diarization-overlaps');
-    const store = await import('./store');
+    const store = { ...(await import('./session-reset')), ...(await import('./segment-store')), ...(await import('./store-core')) };
     store.resetSession('mic');
     startDiarization(['mic']);
     const emit = fakes.turnListeners.get('mic')!;
@@ -97,7 +97,7 @@ describe('diarization bridge — word-level attribution', () => {
 
   it('relabels lines from before the first turn once it arrives', async () => {
     const { startDiarization } = await import('./diarization-bridge');
-    const store = await import('./store');
+    const store = { ...(await import('./session-reset')), ...(await import('./segment-store')), ...(await import('./store-core')) };
     store.resetSession('mic');
     startDiarization(['mic']);
     store.upsertSegment(wordsLine('early', ['hello', 'there'], 1));

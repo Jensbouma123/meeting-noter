@@ -18,7 +18,7 @@ describe('meeting: every acquired track is stopped', () => {
   it('on a denied mic', async () => {
     env.getUserMedia.mockRejectedValueOnce(new Error('Permission denied'));
     const { meeting } = await import('./index');
-    const { getState } = await import('./store');
+    const { getState } = await import('./store-core');
     await meeting.start({ mode: 'both' });
     expect(getState().status).toBe('error');
     expectAllReleased();
@@ -44,7 +44,7 @@ describe('meeting: every acquired track is stopped', () => {
 
   it('when the last source ends by itself', async () => {
     const { meeting } = await import('./index');
-    const { getState } = await import('./store');
+    const { getState } = await import('./store-core');
     await meeting.start({ mode: 'mic' });
     tracks[0].onended?.();
     await flush();
@@ -75,7 +75,7 @@ describe('meeting: every acquired track is stopped', () => {
 
   it('on release() (the meeting view unmounting)', async () => {
     const { meeting } = await import('./index');
-    const { getState } = await import('./store');
+    const { getState } = await import('./store-core');
     await meeting.start({ mode: 'mic' });
     await meeting.release();
     expectAllReleased();

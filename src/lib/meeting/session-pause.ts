@@ -1,5 +1,5 @@
 import { session } from './session-state';
-import { getState, setState } from './store';
+import { getState, setState } from './store-core';
 
 export function pauseMeeting(): void {
   if (getState().status !== 'live' || session.sessionOver) return;

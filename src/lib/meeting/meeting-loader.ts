@@ -11,7 +11,7 @@ import {
 import { loadSessionTranscript } from './session-transcript-storage';
 import { syncState } from './sync-state';
 import { SYNCED_KEY, markSynced, readJson, readPending } from './sync-storage';
-import { getTranscriptSessionId } from './store';
+import { getTranscriptSessionId } from './transcript-session';
 
 function hasLocalTranscript(id: string): boolean {
   return loadSessionTranscript(id) !== null || loadAutosavedSession()?.sessionId === id;

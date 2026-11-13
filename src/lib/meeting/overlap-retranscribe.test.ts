@@ -9,7 +9,9 @@ import {
   resetOverlapRetranscribe,
   setOverlapTranscriber,
 } from './overlap-retranscribe';
-import * as store from './store';
+import * as storeSessionReset from './session-reset';
+import * as storeSegmentStore from './segment-store';
+import * as storeStoreCore from './store-core';
 import type { TranscribeClip } from './types/overlap-retranscribe';
 
 const SR = 16_000;
@@ -25,7 +27,7 @@ const tick = () => new Promise((r) => setTimeout(r, 0));
 afterEach(() => {
   setOverlapTranscriber(null);
   resetOverlapRetranscribe();
-  store.resetSession('mic');
+  storeSessionReset.resetSession('mic');
 });
 
 describe('the live second pass', () => {
@@ -40,7 +42,7 @@ describe('the live second pass', () => {
       return [{ text: 'right', start: 0.5, end: 0.8 }];
     });
     setOverlapTranscriber(transcribe);
-    store.upsertSegment({
+    storeSegmentStore.upsertSegment({
       id: 'live-1', source: 'mic', speaker: 'mic:0', text: 'so then', start: 1, end: 4, final: true,
       words: [{ text: 'so', start: 1, end: 1.3 }, { text: 'then', start: 3.3, end: 3.6 }],
     });
@@ -53,7 +55,7 @@ describe('the live second pass', () => {
     noteOverlapTurns('mic', turns);
     await tick();
     expect(transcribe).toHaveBeenCalledTimes(1);
-    const added = store.getState().segments.filter((s) => isOverlapPassSegment(s.id));
+    const added = storeStoreCore.getState().segments.filter((s) => isOverlapPassSegment(s.id));
     expect(added).toHaveLength(1);
     expect(added[0]).toMatchObject({
       source: 'mic',
@@ -75,16 +77,16 @@ describe('the live second pass', () => {
     pushSeconds(0, 6);
     noteOverlapTurns('mic', turns);
     await flushOverlapRetranscribe();
-    const pass = () => store.getState().segments.filter((s) => isOverlapPassSegment(s.id)).map((s) => s.text);
+    const pass = () => storeStoreCore.getState().segments.filter((s) => isOverlapPassSegment(s.id)).map((s) => s.text);
     expect(pass()).toEqual(['we should go']);
 
-    store.upsertSegment({
+    storeSegmentStore.upsertSegment({
       id: 'live-1', source: 'mic', speaker: 'mic:0', text: 'we should', start: 3.1, end: 3.8, final: true,
       words: [{ text: 'we', start: 3.1, end: 3.3 }, { text: 'should', start: 3.4, end: 3.6 }],
     });
     pushSeconds(6, 1);
     expect(pass()).toEqual(['go']);
-    store.upsertSegment({
+    storeSegmentStore.upsertSegment({
       id: 'live-1', source: 'mic', speaker: 'mic:0', text: 'we should go', start: 3.1, end: 4, final: true,
       words: [{ text: 'we', start: 3.1, end: 3.3 }, { text: 'should', start: 3.4, end: 3.6 }, { text: 'go', start: 3.6, end: 3.9 }],
     });
@@ -124,7 +126,7 @@ describe('the live second pass', () => {
     resetOverlapRetranscribe();
     answer([{ text: 'late', start: 0.5, end: 0.7 }]);
     await flushed;
-    expect(store.getState().segments).toEqual([]);
+    expect(storeStoreCore.getState().segments).toEqual([]);
   });
 
   it('gives up waiting on Stop after the timeout', async () => {

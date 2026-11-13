@@ -15,7 +15,7 @@ import {
 import { clearTurns } from './diarization-turns';
 import { int16ToFloat32 } from './pcm';
 import { setOverlapTimeline } from './speaker-overlap-timeline';
-import { getState } from './store';
+import { getState } from './store-core';
 import type { Source } from './types';
 
 export function stopDiarizationForSource(source: Source): void {

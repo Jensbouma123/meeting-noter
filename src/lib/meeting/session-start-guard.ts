@@ -1,6 +1,6 @@
 import { isPostStopTranscriptionRunning } from './browser-asr';
 import { session } from './session-state';
-import { getState, setState } from './store';
+import { getState, setState } from './store-core';
 
 const STILL_TRANSCRIBING_WARNING = 'Still transcribing the previous recording — wait for it to finish.';
 

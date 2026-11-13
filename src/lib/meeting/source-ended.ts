@@ -3,7 +3,7 @@ import { stopDiarizationForSource } from './diarization-bridge';
 import { stopLangIdForSource } from './langid-bridge';
 import { stopMeeting } from './session-stop';
 import { session } from './session-state';
-import { setState } from './store';
+import { setState } from './store-core';
 import type { Source } from './types';
 
 export async function degradeAfterSourceEnded(source: Source): Promise<void> {

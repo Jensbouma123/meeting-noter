@@ -31,7 +31,7 @@ describe('levels reach the meters', () => {
   });
 
   it('maps RMS to a dBFS meter level', async () => {
-    const { meterLevel } = await import('./store');
+    const { meterLevel } = await import('./levels-bus');
     expect(meterLevel(0)).toBe(0);
     expect(meterLevel(0.001)).toBeCloseTo(0, 5);
     expect(meterLevel(0.01)).toBeCloseTo(1 / 3, 5);
@@ -97,7 +97,7 @@ describe('meeting: a capture track ending mid-session', () => {
       transcribeRecordedAudioAfterStop,
     }));
     const { meeting, isPostStopTranscriptionOnly } = await import('./index');
-    const { getState } = await import('./store');
+    const { getState } = await import('./store-core');
     await meeting.start({ mode: 'system' });
     expect(isPostStopTranscriptionOnly()).toBe(true);
 
@@ -112,7 +112,7 @@ describe('meeting: a capture track ending mid-session', () => {
 
   it('keeps recording with a non-blocking warning when the mic ends in "both" mode', async () => {
     const { meeting } = await import('./index');
-    const { getState } = await import('./store');
+    const { getState } = await import('./store-core');
     await meeting.start({ mode: 'both' });
     const audio = tracks.filter((t) => t.kind === 'audio');
     audio[audio.length - 1].onended?.();

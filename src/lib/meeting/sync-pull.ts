@@ -1,7 +1,7 @@
 import type { MeetingSummaryRow, StoredMeeting } from '@/lib/meeting-db/types';
 import { evictSynced, isOpen } from './meeting-loader';
 import { adoptMeetingSummary, adoptStoredMeeting, evictMeetingContent, getSessionMetadata, listSessions } from './session-store';
-import { getTranscriptSessionId, isCaptureActive } from './store';
+import { getTranscriptSessionId, isCaptureActive } from './transcript-session';
 import { dropDeleted } from './sync-flush';
 import { queueMeetingSync } from './sync-queue';
 import { LIST_PAGE } from './sync-state';

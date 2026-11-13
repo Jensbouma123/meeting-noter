@@ -38,7 +38,7 @@ describe('meeting: every acquired track is stopped', () => {
 
   it('on pause, resume, then stop', async () => {
     const { meeting } = await import('./index');
-    const { getState } = await import('./store');
+    const { getState } = await import('./store-core');
     await meeting.start({ mode: 'mic' });
     meeting.pause();
     expect(getState().status).toBe('paused');
@@ -52,7 +52,7 @@ describe('meeting: every acquired track is stopped', () => {
     const pending = deferred<MediaStream>();
     env.getUserMedia.mockReturnValueOnce(pending.promise);
     const { meeting } = await import('./index');
-    const { getState } = await import('./store');
+    const { getState } = await import('./store-core');
     const started = meeting.start({ mode: 'mic' });
     expect(getState().status).toBe('requesting');
     await meeting.stop();
@@ -67,7 +67,7 @@ describe('meeting: every acquired track is stopped', () => {
     const pending = deferred<MediaStream>();
     env.getUserMedia.mockReturnValueOnce(pending.promise);
     const { meeting } = await import('./index');
-    const { getState } = await import('./store');
+    const { getState } = await import('./store-core');
     const first = meeting.start({ mode: 'mic' });
     await meeting.stop();
     await meeting.start({ mode: 'mic' });

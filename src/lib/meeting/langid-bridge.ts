@@ -5,7 +5,7 @@ import { languageNameFor } from '@/lib/langid/languages';
 import { createLanguageSwitcher } from '@/lib/langid/decision';
 import { setAsrLanguageHint } from '@/lib/asr/browser/language-hint';
 import type { Source } from './types';
-import { getState, setState } from './store';
+import { getState, setState } from './store-core';
 import { int16ToFloat32 } from './pcm';
 import { LANGID_REGISTRY_KEY } from './langid-registry';
 

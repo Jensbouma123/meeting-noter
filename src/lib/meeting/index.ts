@@ -9,20 +9,18 @@ import './post-stop-intelligence';
 import { pauseMeeting, resumeMeeting } from './session-pause';
 import { startMeeting } from './session-start';
 import { stopMeeting } from './session-stop';
-import {
-  applyVocabularyToTranscript,
-  getState,
-  renameSpeaker as storeRenameSpeaker,
-  subscribe,
-  subscribeLevels as storeSubscribeLevels,
-} from './store';
+import { applyVocabularyToTranscript } from './segment-store';
+import { getState, subscribe } from './store-core';
+import { renameSpeaker as storeRenameSpeaker } from './speaker-registry';
+import { subscribeLevels as storeSubscribeLevels } from './levels-bus';
 import type { Levels, MeetingState, StartOpts } from './types';
 
 export type { CaptureMode, LanguageInfo, Levels, MeetingState, Source, Status, Segment, Speaker, StartOpts, SystemVia } from './types';
 export type { MeetingDiagnostics } from './types/diagnostics';
 export { getCallAudioMissing, subscribeCallAudio } from './call-audio-missing';
 export { getMeetingDiagnostics } from './diagnostics';
-export { useSpeakerStats, computeSpeakerStats, type SpeakerStat } from './store';
+export { useSpeakerStats, computeSpeakerStats } from './speaker-stats';
+export type { SpeakerStat } from './types/speaker-stat';
 export {
   enableBrowserASR,
   disableBrowserASR,

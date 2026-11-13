@@ -16,7 +16,8 @@ describe('post-stop words', () => {
     const asr = await loadBrowserAsr();
     await consentAndCache();
     await asr.resolveAsrBackend();
-    const { getState, resetSession } = await import('./store');
+    const { getState } = await import('./store-core');
+    const { resetSession } = await import('./session-reset');
     resetSession('system');
     engineState.transcribeWords = [
       { text: 'one', start: 1, end: 2 },

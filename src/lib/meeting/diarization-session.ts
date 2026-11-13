@@ -1,5 +1,5 @@
 import type { Diarizer } from '@/lib/diarization/browser';
-import { setState } from './store';
+import { setState } from './store-core';
 import type { DiarizationStatus, Source } from './types';
 import type { DownloadWaitState } from './types/diarization-bridge';
 

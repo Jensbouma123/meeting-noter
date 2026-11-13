@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { defaultLabel, ensureSpeaker, getState, loadIdleSession, resetSession, restoreSnapshot, setState } from './store';
+import { defaultLabel, ensureSpeaker } from './speaker-registry';
+import { getState, setState } from './store-core';
+import { loadIdleSession, resetSession, restoreSnapshot } from './session-reset';
 import type { Segment } from './types';
 
 describe('speaker labels with diarization on both sources', () => {

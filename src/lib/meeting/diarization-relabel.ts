@@ -5,7 +5,9 @@ import { turnsOf } from './diarization-turns';
 import { isOverlapPassSegment } from './overlap-pass-segments';
 import { attributeSpeakers } from './speaker-attribution';
 import { mergeFamily, segmentFamilyRoot } from './speaker-family';
-import { captureSpanOf, getState, inSegmentFamily, replaceSegmentFamily } from './store';
+import { captureSpanOf } from './append-mode';
+import { getState } from './store-core';
+import { inSegmentFamily, replaceSegmentFamily } from './segment-store';
 import type { Segment } from './types';
 
 const RELABEL_LOOKBACK_SEGMENTS = 200;

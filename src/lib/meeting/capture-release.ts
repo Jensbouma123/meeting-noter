@@ -1,7 +1,7 @@
 import { stopDiarization } from './diarization-bridge';
 import { stopLangId } from './langid-bridge';
 import { session } from './session-state';
-import { resetLevels } from './store';
+import { resetLevels } from './levels-bus';
 
 export function releaseCapture(): Promise<void> {
   const c = session.capture;

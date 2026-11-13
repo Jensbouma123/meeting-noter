@@ -3,15 +3,10 @@ import { loadAutosavedSession, clearAutosavedSession, flushAutosave, cancelPendi
 import { saveSessionTranscript, loadSessionTranscript, removeSessionTranscript, sessionTranscriptKey } from './session-transcript-storage';
 import { removeSpeakerState, speakerStateKey } from './speaker-state-storage';
 import { type AutosavedSession } from './types/autosave';
-import {
-  armAppend,
-  bindTranscriptSession,
-  clearIdleSession,
-  getState,
-  getTranscriptSessionId,
-  isCaptureActive,
-  loadIdleSession,
-} from './store';
+import { armAppend } from './append-mode';
+import { bindTranscriptSession, getTranscriptSessionId, isCaptureActive } from './transcript-session';
+import { clearIdleSession, loadIdleSession } from './session-reset';
+import { getState } from './store-core';
 import { resetDiarization } from './diarization-bridge';
 import { requestPersistentStorage } from './persistent-storage';
 import { adoptNotes, hasLocalNotes, notesKey } from './notes-storage';

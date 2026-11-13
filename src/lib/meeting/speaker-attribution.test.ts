@@ -1,42 +1,45 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { publishLiveUpdate } from './speaker-attribution';
 import { line, turnsAt } from './speaker-test-helpers';
-import * as store from './store';
+import * as storeAppendMode from './append-mode';
+import * as storeSessionReset from './session-reset';
+import * as storeSegmentStore from './segment-store';
+import * as storeStoreCore from './store-core';
 
 afterEach(() => {
-  store.cancelAppend();
-  store.resetSession('mic');
+  storeAppendMode.cancelAppend();
+  storeSessionReset.resetSession('mic');
 });
 
-describe('store.replaceSegmentFamily', () => {
+describe('storeSegmentStore.replaceSegmentFamily', () => {
   it('replaces a line and its parts where the line was, leaving other lines alone', () => {
-    store.resetSession('mic');
-    store.upsertSegment(line('x', ['before'], 0));
-    store.upsertSegment(line('s1', ['a', 'b'], 1));
-    store.upsertSegment(line('s1~1', ['c'], 3));
-    store.upsertSegment(line('s10', ['after'], 5));
+    storeSessionReset.resetSession('mic');
+    storeSegmentStore.upsertSegment(line('x', ['before'], 0));
+    storeSegmentStore.upsertSegment(line('s1', ['a', 'b'], 1));
+    storeSegmentStore.upsertSegment(line('s1~1', ['c'], 3));
+    storeSegmentStore.upsertSegment(line('s10', ['after'], 5));
 
-    store.replaceSegmentFamily('s1', [line('s1', ['a'], 1, 'mic:1'), line('s1~1', ['b', 'c'], 2, 'mic:2')]);
+    storeSegmentStore.replaceSegmentFamily('s1', [line('s1', ['a'], 1, 'mic:1'), line('s1~1', ['b', 'c'], 2, 'mic:2')]);
 
-    expect(store.getState().segments.map((s) => [s.id, s.text, s.speaker])).toEqual([
+    expect(storeStoreCore.getState().segments.map((s) => [s.id, s.text, s.speaker])).toEqual([
       ['x', 'before', 'mic:0'],
       ['s1', 'a', 'mic:1'],
       ['s1~1', 'b c', 'mic:2'],
       ['s10', 'after', 'mic:0'],
     ]);
-    expect(store.getState().speakers['mic:2']).toBeDefined();
+    expect(storeStoreCore.getState().speakers['mic:2']).toBeDefined();
   });
 
   it('places the parts of an appended recording past the earlier transcript', () => {
-    store.resetSession('mic');
-    store.upsertSegment(line('old', ['earlier'], 0));
-    store.armAppend();
-    store.resetSession('mic');
-    const offset = store.getState().segments[0].end;
+    storeSessionReset.resetSession('mic');
+    storeSegmentStore.upsertSegment(line('old', ['earlier'], 0));
+    storeAppendMode.armAppend();
+    storeSessionReset.resetSession('mic');
+    const offset = storeStoreCore.getState().segments[0].end;
 
-    store.replaceSegmentFamily('s1', [line('s1', ['a'], 1), line('s1~1', ['b'], 2, 'mic:1')]);
+    storeSegmentStore.replaceSegmentFamily('s1', [line('s1', ['a'], 1), line('s1~1', ['b'], 2, 'mic:1')]);
 
-    const [, first, second] = store.getState().segments;
+    const [, first, second] = storeStoreCore.getState().segments;
     expect([first.id, second.id]).toEqual(['a1:s1', 'a1:s1~1']);
     expect(first.start).toBeCloseTo(1 + offset);
     expect(second.words![0].start).toBeCloseTo(2 + offset);
@@ -62,25 +65,25 @@ describe('publishLiveUpdate', () => {
   };
 
   it('splits a line across a known speaker change while open, and keeps the split when it closes', () => {
-    store.resetSession('mic');
+    storeSessionReset.resetSession('mic');
     publishLiveUpdate('mic', update(false), timeline, () => 'mic:0');
-    expect(store.getState().segments.map((s) => [s.id, s.speaker, s.final])).toEqual([
+    expect(storeStoreCore.getState().segments.map((s) => [s.id, s.speaker, s.final])).toEqual([
       ['live-1', 'mic:0', false],
       ['live-1~2', 'mic:1', false],
     ]);
 
     publishLiveUpdate('mic', update(true), timeline, () => 'mic:0');
-    expect(store.getState().segments.map((s) => [s.id, s.speaker, s.text])).toEqual([
+    expect(storeStoreCore.getState().segments.map((s) => [s.id, s.speaker, s.text])).toEqual([
       ['live-1', 'mic:0', 'a b'],
       ['live-1~2', 'mic:1', 'c d'],
     ]);
   });
 
   it('without a timeline, stores the line whole under the fallback speaker', () => {
-    store.resetSession('mic');
+    storeSessionReset.resetSession('mic');
     publishLiveUpdate('mic', update(true), null, () => 'mic:0');
-    expect(store.getState().segments.map((s) => [s.id, s.speaker, s.text])).toEqual([['live-1', 'mic:0', 'a b c d']]);
-    expect(store.getState().segments[0].words![3]).toEqual({ text: 'd', start: 3, end: 3.8 });
+    expect(storeStoreCore.getState().segments.map((s) => [s.id, s.speaker, s.text])).toEqual([['live-1', 'mic:0', 'a b c d']]);
+    expect(storeStoreCore.getState().segments[0].words![3]).toEqual({ text: 'd', start: 3, end: 3.8 });
   });
 });
 
@@ -101,25 +104,25 @@ describe('unconfirmed speakers', () => {
   });
 
   it('marks a line no turn covers yet, and clears it once one does', () => {
-    store.resetSession('mic');
+    storeSessionReset.resetSession('mic');
     publishLiveUpdate('mic', update(false), timelineOf(false), () => 'mic:0');
-    expect(store.getState().segments[0]).toMatchObject({ speaker: 'mic:0', unconfirmed: true });
+    expect(storeStoreCore.getState().segments[0]).toMatchObject({ speaker: 'mic:0', unconfirmed: true });
     publishLiveUpdate('mic', update(true), timelineOf(true), () => 'mic:0');
-    expect(store.getState().segments[0].unconfirmed).toBeUndefined();
+    expect(storeStoreCore.getState().segments[0].unconfirmed).toBeUndefined();
   });
 
   it('never marks a line without a timeline', () => {
-    store.resetSession('mic');
+    storeSessionReset.resetSession('mic');
     publishLiveUpdate('mic', update(true), null, () => 'mic:0');
-    expect(store.getState().segments[0].unconfirmed).toBeUndefined();
+    expect(storeStoreCore.getState().segments[0].unconfirmed).toBeUndefined();
   });
 
   it('confirmAllSegments resolves leftovers to their guessed speaker', () => {
-    store.resetSession('mic');
+    storeSessionReset.resetSession('mic');
     publishLiveUpdate('mic', update(true), timelineOf(false), () => 'mic:0');
-    expect(store.getState().segments[0].unconfirmed).toBe(true);
-    store.confirmAllSegments();
-    expect(store.getState().segments[0]).toMatchObject({ speaker: 'mic:0' });
-    expect(store.getState().segments[0].unconfirmed).toBeUndefined();
+    expect(storeStoreCore.getState().segments[0].unconfirmed).toBe(true);
+    storeSegmentStore.confirmAllSegments();
+    expect(storeStoreCore.getState().segments[0]).toMatchObject({ speaker: 'mic:0' });
+    expect(storeStoreCore.getState().segments[0].unconfirmed).toBeUndefined();
   });
 });

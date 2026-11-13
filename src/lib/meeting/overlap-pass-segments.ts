@@ -1,5 +1,7 @@
 import { missedWords, SAME_PHRASE_SECONDS } from './overlap-missed-words';
-import { captureSpanOf, getState, setState, upsertSegment } from './store';
+import { captureSpanOf } from './append-mode';
+import { getState, setState } from './store-core';
+import { upsertSegment } from './segment-store';
 import type { Source } from './types';
 import type { AttributedWord, OverlapSpan } from './types/overlap-retranscribe';
 

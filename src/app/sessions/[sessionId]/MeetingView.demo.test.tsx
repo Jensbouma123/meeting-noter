@@ -56,12 +56,18 @@ vi.mock('@/components/models', () => ({
   getState: () => h.registry,
   getServerSnapshot: () => h.registry,
 }));
-vi.mock('@/lib/meeting/store', () => ({
+vi.mock('@/lib/meeting/session-reset', () => ({
   restoreSnapshot: vi.fn(),
+  loadIdleSession: () => false,
+}));
+vi.mock('@/lib/meeting/transcript-session', () => ({
   bindTranscriptSession: vi.fn(),
   getTranscriptSessionId: () => null,
-  loadIdleSession: () => false,
+}));
+vi.mock('@/lib/meeting/store-core', () => ({
   getState: () => h.state,
+}));
+vi.mock('@/lib/meeting/append-mode', () => ({
   cancelAppend: vi.fn(),
 }));
 vi.mock('@/lib/meeting/session-store', () => ({

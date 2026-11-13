@@ -8,7 +8,7 @@ import {
 } from './overlap-pass-segments';
 import { overlapSpans } from './overlap-spans';
 import { CAPTURE_SAMPLE_RATE } from './pcm';
-import { upsertSegment } from './store';
+import { upsertSegment } from './segment-store';
 import type { Source } from './types';
 import type { OverlapSpan, OverlapTurn, TranscribeClip } from './types/overlap-retranscribe';
 

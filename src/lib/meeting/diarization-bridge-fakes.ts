@@ -52,7 +52,11 @@ export async function modules() {
   const registry = await import('@/lib/asr/browser');
   const bridgeModule = await import('./diarization-bridge');
   const registryModule = await import('./diarization-registry');
-  const store = await import('./store');
+  const store = {
+    ...(await import('./session-reset')),
+    ...(await import('./store-core')),
+    ...(await import('./segment-store')),
+  };
   return { registry, bridge: { ...bridgeModule, ...registryModule }, store };
 }
 

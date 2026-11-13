@@ -1,7 +1,8 @@
 import { seedSpeakerStates, takeReportedSpeakerStates } from '@/lib/diarization/browser/speaker-handoff';
 import { loadSpeakerState, saveSpeakerState } from './speaker-state-storage';
 import { session } from './session-state';
-import { getTranscriptSessionId, isAppendActive } from './store';
+import { getTranscriptSessionId } from './transcript-session';
+import { isAppendActive } from './append-mode';
 
 export function beginSpeakerSession(): void {
   const id = getTranscriptSessionId();

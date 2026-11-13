@@ -12,7 +12,7 @@ vi.mock('@/lib/meeting/session-store', () => ({
   createDraftSession: vi.fn(),
   listSessions: () => [],
 }));
-vi.mock('@/lib/meeting/store', () => ({ clearIdleSession: vi.fn() }));
+vi.mock('@/lib/meeting/session-reset', () => ({ clearIdleSession: vi.fn() }));
 vi.mock('@/components/sessions', () => ({
   HomeLayout: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   NewSessionDialog: () => null,

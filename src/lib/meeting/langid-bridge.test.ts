@@ -32,7 +32,7 @@ vi.mock('@/lib/langid', () => ({
 
 beforeEach(async () => {
   fakes.detectors.length = 0;
-  const store = await import('./store');
+  const store = { ...(await import('./session-reset')) };
   store.resetSession('both');
   const { resetLanguageOverride } = await import('./langid-bridge');
   resetLanguageOverride();
@@ -46,7 +46,7 @@ afterEach(async () => {
 describe('language-ID bridge', () => {
   it("restarts detection on 'auto' when the language was picked before capture started", async () => {
     const { startLangId, setLanguageOverride } = await import('./langid-bridge');
-    const { getState } = await import('./store');
+    const { getState } = await import('./store-core');
 
     setLanguageOverride('nl');
     startLangId(['mic', 'system']);
@@ -59,7 +59,7 @@ describe('language-ID bridge', () => {
 
   it("applies the latest detection at once on 'auto'", async () => {
     const { startLangId, setLanguageOverride } = await import('./langid-bridge');
-    const { getState } = await import('./store');
+    const { getState } = await import('./store-core');
 
     startLangId(['mic']);
     setLanguageOverride('nl');
@@ -72,7 +72,7 @@ describe('language-ID bridge', () => {
 
   it('keeps the most confident source instead of flapping to whichever reported last', async () => {
     const { startLangId } = await import('./langid-bridge');
-    const { getState } = await import('./store');
+    const { getState } = await import('./store-core');
 
     startLangId(['mic', 'system']);
     const [mic, system] = fakes.detectors;
@@ -86,7 +86,7 @@ describe('language-ID bridge', () => {
 
   it('ignores low-confidence detections and keeps the last confident language', async () => {
     const { startLangId } = await import('./langid-bridge');
-    const { getState } = await import('./store');
+    const { getState } = await import('./store-core');
 
     startLangId(['mic']);
     const [mic] = fakes.detectors;

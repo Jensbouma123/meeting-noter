@@ -21,7 +21,7 @@ describe('browser ASR is reachable', () => {
   it('transcribes once the model is ready, so frames reach the transcript', async () => {
     const asr = await loadBrowserAsr();
     await consentAndCache();
-    const { getState } = await import('./store');
+    const { getState } = await import('./store-core');
 
     expect(await asr.tryBrowserASR(new Float32Array([0.1]), 'mic', false)).toBe(false);
     expect(await asr.ensureBrowserASRReady()).toBe(true);

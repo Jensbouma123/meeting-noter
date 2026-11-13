@@ -11,7 +11,8 @@ import { flushOverlapRetranscribe, resetOverlapRetranscribe } from './overlap-re
 import { schedulePostStopIntelligence } from './post-stop-intelligence';
 import { saveSpeakerSession } from './speaker-session';
 import { session } from './session-state';
-import { confirmAllSegments, getState, setState } from './store';
+import { confirmAllSegments } from './segment-store';
+import { getState, setState } from './store-core';
 import { decideTranscriptionMode } from './transcription-mode';
 
 async function flushLastWindow(postStop: boolean): Promise<void> {

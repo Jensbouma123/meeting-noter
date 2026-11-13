@@ -4,7 +4,7 @@ import { AUTOSAVE_VERSION, sanitizeSnapshot } from './autosave-snapshot';
 import { loadSessionTranscript, saveSessionTranscript } from './session-transcript-storage';
 import { queueMeetingSync } from './sync-queue';
 import { isStorageAvailable } from './storage-available';
-import { isCaptureActive } from './store';
+import { isCaptureActive } from './transcript-session';
 
 export const AUTOSAVE_KEY = 'mn.autosave.v1';
 export const AUTOSAVE_THROTTLE_MS = 1000;

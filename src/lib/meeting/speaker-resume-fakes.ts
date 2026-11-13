@@ -22,7 +22,7 @@ export function mockDiarizationBridge() {
       void (async () => {
         const { DiarizerCore } = await import('@/lib/diarization/browser/core');
         const state = await speakerState();
-        const { upsertSegment } = await import('./store');
+        const { upsertSegment } = await import('./segment-store');
         for (const source of sources as ('mic' | 'system')[]) {
           const seed = state.speakerSeedFor(source);
           const core = new DiarizerCore({
@@ -81,7 +81,7 @@ export async function loadPage() {
   vi.resetModules();
   fake.cores.clear();
   const { meeting } = await import('./index');
-  const store = await import('./store');
+  const store = { ...(await import('./transcript-session')), ...(await import('./store-core')) };
   const sessions = await import('./session-store');
   return { meeting, store, sessions };
 }

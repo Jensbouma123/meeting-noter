@@ -109,7 +109,7 @@ describe('meeting.start()', () => {
   it('goes live on a successful mic-only start', async () => {
     const { meeting, useMeeting: _useMeeting } = await import('./index');
     void _useMeeting;
-    const { getState } = await import('./store');
+    const { getState } = await import('./store-core');
 
     await meeting.start({ mode: 'mic' });
 
@@ -123,7 +123,7 @@ describe('meeting.start()', () => {
   it('surfaces a visible error instead of a silent no-op when the mic is denied', async () => {
     getUserMediaMock.mockRejectedValueOnce(new Error('Permission denied'));
     const { meeting } = await import('./index');
-    const { getState } = await import('./store');
+    const { getState } = await import('./store-core');
 
     await meeting.start({ mode: 'mic' });
 
@@ -150,7 +150,7 @@ describe('meeting.start()', () => {
 
     await startPromise;
     expect(getUserMediaMock).toHaveBeenCalledTimes(1);
-    const { getState } = await import('./store');
+    const { getState } = await import('./store-core');
     expect(getState().status).toBe('live');
     await meeting.stop();
   });
@@ -158,7 +158,7 @@ describe('meeting.start()', () => {
   it('continues mic-only, silently, when call audio is declined in "both" mode', async () => {
     getDisplayMediaMock.mockRejectedValueOnce(new Error('Permission denied'));
     const { meeting, getCallAudioMissing } = await import('./index');
-    const { getState } = await import('./store');
+    const { getState } = await import('./store-core');
 
     await meeting.start({ mode: 'both' });
 
@@ -172,7 +172,7 @@ describe('meeting.start()', () => {
 
   it('requests the mic only once even if start() is invoked twice back-to-back, e.g. a double-click before Record disables', async () => {
     const { meeting } = await import('./index');
-    const { getState } = await import('./store');
+    const { getState } = await import('./store-core');
 
     // Deliberately not awaited individually: both calls fire in the same
     // synchronous tick, the way two fast click events would, before either
@@ -189,7 +189,7 @@ describe('meeting.start()', () => {
 
   it('recovers from a stale in-flight status with no real session behind it', async () => {
     const { meeting } = await import('./index');
-    const { getState, setState } = await import('./store');
+    const { getState, setState } = await import('./store-core');
 
     // Simulate what a dev Fast Refresh (or any other desync) can leave
     // behind: the store still says a session is live, but this module was
@@ -343,7 +343,7 @@ describe('meeting session lifecycle races', () => {
     const run = deferred<boolean>();
     asr.transcribeRecordedAudioAfterStop.mockReturnValueOnce(run.promise);
     const { meeting } = await import('./index');
-    const { getState } = await import('./store');
+    const { getState } = await import('./store-core');
     await meeting.start({ mode: 'mic' });
 
     const first = meeting.stop();
@@ -371,7 +371,7 @@ describe('meeting session lifecycle races', () => {
     const run = deferred<boolean>();
     asr.transcribeRecordedAudioAfterStop.mockReturnValueOnce(run.promise);
     const { meeting } = await import('./index');
-    const { getState } = await import('./store');
+    const { getState } = await import('./store-core');
     await meeting.start({ mode: 'mic' });
 
     const stopped = meeting.stop();
@@ -412,7 +412,8 @@ describe('meeting session lifecycle races', () => {
 
   it('leaves no segment "Identifying" once Stop has finished, including the post-stop pass\'s', async () => {
     const { meeting } = await import('./index');
-    const { getState, upsertSegment } = await import('./store');
+    const { getState } = await import('./store-core');
+    const { upsertSegment } = await import('./segment-store');
     // The post-stop pass writes after the live lines were resolved; the
     // diarizer never reached the recording's last words, so they are pending.
     asr.transcribeRecordedAudioAfterStop.mockImplementationOnce(async () => {

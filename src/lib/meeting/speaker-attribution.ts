@@ -4,7 +4,7 @@ import { CAPTURE_SAMPLE_RATE } from './pcm';
 import { withConfirmation } from './speaker-confirmation';
 import { installedOverlaps } from './speaker-overlap-timeline';
 import { splitBySpeaker } from './speaker-split';
-import { replaceSegmentFamily, upsertSegment } from './store';
+import { replaceSegmentFamily, upsertSegment } from './segment-store';
 import type { Segment, Source } from './types';
 import type { OverlapAt, SpeakerAt } from './types/speaker-attribution';
 

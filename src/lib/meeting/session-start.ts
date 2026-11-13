@@ -16,7 +16,9 @@ import { degradeAfterSourceEnded } from './source-ended';
 import { session } from './session-state';
 import { startIsBlocked } from './session-start-guard';
 import { teardownCapture } from './capture-release';
-import { pushLevel, resetSession, setState } from './store';
+import { pushLevel } from './levels-bus';
+import { resetSession } from './session-reset';
+import { setState } from './store-core';
 import { decideTranscriptionMode } from './transcription-mode';
 import type { StartOpts } from './types';
 

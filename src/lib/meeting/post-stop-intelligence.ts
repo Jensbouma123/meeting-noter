@@ -1,6 +1,7 @@
 import { indexMeeting } from '@/lib/semantic-search/service';
 import { session } from './session-state';
-import { getState, getTranscriptSessionId, subscribe } from './store';
+import { getState, subscribe } from './store-core';
+import { getTranscriptSessionId } from './transcript-session';
 
 async function indexFinishedMeeting(): Promise<void> {
   if (getState().status !== 'idle') return;

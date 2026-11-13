@@ -40,7 +40,7 @@ describe('post-stop transcription on a CPU-only device', () => {
   });
   it('transcribes the buffered recording on Stop, with real progress and real audio', async () => {
     const asr = await loadPostStopAsr();
-    const { getState } = await import('./store');
+    const { getState } = await import('./store-core');
     const { getPostStopTranscriptionProgress } = asr;
 
     asr.beginRecordedAudioCapture();
