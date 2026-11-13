@@ -275,11 +275,26 @@ export function createD1WorkerHandler(
         throw new Error('D1 ONNX session returned no logits output');
       }
       const logitsData = Float32Array.from(logitsDataOf(logitsTensor));
+      // A non-finite or short logits buffer would soften into uniform probabilities (below every
+      // threshold) and the scan would end "done" with nothing found: fail loudly instead.
+      const stride = logitsTensor.dims?.length === 2 ? Number(logitsTensor.dims[1]) : batch.maxMarkers;
+      if (logitsData.length < batch.batchSize * stride || stride < batch.maxMarkers) {
+        throw new Error(
+          `D1 model returned unusable logits: ${logitsData.length} values for ${batch.batchSize}x${batch.maxMarkers}`,
+        );
+      }
 
       const answers: D1Answer[] = [];
       for (let b = 0; b < batch.batchSize; b++) {
-        const offset = b * batch.maxMarkers;
+        const offset = b * stride;
         const itemLogits = logitsData.subarray(offset, offset + batch.maxMarkers);
+        const valid = requests[b].question.type === 'noul' ? 2 : encoded[b].numOptions;
+        for (let k = 0; k < valid; k++) {
+          if (!Number.isFinite(itemLogits[k])) {
+            d1Warn('[D1] worker: non-finite logits', { backend: rt.backend, batchItem: b, option: k });
+            throw new Error(`D1 model returned non-finite logits on ${rt.backend}`);
+          }
+        }
         answers.push(decodeD1Answer(requests[b].question, itemLogits, rt.temperatures));
       }
       return answers;

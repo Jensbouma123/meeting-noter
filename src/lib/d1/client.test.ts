@@ -238,6 +238,45 @@ describe('d1 worker handler', () => {
     expect(sessionReleased).toBe(true);
     expect(out).toContainEqual({ type: 'disposed', id: 'disp-1' });
   });
+
+  it.each([
+    ['non-finite', (n: number) => new Float32Array(n).fill(Number.NaN)],
+    ['truncated', () => new Float32Array(0)],
+  ])('rejects %s logits instead of decoding them to uniform "nothing found" answers', async (_name, makeLogits) => {
+    const out: D1WorkerOutMessage[] = [];
+    const session = {
+      async run(feeds: Record<string, { dims: readonly number[] }>) {
+        const n = feeds.input_ids.dims[0] * feeds.marker_pos.dims[1];
+        return { logits: { data: makeLogits(n), dims: [feeds.input_ids.dims[0], feeds.marker_pos.dims[1]], dispose: () => {} } };
+      },
+      async release() {},
+    };
+    const handle = createD1WorkerHandler((m) => out.push(m), {
+      assertCached: async () => {},
+      downloadModels: async () => ({
+        [D1_CONFIG_FILE.filename]: 'blob:cfg',
+        [D1_TOKENIZER_FILE.filename]: 'blob:tok',
+        [D1_TOKENIZER_CONFIG_FILE.filename]: 'blob:tokcfg',
+        [D1_GRAPH_FILE.filename]: 'blob:graph',
+        [D1_WEIGHTS_FILE.filename]: 'blob:weights',
+      }),
+      readJson: async <T>() => ({ bos_token_id: 1, pad_token_id: 0 } as T),
+      getModelSource: () => new Uint8Array(),
+      revokeUrls: () => {},
+      createTokenizer: () => makeFakeTokenizer(),
+      createOrtSession: async () => ({ session: session as never, backend: 'webgpu' }),
+      createTensor: (type, data, dims) => ({ type, data, dims, dispose: () => {} }) as never,
+    });
+
+    await handle({
+      type: 'decide',
+      id: 'bad-1',
+      requests: [{ state: 'We decided to ship', question: { type: 'noul', instructions: 'Decided?' } }],
+    });
+
+    expect(out.some((m) => m.type === 'result')).toBe(false);
+    expect(out).toContainEqual(expect.objectContaining({ type: 'error', id: 'bad-1', code: 'failed' }));
+  });
 });
 
 describe('d1 client', () => {
