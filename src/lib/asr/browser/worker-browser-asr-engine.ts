@@ -1,11 +1,9 @@
 import { createLocalAsrEngine, type LocalAsrEngine } from './engine-factory';
-import { getAsrLanguageHint } from './language-hint';
 import { connectWorker } from './worker-connect';
 import { recognizeRemotely, transcribeRemotely } from './worker-remote-calls';
 import { WorkerCallChannel } from './worker-call-channel';
-import { WorkerEngineSettings, dispatchSetting, followSettingChanges } from './worker-engine-settings';
+import { WorkerEngineSettings } from './worker-engine-settings';
 import { forwardEngineEvent } from './worker-event-router';
-import { getVocabularyBiasConfig } from '@/lib/vocabulary/store';
 import type { VocabularyBiasConfig } from '@/lib/vocabulary/types';
 import type {
   AsrEngine,
@@ -23,11 +21,8 @@ export class WorkerBrowserASREngine implements AsrEngine {
   private readonly channel = new WorkerCallChannel();
   private status: BrowserASRStatus = 'idle';
   private ready = false;
-  private readonly settings = new WorkerEngineSettings();
-  private readonly unfollowSettings = followSettingChanges(
-    () => this.setVocabulary(getVocabularyBiasConfig()),
-    () => this.setLanguageHint(getAsrLanguageHint()),
-  );
+  private readonly settings = new WorkerEngineSettings(() => this.local, this.channel);
+  private readonly unfollowSettings = this.settings.followStoreChanges();
 
   constructor(
     private readonly config: BrowserASRConfig,
@@ -90,23 +85,19 @@ export class WorkerBrowserASREngine implements AsrEngine {
   }
 
   lockLanguage(): void {
-    this.settings.languageLocked = true;
-    dispatchSetting(this.local, this.channel, (e) => e.lockLanguage(), { method: 'lockLanguage' });
+    this.settings.lockLanguage();
   }
 
   unlockLanguage(): void {
-    this.settings.languageLocked = false;
-    dispatchSetting(this.local, this.channel, (e) => e.unlockLanguage(), { method: 'unlockLanguage' });
+    this.settings.unlockLanguage();
   }
 
   setLanguageHint(code: string | null): void {
-    this.settings.languageHint = code;
-    dispatchSetting(this.local, this.channel, (e) => e.setLanguageHint(code), { method: 'setLanguageHint', args: { code } });
+    this.settings.setLanguageHint(code);
   }
 
   setVocabulary(config: VocabularyBiasConfig): void {
-    this.settings.vocabulary = config;
-    dispatchSetting(this.local, this.channel, (e) => e.setVocabulary(config), { method: 'setVocabulary', args: config });
+    this.settings.setVocabulary(config);
   }
 
   private connect(): Promise<LocalAsrEngine | null> {
@@ -120,7 +111,7 @@ export class WorkerBrowserASREngine implements AsrEngine {
       onCrash: (message) => this.onCrash(message),
     });
     if (outcome === 'run-on-page') return this.runOnPage();
-    if (outcome === 'attached') this.settings.replayToWorker(this.channel);
+    if (outcome === 'attached') this.settings.replayToWorker();
     return null;
   }
 

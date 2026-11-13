@@ -3,13 +3,8 @@
 import { Info } from 'lucide-react';
 import { Text } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
-import {
-  isUnnamedSpeakerLabel,
-  setParticipants,
-  unassignedParticipants,
-  useParticipants,
-  useRecentParticipants,
-} from '@/lib/meeting/participants';
+import { isUnnamedSpeakerLabel, unassignedParticipants } from '@/lib/meeting/participant-names';
+import { setParticipants, useParticipants, useRecentParticipants } from '@/lib/meeting/participants';
 import { ParticipantsEditor } from './ParticipantsEditor';
 import { SpeakerList } from './SpeakerList';
 import type { RailPeopleSectionProps } from './RightRail.types';

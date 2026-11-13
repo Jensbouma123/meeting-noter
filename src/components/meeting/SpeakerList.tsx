@@ -4,7 +4,7 @@ import { Users } from 'lucide-react';
 import { EmptyState, Text } from '@jensbouma123/acciva-ui';
 import { ProgressTrack } from '@/components/common/ProgressTrack';
 import { useT } from '@/lib/i18n/useT';
-import { isUnnamedSpeakerLabel } from '@/lib/meeting/participants';
+import { isUnnamedSpeakerLabel } from '@/lib/meeting/participant-names';
 import { getSpeakerColor } from './speaker-theme';
 import { SpeakerAssign } from './SpeakerAssign';
 import { SpeakerLabel } from './SpeakerLabel';

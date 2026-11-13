@@ -11,13 +11,8 @@ import {
 } from '@jensbouma123/acciva-ui';
 import { Check } from 'lucide-react';
 import { useT } from '@/lib/i18n/useT';
-import {
-  defaultSpeakerLabel,
-  isUnnamedSpeakerLabel,
-  setParticipants,
-  unassignedParticipants,
-  useParticipants,
-} from '@/lib/meeting/participants';
+import { defaultSpeakerLabel, isUnnamedSpeakerLabel, unassignedParticipants } from '@/lib/meeting/participant-names';
+import { setParticipants, useParticipants } from '@/lib/meeting/participants';
 import { addNameToVocabulary } from '@/lib/vocabulary/names';
 import { meeting } from './store';
 import { renderSpeakerAssignTrigger } from './renderSpeakerAssignTrigger';

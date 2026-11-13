@@ -1,4 +1,4 @@
-import { uniqueNames } from '@/lib/meeting/participants';
+import { uniqueNames } from '@/lib/meeting/participant-names';
 import type { ParticipantOption } from './ParticipantsEditor.types';
 
 export function buildParticipantOptions(

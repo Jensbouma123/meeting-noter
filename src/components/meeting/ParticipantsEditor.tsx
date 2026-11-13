@@ -3,7 +3,7 @@
 import { useId, useState } from 'react';
 import { Input, Text, VStack } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
-import { parseParticipantNames, uniqueNames } from '@/lib/meeting/participants';
+import { parseParticipantNames, uniqueNames } from '@/lib/meeting/participant-names';
 import { useVocabulary } from '@/lib/vocabulary/store';
 import { ParticipantChips } from './ParticipantChips';
 import { ParticipantMenu } from './ParticipantMenu';
