@@ -60,6 +60,7 @@ export function adoptStoredMeeting(meeting: StoredMeeting): void {
     isDraft: meeting.segments.length === 0,
     speakers: [],
     folderId: meeting.folderId ?? null,
+    folderSuggestionDeclined: [],
   });
   cacheMeetingContent(meeting, { replace: true });
 }
