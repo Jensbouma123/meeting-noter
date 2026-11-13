@@ -1,6 +1,3 @@
-// `npm run dev`: starts the native audio helper (macOS) next to `next dev`.
-// `npm run app` (`--prod`): builds the web app when needed, then starts the
-// production server (`next start`) next to the helper.
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { createInterface } from "node:readline";

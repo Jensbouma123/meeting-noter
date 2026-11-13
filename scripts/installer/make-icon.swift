@@ -1,6 +1,3 @@
-// Draws the 1024 px app icon for Meeting Noter.app: a waveform on a rounded
-// square, so the installer needs no binary image in the repo.
-//   swift scripts/installer/make-icon.swift out.png
 import AppKit
 
 let out = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "icon.png"
@@ -13,7 +10,6 @@ else { fatalError("no bitmap") }
 NSGraphicsContext.saveGraphicsState()
 NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
 
-// macOS icon grid: 824 px body centred in 1024, corner radius ~185.
 let body = NSRect(x: 100, y: 100, width: 824, height: 824)
 let shape = NSBezierPath(roundedRect: body, xRadius: 185, yRadius: 185)
 NSGradient(

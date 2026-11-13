@@ -1,6 +1,3 @@
-// Bundles the meetings MCP server (src/mcp/main.ts) and its SDK into one file
-// that runs with plain `node`: `npm run mcp:build` for a checkout, package.sh
-// for the installed app. Output: build/mcp/meetings-mcp.mjs (or MCP_OUT).
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'rolldown';

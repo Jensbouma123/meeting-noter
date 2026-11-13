@@ -43,7 +43,6 @@ describe('check-update.mjs as run by launcher.sh', () => {
 
   beforeAll(async () => {
     dir = mkdtempSync(path.join(realpathSync(tmpdir()), 'mn-check-update-'));
-    // The release layout: <app>/VERSION, ARCH and installer/{check-update,version}.mjs.
     mkdirSync(path.join(dir, 'installer'));
     writeFileSync(path.join(dir, 'VERSION'), '1.0.0\n');
     writeFileSync(path.join(dir, 'ARCH'), 'arm64\n');
@@ -60,7 +59,6 @@ describe('check-update.mjs as run by launcher.sh', () => {
     rmSync(dir, { recursive: true, force: true });
   });
 
-  // Async: a blocking spawn would starve the in-process server it queries.
   const check = (url = `http://127.0.0.1:${(server.address() as AddressInfo).port}/`) =>
     new Promise<{ stdout: string; status: number }>((resolve) => {
       execFile(process.execPath, [path.join(dir, 'installer/check-update.mjs')],
