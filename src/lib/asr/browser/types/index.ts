@@ -21,3 +21,10 @@ export type {
   NemotronResult,
   NemotronRecognizeOptions,
 } from './nemotron-core';
+export type { NavigatorGPU } from './navigator-gpu';
+export type { LocalAsrEngine } from './local-asr-engine';
+export type { EngineReplyMessage } from './engine-reply-message';
+export type { RecognizedWords } from './recognized-words';
+export type { HookableParakeetModel } from './hookable-parakeet-model';
+export type { WorkerConnectOutcome, WorkerHandlers } from './worker-connect';
+export type { ManifestFiles } from './manifest-files';

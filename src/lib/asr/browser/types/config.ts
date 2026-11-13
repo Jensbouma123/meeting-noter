@@ -1,4 +1,4 @@
-import type { AsrBackend, AsrModelManifest } from '../model-manifest';
+import type { AsrBackend, AsrModelManifest } from './model-manifest';
 
 export interface BrowserASRConfig {
   engine?: AsrModelManifest['engine'];

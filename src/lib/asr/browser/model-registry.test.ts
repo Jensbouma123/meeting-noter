@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { installLocalStorage, KEY, loadRegistry } from './model-registry.test-support';
+import { importFullRegistry, installLocalStorage, KEY, loadRegistry } from './model-registry.test-support';
 
 beforeEach(() => {
   vi.resetModules();
@@ -65,7 +65,7 @@ describe('markNotCached', () => {
     registry.markNotCached(KEY);
 
     vi.resetModules();
-    const reloaded = await import('./model-registry');
+    const reloaded = await importFullRegistry();
     reloaded.initRegistry();
     reloaded.registerModel({
       key: KEY,

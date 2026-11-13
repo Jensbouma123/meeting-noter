@@ -1,16 +1,6 @@
 import { argmax } from '@/lib/vocabulary/argmax';
 import type { ContextBiaser } from '@/lib/vocabulary/bias';
-
-interface StepResult {
-  tokenLogits: Float32Array;
-}
-
-export interface HookableParakeetModel {
-  blankId: number;
-  tokenizer: { id2token: readonly string[] };
-  _runCombinedStep: (enc: unknown, token: unknown, state?: unknown) => Promise<StepResult>;
-  transcribe: (...args: never[]) => Promise<unknown>;
-}
+import type { HookableParakeetModel } from './types';
 
 const hooked = new WeakSet<object>();
 

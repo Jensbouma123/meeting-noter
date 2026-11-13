@@ -1,4 +1,5 @@
-import { createLocalAsrEngine, type LocalAsrEngine } from './engine-factory';
+import { createLocalAsrEngine } from './engine-factory';
+import type { LocalAsrEngine } from './types';
 import { connectWorker } from './worker-connect';
 import { recognizeRemotely, transcribeRemotely } from './worker-remote-calls';
 import { WorkerCallChannel } from './worker-call-channel';

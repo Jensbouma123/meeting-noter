@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { installLocalStorage, KEY, loadRegistry } from './model-registry.test-support';
+import { importFullRegistry, installLocalStorage, KEY, loadRegistry } from './model-registry.test-support';
 
 beforeEach(() => {
   vi.resetModules();
@@ -56,7 +56,7 @@ describe('persisted downloading status', () => {
 
     vi.resetModules();
     vi.stubGlobal('window', {});
-    const reloaded = await import('./model-registry');
+    const reloaded = await importFullRegistry();
     reloaded.initRegistry();
 
     expect(reloaded.getModelStatus(KEY)!.status).toBe('not-downloaded');

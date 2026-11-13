@@ -2,14 +2,7 @@ import { isSafariEngine } from './is-safari-engine';
 import { debugEnabled } from './quiet-console';
 import { awaitWorkerHello } from './worker-handshake';
 import type { WorkerCallChannel } from './worker-call-channel';
-import type { BrowserASRConfig, EngineWorkerOut } from './types';
-
-export type WorkerConnectOutcome = 'attached' | 'run-on-page' | 'disabled';
-
-interface WorkerHandlers {
-  onMessage: (msg: EngineWorkerOut) => void;
-  onCrash: (message: string) => void;
-}
+import type { BrowserASRConfig, EngineWorkerOut, WorkerConnectOutcome, WorkerHandlers } from './types';
 
 export async function connectWorker(
   config: BrowserASRConfig,

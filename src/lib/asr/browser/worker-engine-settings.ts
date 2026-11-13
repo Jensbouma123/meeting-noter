@@ -1,7 +1,7 @@
 import { getAsrLanguageHint, subscribeAsrLanguageHint } from './language-hint';
 import { getVocabularyBiasConfig, subscribeVocabulary } from '@/lib/vocabulary/store';
 import type { VocabularyBiasConfig } from '@/lib/vocabulary/types';
-import type { LocalAsrEngine } from './engine-factory';
+import type { LocalAsrEngine } from './types';
 import type { WorkerCallChannel } from './worker-call-channel';
 import type { EngineCall } from './types';
 

@@ -1,7 +1,5 @@
 import { notReadyResultFor } from './engine-not-ready';
-import type { EngineCall, EngineCallResult, EngineWorkerIn, EngineWorkerOut, PendingCall } from './types';
-
-type ReplyMessage = Extract<EngineWorkerOut, { type: 'reply' }>;
+import type { EngineCall, EngineCallResult, EngineWorkerIn, EngineReplyMessage, PendingCall } from './types';
 
 export class WorkerCallChannel {
   private worker: Worker | null = null;
@@ -38,7 +36,7 @@ export class WorkerCallChannel {
     void this.call(call).catch(() => undefined);
   }
 
-  settle(reply: ReplyMessage): void {
+  settle(reply: EngineReplyMessage): void {
     const call = this.pending.get(reply.callId);
     if (!call) return;
     this.pending.delete(reply.callId);

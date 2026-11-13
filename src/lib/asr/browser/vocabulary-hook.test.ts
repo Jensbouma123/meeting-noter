@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ContextBiaser } from '@/lib/vocabulary/bias';
-import { hookParakeetVocabulary, type HookableParakeetModel } from './vocabulary-hook';
+import { hookParakeetVocabulary } from './vocabulary-hook';
+import type { HookableParakeetModel } from './types';
 
 const VOCAB = ['▁Fr', 'om', 'am', 'na', '<blk>'];
 const BLANK = 4;

@@ -1,10 +1,10 @@
 import type { ParakeetModel } from 'parakeet.js';
 import { probeCachedModelFiles } from './resumable-download';
 import { createParakeetModel } from './parakeet-model-factory';
-import { canHookParakeet, hookParakeetVocabulary, type HookableParakeetModel } from './vocabulary-hook';
+import { canHookParakeet, hookParakeetVocabulary } from './vocabulary-hook';
 import { SESSION_STALL_MS, describeSessionStall, startStallWatchdog } from './engine-load';
 import type { BiaserSlot } from '@/lib/vocabulary/biaser-slot';
-import type { BrowserASRConfig, BrowserASRLoadProgress } from './types';
+import type { BrowserASRConfig, BrowserASRLoadProgress, HookableParakeetModel } from './types';
 
 export const WARMUP_SAMPLE_RATE = 16000;
 

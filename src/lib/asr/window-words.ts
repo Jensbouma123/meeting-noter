@@ -1,11 +1,6 @@
 import { CUT_ECHO_SAMPLES, LIVE_SAMPLE_RATE as SR } from './live-chunker-defaults';
-import type { LiveChunkerConfig, LiveWindowRequest, TimedWord, TimelineWord } from './types';
+import type { CommitPlan, LiveChunkerConfig, LiveWindowRequest, TimedWord, TimelineWord } from './types';
 import { agreedPrefix, cleanWords, normalizeWord } from './word-text';
-
-export interface CommitPlan {
-  count: number;
-  discardBefore: number | null;
-}
 
 export function recognisedWords(
   req: LiveWindowRequest,

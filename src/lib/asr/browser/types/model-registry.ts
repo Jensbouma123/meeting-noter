@@ -1,5 +1,5 @@
-import type { AsrBackend } from '../model-manifest';
-import type { ManifestRuntimeOptions } from '../model-manifest';
+import type { AsrBackend } from './model-manifest';
+import type { ManifestRuntimeOptions } from './model-manifest';
 
 export type ModelStatus =
   | 'not-downloaded'

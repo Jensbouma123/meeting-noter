@@ -1,8 +1,6 @@
 import type { CachedFileProbe, ModelCacheState } from '../types/download-cache-state';
-import type { AsrModelManifest } from '../types/model-manifest';
+import type { ManifestFiles } from '../types';
 import { isModelFileCached } from './cached-files';
-
-type ManifestFiles = Pick<AsrModelManifest, 'modelRepo' | 'files'>;
 
 export async function probeCachedModelFiles(
   manifest: ManifestFiles,

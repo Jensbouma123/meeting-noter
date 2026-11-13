@@ -8,3 +8,4 @@ export type { ScriptWord } from './script-word';
 export type { SpeechGateConfig } from './speech-gate-config';
 export type { TimedWord } from './timed-word';
 export type { TimelineWord } from './timeline-word';
+export type { CommitPlan } from './commit-plan';

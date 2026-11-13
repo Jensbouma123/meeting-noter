@@ -1,8 +1,6 @@
 import type { TranscribeResult } from 'parakeet.js';
 import { BROWSER_ASR_LANGUAGE_NAMES } from './constants';
-import type { BrowserLanguageInfo, BrowserSegment, BrowserWord } from './types';
-
-type RecognizedWords = NonNullable<TranscribeResult['words']>;
+import type { BrowserLanguageInfo, BrowserSegment, BrowserWord, RecognizedWords } from './types';
 
 let segmentCounter = 0;
 
