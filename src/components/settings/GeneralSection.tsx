@@ -9,7 +9,8 @@ import { useContext } from 'react';
 import { AudioCaptureSection } from './AudioCaptureSection';
 import { AppearanceSection } from './AppearanceSection';
 import type { SettingsSectionProps } from './types';
-import { SettingsGroup, SettingsRow } from './SettingsRow';
+import { SettingsGroup } from './SettingsGroup';
+import { SettingsRow } from './SettingsRow';
 
 export function GeneralSection({
   settings,

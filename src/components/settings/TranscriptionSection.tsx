@@ -3,7 +3,8 @@
 import { Select } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import type { SettingsSectionProps } from './types';
-import { SettingsGroup, SettingsRow } from './SettingsRow';
+import { SettingsGroup } from './SettingsGroup';
+import { SettingsRow } from './SettingsRow';
 
 export function TranscriptionSection({
   settings,

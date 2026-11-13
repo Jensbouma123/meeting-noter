@@ -5,7 +5,8 @@ import { useThemePreference } from '@/components/meeting/useThemePreference';
 import type { ThemePreference } from '@/components/meeting/ThemeSwitcher.types';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useT } from '@/lib/i18n/useT';
-import { SettingsGroup, SettingsStackedRow } from './SettingsRow';
+import { SettingsGroup } from './SettingsGroup';
+import { SettingsStackedRow } from './SettingsStackedRow';
 
 export function AppearanceSection() {
   const t = useT('settings');

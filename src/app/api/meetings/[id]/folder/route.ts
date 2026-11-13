@@ -2,7 +2,7 @@ import type { IdRouteContext } from '@/app/api/types';
 import { refuseForeign } from '@/lib/lifecycle/request-guard';
 import { folderFailure } from '@/lib/meeting-db/folders-http';
 import { failure, readJson } from '@/lib/meeting-db/http';
-import { meetingStore } from '@/lib/meeting-db/store';
+import { meetingStore } from '@/lib/meeting-db/meeting-store';
 import { isMeetingId } from '@/lib/meeting-db/validate';
 
 export const runtime = 'nodejs';

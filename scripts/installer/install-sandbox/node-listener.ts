@@ -33,5 +33,5 @@ export async function waitUntilGone(pid: number) {
 }
 
 export function killIfStillRunning(pid: number) {
-  try { process.kill(pid, 'SIGKILL'); } catch { /* already gone */ }
+  try { process.kill(pid, 'SIGKILL'); } catch { void 0; }
 }

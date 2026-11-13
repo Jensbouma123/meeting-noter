@@ -14,7 +14,7 @@ describe('server sync', () => {
     const id = sessions.persistSession({ title: 'Filed sync', segments: [line('f1', 'folder survives', 0)], speakers: {} });
     await sync.flushServerSync();
 
-    const { meetingStore } = await import('@/lib/meeting-db/store');
+    const { meetingStore } = await import('@/lib/meeting-db/meeting-store');
     const folder = meetingStore().createFolder('Keep filed');
     meetingStore().moveMeeting(id, folder.id);
     sessions.renameSession(id, 'Filed sync edited');

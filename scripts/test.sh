@@ -33,6 +33,8 @@ bin=node_modules/.bin
 if [ "$compile" = 1 ]; then
   echo "== eslint"
   "$bin/eslint" .
+  echo "== check-swift"
+  node scripts/check-swift.mjs
   echo "== tsc --noEmit"
   "$bin/tsc" --noEmit -p tsconfig.json
 fi

@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import { FakeAudioWorkletNode } from './fake-audio-worklet-node.testUtils';
 
 export const MIC = 0;
 export const SYSTEM = 1;
@@ -35,15 +36,6 @@ export class FakeAudioContext {
   close = vi.fn().mockResolvedValue(undefined);
   createMediaStreamSource() {
     return { connect: vi.fn(), disconnect: vi.fn() };
-  }
-}
-
-export class FakeAudioWorkletNode {
-  static instances: FakeAudioWorkletNode[] = [];
-  port: { onmessage: ((ev: MessageEvent) => void) | null; close: () => void } = { onmessage: null, close: vi.fn() };
-  disconnect = vi.fn();
-  constructor() {
-    FakeAudioWorkletNode.instances.push(this);
   }
 }
 

@@ -55,7 +55,7 @@ export function UpdateDialog({ open, onClose, isRecording = false }: { open: boo
         const response = await fetch('/api/app/status');
         const data = await response.json() as { version?: string };
         if (active && data.version === status.toVersion) window.location.reload();
-      } catch { /* polling status endpoint handles temporary server outage */ }
+      } catch { void 0; }
     };
     const timer = setInterval(() => void health(), 1000);
     return () => { active = false; clearInterval(timer); };

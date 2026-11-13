@@ -13,7 +13,7 @@ export const sessionParticipantsKey = (sessionId: string): string =>
 
 const listeners = new Set<() => void>();
 const cache = new Map<string, { raw: string | null; value: string[] }>();
-const NONE: string[] = [];
+export const NONE: string[] = [];
 
 function readList(key: string): string[] {
   if (typeof window === 'undefined') return NONE;
@@ -42,7 +42,7 @@ function writeList(key: string, names: string[]): void {
   for (const fn of listeners) fn();
 }
 
-function subscribe(fn: () => void): () => void {
+export function subscribe(fn: () => void): () => void {
   listeners.add(fn);
   const onStorage = (e: StorageEvent) => {
     if (e.key === null || e.key.startsWith(SESSION_KEY_PREFIX)) fn();
@@ -119,8 +119,4 @@ export function useParticipants(sessionId: string): string[] {
     () => getParticipants(sessionId),
     () => NONE,
   );
-}
-
-export function useRecentParticipants(): string[] {
-  return useSyncExternalStore(subscribe, getRecentParticipants, () => NONE);
 }

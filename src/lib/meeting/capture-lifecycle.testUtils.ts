@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, expect, vi } from 'vitest';
 import type { Deferred, FakeBrowser, FakeTrack, FakeWindow } from './types/capture-test';
+import { FakeAudioWorkletNode } from './fake-audio-worklet-node.testUtils';
 
 export const tracks: FakeTrack[] = [];
 export const contexts: FakeAudioContext[] = [];
@@ -45,18 +46,6 @@ export class FakeAudioContext {
   }
   createMediaStreamSource() {
     return { connect: vi.fn(), disconnect: vi.fn() };
-  }
-}
-
-export class FakeAudioWorkletNode {
-  static instances: FakeAudioWorkletNode[] = [];
-  port: { onmessage: ((ev: MessageEvent) => void) | null; close: () => void } = {
-    onmessage: null,
-    close: vi.fn(),
-  };
-  disconnect = vi.fn();
-  constructor() {
-    FakeAudioWorkletNode.instances.push(this);
   }
 }
 

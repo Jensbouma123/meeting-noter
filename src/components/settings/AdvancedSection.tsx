@@ -7,7 +7,8 @@ import { captureDebugEnabled, setCaptureDebug } from '@/components/meeting/captu
 import { useT } from '@/lib/i18n/useT';
 import { SpeechModelSection } from './SpeechModelSection';
 import { ShortcutsSection } from './ShortcutsSection';
-import { SettingsGroup, SettingsRow } from './SettingsRow';
+import { SettingsGroup } from './SettingsGroup';
+import { SettingsRow } from './SettingsRow';
 
 export function AdvancedSection() {
   const t = useT('settings');

@@ -13,7 +13,8 @@ import { getPersistentStorageStatus, requestPersistentStorage } from '@/lib/meet
 import { RETENTION_OPTIONS, parseRetention, purgeExpiredSessions } from '@/lib/meeting/retention';
 import { useT } from '@/lib/i18n/useT';
 import type { SettingsSectionProps } from './types';
-import { SettingsGroup, SettingsRow } from './SettingsRow';
+import { SettingsGroup } from './SettingsGroup';
+import { SettingsRow } from './SettingsRow';
 
 export function StorageSection({
   settings,

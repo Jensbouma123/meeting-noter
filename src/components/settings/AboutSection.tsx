@@ -7,7 +7,8 @@ import { useT } from '@/lib/i18n/useT';
 import { useUpdate } from '@/components/update/useUpdate';
 import { UpdateDialog } from '@/components/update/UpdateDialog';
 import { restartOnboarding } from '@/lib/onboarding/store';
-import { SettingsGroup, SettingsRow } from './SettingsRow';
+import { SettingsGroup } from './SettingsGroup';
+import { SettingsRow } from './SettingsRow';
 
 const APP_VERSION = pkg.version;
 

@@ -3,7 +3,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { MeetingsDb } from './db';
 import { markdownFolderPath } from './markdown';
-import { MeetingStore } from './store';
+import { MeetingStore } from './meeting-store';
 import { sampleMeeting } from './test-meeting';
 import { registerTempDirs } from './test-support';
 

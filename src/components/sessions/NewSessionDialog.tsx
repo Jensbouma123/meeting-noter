@@ -10,7 +10,8 @@ import {
   Text,
   VStack,
 } from '@jensbouma123/acciva-ui';
-import { useLanguage, useT } from '@/lib/i18n/useT';
+import { useLanguage } from '@/lib/i18n/useLanguage';
+import { useT } from '@/lib/i18n/useT';
 import { defaultMeetingName } from './defaultMeetingName';
 import type { NewSessionDialogProps } from './NewSessionDialog.types';
 

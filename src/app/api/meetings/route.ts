@@ -1,7 +1,7 @@
 import { refuseForeign } from '@/lib/lifecycle/request-guard';
 import { storageFailure } from '@/lib/meeting-db/http';
 import { meetingsDataDir } from '@/lib/meeting-db/paths';
-import { meetingStore } from '@/lib/meeting-db/store';
+import { meetingStore } from '@/lib/meeting-db/meeting-store';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';

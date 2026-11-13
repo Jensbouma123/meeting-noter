@@ -128,6 +128,18 @@ npm test         # vitest
 npm run lint
 ```
 
+### Code-conventies / Code conventions
+
+`npm run lint` (and `scripts/test.sh`) fail on violations:
+
+- `max-lines`: at most 150 lines per ts/tsx/js/mjs file (vendor, `public/models` and generated files excluded).
+- `local/types-in-own-files`: interfaces, type aliases and enums only in `types.ts`, `*.types.ts` or `types/`.
+- `local/no-comments`: no comments except directives (`eslint-disable*`, `@ts-*`, `@vitest-environment`, `/// <reference>`, `webpackChunkName`).
+- `local/one-unit-per-file`: one exported class, component or hook per file; `*Service`/`*Store` classes live in a file named after them.
+- `scripts/check-swift.mjs`: `helper/**/*.swift` must stay under 150 lines and have no comments (except `swiftlint:`).
+
+The local rules live in `scripts/eslint-rules/` with RuleTester tests.
+
 ## Licentie
 
 MIT, zie [LICENSE](LICENSE).

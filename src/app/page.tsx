@@ -49,7 +49,7 @@ export default function Home() {
         const draftId = await createDraftSessionInFolder(title, newDialogFolderId);
         clearIdleSession();
         router.push(sessionPath(draftId));
-      } catch { /* best-effort */ }
+      } catch { void 0; }
     },
     [router, newDialogFolderId, closeNewSession],
   );

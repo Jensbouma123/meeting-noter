@@ -1,12 +1,10 @@
 export {
   ModelRegistryProvider,
 } from './ModelRegistryProvider';
-export {
-  useModelCached,
-  useModelStatus,
-  useAnyDownloading,
-  useAnyModelFailed,
-} from './useModelRegistryStatus';
+export { useModelCached } from './useModelCached';
+export { useModelStatus } from './useModelStatus';
+export { useAnyDownloading } from './useAnyDownloading';
+export { useAnyModelFailed } from './useAnyModelFailed';
 export { ModelConsentDialog } from './consent/ModelConsentDialog';
 export { SpeechModelSettings } from './SpeechModelSettings';
 export { ModelPreparationBar } from './preparation/ModelPreparationBar';

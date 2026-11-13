@@ -6,7 +6,9 @@ import { useT } from '@/lib/i18n/useT';
 import type { SettingsSectionProps } from './types';
 import { useMicDevices } from './useMicDevices';
 import { useSettleLegacyNativeCapture } from './useSettleLegacyNativeCapture';
-import { SettingsGroup, SettingsRow, SettingsStackedRow } from './SettingsRow';
+import { SettingsGroup } from './SettingsGroup';
+import { SettingsRow } from './SettingsRow';
+import { SettingsStackedRow } from './SettingsStackedRow';
 
 export function AudioCaptureSection({
   settings,

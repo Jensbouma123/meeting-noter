@@ -7,7 +7,7 @@ setupServerSyncTest();
 
 describe('server sync pulling', () => {
   it('pulls meetings the browser lacks, with transcript and notes', async () => {
-    const { meetingStore } = await import('@/lib/meeting-db/store');
+    const { meetingStore } = await import('@/lib/meeting-db/meeting-store');
     meetingStore().save(sampleMeeting({ id: 'from-disk' }));
     const sync = await loadSync();
     await sync.startServerSync();
@@ -115,7 +115,7 @@ describe('server sync pulling', () => {
     const sync = await loadSync();
     await sync.startServerSync();
     harness.online = false;
-    const { meetingStore } = await import('@/lib/meeting-db/store');
+    const { meetingStore } = await import('@/lib/meeting-db/meeting-store');
     meetingStore().save(sampleMeeting({ id: 'other-browser' }));
     harness.online = true;
     window.dispatchEvent(new Event('online'));

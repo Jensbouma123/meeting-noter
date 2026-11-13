@@ -1,17 +1,7 @@
 'use client';
 
-import { Card, Text, VStack } from '@jensbouma123/acciva-ui';
-import type { SettingsGroupProps, SettingsRowProps, SettingsStackedRowProps } from './types';
-
-export function SettingsGroup({ children }: SettingsGroupProps) {
-  return (
-    <Card variant="bordered" padding="none" className="w-full overflow-hidden">
-      <VStack spacing="none" className="w-full divide-y divide-border-subtle">
-        {children}
-      </VStack>
-    </Card>
-  );
-}
+import { Text, VStack } from '@jensbouma123/acciva-ui';
+import type { SettingsRowProps } from './types';
 
 export function SettingsRow({
   label,
@@ -39,27 +29,5 @@ export function SettingsRow({
       </VStack>
       <div className="min-w-0 max-sm:w-full sm:shrink-0">{control}</div>
     </div>
-  );
-}
-
-export function SettingsStackedRow({
-  label,
-  description,
-  children,
-}: SettingsStackedRowProps) {
-  return (
-    <VStack spacing="sm" className="w-full p-4">
-      <VStack spacing="xs" className="min-w-0">
-        <Text size="sm" weight="medium">
-          {label}
-        </Text>
-        {description && (
-          <Text size="xs" variant="muted">
-            {description}
-          </Text>
-        )}
-      </VStack>
-      {children}
-    </VStack>
   );
 }

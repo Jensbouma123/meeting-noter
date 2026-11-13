@@ -1,7 +1,7 @@
 import type { IdRouteContext } from '@/app/api/types';
 import { refuseForeign } from '@/lib/lifecycle/request-guard';
 import { MAX_MEETING_BODY_BYTES, failure, readJson, storageFailure } from '@/lib/meeting-db/http';
-import { meetingStore } from '@/lib/meeting-db/store';
+import { meetingStore } from '@/lib/meeting-db/meeting-store';
 import { isMeetingId, parseStoredMeeting } from '@/lib/meeting-db/validate';
 
 export const runtime = 'nodejs';

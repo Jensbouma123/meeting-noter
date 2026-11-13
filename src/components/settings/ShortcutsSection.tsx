@@ -3,7 +3,8 @@
 import { Badge, HStack } from '@jensbouma123/acciva-ui';
 import { SHORTCUTS } from '@/components/meeting/shortcuts';
 import { useT } from '@/lib/i18n/useT';
-import { SettingsGroup, SettingsRow } from './SettingsRow';
+import { SettingsGroup } from './SettingsGroup';
+import { SettingsRow } from './SettingsRow';
 
 export function ShortcutsSection() {
   const t = useT('dialogs');

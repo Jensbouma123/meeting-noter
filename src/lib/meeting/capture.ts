@@ -8,7 +8,8 @@ import { attachStreamSource } from './source-attach';
 import type { AttachHost } from './types/source-attach';
 import { SourceAcquirer } from './source-acquirer';
 import { teardownSource } from './source-teardown';
-import { MicSilenceWatch, ShareSilenceWatch } from './silence-watchers';
+import { ShareSilenceWatch } from './share-silence-watch';
+import { MicSilenceWatch } from './silence-watchers';
 import type { CaptureMode, Source } from './types/basics';
 import type { CaptureDiagnostics, FrameHandler, SourceNodes } from './types/capture';
 

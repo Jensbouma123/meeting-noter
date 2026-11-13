@@ -13,7 +13,7 @@ describe('deleted meetings and the one-time migration notice', () => {
     const id = store.persistSession({ title: 'Gone', segments: [line('a', 'bye', 0)], speakers: {} });
     await sync.flushServerSync();
 
-    const { meetingStore } = await import('@/lib/meeting-db/store');
+    const { meetingStore } = await import('@/lib/meeting-db/meeting-store');
     meetingStore().delete(id);
     store.renameSession(id, 'Gone, renamed');
     await sync.flushServerSync();
@@ -65,7 +65,7 @@ describe('deleted meetings and the one-time migration notice', () => {
     const id = store.persistSession({ title: 'Secret', segments: [line('a', 'launch codes', 0)], speakers: {} });
     await sync.flushServerSync();
 
-    const { meetingStore } = await import('@/lib/meeting-db/store');
+    const { meetingStore } = await import('@/lib/meeting-db/meeting-store');
     meetingStore().deleteAll();
 
     store.renameSession(id, 'Secret v2');

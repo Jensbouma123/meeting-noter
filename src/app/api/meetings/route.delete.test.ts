@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { sampleMeeting } from '@/lib/meeting-db/test-meeting';
-import { meetingStore } from '@/lib/meeting-db/store';
+import { meetingStore } from '@/lib/meeting-db/meeting-store';
 import { DELETE as removeAll, GET as list } from './route';
 import { DELETE as remove, GET as get, PUT as put } from './[id]/route';
 import { POST as importMeetings } from './import/route';

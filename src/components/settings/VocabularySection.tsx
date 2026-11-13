@@ -14,7 +14,9 @@ import { VocabularyAddField } from './VocabularyAddField';
 import { VocabularyFileMenu } from './VocabularyFileMenu';
 import { vocabularyFill as fill, vocabularyWordCount } from './vocabularyText';
 import { VocabularyRow } from './VocabularyRow';
-import { SettingsGroup, SettingsRow, SettingsStackedRow } from './SettingsRow';
+import { SettingsGroup } from './SettingsGroup';
+import { SettingsRow } from './SettingsRow';
+import { SettingsStackedRow } from './SettingsStackedRow';
 
 export function VocabularySection() {
   const t = useT('settings');

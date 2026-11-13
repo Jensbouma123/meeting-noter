@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { LanguageContext, SetLanguageContext } from './LanguageContext';
 import type { Language } from './types';
-import { getDefaultLanguage } from './useT';
+import { getDefaultLanguage } from './useLanguage';
 
 const SETTINGS_KEY = 'mn.settings';
 

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Button, Modal } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { uniqueNames } from '@/lib/meeting/participant-names';
-import { useRecentParticipants } from '@/lib/meeting/participants';
+import { useRecentParticipants } from '@/lib/meeting/use-recent-participants';
 import { ParticipantsEditor } from './ParticipantsEditor';
 import type { ParticipantsDialogProps } from './ParticipantsDialog.types';
 

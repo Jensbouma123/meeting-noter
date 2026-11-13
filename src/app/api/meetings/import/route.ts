@@ -1,7 +1,7 @@
 import { refuseForeign } from '@/lib/lifecycle/request-guard';
 import { MAX_IMPORT_BODY_BYTES, failure, readJson, storageFailure } from '@/lib/meeting-db/http';
 import { meetingsDataDir } from '@/lib/meeting-db/paths';
-import { meetingStore } from '@/lib/meeting-db/store';
+import { meetingStore } from '@/lib/meeting-db/meeting-store';
 import { parseStoredMeeting } from '@/lib/meeting-db/validate';
 
 export const runtime = 'nodejs';
