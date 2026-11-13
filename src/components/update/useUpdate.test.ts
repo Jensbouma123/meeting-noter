@@ -9,14 +9,11 @@ const currentVersion = packageJson.version;
 const { findNewerRelease } = vi.hoisted(() => ({ findNewerRelease: vi.fn() }));
 vi.mock('../../lib/update/version.mjs', () => ({ findNewerRelease }));
 
-import {
-  applyUpdate,
-  checkForUpdate,
-  getUpdateSnapshot,
-  UPDATE_DISMISSED_KEY,
-  UPDATE_REFRESH_MS,
-  useUpdate,
-} from './useUpdate';
+import { UPDATE_DISMISSED_KEY, UPDATE_REFRESH_MS } from './constants';
+import { applyUpdate } from './updateActions';
+import { checkForUpdate } from './updateCheck';
+import { getUpdateSnapshot } from './updateState';
+import { useUpdate } from './useUpdate';
 
 describe('useUpdate', () => {
   beforeEach(() => {

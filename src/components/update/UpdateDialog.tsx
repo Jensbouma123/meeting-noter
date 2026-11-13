@@ -3,7 +3,8 @@
 import { Alert, Button, ConfirmDialog, Text, VStack } from '@jensbouma123/acciva-ui';
 import { useEffect, useState } from 'react';
 import { useT } from '@/lib/i18n/useT';
-import { useUpdate, type UpdateStatus } from './useUpdate';
+import type { UpdateStatus } from './types';
+import { useUpdate } from './useUpdate';
 
 export function UpdateDialog({ open, onClose, isRecording = false }: { open: boolean; onClose: () => void; isRecording?: boolean }) {
   const t = useT('update');
