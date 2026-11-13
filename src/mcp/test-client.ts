@@ -21,7 +21,7 @@ export async function connectClient(server: McpServer): Promise<Client> {
   return client;
 }
 
-export async function connect(seed?: (db: MeetingsDb) => void) {
+export async function connect(seed?: (db: MeetingsDb) => void, active?: { meetingId: string | null; isLive: boolean }) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'meetings-mcp-'));
   dirs.push(dir);
   const file = path.join(dir, 'meetings.db');
@@ -30,7 +30,9 @@ export async function connect(seed?: (db: MeetingsDb) => void) {
     seed(writer);
     writer.close();
   }
-  const server = createMeetingsMcpServer(() => (fs.existsSync(file) ? new MeetingsDb(file, { readOnly: true }) : null));
+  const activeFile = path.join(dir, 'active-meeting.json');
+  if (active) fs.writeFileSync(activeFile, JSON.stringify(active));
+  const server = createMeetingsMcpServer(() => (fs.existsSync(file) ? new MeetingsDb(file, { readOnly: true }) : null), '0.0.0', activeFile);
   const client = await connectClient(server);
   const call = async (name: string, args: Record<string, unknown> = {}) => {
     const res = (await client.callTool({ name, arguments: args })) as {

@@ -2,6 +2,7 @@ import type { Speaker } from './types';
 import type { AutosaveInput, AutosavedSession } from './types/autosave';
 import { AUTOSAVE_VERSION, sanitizeSnapshot } from './autosave-snapshot';
 import { loadSessionTranscript, saveSessionTranscript } from './session-transcript-storage';
+import { queueLiveSync } from './live-sync';
 import { queueMeetingSync } from './sync-queue';
 import { isStorageAvailable } from './storage-available';
 import { isCaptureActive } from './transcript-session';
@@ -38,6 +39,8 @@ export function saveAutosavedSession(input: AutosaveInput): void {
   saveSessionTranscript(input);
   if (before !== undefined && transcriptChanged(before, loadSessionTranscript(input.sessionId))) {
     queueMeetingSync(input.sessionId);
+  } else if (before === undefined) {
+    queueLiveSync(input.sessionId);
   }
 }
 

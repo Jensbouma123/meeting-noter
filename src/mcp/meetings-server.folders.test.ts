@@ -8,7 +8,7 @@ describe('meetings MCP server folders', () => {
   it('offers the read-only meeting and folder tools', async () => {
     const { client } = await connect();
     const { tools } = await client.listTools();
-    expect(tools.map((t) => t.name).sort()).toEqual(['get_meeting', 'list_folders', 'list_meetings', 'search_meetings']);
+    expect(tools.map((t) => t.name).sort()).toEqual(['get_active_meeting', 'get_meeting','list_folders', 'list_meetings', 'search_meetings']);
     expect(tools.every((t) => t.annotations?.readOnlyHint === true)).toBe(true);
   });
 
