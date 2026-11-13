@@ -127,6 +127,9 @@ function D1Insights({ sessionId, speakers, segments, t }: {
     || intelligence.decisions.length > 0 || intelligence.actionItems.length > 0;
   const count = intelligence.decisions.length + intelligence.actionItems.length + flagged.length + hints.length;
 
+  // Finished and found nothing: told apart from never scanned (idle) and failed (error).
+  const scannedNone = intelligence.status === 'done' && intelligence.updatedAt > 0 && count === 0;
+
   const scan = () => {
     setOpen(true);
     const byId = Object.fromEntries(speakers.map((s) => [s.id, s]));
@@ -171,6 +174,9 @@ function D1Insights({ sessionId, speakers, segments, t }: {
         <Text size="xs" variant="muted">{modelCached ? t('d1ModelReady') : t('d1ModelMissing')}</Text>
         {!modelCached && <Button size="sm" variant="outline" onClick={download}>{t('d1Download')}</Button>}
         {intelligence.status === 'error' && <Text size="xs" role="alert">{errorText}</Text>}
+        {scannedNone && <Text size="xs" variant="muted" role="status">
+          {t('d1ScannedNone').replace('{time}', new Date(intelligence.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))}
+        </Text>}
         <HStack spacing="sm" align="center" className="flex-wrap">
           <Button size="sm" variant="primary" disabled={recording || !modelCached} onClick={scan}>
             {hasResults ? t('d1Rescan') : t('d1Scan')}

@@ -145,6 +145,42 @@ describe('NotesPanel D1 insights', () => {
     expect(screen.getAllByRole('alert').map((el) => el.textContent)).toContain('Analysis took too long and was stopped. Try again.');
   });
 
+  it('lists a persisted speaker hint for a saved-meeting segment (DB shape: no lowConfSpans)', () => {
+    const saved: Segment[] = [
+      { id: 'live-4', source: 'system', speaker: 'system:0', text: 'Kijk, en dan doe je zo.', start: 13.7, end: 15.3, final: true },
+      { id: 'live-4~6', source: 'system', speaker: 'system:1', text: 'Oh, dat is natuurlijk qua', start: 16.5, end: 17.7, final: true },
+    ];
+    const people: Speaker[] = [
+      { id: 'system:0', source: 'system', label: 'Speaker 1', colorIndex: 0 },
+      { id: 'system:1', source: 'system', label: 'Speaker 2', colorIndex: 1 },
+    ];
+    const hash = hashSegmentText(saved[1].text);
+    vi.mocked(useSessionIntelligence).mockReturnValue(intelligence({
+      triageBySegment: { [triageKey('live-4~6', hash)]: { segmentId: 'live-4~6', textHash: hash, reviewedSpans: [], suspectSpeaker: true, analyzedAt: 0 } },
+    }));
+    render(<NotesPanel sessionId={sessionId} speakers={people} segments={saved} />);
+    fireEvent.click(screen.getByRole('button', { name: /Insights/ }));
+
+    expect(screen.getByRole('region', { name: 'Speaker hints' }).textContent).toContain('Speaker 2');
+    expect(screen.getByRole('button', { name: /Insights \(1\)/ })).toBeTruthy();
+  });
+
+  it('says a finished scan found nothing, and not for never-scanned or failed scans', () => {
+    const at = new Date(2026, 10, 13, 9, 5).getTime();
+    const time = new Date(at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    vi.mocked(useSessionIntelligence).mockReturnValue(intelligence({ status: 'done', updatedAt: at }));
+    renderPanel();
+    expect(screen.getByText(`Scanned at ${time}: nothing found.`).getAttribute('role')).toBe('status');
+    cleanup();
+
+    for (const status of ['idle', 'error'] as const) {
+      vi.mocked(useSessionIntelligence).mockReturnValue(intelligence({ status, updatedAt: at, error: status === 'error' ? 'x' : null }));
+      renderPanel();
+      expect(screen.queryByText(/Scanned at/)).toBeNull();
+      cleanup();
+    }
+  });
+
   it('dispatches a fix-word event from a flagged word', () => {
     const triage = { segmentId: 's1', textHash: hashSegmentText(segment.text), reviewedSpans: [], suspectSpeaker: false, analyzedAt: 0 };
     vi.mocked(useSessionIntelligence).mockReturnValue(intelligence({
