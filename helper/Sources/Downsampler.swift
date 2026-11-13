@@ -1,16 +1,4 @@
 import Foundation
-
-/// Mono Float32 at a source's rate in, mono Float32 at 16 kHz out.
-///
-/// The same band-limited resampler as `public/worklets/resampler.js`, with
-/// the same constants, so a helper frame and a browser frame are resampled
-/// alike. Each output sample is a windowed-sinc low-pass (cutoff 7.2 kHz, or
-/// 0.45 of an input slower than 16 kHz; 4-term Blackman-Harris window over
-/// ±2.5 ms) at its exact fractional input position. Without the low-pass,
-/// 8–24 kHz content (sibilants, keyboard clicks, hiss) folds into the speech
-/// band. The kernel is tabulated at `phases` sub-sample offsets and linearly
-/// interpolated between them; each phase sums to 1. An input slower than
-/// 16 kHz (a Bluetooth headset's 8 kHz mic) is interpolated up the same way.
 struct Downsampler {
     static let outputRate = 16_000.0
     static let frameSamples = 1600
@@ -23,8 +11,6 @@ struct Downsampler {
     private let half: Int
     private let taps: Int
     private var table: [Float]
-    /// The last `taps` inputs, written twice so a window is always
-    /// contiguous. It starts as `taps` samples of silence.
     private var hist: [Float]
     private var received: Int
     private var whole: Int
@@ -41,9 +27,6 @@ struct Downsampler {
         received = taps
         whole = taps - half
     }
-
-    /// Row p: the weights for an output `p / phases` input samples past the
-    /// input sample tap `half - 1` reads.
     private static func kernel(fc: Double, half: Int) -> [Float] {
         let taps = 2 * half
         var table = [Float](repeating: 0, count: (phases + 1) * taps)
@@ -63,14 +46,10 @@ struct Downsampler {
         }
         return table
     }
-
-    /// The window at `u` in [-1, 1].
     private static func blackmanHarris(_ u: Double) -> Double {
         let x = Double.pi * (u + 1)
         return 0.35875 - 0.48829 * cos(x) + 0.14128 * cos(2 * x) - 0.01168 * cos(3 * x)
     }
-
-    /// Appends the 16 kHz samples `samples` complete to `out`.
     mutating func push(_ samples: UnsafeBufferPointer<Float>, into out: inout [Float]) {
         for x in samples {
             let slot = received % taps
@@ -97,24 +76,6 @@ struct Downsampler {
                 whole += Int(step)
                 frac -= step
             }
-        }
-    }
-}
-
-/// 16 kHz Float32 in, 100 ms frames of Int16LE out.
-struct Framer {
-    private var frame: [Int16] = []
-
-    init() {
-        frame.reserveCapacity(Downsampler.frameSamples)
-    }
-
-    mutating func push(_ x: Float, emit: ([Int16]) -> Void) {
-        let c = x.isNaN ? 0 : max(-1, min(1, x))
-        frame.append(c < 0 ? Int16((c * 32768).rounded()) : Int16((c * 32767).rounded()))
-        if frame.count == Downsampler.frameSamples {
-            emit(frame)
-            frame.removeAll(keepingCapacity: true)
         }
     }
 }

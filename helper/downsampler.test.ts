@@ -4,27 +4,12 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { beforeAll, describe, expect, it } from 'vitest';
+import type { DownsamplerReport } from './types';
 import { Resampler } from '../public/worklets/resampler.js';
-
-/**
- * The helper's `Downsampler` (Sources/Downsampler.swift), driven by
- * `Tests/DownsamplerCheck` with tones: it must keep 8–24 kHz out of the
- * 16 kHz output, pass speech frequencies, and resample exactly as the
- * browser's worklet (`public/worklets/resampler.js`) does.
- *
- * Needs macOS with the Swift compiler; skipped elsewhere.
- */
-
 const here = path.dirname(fileURLToPath(import.meta.url));
 const canBuild = process.platform === 'darwin' && spawnSync('swiftc', ['--version']).status === 0;
 
-interface Report {
-  /** Gain in dB, keyed `rate/hz`. */
-  gains: Record<string, number>;
-  mix: number[];
-}
-
-let report: Report;
+let report: DownsamplerReport;
 
 function browserMix(): number[] {
   const resampler = new Resampler(44100);
@@ -47,7 +32,7 @@ describe.skipIf(!canBuild)('helper downsampler: anti-alias low-pass to 16 kHz', 
       path.join(here, 'Sources/Downsampler.swift'),
       path.join(here, 'Tests/DownsamplerCheck/main.swift'),
     ]);
-    report = JSON.parse(execFileSync(bin, { encoding: 'utf8' })) as Report;
+    report = JSON.parse(execFileSync(bin, { encoding: 'utf8' })) as DownsamplerReport;
   }, 120_000);
 
   it('keeps tones above 8 kHz out of the output', () => {

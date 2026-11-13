@@ -1,10 +1,5 @@
 import Foundation
 
-// downsampler-check: drives `Downsampler` (helper/Sources/Downsampler.swift)
-// with tones in 10 ms buffers and prints, as JSON, each tone's gain in dB
-// and the output for a fixed mix of tones at 44.1 kHz, which
-// `helper/downsampler.test.ts` compares with `public/worklets/resampler.js`.
-
 func run(_ rate: Double, seconds: Double, _ signal: (Int) -> Float) -> [Float] {
     var down = Downsampler(inputRate: rate)
     var out: [Float] = []
