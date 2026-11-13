@@ -29,11 +29,12 @@ export function useBackfillIndex(sessionCount: number): BackfillProgress | null 
   useEffect(() => {
     aborted.current.aborted = false;
     const signal = aborted.current;
-    void run();
+    const start = setTimeout(() => void run(), 0);
     const unsubscribe = subscribe(() => {
       if (getState().status === 'idle') void run();
     });
     return () => {
+      clearTimeout(start);
       signal.aborted = true;
       unsubscribe();
     };

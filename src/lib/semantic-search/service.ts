@@ -1,5 +1,6 @@
 import { loadSessionTranscript } from '../meeting/session-transcript-storage';
 import { isCaptureActive } from '../meeting/transcript-session';
+import type { CachedIndex } from './cached-index.types';
 import { SemanticIndex } from './index';
 import { indexSignature, listIndexedMeetingIds, loadIndex, saveIndex } from './store';
 import { createWorkerEmbedder } from './worker-embedder';
@@ -61,13 +62,6 @@ export async function indexMeeting(
       : saveIndex(meetingId, { ...stored, chapters }, deps.store);
   if (ok) resetSearchCache();
   return ok ? chapters : null;
-}
-
-interface CachedIndex {
-  signature: string;
-  embedder: Embedder;
-  store: KeyValueStore | null | undefined;
-  index: SemanticIndex;
 }
 
 let cached: CachedIndex | null = null;
