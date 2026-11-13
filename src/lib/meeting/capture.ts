@@ -1,4 +1,4 @@
-import { isSafariEngine } from '@/lib/asr/browser/backend-detect';
+import { isSafariEngine } from '@/lib/asr/browser/is-safari-engine';
 import { connectHelper, helperKnownReachable, probeHelper, type HelperMic, type HelperSource } from './helper-source';
 import type { Source } from './types';
 
