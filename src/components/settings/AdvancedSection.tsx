@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { Switch } from '@jensbouma123/acciva-ui';
-import { CaptureDiagnostics, captureDebugEnabled, setCaptureDebug } from '@/components/meeting/CaptureDiagnostics';
+import { CaptureDiagnostics } from '@/components/meeting/CaptureDiagnostics';
+import { captureDebugEnabled, setCaptureDebug } from '@/components/meeting/captureDebugStorage';
 import { useT } from '@/lib/i18n/useT';
 import { SpeechModelSection } from './SpeechModelSection';
 import { ShortcutsSection } from './ShortcutsSection';
