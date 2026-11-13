@@ -1,6 +1,6 @@
 export const update = {
   en: {
-    banner: 'Version {version} is available.',
+    banner: 'Update {version} available',
     later: 'Later',
     whatsNew: "What's new",
     updateNow: 'Update now',
@@ -29,9 +29,16 @@ export const update = {
     phaseInstalling: 'Installing…',
     phaseRestarting: 'Meeting Noter is restarting…',
     phaseModel: 'Preparing speech model…',
+    releaseNotes: 'Release notes',
+    releaseNotesTitle: 'What\'s new in {version}',
+    whatsNewTitle: 'Meeting Noter {version}: what\'s new',
+    close: 'Close',
+    viewOnGithub: 'View on GitHub',
+    noNotes: 'No release notes available.',
+    previewNoUpdate: 'Preview only: no update is started.',
   },
   nl: {
-    banner: 'Versie {version} is beschikbaar.',
+    banner: 'Update {version} beschikbaar',
     later: 'Later',
     whatsNew: 'Wat is er nieuw',
     updateNow: 'Nu bijwerken',
@@ -60,5 +67,12 @@ export const update = {
     phaseInstalling: 'Installeren…',
     phaseRestarting: 'Meeting Noter wordt opnieuw gestart…',
     phaseModel: 'Spraakmodel voorbereiden…',
+    releaseNotes: 'Release-notities',
+    releaseNotesTitle: 'Nieuw in {version}',
+    whatsNewTitle: 'Meeting Noter {version}: wat is er nieuw',
+    close: 'Sluiten',
+    viewOnGithub: 'Bekijk op GitHub',
+    noNotes: 'Geen release-notities beschikbaar.',
+    previewNoUpdate: 'Alleen voorbeeld: er wordt geen update gestart.',
   },
 } as const;

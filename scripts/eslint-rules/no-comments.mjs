@@ -6,7 +6,7 @@ function isDirective(comment) {
   return DIRECTIVE.test(comment.value) || INLINE_DIRECTIVE.test(comment.value);
 }
 
-export default {
+const rule = {
   meta: {
     type: "problem",
     schema: [],
@@ -25,3 +25,5 @@ export default {
     };
   },
 };
+
+export default rule;

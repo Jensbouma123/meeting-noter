@@ -1,6 +1,6 @@
 const ALLOWED_FILE = /(^|\/)(types\.ts|[^/]+\.types\.ts|types\/[^/]+|[^/]+\.d\.ts)$/;
 
-export default {
+const rule = {
   meta: {
     type: "problem",
     schema: [],
@@ -25,3 +25,5 @@ export default {
     };
   },
 };
+
+export default rule;

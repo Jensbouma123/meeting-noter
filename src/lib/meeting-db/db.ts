@@ -102,6 +102,15 @@ export class MeetingsDb {
     return this.db.prepare('SELECT id FROM deleted_meetings').all().map((row) => String(row.id));
   }
 
+  getMeta(key: string): string | null {
+    const row = this.db.prepare('SELECT value FROM meta WHERE key = ?').get(key);
+    return row ? String(row.value) : null;
+  }
+
+  setMeta(key: string, value: string): void {
+    this.db.prepare('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)').run(key, value);
+  }
+
   setMetaOnce(key: string, value: string): boolean {
     return Number(this.db.prepare('INSERT OR IGNORE INTO meta (key, value) VALUES (?, ?)').run(key, value).changes) > 0;
   }

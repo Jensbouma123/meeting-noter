@@ -21,7 +21,7 @@ export function detectInstall({
   if (env.NODE_ENV !== 'production') return { ...base, kind: 'dev', stateDir: null };
   if (existsSync(path.join(cwd, 'scripts', 'update.mjs'))) {
     const kind = existsSync(path.join(cwd, '.git')) ? 'git' : 'source';
-    return { ...base, kind, stateDir: path.join(cwd, '.runtime') };
+    return { ...base, kind, stateDir: `${cwd}${path.sep}.runtime` };
   }
   return { ...base, kind: 'unknown', stateDir: null };
 }

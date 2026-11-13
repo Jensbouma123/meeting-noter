@@ -1,5 +1,4 @@
 import { useCallback, useRef } from 'react';
-import type { FolderRow } from '@/lib/meeting-db/types';
 import { reorderFolder } from '@/lib/folders/folders-api';
 import type { FolderReorderInput } from './types';
 

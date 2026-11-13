@@ -128,7 +128,7 @@ export class BrowserASREngine {
     this.events.onStatusChange('disabled');
   }
 
-  setLanguageHint(_code: string | null): void {}
+  setLanguageHint(): void {}
 
   lockLanguage(): void {
     this.languageLocked = true;

@@ -41,7 +41,7 @@ function declaredUnits(declaration) {
   });
 }
 
-export default {
+const rule = {
   meta: {
     type: "problem",
     schema: [],
@@ -70,3 +70,5 @@ export default {
     };
   },
 };
+
+export default rule;

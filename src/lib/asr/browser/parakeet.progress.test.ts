@@ -4,10 +4,8 @@ import { WASM, loadState, recorder, resetLoadState } from './parakeet.progress.t
 vi.mock('parakeet.js', async () => (await import('./parakeet.progress.test-support')).parakeetJsMock());
 vi.mock('./resumable-download', async () => (await import('./parakeet.progress.test-support')).resumableDownloadMock());
 
-let revokeObjectURL: ReturnType<typeof vi.fn>;
-
 beforeEach(() => {
-  revokeObjectURL = resetLoadState();
+  resetLoadState();
 });
 
 afterEach(() => {

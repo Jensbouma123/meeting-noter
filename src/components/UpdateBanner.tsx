@@ -1,31 +1,48 @@
 'use client';
 
-import { Alert, Button } from '@jensbouma123/acciva-ui';
+import { Alert, Button, useToast } from '@jensbouma123/acciva-ui';
+import { Info } from 'lucide-react';
 import { useState } from 'react';
 import { useT } from '@/lib/i18n/useT';
-import { useUpdate } from './update/useUpdate';
 import { UpdateDialog } from './update/UpdateDialog';
+import { ReleaseNotesDialog } from './whats-new/ReleaseNotesDialog';
+import { useBannerState } from './UpdateBanner.state';
 
 export function UpdateBanner({ isRecording = false }: { isRecording?: boolean }) {
   const t = useT('update');
-  const update = useUpdate(isRecording);
+  const { toast } = useToast();
+  const { info, preview, dismiss } = useBannerState(isRecording);
   const [open, setOpen] = useState(false);
-  const info = update.info;
-  if (!info?.available || !info.latest || update.dismissedVersion === info.latest) return null;
+  const [notesOpen, setNotesOpen] = useState(false);
+  if (!info?.latest) return null;
+  const latest = info.latest;
+  const updateNow = () => (preview ? toast({ title: t('previewNoUpdate'), variant: 'info' }) : setOpen(true));
 
   return (
     <>
-      <Alert layout="banner" variant="info" role="status" dismissible onDismiss={() => update.dismiss(info.latest!)}>
-        {t('banner').replace('{version}', info.latest)}
-        <div className="mt-2 flex flex-wrap gap-2">
-          <Button variant="secondary" size="sm" onClick={() => window.open(info.pageUrl, '_blank', 'noopener,noreferrer')}>
-            {t('whatsNew')}
-          </Button>
-          <Button size="sm" onClick={() => setOpen(true)}>{t('updateNow')}</Button>
-          <Button variant="ghost" size="sm" onClick={() => update.dismiss(info.latest!)}>{t('later')}</Button>
-        </div>
+      <Alert layout="banner" variant="info" role="status" dismissible onDismiss={() => dismiss(latest)}>
+        <span className="flex flex-wrap items-center gap-2">
+          <span>{t('banner').replace('{version}', latest)}</span>
+          <Button size="sm" onClick={updateNow}>{t('updateNow')}</Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            iconOnly
+            tooltip={t('releaseNotes')}
+            leadingIcon={<Info className="size-4" />}
+            aria-haspopup="dialog"
+            onClick={() => setNotesOpen(true)}
+          />
+        </span>
       </Alert>
-      <UpdateDialog open={open} onClose={() => setOpen(false)} isRecording={isRecording} />
+      <ReleaseNotesDialog
+        open={notesOpen}
+        onClose={() => setNotesOpen(false)}
+        title={t('releaseNotesTitle').replace('{version}', latest)}
+        notes={info.notes}
+        pageUrl={info.pageUrl}
+      />
+      {!preview && <UpdateDialog open={open} onClose={() => setOpen(false)} isRecording={isRecording} />}
     </>
   );
 }

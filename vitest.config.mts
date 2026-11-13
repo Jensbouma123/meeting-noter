@@ -1,7 +1,7 @@
-import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { configDefaults, defineConfig } from 'vitest/config';
 
-const alias = { '@': path.resolve(__dirname, './src') };
+const alias = { '@': fileURLToPath(new URL('./src', import.meta.url)) };
 const exclude = [...configDefaults.exclude, 'build/**', '.next/**', 'dist/**', 'out/**', '.worktrees/**'];
 const installerTests = 'scripts/installer/**/*.test.ts';
 
