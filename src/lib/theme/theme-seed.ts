@@ -2,7 +2,7 @@ import { THEME_STORAGE_KEY } from "@jensbouma123/acciva-ui/theme";
 import type { ThemeSeed } from "./theme-seed.types";
 
 export const THEME_SEED: ThemeSeed = {
-  seed: "#3f6f8a",
+  seed: "#008f43",
   harmony: "analogous",
 };
 
