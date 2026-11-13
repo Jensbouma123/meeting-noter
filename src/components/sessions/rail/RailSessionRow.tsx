@@ -24,7 +24,15 @@ export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete, o
   const [menuOpen, setMenuOpen] = useState(false);
   const openMenuOnContext = (e: MouseEvent) => {
     e.preventDefault();
-    setMenuOpen(true);
+    e.stopPropagation();
+    const open = () => {
+      window.clearTimeout(fallback);
+      window.removeEventListener('pointerup', onRelease);
+      setMenuOpen(true);
+    };
+    const onRelease = () => window.setTimeout(open, 0);
+    const fallback = window.setTimeout(open, 500);
+    window.addEventListener('pointerup', onRelease, { once: true });
   };
   return (
     <div className="group relative w-full" onContextMenu={openMenuOnContext}>

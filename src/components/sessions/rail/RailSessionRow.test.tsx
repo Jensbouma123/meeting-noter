@@ -49,13 +49,22 @@ describe('RailSessionRow more menu', () => {
     expect(screen.getByRole('menuitem', { name: 'Open', hidden: true })).toBeInTheDocument();
   });
 
-  it('opens the same menu on right-click and suppresses the native context menu', () => {
+  it('opens the same menu on right-click after the press is released and suppresses the native context menu', async () => {
     render(row(draft(), { isActive: false }));
     const target = screen.getByRole('button', { name: 'More actions for “Standup”' }).closest('.group') as HTMLElement;
     const notPrevented = fireEvent.contextMenu(target);
     expect(notPrevented).toBe(false);
-    expect(screen.getByRole('menuitem', { name: 'Open', hidden: true })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Open', hidden: true })).toBeNull();
+    fireEvent.pointerUp(window);
+    expect(await screen.findByRole('menuitem', { name: 'Open', hidden: true })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: 'Delete meeting', hidden: true })).toBeInTheDocument();
+  });
+
+  it('still opens the right-click menu when no release event follows', async () => {
+    render(row(draft(), { isActive: false }));
+    const target = screen.getByRole('button', { name: 'More actions for “Standup”' }).closest('.group') as HTMLElement;
+    fireEvent.contextMenu(target);
+    expect(await screen.findByRole('menuitem', { name: 'Open', hidden: true }, { timeout: 1500 })).toBeInTheDocument();
   });
 });
 
