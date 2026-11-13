@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { SessionMetadata } from '@/lib/meeting/session-store';
+import type { SessionMetadata } from '@/lib/meeting/types/session-store';
 import type { SessionGroup } from '@/lib/meeting/types/session-groups';
 import type { FolderController } from '../folders/types';
 

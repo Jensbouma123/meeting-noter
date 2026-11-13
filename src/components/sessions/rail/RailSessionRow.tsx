@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, ListItem, Text } from '@jensbouma123/acciva-ui';
 import { ArrowRight, Eraser, FolderInput, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
-import { isSessionRecording } from '@/lib/meeting/session-store';
+import { isSessionRecording } from '@/lib/meeting/session-delete';
 import { subscribe as subscribeMeetingStore } from '@/lib/meeting/store-core';
 import { openCount } from '@/lib/meeting/notes';
 import { useT } from '@/lib/i18n/useT';

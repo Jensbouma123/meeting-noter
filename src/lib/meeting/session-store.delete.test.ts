@@ -9,7 +9,8 @@ afterEach(() => {
 
 describe('deleteSession and the resume prompt', () => {
   it('clears the in-memory transcript and autosave when the open session is deleted', async () => {
-    const { createDraftSession, deleteSession } = await import('./session-store');
+    const { createDraftSession } = await import('./session-crud');
+    const { deleteSession } = await import('./session-delete');
     const { loadIdleSession, getState, getTranscriptSessionId } = await loadMeetingStoreModules();
     const { saveAutosavedSession, loadAutosavedSession } = await import('./autosave');
     const id = createDraftSession('Standup');
@@ -23,7 +24,8 @@ describe('deleteSession and the resume prompt', () => {
   });
 
   it('leaves the open session untouched when a different one is deleted', async () => {
-    const { createDraftSession, deleteSession } = await import('./session-store');
+    const { createDraftSession } = await import('./session-crud');
+    const { deleteSession } = await import('./session-delete');
     const { loadIdleSession, getState, getTranscriptSessionId } = await loadMeetingStoreModules();
     const open = createDraftSession('Open');
     const other = createDraftSession('Other');
@@ -34,7 +36,8 @@ describe('deleteSession and the resume prompt', () => {
   });
 
   it("drops the deleted session's autosave, so it is not offered for resume", async () => {
-    const { createDraftSession, deleteSession } = await import('./session-store');
+    const { createDraftSession } = await import('./session-crud');
+    const { deleteSession } = await import('./session-delete');
     const { saveAutosavedSession, loadAutosavedSession } = await import('./autosave');
     const id = createDraftSession('Standup');
     saveAutosavedSession(snapshot(id) as never);
@@ -44,7 +47,8 @@ describe('deleteSession and the resume prompt', () => {
   });
 
   it('drops an older autosave saved under a per-tab id that matches no session', async () => {
-    const { createDraftSession, deleteSession } = await import('./session-store');
+    const { createDraftSession } = await import('./session-crud');
+    const { deleteSession } = await import('./session-delete');
     const { saveAutosavedSession, loadAutosavedSession } = await import('./autosave');
     const id = createDraftSession('Standup');
     saveAutosavedSession(snapshot('tab-uuid-from-an-older-build') as never);
@@ -53,7 +57,8 @@ describe('deleteSession and the resume prompt', () => {
   });
 
   it("keeps another, still existing session's autosave", async () => {
-    const { createDraftSession, deleteSession } = await import('./session-store');
+    const { createDraftSession } = await import('./session-crud');
+    const { deleteSession } = await import('./session-delete');
     const { saveAutosavedSession, loadAutosavedSession } = await import('./autosave');
     const keep = createDraftSession('Keep');
     const gone = createDraftSession('Gone');
@@ -66,7 +71,9 @@ describe('deleteSession and the resume prompt', () => {
 describe('deleting the recording session (B6)', () => {
   it('refuses to delete the session being recorded', async () => {
     const store = await loadMeetingStoreModules();
-    const { createDraftSession, deleteSession, sessionExists } = await import('./session-store');
+    const { createDraftSession } = await import('./session-crud');
+    const { deleteSession } = await import('./session-delete');
+    const { sessionExists } = await import('./session-open');
     const a = createDraftSession('A');
     store.bindTranscriptSession(a);
     store.setState({ status: 'live' });
@@ -76,7 +83,8 @@ describe('deleting the recording session (B6)', () => {
 
   it("deleting another session does not clear the active session's autosave as an orphan", async () => {
     const store = await loadMeetingStoreModules();
-    const { createDraftSession, deleteSession } = await import('./session-store');
+    const { createDraftSession } = await import('./session-crud');
+    const { deleteSession } = await import('./session-delete');
     const { saveAutosavedSession, loadAutosavedSession } = await import('./autosave');
     const other = createDraftSession('Other');
     store.bindTranscriptSession('live-session');

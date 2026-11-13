@@ -2,7 +2,7 @@
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
-import type { SessionMetadata } from '@/lib/meeting/session-store';
+import type { SessionMetadata } from '@/lib/meeting/types/session-store';
 import { bindTranscriptSession } from '@/lib/meeting/transcript-session';
 import { clearIdleSession } from '@/lib/meeting/session-reset';
 import { setState } from '@/lib/meeting/store-core';

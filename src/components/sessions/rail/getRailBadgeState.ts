@@ -1,4 +1,4 @@
-import type { SessionMetadata } from '@/lib/meeting/session-store';
+import type { SessionMetadata } from '@/lib/meeting/types/session-store';
 import type { RailBadgeState } from './types';
 
 export function getRailBadgeState(session: SessionMetadata, recording: boolean): RailBadgeState {

@@ -1,6 +1,6 @@
 import { ToastProvider } from '@jensbouma123/acciva-ui';
 import { render } from '@testing-library/react';
-import type { SessionMetadata } from '@/lib/meeting/session-store';
+import type { SessionMetadata } from '@/lib/meeting/types/session-store';
 import { DraggableMeeting } from '../DraggableMeeting';
 import { FolderTree } from '../FolderTree';
 import { useFolderController } from '../useFolderController';

@@ -2,7 +2,7 @@ import type { StoredMeeting } from '@/lib/meeting-db/types';
 import { loadAutosavedSession } from './autosave';
 import { getNotes } from './notes';
 import { getStoredParticipants } from './participants';
-import { getSessionMetadata } from './session-store';
+import { getSessionMetadata } from './session-open';
 import { loadSessionTranscript } from './session-transcript-storage';
 
 export function buildStoredMeeting(sessionId: string, now = Date.now()): StoredMeeting | null {

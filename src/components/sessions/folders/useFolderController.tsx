@@ -1,8 +1,8 @@
 import { useCallback, useState } from 'react';
 import { useToast } from '@jensbouma123/acciva-ui';
 import type { FolderRow } from '@/lib/meeting-db/types';
-import type { SessionMetadata } from '@/lib/meeting/session-store';
-import { deleteSession } from '@/lib/meeting/session-store';
+import type { SessionMetadata } from '@/lib/meeting/types/session-store';
+import { deleteSession } from '@/lib/meeting/session-delete';
 import {
   createFolder,
   deleteFolder,

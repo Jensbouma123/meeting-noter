@@ -1,5 +1,6 @@
 import type { RetentionChoice } from './types/retention';
-import { deleteSession, listSessions } from './session-store';
+import { deleteSession } from './session-delete';
+import { listSessions } from './session-crud';
 
 export const DEFAULT_RETENTION: RetentionChoice = '2y';
 

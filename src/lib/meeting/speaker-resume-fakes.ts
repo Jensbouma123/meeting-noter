@@ -82,7 +82,11 @@ export async function loadPage() {
   fake.cores.clear();
   const { meeting } = await import('./index');
   const store = { ...(await import('./transcript-session')), ...(await import('./store-core')) };
-  const sessions = await import('./session-store');
+  const sessions = {
+    ...(await import('./session-crud')),
+    ...(await import('./session-delete')),
+    ...(await import('./session-recording')),
+  };
   return { meeting, store, sessions };
 }
 export async function recordFirstMeeting() {

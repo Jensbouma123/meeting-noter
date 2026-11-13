@@ -20,7 +20,7 @@ describe('end to end: the app saves, the MCP server finds it', () => {
 
     const sync = await loadSync();
     await sync.startServerSync();
-    const { persistSession } = await import('./session-store');
+    const { persistSession } = await import('./session-crud');
     const { addAction } = await import('./notes');
     const id = persistSession({
       title: 'Supplier call',

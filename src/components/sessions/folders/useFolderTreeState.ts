@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import type { SessionMetadata } from '@/lib/meeting/session-store';
+import type { SessionMetadata } from '@/lib/meeting/types/session-store';
 import { buildFolderTree, countByFolder } from '@/lib/folders/folder-tree';
 import { INITIAL_VISIBLE, SHOW_MORE_STEP } from './constants';
 import type { FolderController } from './types';

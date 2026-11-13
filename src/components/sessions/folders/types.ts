@@ -1,6 +1,6 @@
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import type { FolderRow } from '@/lib/meeting-db/types';
-import type { SessionMetadata } from '@/lib/meeting/session-store';
+import type { SessionMetadata } from '@/lib/meeting/types/session-store';
 import type { ApiResult, FolderDeleteMode, FolderNode } from '@/lib/folders/types';
 
 export type MoveTarget = { kind: 'meeting'; id: string; title: string } | { kind: 'folder'; id: string; title: string };

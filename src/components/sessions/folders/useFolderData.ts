@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { FolderRow } from '@/lib/meeting-db/types';
-import type { SessionMetadata } from '@/lib/meeting/session-store';
+import type { SessionMetadata } from '@/lib/meeting/types/session-store';
 import { FOLDERS_CHANGED_EVENT, fetchFolders, fetchMeetingFolders } from '@/lib/folders/folders-api';
 import type { MeetingFolders } from './types';
 

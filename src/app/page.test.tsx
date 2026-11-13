@@ -8,7 +8,7 @@ import { LanguageContext } from '@/lib/i18n/LanguageContext';
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
 }));
-vi.mock('@/lib/meeting/session-store', () => ({
+vi.mock('@/lib/meeting/session-crud', () => ({
   createDraftSession: vi.fn(),
   listSessions: () => [],
 }));

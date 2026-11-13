@@ -10,7 +10,7 @@ describe('server sync', () => {
   it('keeps a server filing when the browser syncs a meeting without folderId', async () => {
     const sync = await loadSync();
     await sync.startServerSync();
-    const sessions = await import('./session-store');
+    const sessions = { ...(await import('./session-crud')), ...(await import('./session-open')) };
     const id = sessions.persistSession({ title: 'Filed sync', segments: [line('f1', 'folder survives', 0)], speakers: {} });
     await sync.flushServerSync();
 
@@ -28,7 +28,7 @@ describe('server sync', () => {
   it('persists lowConfSpans through the sync and hands them back on load', async () => {
     const sync = await loadSync();
     await sync.startServerSync();
-    const sessions = await import('./session-store');
+    const sessions = { ...(await import('./session-crud')), ...(await import('./session-open')) };
     const id = sessions.persistSession({
       title: 'Spans', speakers: {},
       segments: [{ ...line('w1', 'we ship with framna', 0), lowConfSpans: [[13, 19, 0.4]] }, line('w2', 'sure', 3)],
@@ -45,14 +45,14 @@ describe('server sync', () => {
   });
 
   it('sends nothing before startServerSync', async () => {
-    const { persistSession } = await import('./session-store');
+    const { persistSession } = await import('./session-crud');
     persistSession({ title: 'Quiet', segments: [line('a', 'hello', 0)], speakers: {} });
     await new Promise((r) => setTimeout(r, 1100));
     expect(calls).toEqual([]);
   });
 
   it('moves the browser meetings and an unfiled autosave into the DB once, and says so', async () => {
-    const { persistSession } = await import('./session-store');
+    const { persistSession } = await import('./session-crud');
     const { saveAutosavedSession } = await import('./autosave');
     const { addDecision } = await import('./notes');
     const a = persistSession({ title: 'Kickoff', segments: [line('a1', 'welcome everyone', 0)], speakers: {}, startedAt: 1_000 });
@@ -83,7 +83,7 @@ describe('server sync', () => {
   });
 
   it('retries the migration on the next start when the server is down', async () => {
-    const { persistSession } = await import('./session-store');
+    const { persistSession } = await import('./session-crud');
     persistSession({ title: 'Offline', segments: [line('a', 'hi', 0)], speakers: {} });
     const sync = await loadSync();
     harness.online = false;
@@ -96,7 +96,8 @@ describe('server sync', () => {
   it('writes changes through to the DB and keeps them queued while offline', async () => {
     const sync = await loadSync();
     await sync.startServerSync();
-    const { persistSession, renameSession, deleteSession } = await import('./session-store');
+    const { persistSession, renameSession } = await import('./session-crud');
+    const { deleteSession } = await import('./session-delete');
     harness.online = false;
     const id = persistSession({ title: 'Design review', segments: [line('a', 'the blue button', 0)], speakers: {} });
     await sync.flushServerSync();

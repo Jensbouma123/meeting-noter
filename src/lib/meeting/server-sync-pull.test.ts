@@ -11,7 +11,8 @@ describe('server sync pulling', () => {
     meetingStore().save(sampleMeeting({ id: 'from-disk' }));
     const sync = await loadSync();
     await sync.startServerSync();
-    const { listSessions, openSession } = await import('./session-store');
+    const { listSessions } = await import('./session-crud');
+    const { openSession } = await import('./session-open');
     const { getNotes } = await import('./notes');
     expect(listSessions().map((s) => s.sessionId)).toContain('from-disk');
 
@@ -29,7 +30,7 @@ describe('server sync pulling', () => {
   it('loads every saved meeting back from the DB after the browser data is cleared', async () => {
     let sync = await loadSync();
     await sync.startServerSync();
-    const store = await import('./session-store');
+    const store = { ...(await import('./session-crud')), ...(await import('./session-open')), ...(await import('./session-delete')), ...(await import('./session-recording')) };
     const { addDecision } = await import('./notes');
     const id = store.persistSession({ title: 'Budget', segments: [line('a', 'cut the travel line', 0)], speakers: {} });
     addDecision(id, 'No travel in Q1');
@@ -38,7 +39,7 @@ describe('server sync pulling', () => {
     await reload({ clear: true });
     sync = await loadSync();
     await sync.startServerSync();
-    const after = await import('./session-store');
+    const after = { ...(await import('./session-crud')), ...(await import('./session-open')) };
     const { getNotes } = await import('./notes');
     expect(after.listSessions().map((s) => s.sessionId)).toEqual([id]);
     await sync.ensureMeetingLoaded(id);
@@ -49,7 +50,7 @@ describe('server sync pulling', () => {
   it('a cleared transcript stays gone: no refetch of the old copy, no append prompt, DB emptied', async () => {
     const sync = await loadSync();
     await sync.startServerSync();
-    const store = await import('./session-store');
+    const store = { ...(await import('./session-crud')), ...(await import('./session-open')), ...(await import('./session-delete')), ...(await import('./session-recording')) };
     const id = store.persistSession({ title: 'Standup', segments: [line('a', 'delete me please', 0)], speakers: {} });
     await sync.flushServerSync();
     await sync.ensureMeetingLoaded(id);
@@ -71,7 +72,7 @@ describe('server sync pulling', () => {
   it('replays edits made offline once the browser is back online, without duplicates', async () => {
     let sync = await loadSync();
     await sync.startServerSync();
-    let store = await import('./session-store');
+    let store = await import('./session-crud');
     harness.online = false;
     const a = store.persistSession({ title: 'Standup', segments: [line('a', 'yesterday I', 0)], speakers: {} });
     const b = store.createDraftSession('Planning');
@@ -82,7 +83,7 @@ describe('server sync pulling', () => {
     await reload();
     sync = await loadSync();
     await sync.startServerSync();
-    store = await import('./session-store');
+    store = await import('./session-crud');
     expect(JSON.parse(localStorage.getItem('mn.sync.pending.v1')!).save.sort()).toEqual([a, b].sort());
     store.renameSession(b, 'Planning Q1');
 
@@ -98,7 +99,7 @@ describe('server sync pulling', () => {
   it('sends a meeting the server lacks even when its queue entry was lost', async () => {
     const sync = await loadSync();
     await sync.startServerSync();
-    const store = await import('./session-store');
+    const store = { ...(await import('./session-crud')), ...(await import('./session-open')), ...(await import('./session-delete')), ...(await import('./session-recording')) };
     harness.online = false;
     const id = store.persistSession({ title: 'Orphan', segments: [line('a', 'only here', 0)], speakers: {} });
     localStorage.removeItem('mn.sync.pending.v1');
@@ -118,7 +119,7 @@ describe('server sync pulling', () => {
     meetingStore().save(sampleMeeting({ id: 'other-browser' }));
     harness.online = true;
     window.dispatchEvent(new Event('online'));
-    const { listSessions } = await import('./session-store');
+    const { listSessions } = await import('./session-crud');
     await vi.waitFor(() => expect(listSessions().map((s) => s.sessionId)).toContain('other-browser'));
   });
 });

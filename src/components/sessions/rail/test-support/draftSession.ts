@@ -1,4 +1,4 @@
-import type { SessionMetadata } from '@/lib/meeting/session-store';
+import type { SessionMetadata } from '@/lib/meeting/types/session-store';
 
 export const draft = (overrides: Partial<SessionMetadata> = {}): SessionMetadata => ({
   sessionId: 'sess-1',

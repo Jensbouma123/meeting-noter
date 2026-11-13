@@ -1,6 +1,7 @@
 import type { StoredMeeting } from '@/lib/meeting-db/types';
 import { loadAutosavedSession } from './autosave';
-import { archiveAutosavedSession, getSessionMetadata, listSessions } from './session-store';
+import { archiveAutosavedSession, getSessionMetadata } from './session-open';
+import { listSessions } from './session-crud';
 import { isCaptureActive } from './transcript-session';
 import { buildStoredMeeting } from './stored-meeting';
 import { markSynced, readJson, writeJson } from './sync-storage';

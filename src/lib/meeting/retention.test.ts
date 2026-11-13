@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_RETENTION, expiredSessionIds, parseRetention, purgeExpiredSessions, retentionCutoff } from './retention';
 import { requestPersistentStorage } from './persistent-storage';
-import { createDraftSession, listSessions } from './session-store';
+import { createDraftSession, listSessions } from './session-crud';
 
 const NOW = new Date(2026, 10, 10, 12, 0, 0).getTime();
 

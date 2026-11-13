@@ -11,7 +11,7 @@ describe('participants and speaker names are meeting data in the DB', () => {
   it('sends the participants, drops the local copy once synced and brings it back on open', async () => {
     const sync = await loadSync();
     await sync.startServerSync();
-    const store = await import('./session-store');
+    const store = { ...(await import('./session-crud')), ...(await import('./session-delete')) };
     const { setParticipants, getParticipants } = await import('./participants');
     const id = store.persistSession({ title: 'Standup', segments: [line('a', 'morning all', 0)], speakers: {} });
     await sync.flushServerSync();
@@ -45,7 +45,7 @@ describe('participants and speaker names are meeting data in the DB', () => {
   it('deleting a meeting scrubs its participants here and in the DB, keeping recent names', async () => {
     const sync = await loadSync();
     await sync.startServerSync();
-    const store = await import('./session-store');
+    const store = { ...(await import('./session-crud')), ...(await import('./session-delete')) };
     const { setParticipants, getRecentParticipants } = await import('./participants');
     const id = store.persistSession({ title: 'Secret', segments: [line('a', 'hush', 0)], speakers: {} });
     setParticipants(id, ['Noor']);
@@ -67,7 +67,7 @@ describe('participants and speaker names are meeting data in the DB', () => {
   it('a speaker named after the meeting was saved reaches the DB and survives eviction', async () => {
     const sync = await loadSync();
     await sync.startServerSync();
-    const store = await import('./session-store');
+    const store = { ...(await import('./session-crud')), ...(await import('./session-delete')) };
     const { saveAutosavedSession } = await import('./autosave');
     const speakers = { 'mic:0': { id: 'mic:0', source: 'mic' as const, label: 'Speaker 0', colorIndex: 0 } };
     const id = store.persistSession({ title: 'Named later', segments: [line('a', 'hello there', 0)], speakers });

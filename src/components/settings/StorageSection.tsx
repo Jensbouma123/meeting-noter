@@ -5,7 +5,8 @@ import { Alert, Button, ConfirmDialog, Select, useToast } from '@jensbouma123/ac
 import { Trash2 } from 'lucide-react';
 import { clearAutosavedSession } from '@/lib/meeting/autosave';
 import { isCaptureActive } from '@/lib/meeting/transcript-session';
-import { deleteSession, listSessions, sweepMeetingStorage } from '@/lib/meeting/session-store';
+import { deleteSession, sweepMeetingStorage } from '@/lib/meeting/session-delete';
+import { listSessions } from '@/lib/meeting/session-crud';
 import { deleteAllOnServer } from '@/lib/meeting/sync-control';
 import { getTranscriptSessionId } from '@/lib/meeting/transcript-session';
 import { getPersistentStorageStatus, requestPersistentStorage } from '@/lib/meeting/persistent-storage';

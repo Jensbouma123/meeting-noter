@@ -33,7 +33,7 @@ describe('navigating between sessions (B2)', () => {
 describe('startRecordingInSession', () => {
   const seg = (id: string, start: number, end: number, text = 'hi') => finalSegment(id, start, end, text);
   const setup = async () => {
-    const ss = await import('./session-store');
+    const ss = { ...(await import('./session-crud')), ...(await import('./session-open')), ...(await import('./session-recording')) };
     const store = await loadMeetingStoreModules();
     const persist = await import('./autosave');
     const id = ss.createDraftSession('Standup');
@@ -86,8 +86,9 @@ describe('startRecordingInSession', () => {
 
 describe('clearSessionTranscript', () => {
   it('empties the store, autosave and saved transcript but keeps the session', async () => {
-    const { createDraftSession, persistSession, clearSessionTranscript, getSessionMetadata, sessionExists } =
-      await import('./session-store');
+    const { createDraftSession, persistSession } = await import('./session-crud');
+    const { clearSessionTranscript } = await import('./session-delete');
+    const { getSessionMetadata, sessionExists } = await import('./session-open');
     const { loadIdleSession, getState, getTranscriptSessionId } = await loadMeetingStoreModules();
     const { saveAutosavedSession, loadAutosavedSession } = await import('./autosave');
     const { loadSessionTranscript } = await import('./session-transcript-storage');
@@ -108,7 +109,8 @@ describe('clearSessionTranscript', () => {
   });
 
   it('leaves another session’s autosave alone and refuses unknown ids', async () => {
-    const { createDraftSession, clearSessionTranscript } = await import('./session-store');
+    const { createDraftSession } = await import('./session-crud');
+    const { clearSessionTranscript } = await import('./session-delete');
     const { saveAutosavedSession, loadAutosavedSession } = await import('./autosave');
     const a = createDraftSession('A');
     const b = createDraftSession('B');

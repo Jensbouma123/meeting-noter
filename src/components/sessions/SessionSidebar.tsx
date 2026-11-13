@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import type { SessionMetadata } from '@/lib/meeting/session-store';
+import type { SessionMetadata } from '@/lib/meeting/types/session-store';
 import { Drawer, VStack } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { useFolderController } from './folders/useFolderController';

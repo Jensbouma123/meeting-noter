@@ -10,7 +10,7 @@ afterEach(() => {
 describe('no transcript text stays in the browser after delete or clear', () => {
   const SECRET = 'hello there';
   async function seed() {
-    const store = await import('./session-store');
+    const store = { ...(await import('./session-crud')), ...(await import('./session-delete')) };
     const { saveSpeakerState } = await import('./speaker-state-storage');
     const { scheduleAutosave } = await import('./autosave');
     const { addDecision } = await import('./notes');
@@ -69,7 +69,7 @@ describe('no transcript text stays in the browser after delete or clear', () => 
         return { ok: true, data: {} };
       }),
     }));
-    const { createDraftSessionInFolder } = await import('./session-store');
+    const { createDraftSessionInFolder } = await import('./session-crud');
     const id = await createDraftSessionInFolder('Folder draft', 'folder-1');
     expect(order).toEqual(['flush', `move:${id}:folder-1`]);
 

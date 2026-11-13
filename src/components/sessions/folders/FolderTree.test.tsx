@@ -3,7 +3,7 @@ import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { ToastProvider } from '@jensbouma123/acciva-ui';
-import type { SessionMetadata } from '@/lib/meeting/session-store';
+import type { SessionMetadata } from '@/lib/meeting/types/session-store';
 import { FolderTree } from './FolderTree';
 import { useFolderController } from './useFolderController';
 import { fake, installFakeFolderServer, mutations } from './test-support/fakeFolderServer';

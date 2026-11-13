@@ -11,7 +11,7 @@ describe('localStorage holds only unsent edits and the open meeting', () => {
   it('drops the transcript and notes of a meeting once the server has them, but not of the open one', async () => {
     const sync = await loadSync();
     await sync.startServerSync();
-    const store = await import('./session-store');
+    const store = { ...(await import('./session-crud')), ...(await import('./session-open')) };
     const { addDecision } = await import('./notes');
     const { loadIdleSession } = await import('./session-reset');
     const closed = store.persistSession({ title: 'Closed', segments: [line('a', 'old news', 0)], speakers: {} });
@@ -40,7 +40,7 @@ describe('localStorage holds only unsent edits and the open meeting', () => {
   it('never sends a dropped meeting back without its transcript', async () => {
     const sync = await loadSync();
     await sync.startServerSync();
-    const store = await import('./session-store');
+    const store = { ...(await import('./session-crud')), ...(await import('./session-open')) };
     const { addAction, getNotes } = await import('./notes');
     const id = store.persistSession({ title: 'Kept whole', segments: [line('a', 'every word', 0)], speakers: {} });
     addAction(id, 'Write it up');
@@ -68,7 +68,7 @@ describe('localStorage holds only unsent edits and the open meeting', () => {
     const sync = await loadSync();
     expect(await sync.searchMeetingIds('quarterly')).toBeNull();
     await sync.startServerSync();
-    const store = await import('./session-store');
+    const store = { ...(await import('./session-crud')), ...(await import('./session-open')) };
     const id = store.persistSession({ title: 'Finance', segments: [line('a', 'quarterly budget review', 0)], speakers: {} });
     await sync.flushServerSync();
     expect(localStorage.getItem(transcriptKey(id))).toBeNull();

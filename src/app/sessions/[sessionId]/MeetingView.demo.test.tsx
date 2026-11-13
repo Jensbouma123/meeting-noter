@@ -70,17 +70,23 @@ vi.mock('@/lib/meeting/store-core', () => ({
 vi.mock('@/lib/meeting/append-mode', () => ({
   cancelAppend: vi.fn(),
 }));
-vi.mock('@/lib/meeting/session-store', () => ({
+vi.mock('@/lib/meeting/session-open', () => ({
   sessionExists: () => false,
   openSession: () => null,
+  archiveAutosavedSession: vi.fn(),
+  getSessionMetadata: () => null,
+  sessionHasTranscript: () => false,
+}));
+vi.mock('@/lib/meeting/session-crud', () => ({
   unmarkDraft: vi.fn(),
   setSessionCaptureMode: vi.fn(),
   persistSession: vi.fn(),
-  archiveAutosavedSession: vi.fn(),
   renameSession: vi.fn(),
-  getSessionMetadata: () => null,
-  sessionHasTranscript: () => false,
+}));
+vi.mock('@/lib/meeting/session-recording', () => ({
   startRecordingInSession: vi.fn(),
+}));
+vi.mock('@/lib/meeting/session-delete', () => ({
   clearSessionTranscript: vi.fn(),
 }));
 vi.mock('@/lib/meeting/autosave', () => ({

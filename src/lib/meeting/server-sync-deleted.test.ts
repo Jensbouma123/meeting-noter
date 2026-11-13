@@ -9,7 +9,7 @@ describe('deleted meetings and the one-time migration notice', () => {
   it('drops a meeting another browser deleted and never sends it back', async () => {
     const sync = await loadSync();
     await sync.startServerSync();
-    const store = await import('./session-store');
+    const store = { ...(await import('./session-crud')), ...(await import('./session-server-adopt')), ...(await import('./session-delete')) };
     const id = store.persistSession({ title: 'Gone', segments: [line('a', 'bye', 0)], speakers: {} });
     await sync.flushServerSync();
 
@@ -35,7 +35,7 @@ describe('deleted meetings and the one-time migration notice', () => {
   it('a delete made offline is replayed when back online, and a save queued after it wins over the delete', async () => {
     const sync = await loadSync();
     await sync.startServerSync();
-    const store = await import('./session-store');
+    const store = { ...(await import('./session-crud')), ...(await import('./session-server-adopt')), ...(await import('./session-delete')) };
     const keep = store.persistSession({ title: 'Keep', segments: [line('a', 'keep me', 0)], speakers: {} });
     const gone = store.persistSession({ title: 'Gone', segments: [line('b', 'drop me', 0)], speakers: {} });
     await sync.flushServerSync();
@@ -61,7 +61,7 @@ describe('deleted meetings and the one-time migration notice', () => {
   it('Delete all: a browser that still holds its meetings cannot bring them back, and tabs never sent get 410s dropped', async () => {
     const sync = await loadSync();
     await sync.startServerSync();
-    const store = await import('./session-store');
+    const store = { ...(await import('./session-crud')), ...(await import('./session-server-adopt')), ...(await import('./session-delete')) };
     const id = store.persistSession({ title: 'Secret', segments: [line('a', 'launch codes', 0)], speakers: {} });
     await sync.flushServerSync();
 
@@ -83,7 +83,7 @@ describe('deleted meetings and the one-time migration notice', () => {
   it('deleteAllOnServer empties the DB, forgets queued saves and returns false when offline', async () => {
     const sync = await loadSync();
     await sync.startServerSync();
-    const store = await import('./session-store');
+    const store = { ...(await import('./session-crud')), ...(await import('./session-server-adopt')), ...(await import('./session-delete')) };
     const id = store.persistSession({ title: 'One', segments: [line('a', 'alpha', 0)], speakers: {} });
     await sync.flushServerSync();
     harness.online = false;
@@ -103,7 +103,7 @@ describe('deleted meetings and the one-time migration notice', () => {
     const events: unknown[] = [];
     const onEvent = (e: Event) => events.push((e as CustomEvent).detail);
     window.addEventListener(sync.MIGRATED_EVENT, onEvent);
-    (await import('./session-store')).persistSession({ title: 'Kept', segments: [line('a', 'x', 0)], speakers: {} });
+    (await import('./session-crud')).persistSession({ title: 'Kept', segments: [line('a', 'x', 0)], speakers: {} });
     expect(await sync.migrateBrowserMeetings()).toMatchObject({ imported: 1 });
 
     await reload({ clear: true });

@@ -1,13 +1,9 @@
 import type { StoredMeeting } from '@/lib/meeting-db/types';
 import { loadAutosavedSession } from './autosave';
 import { hasLocalNotes } from './notes-storage';
-import {
-  adoptStoredMeeting,
-  cacheMeetingContent,
-  evictMeetingContent,
-  getSessionMetadata,
-  listSessions,
-} from './session-store';
+import { adoptStoredMeeting, cacheMeetingContent, evictMeetingContent } from './session-server-adopt';
+import { getSessionMetadata } from './session-open';
+import { listSessions } from './session-crud';
 import { loadSessionTranscript } from './session-transcript-storage';
 import { syncState } from './sync-state';
 import { SYNCED_KEY, markSynced, readJson, readPending } from './sync-storage';
