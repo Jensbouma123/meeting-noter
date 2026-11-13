@@ -1,7 +1,7 @@
 export type AssistantId = 'claude-desktop' | 'claude-code' | 'codex';
 export type CliAssistant = Exclude<AssistantId, 'claude-desktop'>;
 export type DesktopConfig = Record<string, unknown> & { mcpServers?: Record<string, unknown> };
-export type AssistantStatus = 'connected' | 'not-connected' | 'not-found';
+export type AssistantStatus = 'connected' | 'needs-repair' | 'not-connected' | 'not-found';
 
 export interface AssistantInfo {
   id: AssistantId;
@@ -18,6 +18,8 @@ export interface AssistantDeps {
   now: () => Date;
   findCli: (name: string) => string | null;
   runCli: CliRunner;
+  fileExists: (file: string) => boolean;
+  buildMcp: (env: NodeJS.ProcessEnv) => Promise<boolean>;
 }
 
 export type ConnectResult =

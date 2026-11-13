@@ -13,6 +13,13 @@ const prod = process.argv[2] === "--prod";
 const nextArgs = process.argv.slice(prod ? 3 : 2);
 const nextBin = path.join(root, "node_modules", "next", "dist", "bin", "next");
 
+const mcpBundle = path.join(root, "build", "mcp", "meetings-mcp.mjs");
+if (!existsSync(mcpBundle)) {
+  console.log("[mcp] building MCP bundle…");
+  const r = spawnSync(process.execPath, [path.join(root, "node_modules", "rolldown", "bin", "cli.mjs"), "-c", "scripts/mcp/rolldown.config.mjs"], { cwd: root, stdio: "inherit" });
+  if (r.status !== 0) console.warn("[mcp] build failed; assistants cannot connect until it succeeds");
+}
+
 if (prod && !existsSync(path.join(root, ".next", "BUILD_ID"))) {
   console.log("[next] no production build found; running next build…");
   const r = spawnSync(process.execPath, [nextBin, "build"], { cwd: root, stdio: "inherit" });

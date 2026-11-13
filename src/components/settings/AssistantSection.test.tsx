@@ -63,7 +63,22 @@ describe('AssistantSection', () => {
     vi.stubGlobal('navigator', { clipboard: { writeText } });
     renderSection();
     await screen.findByText('Connected');
-    fireEvent.click(screen.getAllByText('Copy')[0]);
+    expect(screen.queryByText('Copy')).toBeNull();
+    fireEvent.click(screen.getAllByRole('button', { name: 'Copy' })[0]);
     await waitFor(() => expect(writeText).toHaveBeenCalledWith('Summarize the meeting I have open'));
+    expect(await screen.findByTestId('copied-icon')).toBeTruthy();
+  });
+
+  it('shows Repair for an assistant whose MCP file is missing', async () => {
+    const fetchMock = mockFetch((url) =>
+      url === '/api/assistants'
+        ? { assistants: [{ id: 'claude-code', status: 'needs-repair', canAutoConnect: true, manualCommand: null, configPath: null }] }
+        : { ok: true, status: 'connected' },
+    );
+    renderSection();
+    expect(await screen.findByText('Needs repair')).toBeTruthy();
+    fireEvent.click(screen.getByText('Repair'));
+    await waitFor(() => expect(screen.getByText('Connected')).toBeTruthy());
+    expect(fetchMock).toHaveBeenCalledWith('/api/assistants/claude-code/connect', expect.objectContaining({ method: 'POST' }));
   });
 });

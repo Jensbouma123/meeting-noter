@@ -2,7 +2,7 @@
 
 import { Text } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
-import { AssistantCopyButton } from './AssistantCopyButton';
+import { AssistantCopyIcon } from './AssistantCopyIcon';
 import { SettingsGroup } from './SettingsGroup';
 import { SettingsRow } from './SettingsRow';
 
@@ -16,7 +16,7 @@ export function AssistantExamples() {
         <Text size="sm" weight="medium">{t('examplesTitle')}</Text>
       </div>
       {EXAMPLES.map((key) => (
-        <SettingsRow key={key} label={t(key)} control={<AssistantCopyButton text={t(key)} label={t('copy')} />} />
+        <SettingsRow key={key} label={t(key)} control={<AssistantCopyIcon text={t(key)} />} />
       ))}
     </SettingsGroup>
   );

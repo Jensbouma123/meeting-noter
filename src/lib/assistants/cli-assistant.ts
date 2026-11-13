@@ -1,12 +1,12 @@
 import { CLI_BIN, addArgs, manualCommand, removeArgs } from './cli-commands';
-import { MCP_SERVER_NAME } from './mcp-entry';
+import { MCP_SERVER_NAME, ensureMcpBundle, mcpScriptPath } from './mcp-entry';
 import type { AssistantDeps, CliAssistant, AssistantInfo, AssistantStatus, ConnectResult } from './types';
 
 async function statusOf(bin: string, deps: AssistantDeps): Promise<AssistantStatus> {
   const { ok, stdout } = await deps.runCli(bin, ['mcp', 'list']);
-  return ok && stdout.split('\n').some((l) => l.trim().startsWith(`${MCP_SERVER_NAME}:`) || l.trim().startsWith(`${MCP_SERVER_NAME} `))
-    ? 'connected'
-    : 'not-connected';
+  const listed = ok && stdout.split('\n').some((l) => l.trim().startsWith(`${MCP_SERVER_NAME}:`) || l.trim().startsWith(`${MCP_SERVER_NAME} `));
+  if (!listed) return 'not-connected';
+  return deps.fileExists(mcpScriptPath(deps.env)) ? 'connected' : 'needs-repair';
 }
 
 export async function cliInfo(id: CliAssistant, deps: AssistantDeps): Promise<AssistantInfo> {
@@ -20,6 +20,8 @@ export async function connectCli(id: CliAssistant, deps: AssistantDeps): Promise
   const bin = deps.findCli(CLI_BIN[id]);
   const manual = manualCommand(id, deps.env);
   if (!bin) return { ok: false, error: 'cli-not-found', manualCommand: manual };
+  if (!(await ensureMcpBundle(deps))) return { ok: false, error: 'mcp-build-failed', manualCommand: manual };
+  await deps.runCli(bin, removeArgs(id));
   const res = await deps.runCli(bin, addArgs(id, deps.env));
   return res.ok ? { ok: true, status: 'connected' } : { ok: false, error: 'cli-failed', manualCommand: manual };
 }

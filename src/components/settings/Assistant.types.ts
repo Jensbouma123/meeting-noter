@@ -1,5 +1,5 @@
 export type AssistantId = 'claude-desktop' | 'claude-code' | 'codex';
-export type AssistantStatus = 'connected' | 'not-connected' | 'not-found';
+export type AssistantStatus = 'connected' | 'needs-repair' | 'not-connected' | 'not-found';
 
 export interface AssistantInfo {
   id: AssistantId;
@@ -27,6 +27,10 @@ export interface AssistantCardProps {
 export interface AssistantCopyButtonProps {
   text: string;
   label: string;
+}
+
+export interface AssistantCopyIconProps {
+  text: string;
 }
 
 export interface AssistantConfirmProps {
