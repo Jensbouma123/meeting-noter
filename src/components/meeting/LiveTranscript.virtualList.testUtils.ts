@@ -36,7 +36,7 @@ export const scroller = (container: HTMLElement) =>
 
 export const SCROLL_HEIGHT = 5000;
 
-export function useVirtualListEnvironment() {
+export function stubVirtualListEnvironment() {
   beforeEach(() => {
     observers.length = 0;
     vi.stubGlobal('ResizeObserver', FakeResizeObserver);

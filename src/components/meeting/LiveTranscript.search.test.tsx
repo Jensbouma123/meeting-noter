@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { useVirtualListEnvironment } from './LiveTranscript.virtualList.testUtils';
+import { stubVirtualListEnvironment } from './LiveTranscript.virtualList.testUtils';
 import { seg, view } from './LiveTranscript.testUtils';
 
 afterEach(cleanup);
 
 describe('LiveTranscript search', () => {
-  useVirtualListEnvironment();
+  stubVirtualListEnvironment();
 
   const twoTurns = () => [seg('a', 'mic:0', 0, 'first'), seg('b', 'mic:1', 10, 'second')];
 
