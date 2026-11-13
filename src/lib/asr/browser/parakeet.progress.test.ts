@@ -337,7 +337,8 @@ describe('a file that is not cached yet', () => {
   it('fails the load with an actionable message when session creation hangs', async () => {
 
     loadState.hangCreate = true;
-    const { BrowserASREngine, SESSION_STALL_MS } = await import('./parakeet');
+    const { BrowserASREngine } = await import('./parakeet');
+    const { SESSION_STALL_MS } = await import('./engine-load');
     const { progress, events } = recorder();
 
     vi.useFakeTimers();
