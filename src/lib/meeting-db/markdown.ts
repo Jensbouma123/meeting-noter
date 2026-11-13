@@ -1,24 +1,15 @@
 import { formatClock, resolveSpeakerLabel, tidyText } from '../meeting/transcript-format';
 import type { Segment } from '../meeting/types';
-import type { StoredMeeting, StoredSegment } from './types';
-import type { FolderRow } from './types';
-
-/**
- * Text renderings of a stored meeting: the summary and transcript the DB
- * indexes for full-text search, and the Markdown file written next to it.
- * Pure — no Node APIs — so the MCP server and the tests share it.
- */
+import type { FolderRow, StoredMeeting, StoredSegment } from './types';
 
 function asSegment(seg: StoredSegment): Segment {
   return { ...seg, final: true };
 }
 
-/** "Label" for a stored line, with the transcript view's fallbacks. */
 export function speakerLabel(meeting: StoredMeeting, seg: StoredSegment): string {
   return resolveSpeakerLabel(asSegment(seg), meeting.speakers);
 }
 
-/** Speaker labels in order of first appearance. */
 export function speakerNames(meeting: StoredMeeting): string[] {
   const names: string[] = [];
   for (const seg of meeting.segments.slice().sort((a, b) => a.start - b.start)) {
@@ -28,7 +19,6 @@ export function speakerNames(meeting: StoredMeeting): string[] {
   return names;
 }
 
-/** The meeting's notes as text: decisions, then action items. Empty without notes. */
 export function summaryText(meeting: StoredMeeting): string {
   const lines: string[] = [];
   const { decisions, actions } = meeting.notes;
@@ -48,13 +38,11 @@ export function summaryText(meeting: StoredMeeting): string {
   return lines.join('\n');
 }
 
-/** What full-text search indexes beside the title: the participants' names and the notes. */
 export function searchSummary(meeting: StoredMeeting): string {
   const names = meeting.participants ?? [];
   return [names.length > 0 ? `Participants: ${names.join(', ')}` : '', summaryText(meeting)].filter(Boolean).join('\n');
 }
 
-/** One `[MM:SS] Speaker: text` line per stored segment, in time order. */
 export function transcriptLines(meeting: StoredMeeting): string[] {
   return meeting.segments
     .slice()
@@ -67,7 +55,6 @@ export function transcriptText(meeting: StoredMeeting): string {
   return transcriptLines(meeting).join('\n');
 }
 
-/** ISO date (YYYY-MM-DD) of the meeting in local time. */
 export function meetingDate(meeting: StoredMeeting): string {
   const d = new Date(meeting.startedAt ?? meeting.createdAt);
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -80,7 +67,6 @@ function meetingDateTime(meeting: StoredMeeting): string {
   return `${meetingDate(meeting)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-/** File name for the meeting's Markdown copy: date, title slug and id prefix, so renames stay unique. */
 export function markdownFileName(meeting: StoredMeeting): string {
   const slug = meeting.title
     .normalize('NFKD')
@@ -93,7 +79,6 @@ export function markdownFileName(meeting: StoredMeeting): string {
   return `${meetingDate(meeting)}-${slug || 'meeting'}-${id}.md`;
 }
 
-/** A safe relative directory for a folder and all of its ancestors. */
 export function markdownFolderPath(folders: FolderRow[], folderId: string | null | undefined): string {
   if (!folderId) return '';
   const byId = new Map(folders.map((folder) => [folder.id, folder]));
@@ -112,7 +97,6 @@ export function markdownFolderPath(folders: FolderRow[], folderId: string | null
   return parts.join('/');
 }
 
-/** The Markdown file: title, date, participants, speakers, summary and transcript. */
 export function renderMeetingMarkdown(meeting: StoredMeeting): string {
   const out = [`# ${meeting.title}`, ''];
   out.push(`- Date: ${meetingDateTime(meeting)}`);
@@ -124,7 +108,6 @@ export function renderMeetingMarkdown(meeting: StoredMeeting): string {
   out.push('## Speakers', '', ...(speakers.length > 0 ? speakers.map((s) => `- ${s}`) : ['(none)']), '');
   const summary = summaryText(meeting);
   out.push('## Summary', '', summary || '(no decisions or action items)', '');
-  // A blank line between lines: Markdown would join adjacent lines into one paragraph.
   const transcript = transcriptLines(meeting).join('\n\n');
   out.push('## Transcript', '', transcript || '(empty)');
   return out.join('\n') + '\n';

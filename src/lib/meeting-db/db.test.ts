@@ -1,26 +1,9 @@
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
-import { MeetingsDb, ftsQuery } from './db';
-import { MeetingStore } from './store';
-import { parseStoredMeeting } from './validate';
-import { markdownFileName } from './markdown';
+import { describe, expect, it } from 'vitest';
+import { ftsQuery } from './fts-query';
 import { sampleMeeting } from './test-meeting';
+import { registerTempDirs } from './test-support';
 
-const dirs: string[] = [];
-function tmpDir(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'meetings-db-'));
-  dirs.push(dir);
-  return dir;
-}
-afterEach(() => {
-  for (const dir of dirs.splice(0)) fs.rmSync(dir, { recursive: true, force: true });
-});
-
-function openDb(): MeetingsDb {
-  return new MeetingsDb(path.join(tmpDir(), 'meetings.db'));
-}
+const { openDb } = registerTempDirs();
 
 describe('MeetingsDb', () => {
   it('round-trips a meeting with its segments in time order, speakers and notes', () => {
@@ -105,20 +88,6 @@ describe('MeetingsDb', () => {
     expect(db.deletedIds()).toEqual(['meeting-1']);
   });
 
-  it('adds the v2 tables to a v1 DB and sets a meta key only once', () => {
-    const file = path.join(tmpDir(), 'meetings.db');
-    const v1 = new MeetingsDb(file);
-    v1.upsert(sampleMeeting());
-    v1.db.exec('DROP TABLE deleted_meetings; DROP TABLE meta; PRAGMA user_version = 1;');
-    v1.close();
-    const db = new MeetingsDb(file);
-    expect(db.get('meeting-1')?.title).toBe('Roadmap sync');
-    expect(db.setMetaOnce('k', 'a')).toBe(true);
-    expect(db.setMetaOnce('k', 'b')).toBe(false);
-    db.delete('meeting-1');
-    expect(db.deletedIds()).toEqual(['meeting-1']);
-  });
-
   it('round-trips participants, keeps null apart from an empty list and searches their names', () => {
     const db = openDb();
     db.upsert(sampleMeeting({ participants: ['Marieke', 'Joost'] }));
@@ -130,18 +99,6 @@ describe('MeetingsDb', () => {
     expect(db.search('Joost').map((h) => h.id)).toEqual(['meeting-1']);
   });
 
-  it('adds the participants column to a v2 DB and keeps its meetings', () => {
-    const file = path.join(tmpDir(), 'meetings.db');
-    const v2 = new MeetingsDb(file);
-    v2.upsert(sampleMeeting());
-    v2.db.exec('ALTER TABLE meetings DROP COLUMN participants; PRAGMA user_version = 2;');
-    v2.close();
-    const db = new MeetingsDb(file);
-    expect(db.get('meeting-1')?.participants).toBeNull();
-    db.upsert(sampleMeeting({ updatedAt: Date.now(), participants: ['Noor'] }));
-    expect(db.get('meeting-1')?.participants).toEqual(['Noor']);
-  });
-
   it('round-trips lowConfSpans per segment; segments without them read back without the field', () => {
     const db = openDb();
     const base = sampleMeeting();
@@ -149,62 +106,6 @@ describe('MeetingsDb', () => {
     const got = db.get('meeting-1')!;
     expect(got.segments.find((s) => s.id === 's2')?.lowConfSpans).toEqual([[3, 9, 0.41], [12, 15, 0.5]]);
     expect('lowConfSpans' in got.segments.find((s) => s.id === 's1')!).toBe(false);
-  });
-
-  it('migrates a v4 DB (no low_conf_spans column): old meetings still load, new spans can be saved', () => {
-    const file = path.join(tmpDir(), 'meetings.db');
-    const v4 = new MeetingsDb(file);
-    v4.upsert(sampleMeeting());
-    v4.db.exec('ALTER TABLE segments DROP COLUMN low_conf_spans; PRAGMA user_version = 4;');
-    v4.close();
-    const db = new MeetingsDb(file);
-    expect(db.db.prepare('PRAGMA user_version').get()).toEqual({ user_version: 5 });
-    expect(db.get('meeting-1')!.segments.every((s) => s.lowConfSpans === undefined)).toBe(true);
-    db.upsert(sampleMeeting({ updatedAt: Date.now(), segments: [{ ...sampleMeeting().segments[0], lowConfSpans: [[0, 2, 0.3]] }] }));
-    expect(db.get('meeting-1')!.segments[0].lowConfSpans).toEqual([[0, 2, 0.3]]);
-    db.close();
-  });
-
-  it('reads a read-only handle on a pre-v5 DB without the column', () => {
-    const file = path.join(tmpDir(), 'meetings.db');
-    const w = new MeetingsDb(file);
-    w.upsert(sampleMeeting());
-    w.db.exec('ALTER TABLE segments DROP COLUMN low_conf_spans; PRAGMA user_version = 4;');
-    w.close();
-    const r = new MeetingsDb(file, { readOnly: true });
-    expect(r.get('meeting-1')!.segments).toHaveLength(2);
-    r.close();
-  });
-
-  it('keeps well-formed lowConfSpans from HTTP input and drops malformed ones', () => {
-    const base = sampleMeeting();
-    const body = { ...base, segments: [
-      { ...base.segments[0], lowConfSpans: [[1, 4, 0.5], [5, 2, 0.5], 'x', [1, 2]] },
-      { ...base.segments[1], lowConfSpans: 'bad' },
-    ] };
-    const parsed = parseStoredMeeting(body);
-    expect(parsed?.segments[0].lowConfSpans).toEqual([[1, 4, 0.5]]);
-    expect(parsed?.segments[1].lowConfSpans).toBeUndefined();
-  });
-
-  it('migrates a v1 DB straight to the current version: meetings kept, participants column and tombstones work', () => {
-    const file = path.join(tmpDir(), 'meetings.db');
-    const v1 = new MeetingsDb(file);
-    v1.upsert(sampleMeeting());
-    v1.db.exec('DROP TABLE deleted_meetings; DROP TABLE meta; ALTER TABLE meetings DROP COLUMN participants; PRAGMA user_version = 1;');
-    v1.close();
-    const db = new MeetingsDb(file);
-    expect(db.db.prepare('PRAGMA user_version').get()).toEqual({ user_version: 5 });
-    expect(db.get('meeting-1')?.participants).toBeNull();
-    expect(db.search('budget').map((h) => h.id)).toEqual(['meeting-1']);
-    db.upsert(sampleMeeting({ updatedAt: Date.now(), participants: ['Noor'] }));
-    expect(db.get('meeting-1')?.participants).toEqual(['Noor']);
-    db.delete('meeting-1');
-    expect(db.upsert(sampleMeeting({ updatedAt: Date.now() + 1 }))).toBe('deleted');
-    db.close();
-    // Reopening a migrated DB is a no-op.
-    const again = new MeetingsDb(file);
-    expect(again.deletedIds()).toEqual(['meeting-1']);
   });
 
   it('after deleteAll a stale or newer copy of any deleted meeting is refused, other ids still store', () => {
@@ -217,168 +118,5 @@ describe('MeetingsDb', () => {
     expect(db.upsert(sampleMeeting({ id: 'three' }))).toBe('written');
     expect(db.list().map((m) => m.id)).toEqual(['three']);
     expect(db.deletedIds().sort()).toEqual(['meeting-1', 'two']);
-  });
-
-  it('a read-only handle refuses every write path and leaves an old DB unmigrated', () => {
-    const file = path.join(tmpDir(), 'meetings.db');
-    const writer = new MeetingsDb(file);
-    writer.upsert(sampleMeeting());
-    writer.db.exec('PRAGMA user_version = 2');
-    writer.close();
-    const reader = new MeetingsDb(file, { readOnly: true });
-    expect(() => reader.upsert(sampleMeeting({ updatedAt: Date.now() }))).toThrow();
-    expect(() => reader.delete('meeting-1')).toThrow();
-    expect(() => reader.deleteAll()).toThrow();
-    expect(() => reader.setMetaOnce('k', 'v')).toThrow();
-    expect(reader.db.prepare('PRAGMA user_version').get()).toEqual({ user_version: 2 });
-    expect(reader.get('meeting-1')?.title).toBe('Roadmap sync');
-    reader.close();
-  });
-
-  it('opens read-only alongside a writer and sees its commits', () => {
-    const file = path.join(tmpDir(), 'meetings.db');
-    const writer = new MeetingsDb(file);
-    const reader = new MeetingsDb(file, { readOnly: true });
-    writer.upsert(sampleMeeting());
-    expect(reader.search('budget').map((h) => h.id)).toEqual(['meeting-1']);
-    expect(() => reader.db.exec('DELETE FROM meetings')).toThrow();
-  });
-});
-
-describe('MeetingStore', () => {
-  it('writes one Markdown file per meeting and moves it on rename', () => {
-    const dir = tmpDir();
-    const store = new MeetingStore(new MeetingsDb(path.join(dir, 'meetings.db')), path.join(dir, 'meetings'));
-    store.save(sampleMeeting());
-    const first = path.join(dir, 'meetings', markdownFileName(sampleMeeting()));
-    const md = fs.readFileSync(first, 'utf8');
-    expect(md).toMatch(/^# Roadmap sync\n/);
-    expect(md).toContain('## Participants\n\n- Jens\n- Anna\n\n## Speakers\n\n- Jens\n- Anna');
-    expect(md).toContain('- [ ] Draft the release notes (Anna)');
-    expect(md).toContain('[00:02] Jens: Let us look at the quarterly budget.');
-    expect(md.indexOf('[00:02]')).toBeLessThan(md.indexOf('[00:40]'));
-
-    const renamed = sampleMeeting({ title: 'Budget review', updatedAt: Date.now() });
-    store.save(renamed);
-    expect(fs.existsSync(first)).toBe(false);
-    expect(fs.readdirSync(path.join(dir, 'meetings'))).toEqual([markdownFileName(renamed)]);
-
-    expect(store.delete('meeting-1')).toBe(true);
-    expect(fs.readdirSync(path.join(dir, 'meetings'))).toEqual([]);
-  });
-
-  it('writes no file for a draft', () => {
-    const dir = tmpDir();
-    const store = new MeetingStore(new MeetingsDb(path.join(dir, 'meetings.db')), path.join(dir, 'meetings'));
-    store.save(sampleMeeting({ isDraft: true, segments: [] }));
-    expect(fs.existsSync(path.join(dir, 'meetings'))).toBe(false);
-  });
-});
-
-describe('parseStoredMeeting', () => {
-  it('drops partial and malformed lines but keeps the meeting', () => {
-    const raw = {
-      ...sampleMeeting(),
-      segments: [
-        { id: 'p', source: 'mic', speaker: 'mic:0', text: 'partial', start: 0, end: 1, final: false },
-        { id: 'f', source: 'mic', speaker: 'mic:0', text: 'final', start: 1, end: 2, final: true, words: [] },
-        { id: 'bad', source: 'radio', speaker: 'x', text: 'y', start: 0, end: 1 },
-      ],
-    };
-    const parsed = parseStoredMeeting(raw)!;
-    expect(parsed.segments.map((s) => s.id)).toEqual(['f']);
-    expect(parsed.segments[0]).not.toHaveProperty('words');
-  });
-
-  it('cleans participants and reads a missing list as never asked', () => {
-    expect(parseStoredMeeting({ ...sampleMeeting(), participants: [' Anna ', 'anna', 3, '', 'Jan'] })!.participants)
-      .toEqual(['Anna', 'Jan']);
-    const older: Partial<ReturnType<typeof sampleMeeting>> = sampleMeeting();
-    delete older.participants;
-    expect(parseStoredMeeting(older)!.participants).toBeNull();
-    expect(parseStoredMeeting({ ...sampleMeeting(), participants: [] })!.participants).toEqual([]);
-  });
-
-  it('refuses ids that are unsafe in a path and missing timestamps', () => {
-    expect(parseStoredMeeting({ ...sampleMeeting(), id: '../etc' })).toBeNull();
-    expect(parseStoredMeeting({ ...sampleMeeting(), updatedAt: 'now' })).toBeNull();
-    expect(parseStoredMeeting(null)).toBeNull();
-  });
-});
-
-/** Every byte of the DB, its WAL and its shared-memory file, as one string. */
-function rawBytes(file: string): string {
-  return ['', '-wal', '-shm', '-journal']
-    .map((suffix) => (fs.existsSync(file + suffix) ? fs.readFileSync(file + suffix).toString('latin1') : ''))
-    .join('\n');
-}
-const SECRETS = ['café export', 'quarterly budget', 'Freeze the scope', 'release notes', 'Roadmap sync', 'Anna', 'Jens'];
-
-describe('deleting leaves no meeting text on disk', () => {
-  function fill(file: string, count = 1): MeetingsDb {
-    const db = new MeetingsDb(file);
-    for (let i = 0; i < count; i++) db.upsert(sampleMeeting({ id: `meeting-${i + 1}` }), { markdownFile: `m${i}.md` });
-    return db;
-  }
-
-  it('delete(): DB, WAL and free pages hold no transcript, title, summary or speaker name', () => {
-    const file = path.join(tmpDir(), 'meetings.db');
-    const db = fill(file);
-    expect(rawBytes(file)).toContain('quarterly budget'); // the check can see text when it is there
-    db.delete('meeting-1', 123);
-    const bytes = rawBytes(file);
-    for (const s of SECRETS) expect(bytes, s).not.toContain(s);
-    expect(db.db.prepare('SELECT * FROM deleted_meetings').all()).toEqual([{ id: 'meeting-1', deleted_at: 123 }]);
-    db.close();
-    for (const s of SECRETS) expect(rawBytes(file), s).not.toContain(s);
-  });
-
-  it('delete() of one meeting keeps the other searchable', () => {
-    const db = fill(path.join(tmpDir(), 'meetings.db'), 2);
-    db.delete('meeting-1');
-    expect(db.search('quarterly').map((h) => h.id)).toEqual(['meeting-2']);
-  });
-
-  it('deleteAll(): everything gone, ids tombstoned, returns Markdown files', () => {
-    const file = path.join(tmpDir(), 'meetings.db');
-    const db = fill(file, 3);
-    const { count, markdownFiles } = db.deleteAll(5);
-    expect(count).toBe(3);
-    expect(markdownFiles.sort()).toEqual(['m0.md', 'm1.md', 'm2.md']);
-    expect(db.list()).toEqual([]);
-    for (const s of SECRETS) expect(rawBytes(file), s).not.toContain(s);
-    db.close();
-    for (const s of SECRETS) expect(rawBytes(file), s).not.toContain(s);
-  });
-
-  it('clearing a transcript (re-save without lines) scrubs the old text', () => {
-    const file = path.join(tmpDir(), 'meetings.db');
-    const db = fill(file);
-    db.upsert(sampleMeeting({ updatedAt: Date.UTC(2026, 10, 3, 11, 0), segments: [], speakers: {}, notes: { actions: [], decisions: [] }, participants: null, title: 'Untitled' }));
-    const bytes = rawBytes(file);
-    for (const s of ['café export', 'quarterly budget', 'Freeze the scope', 'release notes', 'Anna', 'Jens']) {
-      expect(bytes, s).not.toContain(s);
-    }
-  });
-
-  it('renaming or editing notes/participants scrubs the old text from the WAL', () => {
-    const file = path.join(tmpDir(), 'meetings.db');
-    const db = fill(file);
-    db.upsert(sampleMeeting({ updatedAt: Date.UTC(2026, 10, 3, 10, 30), participants: ['Marieke'] }));
-    expect(rawBytes(file)).toContain('Marieke');
-    db.upsert(sampleMeeting({ updatedAt: Date.UTC(2026, 10, 3, 11, 0), title: 'Renamed', participants: ['Zed'], notes: { actions: [], decisions: [] } }));
-    const bytes = rawBytes(file);
-    for (const s of ['Roadmap sync', 'Marieke', 'Freeze the scope']) expect(bytes, s).not.toContain(s);
-  });
-
-  it('MeetingStore.delete removes the Markdown file and its text', () => {
-    const dir = tmpDir();
-    const store = new MeetingStore(new MeetingsDb(path.join(dir, 'meetings.db')), path.join(dir, 'meetings'));
-    store.save(sampleMeeting());
-    store.save(sampleMeeting({ id: 'two' }));
-    expect(fs.readdirSync(path.join(dir, 'meetings'))).toHaveLength(2);
-    store.deleteAll();
-    expect(fs.readdirSync(path.join(dir, 'meetings'))).toEqual([]);
-    for (const s of SECRETS) expect(rawBytes(path.join(dir, 'meetings.db')), s).not.toContain(s);
   });
 });

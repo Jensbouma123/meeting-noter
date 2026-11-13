@@ -2,15 +2,8 @@ import type { CaptureMode, LowConfSpan, SegmentOverlap, Source, Speaker } from '
 import type { ActionItem, Decision, Notes } from '../meeting/types/notes';
 import type { StoredMeeting, StoredSegment } from './types';
 
-/**
- * Checks a meeting that arrived over HTTP before it reaches the DB. Drops
- * malformed lines, speakers and notes rather than the whole meeting, and
- * returns null only when the meeting itself is unusable.
- */
-
 const SOURCES: readonly Source[] = ['mic', 'system'];
 const CAPTURE_MODES: readonly CaptureMode[] = ['mic', 'system', 'both'];
-/** Caps: a 10-hour meeting has a few thousand lines. */
 const MAX_SEGMENTS = 50_000;
 const MAX_TEXT = 20_000;
 
@@ -18,7 +11,6 @@ const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 const isStr = (v: unknown): v is string => typeof v === 'string';
 
-/** Ids end up in URLs and file names, so only plain characters. */
 export function isMeetingId(v: unknown): v is string {
   return isStr(v) && /^[A-Za-z0-9_-]{1,100}$/.test(v);
 }
@@ -41,7 +33,6 @@ function parseSegment(v: unknown): StoredSegment | null {
   if (!isObj(v)) return null;
   if (!isStr(v.id) || !isStr(v.speaker) || !isStr(v.text) || !isNum(v.start) || !isNum(v.end)) return null;
   if (!SOURCES.includes(v.source as Source)) return null;
-  // Partials never reach the DB: only final lines are a transcript.
   if (v.final === false) return null;
   const seg: StoredSegment = {
     id: v.id,
@@ -84,7 +75,6 @@ function parseNotes(v: unknown): Notes {
   return { actions, decisions };
 }
 
-/** Caps a name like the participants editor does. */
 const MAX_PARTICIPANT = 40;
 const MAX_PARTICIPANTS = 200;
 

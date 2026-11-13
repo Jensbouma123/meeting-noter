@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readJson } from './http';
 
-/** A chunked body that counts how many chunks the server pulled from it. */
 function chunkedBody(chunks: string[]) {
   const state = { pulled: 0 };
   let next = 0;
@@ -46,7 +45,6 @@ describe('readJson', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.response.status).toBe(413);
-    // Chunks 1-3 cross 2500 bytes: the server must not pull the other seven.
     expect(state.pulled).toBeLessThan(10);
   });
 

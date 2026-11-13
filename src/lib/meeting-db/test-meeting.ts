@@ -1,6 +1,5 @@
 import type { StoredMeeting } from './types';
 
-/** A two-speaker meeting with notes, for the meetings DB and MCP tests. */
 export function sampleMeeting(over: Partial<StoredMeeting> = {}): StoredMeeting {
   return {
     id: 'meeting-1',

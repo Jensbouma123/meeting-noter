@@ -1,7 +1,3 @@
-/**
- * The slice of `node:sqlite` (Node >= 22.13, unflagged) the meetings DB uses.
- * `@types/node` is pinned to 20, which predates the module.
- */
 declare module 'node:sqlite' {
   type SQLInputValue = null | number | bigint | string | Uint8Array;
   type SQLOutputValue = null | number | bigint | string | Uint8Array;
