@@ -1,11 +1,13 @@
 "use client";
 import { createContext } from "react";
-import { visibleRect } from "./visibleRect.js";
+import { anchoredRects } from "./anchoredRects.js";
+import { parseTranslate } from "./glideOffset.js";
 /** The nearest TooltipGroup, or `null` when a Tooltip stands alone. */
 export const TooltipGroupContext = createContext(null);
 /**
  * The group's channel. A hand-off is a publish from another owner while the bubble is still
- * mounted: the old rect, arrow, side and text are captured here, before React swaps them.
+ * mounted: the old rect, arrow, side and text are captured here, before React swaps them. The rect
+ * counts only while the bubble is still anchored to the old trigger (`anchoredRects`).
  */
 export function createGroupApi(setState) {
     const bubbleRef = { current: null };
@@ -16,11 +18,14 @@ export function createGroupApi(setState) {
         warm: () => bubbleRef.current !== null || Date.now() - closedAt < skipDelayRef.current,
         publish(slot) {
             const bubble = bubbleRef.current;
-            const prev = bubble && last && last.owner !== slot.owner ? visibleRect(bubble) : null;
-            const from = bubble && prev
+            const prev = last && last.owner !== slot.owner ? anchoredRects(bubble, last.triggerRef.current, last.anchorName) : null;
+            const style = bubble && prev ? getComputedStyle(bubble) : null;
+            const from = bubble && prev && style
                 ? {
-                    rect: prev,
-                    arrow: getComputedStyle(bubble).getPropertyValue("--tooltip-arrow").trim() || "50%",
+                    rect: prev.bubble,
+                    trigger: prev.trigger,
+                    shift: parseTranslate(style.translate),
+                    arrow: style.getPropertyValue("--tooltip-arrow").trim() || "50%",
                     placed: bubble.dataset.placed,
                     content: last?.content,
                 }

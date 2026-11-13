@@ -1,19 +1,20 @@
 /* Anchored placement shared by the Tooltip bubble and the Popover card (SC 1.4.10, 1.4.13).
    `position-area` puts it on `data-side`, a margin away from the trigger and `--overlay-gutter`
-   (popovers.css) from the viewport. Only the cross axis is centred on the trigger
-   (`anchor-center`); the main axis keeps `normal`, i.e. toward the trigger, so it never covers it.
-   No custom try blocks: Lightning CSS (Next.js/Turbopack) rejects them. Fallbacks are the
-   built-in tactics (`flip-*`, which also flip margins and alignment) and inline `position-area`
-   values, which keep the base margins and `justify-self`. Top/bottom try the edge-aligned areas
-   (`span-inline-start|end`) first; left/right flip to the other side, then to the top/bottom
-   (`flip-start` swaps the axes, keeping the toward-the-trigger alignment).
-   Chromium evaluates only the first 5 `position-try-fallbacks` entries, so every list is capped. */
+   (popovers.css) from the viewport. No custom try blocks: Lightning CSS (Next.js/Turbopack)
+   rejects them, so fallbacks are `flip-*` tactics and inline `position-area` values, which keep
+   the base margins and self-alignment. Top/bottom therefore leave both axes `normal`, so each
+   area picks its own alignment: `span-all` centres on the trigger (`anchor-center`),
+   `span-inline-end|start` aligns to the trigger's start|end edge, the main axis faces the
+   trigger. An explicit `safe anchor-center` would centre the edge-aligned tries too, and Chromium
+   neither shifts that back inside at the end edge nor leaves the base when every try overflows.
+   Left/right keep an explicit `safe right|left` toward the trigger (with `normal`, Chromium
+   shifts an overflowing box back over the trigger and counts it as a fit), fall back to the other
+   side, then below/above aligned to the trigger's near edge, else the full-width row (`span-all`) at the gutter. No `flip-start`:
+   it also swaps width/height and their limits. Chromium evaluates only the first 5 entries. */
 @supports (anchor-name: --a) {
   :is(.tooltip, .popover-card) {
     margin-block: calc(var(--spacing) * 2);
     margin-inline: var(--overlay-gutter);
-    justify-self: safe anchor-center;
-    align-self: normal;
   }
   :is(.tooltip, .popover-card)[data-side="top"] {
     position-area: block-start span-all;
@@ -27,18 +28,17 @@
   }
   :is(.tooltip, .popover-card):is([data-side="left"], [data-side="right"]) {
     margin-block: var(--overlay-gutter);
-    align-self: safe anchor-center;
   }
   :is(.tooltip, .popover-card)[data-side="left"] {
     position-area: left span-all;
     justify-self: safe right;
     position-try-fallbacks:
-      flip-inline, flip-start, flip-inline flip-start;
+      flip-inline, block-end span-inline-start, block-end span-all, block-start span-inline-start, block-start span-all;
   }
   :is(.tooltip, .popover-card)[data-side="right"] {
     position-area: right span-all;
     justify-self: safe left;
     position-try-fallbacks:
-      flip-inline, flip-start, flip-inline flip-start;
+      flip-inline, block-end span-inline-end, block-end span-all, block-start span-inline-end, block-start span-all;
   }
 }

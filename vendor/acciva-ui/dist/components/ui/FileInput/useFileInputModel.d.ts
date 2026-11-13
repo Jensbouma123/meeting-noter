@@ -46,6 +46,8 @@ export declare function useFileInputModel(props: FileInputProps, forwardedRef: F
         "aria-label"?: string | undefined | undefined;
         "aria-labelledby"?: string | undefined | undefined;
         title?: string | undefined | undefined;
+        width?: number | string | undefined | undefined;
+        height?: number | string | undefined | undefined;
         content?: string | undefined | undefined;
         capture?: boolean | "user" | "environment" | undefined | undefined;
         slot?: string | undefined | undefined;
@@ -334,10 +336,8 @@ export declare function useFileInputModel(props: FileInputProps, forwardedRef: F
         onTransitionStart?: import("react").TransitionEventHandler<HTMLInputElement> | undefined;
         onTransitionStartCapture?: import("react").TransitionEventHandler<HTMLInputElement> | undefined;
         step?: number | string | undefined | undefined;
-        height?: number | string | undefined | undefined;
         max?: number | string | undefined | undefined;
         min?: number | string | undefined | undefined;
-        width?: number | string | undefined | undefined;
         placeholder?: string | undefined | undefined;
         readOnly?: boolean | undefined | undefined;
     };

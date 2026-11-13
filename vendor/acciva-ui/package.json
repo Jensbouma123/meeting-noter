@@ -1,6 +1,6 @@
 {
   "name": "@jensbouma123/acciva-ui",
-  "version": "0.18.2",
+  "version": "0.18.3",
   "description": "Agent-first component library, logger, and API client layers.",
   "type": "module",
   "main": "./dist/index.js",

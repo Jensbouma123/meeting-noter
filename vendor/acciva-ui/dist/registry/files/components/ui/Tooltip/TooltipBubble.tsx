@@ -4,6 +4,7 @@ import { useRef, type CSSProperties, type RefObject } from "react";
 import { TEXT_SIZE } from "@/lib/sizing-tokens/index";
 import { SURFACE_SHADOW } from "@/lib/surface-tokens";
 import { cn } from "@/lib/utils";
+import { anchoredRects } from "@/components/ui/Tooltip/anchoredRects";
 import { TOOLTIP_FILL } from "@/components/ui/Tooltip/constants";
 import type { TooltipSlot } from "@/components/ui/Tooltip/types";
 import { useTooltipBubble } from "@/components/ui/Tooltip/useTooltipBubble";
@@ -21,7 +22,7 @@ export function TooltipBubble({ bubbleRef, morph, ...slot }: TooltipBubbleProps)
   const ref = bubbleRef ?? ownRef;
   const { id, anchorName, content, side, maxWidth, triggerRef, hide, touchOpenRef } = slot;
   const [placed, sync] = useTooltipBubble(side, anchorName, triggerRef, ref, hide, touchOpenRef);
-  useTooltipMorph(ref, morph, sync);
+  useTooltipMorph(ref, morph, sync, () => anchoredRects(ref.current, triggerRef.current, anchorName));
 
   return (
     <div

@@ -53,6 +53,10 @@ export interface TooltipSlot {
 /** The bubble as it looked just before a hand-off: the morph starts from here. */
 export interface TooltipMorphFrom {
   rect: DOMRect;
+  /** The old trigger's rect, the glide's anchor point (`glideOffset`). */
+  trigger: DOMRect;
+  /** The old bubble's own translate, non-zero when handed off mid-glide. */
+  shift: [number, number];
   arrow: string;
   placed: string | undefined;
   content: ReactNode;

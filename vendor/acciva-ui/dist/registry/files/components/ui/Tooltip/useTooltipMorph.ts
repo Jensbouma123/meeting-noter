@@ -1,4 +1,6 @@
 import { useLayoutEffect, type RefObject } from "react";
+import type { AnchoredRects } from "@/components/ui/Tooltip/anchoredRects";
+import { glideOffset } from "@/components/ui/Tooltip/glideOffset";
 import type { TooltipPlacement } from "@/components/ui/Tooltip/placement";
 import type { TooltipMorphFrom } from "@/components/ui/Tooltip/types";
 
@@ -23,12 +25,15 @@ function spatialMs(el: HTMLElement): number {
  * this pins the bubble to the old rect (`data-morph="from"`, no transitions), then releases it
  * (`data-morph="to"`) so CSS transitions `translate`, `width`, `height` and the arrow to the new
  * spot while the text layers cross-fade. A side change fades the bubble in at its new side instead
- * of sliding across the trigger; reduced motion switches instantly.
+ * of sliding across the trigger; reduced motion switches instantly. `measure` gives the new size
+ * and trigger only while the bubble is anchored to it; without it there is no glide. Positions come
+ * from trigger rects (`glideOffset`), never from the bubble's first re-anchored frame.
  */
 export function useTooltipMorph(
   ref: RefObject<HTMLDivElement | null>,
   morph: TooltipMorph | undefined,
   sync: () => TooltipPlacement | null,
+  measure: () => AnchoredRects | null,
 ) {
   useLayoutEffect(() => {
     const bubble = ref.current;
@@ -51,19 +56,18 @@ export function useTooltipMorph(
       void bubble.offsetWidth;
       return settle();
     }
-    const end = bubble.getBoundingClientRect();
-    if (end.width <= 0 || end.height <= 0) return settle();
+    const end = measure();
+    if (!end) return settle();
     bubble.setAttribute("data-morph", "from");
     s.width = px(from.rect.width);
     s.height = px(from.rect.height);
     s.setProperty("--tooltip-arrow", from.arrow);
-    // Measured at the old size: the cross axis is anchor-centred, so the box shifts with its width.
-    const at = bubble.getBoundingClientRect();
-    s.translate = `${px(from.rect.left - at.left)} ${px(from.rect.top - at.top)}`;
+    const [dx, dy] = glideOffset(to.placed, from.trigger, end.trigger, from.shift);
+    s.translate = `${px(dx)} ${px(dy)}`;
     void bubble.offsetWidth;
     bubble.setAttribute("data-morph", "to");
-    s.width = px(end.width);
-    s.height = px(end.height);
+    s.width = px(end.bubble.width);
+    s.height = px(end.bubble.height);
     s.translate = "";
     s.setProperty("--tooltip-arrow", to.arrow);
     const timer = setTimeout(() => {

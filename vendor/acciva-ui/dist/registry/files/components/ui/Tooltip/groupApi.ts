@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, type Dispatch, type SetStateAction } from "react";
-import { visibleRect } from "@/components/ui/Tooltip/visibleRect";
+import { anchoredRects } from "@/components/ui/Tooltip/anchoredRects";
+import { parseTranslate } from "@/components/ui/Tooltip/glideOffset";
 import type { TooltipGroupApi, TooltipMorphFrom, TooltipSlot } from "@/components/ui/Tooltip/types";
 
 export interface TooltipGroupState {
@@ -15,7 +16,8 @@ export const TooltipGroupContext = createContext<TooltipGroupApi | null>(null);
 
 /**
  * The group's channel. A hand-off is a publish from another owner while the bubble is still
- * mounted: the old rect, arrow, side and text are captured here, before React swaps them.
+ * mounted: the old rect, arrow, side and text are captured here, before React swaps them. The rect
+ * counts only while the bubble is still anchored to the old trigger (`anchoredRects`).
  */
 export function createGroupApi(setState: Dispatch<SetStateAction<TooltipGroupState>>) {
   const bubbleRef: { current: HTMLDivElement | null } = { current: null };
@@ -26,12 +28,16 @@ export function createGroupApi(setState: Dispatch<SetStateAction<TooltipGroupSta
     warm: () => bubbleRef.current !== null || Date.now() - closedAt < skipDelayRef.current,
     publish(slot) {
       const bubble = bubbleRef.current;
-      const prev = bubble && last && last.owner !== slot.owner ? visibleRect(bubble) : null;
+      const prev =
+        last && last.owner !== slot.owner ? anchoredRects(bubble, last.triggerRef.current, last.anchorName) : null;
+      const style = bubble && prev ? getComputedStyle(bubble) : null;
       const from: TooltipMorphFrom | null =
-        bubble && prev
+        bubble && prev && style
           ? {
-              rect: prev,
-              arrow: getComputedStyle(bubble).getPropertyValue("--tooltip-arrow").trim() || "50%",
+              rect: prev.bubble,
+              trigger: prev.trigger,
+              shift: parseTranslate(style.translate),
+              arrow: style.getPropertyValue("--tooltip-arrow").trim() || "50%",
               placed: bubble.dataset.placed,
               content: last?.content,
             }
