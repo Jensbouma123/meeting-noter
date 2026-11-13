@@ -18,7 +18,7 @@ import {
   type VirtualListRange,
 } from '@jensbouma123/acciva-ui';
 import { ArrowDown, Circle, Info, Mic } from 'lucide-react';
-import type { ModelReadiness } from './modelReadiness';
+import type { ModelReadiness } from './modelReadiness.types';
 import type { SettingsSectionId } from '@/components/settings/sections';
 import { useT } from '@/lib/i18n/useT';
 import { addAction, addDecision } from '@/lib/meeting/notes';

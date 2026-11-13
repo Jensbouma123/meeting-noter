@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 import { render } from '@testing-library/react';
 import type { CaptureMode, Status } from '@/lib/meeting';
 import { BottomDock } from './BottomDock';
-import { NO_MODEL_PROGRESS } from './modelReadiness';
+import { NO_MODEL_PROGRESS } from './modelProgress.constants';
 import { LanguageContext } from '@/lib/i18n/LanguageContext';
 
 export function dockElement(

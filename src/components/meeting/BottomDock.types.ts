@@ -1,5 +1,5 @@
 import type { CaptureMode, Status } from '@/lib/meeting';
-import type { ModelProgressView, ModelReadiness } from './modelReadiness';
+import type { ModelProgressView, ModelReadiness } from './modelReadiness.types';
 
 export interface BottomDockProps {
   status: Status;

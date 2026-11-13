@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { ToastProvider } from '@jensbouma123/acciva-ui';
 import { TopBar } from './TopBar';
-import type { ModelProgressView, ModelReadiness } from './modelReadiness';
+import type { ModelProgressView, ModelReadiness } from './modelReadiness.types';
 
 vi.mock('@/components/meeting/store', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/components/meeting/store')>();

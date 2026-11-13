@@ -3,7 +3,7 @@ import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, act } from '@testing-library/react';
 import { LanguageContext } from '@/lib/i18n/LanguageContext';
-import { NO_MODEL_PROGRESS } from './modelReadiness';
+import { NO_MODEL_PROGRESS } from './modelProgress.constants';
 
 const capture = { missing: true, listeners: new Set<() => void>() };
 vi.mock('@/lib/meeting', () => ({

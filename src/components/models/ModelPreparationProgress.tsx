@@ -34,7 +34,7 @@ import {
   getServerSnapshot as getModelRegistryServerSnapshot,
   subscribeRegistry,
 } from '@/lib/asr/browser';
-import { asrModelEntry } from '@/components/meeting/modelReadiness';
+import { asrModelEntry } from '@/components/meeting/modelEntries';
 import type { ModelEntry } from '@/lib/asr/browser';
 
 /** What every model-progress surface needs, from one place. */

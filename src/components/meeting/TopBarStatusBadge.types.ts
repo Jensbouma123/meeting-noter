@@ -1,6 +1,6 @@
 import type { Status } from '@/lib/meeting';
 import type { SettingsSectionId } from '@/components/settings/sections';
-import type { ModelProgressView, ModelReadiness } from './modelReadiness';
+import type { ModelProgressView, ModelReadiness } from './modelReadiness.types';
 
 export interface TopBarStatusBadgeProps {
   t: (key: string) => string;

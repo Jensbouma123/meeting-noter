@@ -1,7 +1,7 @@
 import { Badge, Button } from '@jensbouma123/acciva-ui';
 import { Download, TriangleAlert } from 'lucide-react';
 import type { Status } from '@/lib/meeting';
-import type { ModelProgressView, ModelReadiness } from './modelReadiness';
+import type { ModelProgressView, ModelReadiness } from './modelReadiness.types';
 import type { TopBarStatusBadgeProps } from './TopBarStatusBadge.types';
 
 function modelPillLabel(
