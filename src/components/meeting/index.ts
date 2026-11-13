@@ -7,6 +7,8 @@ export * from './LevelMeter';
 export * from './TranscriptTurn';
 export * from './LiveTranscript';
 export * from './TranscriptSearch';
+export * from './TranscriptSearch.types';
+export * from './findSearchMatches';
 export * from './BottomDock';
 export * from './TopBar';
 export * from './RightRail';
