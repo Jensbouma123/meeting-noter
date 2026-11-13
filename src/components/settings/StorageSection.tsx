@@ -73,7 +73,7 @@ export function StorageSection({
           description={t('meetingCount').replace('{count}', String(sessionCount))}
           control={
             <Button
-              variant="secondary"
+              variant="danger"
               size={{ base: 'md', md: 'sm' }}
               leadingIcon={<Trash2 className="size-3.5" />}
               onClick={() => setConfirmOpen(true)}

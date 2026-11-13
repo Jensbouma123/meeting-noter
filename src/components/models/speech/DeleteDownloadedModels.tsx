@@ -36,7 +36,7 @@ export function DeleteDownloadedModels({ models, preparation }: DeleteDownloaded
           {anyCached ? t('privacy.cached') : anyPartialBytes ? t('privacy.partial') : t('privacy.empty')}
         </Text>
         <Button
-          variant="secondary"
+          variant="danger"
           size={{ base: 'md', md: 'sm' }}
           leadingIcon={<Trash2 className="size-3.5" />}
           disabled={busy}

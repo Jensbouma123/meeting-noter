@@ -16,7 +16,7 @@ database, read-only. It has five tools:
 | `list_meetings` | Meetings, newest first: id, title, date, duration, speakers (`limit`, `offset`, `folderId`, `includeSubfolders`) |
 | `search_meetings` | Full-text search over titles, summaries and transcripts (`query`, `limit`, `folderId`, `includeSubfolders`) |
 | `list_folders` | Every folder: id, name, parent folder and full path |
-| `get_meeting` | One meeting by `id`, as Markdown (default) or `format: "json"` |
+| `get_meeting` | One meeting by `id`, as Markdown (default) or `format: "json"`. Both include auto-detected, unconfirmed decision and action suggestions (`insights`) when present |
 | `get_active_meeting` | The meeting open in Meeting Noter as Markdown, with `is_live` (true while it is being recorded). No arguments. When no meeting is open it says so instead |
 
 Nothing leaves the Mac: the server talks to the agent over stdio and only opens
