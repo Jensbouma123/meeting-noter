@@ -17,7 +17,7 @@ function sources(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
     const full = join(dir, name);
     if (statSync(full).isDirectory()) return sources(full);
-    if (!/\.tsx?$/.test(name) || /\.test\.tsx?$/.test(name)) return [];
+    if (!/\.tsx?$/.test(name) || /\.(test|testUtils)\.tsx?$/.test(name)) return [];
     return [full];
   });
 }
