@@ -1,4 +1,5 @@
 import { runInsights } from '@/lib/semantic-search/insights/run-insights';
+import { isSearchModelReady } from '@/lib/semantic-search/model-gate';
 import { indexMeeting, withEmbedder } from '@/lib/semantic-search/service';
 import { session } from './session-state';
 import { getState, subscribe } from './store-core';
@@ -8,6 +9,7 @@ async function indexFinishedMeeting(): Promise<void> {
   if (getState().status !== 'idle') return;
   const sessionId = getTranscriptSessionId();
   const { segments } = getState();
+  if (!isSearchModelReady()) return;
   if (!sessionId || !segments.some((s) => s.final && s.text.trim().length > 0)) return;
 
   try {

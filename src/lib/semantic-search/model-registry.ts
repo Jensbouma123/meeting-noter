@@ -5,7 +5,7 @@ import { EG2_MODEL_ID } from '../embeddinggemma2/constants';
 import { defaultDevice } from '../embeddinggemma2/default-device';
 import { subscribeEmbedProgress } from './embed-progress';
 import { isSearchModelCached } from './model-cache-probe';
-import { withEmbedder } from './service';
+import { withEmbedderForDownload } from './service';
 
 export { SEARCH_REGISTRY_KEY };
 
@@ -46,7 +46,7 @@ function bridgeWorkerProgress(): void {
 }
 
 registerDownloadHandler('search', async () => {
-  await withEmbedder((embedder) => embedder.embed(['warm up'], 'document'));
+  await withEmbedderForDownload((embedder) => embedder.embed(['warm up'], 'document'));
 });
 
 export function searchBackend(): AsrBackend {

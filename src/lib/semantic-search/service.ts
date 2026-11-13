@@ -2,6 +2,7 @@ import { loadSessionTranscript } from '../meeting/session-transcript-storage';
 import { isCaptureActive } from '../meeting/transcript-session';
 import type { CachedIndex } from './cached-index.types';
 import { SemanticIndex } from './index';
+import { isSearchModelReady } from './model-gate';
 import { indexSignature, listIndexedMeetingIds, loadIndex, saveIndex } from './store';
 import { createWorkerEmbedder } from './worker-embedder';
 import type { Chapter, Embedder, Hit, KeyValueStore, SearchDeps, TranscriptLine, WorkerEmbedder } from './types';
@@ -17,7 +18,18 @@ export function getSharedEmbedder(): Embedder {
   return defaultEmbedder();
 }
 
+export class SearchModelNotReadyError extends Error {
+  constructor() {
+    super('Search model is not downloaded');
+  }
+}
+
 export async function withEmbedder<T>(run: (embedder: Embedder) => Promise<T>): Promise<T> {
+  if (!isSearchModelReady()) throw new SearchModelNotReadyError();
+  return withEmbedderForDownload(run);
+}
+
+export async function withEmbedderForDownload<T>(run: (embedder: Embedder) => Promise<T>): Promise<T> {
   embedderUsers++;
   try {
     return await run(defaultEmbedder());
@@ -91,6 +103,7 @@ export async function searchMeetings(
   deps: SearchDeps = {},
 ): Promise<Hit[]> {
   if (query.trim() === '') return [];
+  if (!deps.embedder && !isSearchModelReady()) return [];
   const index = libraryIndex(deps.embedder ?? defaultEmbedder(), deps.store);
   if (index.size === 0) return [];
   return index.search(query, k);

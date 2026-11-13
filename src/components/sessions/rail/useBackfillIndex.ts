@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { backfillIndex } from '@/lib/semantic-search/backfill';
 import type { BackfillProgress } from '@/lib/semantic-search/backfill.types';
+import { onSearchModelReady } from '@/lib/semantic-search/model-gate';
 import { getState, subscribe } from '@/lib/meeting/store-core';
 
 export function useBackfillIndex(sessionCount: number): BackfillProgress | null {
@@ -33,7 +34,9 @@ export function useBackfillIndex(sessionCount: number): BackfillProgress | null 
     const unsubscribe = subscribe(() => {
       if (getState().status === 'idle') void run();
     });
+    const offReady = onSearchModelReady(() => void run());
     return () => {
+      offReady();
       clearTimeout(start);
       signal.aborted = true;
       unsubscribe();

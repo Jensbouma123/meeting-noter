@@ -1,6 +1,7 @@
 import { listSessions } from '../meeting/session-crud';
 import { isCaptureActive } from '../meeting/transcript-session';
 import type { BackfillDeps, BackfillProgress } from './backfill.types';
+import { isSearchModelReady } from './model-gate';
 import { indexMeeting, withEmbedder } from './service';
 import { listIndexedMeetingIds } from './store';
 import type { Embedder } from './types';
@@ -42,6 +43,7 @@ async function runLoop(
 }
 
 export async function backfillIndex(deps: BackfillDeps = {}): Promise<BackfillProgress> {
+  if (!deps.embedder && !isSearchModelReady()) return { total: 0, done: 0, failed: 0, aborted: false };
   const ids = pendingIds(deps);
   if (ids.length === 0) return { total: 0, done: 0, failed: 0, aborted: false };
   if (deps.embedder) return runLoop(deps.embedder, ids, deps);

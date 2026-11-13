@@ -3,7 +3,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const order: string[] = [];
 const state = { status: 'idle', capture: false };
 const embedder = { dim: 1, embed: async () => [] };
+const gate = { ready: true };
 
+
+vi.mock('@/lib/semantic-search/model-gate', () => ({ isSearchModelReady: () => gate.ready }));
 vi.mock('./store-core', () => ({
   getState: () => ({ status: state.status, segments: [{ final: true, text: 'hello there' }] }),
   subscribe: () => () => {},
@@ -35,6 +38,7 @@ describe('post-stop intelligence', () => {
   beforeEach(() => {
     order.length = 0;
     state.status = 'idle';
+    gate.ready = true;
   });
 
   it('extracts insights after indexing with the same embedder', async () => {
@@ -53,5 +57,11 @@ describe('post-stop intelligence', () => {
     vi.mocked(runInsights).mockRejectedValueOnce(new Error('boom'));
     await run();
     expect(order).toEqual(['index']);
+  });
+
+  it('does nothing while the search model is not downloaded', async () => {
+    gate.ready = false;
+    await run();
+    expect(order).toEqual([]);
   });
 });
