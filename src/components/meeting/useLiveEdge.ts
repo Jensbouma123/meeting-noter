@@ -55,10 +55,13 @@ export function useLiveEdge({ listRef, showList, autoScrollEnabled, segments, st
     setStuck((prev) => (prev === false ? prev : false));
   }, []);
 
-  useEffect(() => {
+  const followSegments = useEffectEvent(() => {
     if (!autoScrollEnabled || !stickRef.current) return;
     stickToEnd();
-  }, [segments, autoScrollEnabled, stickToEnd]);
+  });
+  useEffect(() => {
+    followSegments();
+  }, [segments, autoScrollEnabled]);
 
   const scrollToLatest = useCallback(() => {
     stickRef.current = true;

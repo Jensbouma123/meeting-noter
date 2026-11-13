@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useOnMount } from '@/hooks/useOnMount';
 import { useToast } from '@jensbouma123/acciva-ui';
 import { clearSessionTranscript, deleteSession, isSessionRecording } from '@/lib/meeting/session-delete';
 import { listSessions } from '@/lib/meeting/session-crud';
@@ -15,13 +16,11 @@ export function useSessionIndex() {
     setSessions(listSessions());
   }, []);
 
-  useEffect(() => {
+  useOnMount(() => {
     purgeExpiredSessions(loadSettings().retention);
-    /* eslint-disable react-hooks/set-state-in-effect -- one-shot hydration from session index */
     setSessions(listSessions());
     setLoaded(true);
-    /* eslint-enable react-hooks/set-state-in-effect */
-  }, []);
+  });
 
   useEffect(() => {
     window.addEventListener('mn:sessions-changed', refresh);

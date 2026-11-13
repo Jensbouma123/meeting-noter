@@ -1,13 +1,17 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 
 export function useNameTruncation(label: string, rail: boolean) {
   const nameRef = useRef<HTMLSpanElement>(null);
   const [nameTruncated, setNameTruncated] = useState(false);
 
+  const measure = useEffectEvent(() => {
+    const element = nameRef.current;
+    if (element) setNameTruncated(element.scrollWidth > element.clientWidth);
+  });
+
   useEffect(() => {
     const element = nameRef.current;
     if (!element) return;
-    const measure = () => setNameTruncated(element.scrollWidth > element.clientWidth);
     measure();
     if (typeof ResizeObserver === 'undefined') return;
     const observer = new ResizeObserver(measure);

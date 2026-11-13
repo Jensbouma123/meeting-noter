@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useEffectEvent, useRef } from 'react';
 import { decodeBytes } from '../audio';
 import { SAMPLE_RATE } from '../constants';
 import { errorMessage } from '../errorMessage';
@@ -15,7 +15,7 @@ export function useBenchAutostart({
   run,
 }: BenchAutostartParams) {
   const autoStarted = useRef(false);
-  useEffect(() => {
+  const start = useEffectEvent(() => {
     if (autoStarted.current || !autostart) return;
     autoStarted.current = true;
     (async () => {
@@ -36,6 +36,8 @@ export function useBenchAutostart({
         setPhase('error');
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  });
+  useEffect(() => {
+    start();
   }, []);
 }

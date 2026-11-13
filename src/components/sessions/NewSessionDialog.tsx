@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef } from 'react';
+import { useOnChange } from '@/hooks/useOnChange';
 import {
   Button,
   FormField,
@@ -25,15 +26,18 @@ export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogPr
   const [isSubmitting, setIsSubmitting] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect -- reset state on open */
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (open) {
       setDraft('');
       setError(null);
-      nameRef.current?.focus();
     }
-    /* eslint-enable react-hooks/set-state-in-effect */
-  }, [open]);
+  }
+
+  useOnChange(open, (isOpen) => {
+    if (isOpen) nameRef.current?.focus();
+  });
 
   const submitSessionName = useCallback(() => {
     const trimmed = draft.trim() || defaultMeetingName(language);

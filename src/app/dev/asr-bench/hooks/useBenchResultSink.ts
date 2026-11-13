@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
+import { useOnChange } from '@/hooks/useOnChange';
 import { nextHref } from '../chain';
 import { DEFAULT_ENCODER } from '../defaultEncoder';
 import { errorMessage } from '../errorMessage';
@@ -13,7 +14,7 @@ export function useBenchResultSink({
   appendLog,
 }: BenchResultSinkParams) {
   const posted = useRef(false);
-  useEffect(() => {
+  useOnChange(phase, () => {
     if (!autostart || posted.current) return;
     if (phase !== 'done' && phase !== 'error') return;
     posted.current = true;
@@ -43,5 +44,5 @@ export function useBenchResultSink({
         window.location.replace(href);
       }
     })();
-  }, [autostart, phase, benchResult, variant, next, appendLog]);
+  });
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import type { VirtualListRange } from '@jensbouma123/acciva-ui';
 import { ACTIVE_TURN_CLASS, SEG_SELECTOR, cssEscape, itemSegments } from './transcriptItems';
 import type { UseTranscriptSearchJumpOptions } from './LiveTranscript.types';
@@ -59,7 +59,7 @@ export function useTranscriptSearchJump({ listRef, getScrollElement, lines, segm
     if (searchOpen) setWindowVersion((v) => v + 1);
   }, [searchOpen]);
 
-  useEffect(() => {
+  const ringPending = useEffectEvent(() => {
     const pending = pendingSegRef.current;
     const el = getScrollElement();
     if (pending === null || !el) return;
@@ -69,7 +69,10 @@ export function useTranscriptSearchJump({ listRef, getScrollElement, lines, segm
     node.classList.add(ACTIVE_TURN_CLASS);
     ringRef.current = node;
     node.scrollIntoView({ block: 'center' });
-  }, [windowVersion, getScrollElement]);
+  });
+  useEffect(() => {
+    ringPending();
+  }, [windowVersion]);
 
   const searchSegments = useMemo(
     () => (windowVersion >= 0 ? [...segments] : segments),

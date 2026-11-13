@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useOnChange } from '@/hooks/useOnChange';
 
 export const HEARTBEAT_URL = '/api/app/heartbeat';
 export const HEARTBEAT_INTERVAL_MS = 15_000;
@@ -82,11 +83,11 @@ export function useServerHeartbeat(isRecording?: boolean): void {
     };
   }, [key]);
 
-  useEffect(() => {
-    if (isRecording === undefined || !mounts.has(key)) return;
-    const next = isRecording === true;
+  useOnChange(isRecording, (recording) => {
+    if (recording === undefined || !mounts.has(key)) return;
+    const next = recording === true;
     if (mounts.get(key) === next) return;
     mounts.set(key, next);
     beat();
-  }, [key, isRecording]);
+  });
 }

@@ -5,13 +5,9 @@ import { sessionExists, openSession } from '@/lib/meeting/session-open';
 import { ensureMeetingLoaded } from '@/lib/meeting/meeting-loader';
 
 export function useOtherRecordingGuard(initialSessionId?: string): boolean {
-  const [otherRecording, setOtherRecording] = useState(false);
+  const [verdict, setVerdict] = useState<{ sessionId: string; other: boolean } | null>(null);
   useEffect(() => {
-    if (!initialSessionId) return;
-    if (getTranscriptSessionId() === initialSessionId) {
-      setOtherRecording(false); // eslint-disable-line react-hooks/set-state-in-effect
-      return;
-    }
+    if (!initialSessionId || getTranscriptSessionId() === initialSessionId) return;
     let cancelled = false;
     void ensureMeetingLoaded(initialSessionId).then(() => {
       if (cancelled || getTranscriptSessionId() === initialSessionId) return;
@@ -21,7 +17,7 @@ export function useOtherRecordingGuard(initialSessionId?: string): boolean {
           initialSessionId,
           saved && { segments: saved.segments, speakers: saved.speakers, startedAt: saved.startedAt ?? null },
         );
-        setOtherRecording(!loaded);
+        setVerdict({ sessionId: initialSessionId, other: !loaded });
       } catch {
         return;
       }
@@ -30,5 +26,5 @@ export function useOtherRecordingGuard(initialSessionId?: string): boolean {
       cancelled = true;
     };
   }, [initialSessionId]);
-  return otherRecording;
+  return verdict !== null && verdict.sessionId === initialSessionId && verdict.other;
 }

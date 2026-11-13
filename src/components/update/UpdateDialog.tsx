@@ -1,7 +1,7 @@
 'use client';
 
 import { Alert, Button, ConfirmDialog, Text, VStack } from '@jensbouma123/acciva-ui';
-import { useEffect, useState } from 'react';
+import { useEffect, useEffectEvent, useState } from 'react';
 import { useT } from '@/lib/i18n/useT';
 import type { UpdateStatus } from './types';
 import { useUpdate } from './useUpdate';
@@ -12,6 +12,7 @@ export function UpdateDialog({ open, onClose, isRecording = false }: { open: boo
   const [confirmed, setConfirmed] = useState(false);
   const [status, setStatus] = useState<UpdateStatus | null>(null);
   const [failed, setFailed] = useState(false);
+  const applyUpdate = useEffectEvent(() => update.apply());
 
   useEffect(() => {
     if (!confirmed || !open) return;
@@ -37,7 +38,7 @@ export function UpdateDialog({ open, onClose, isRecording = false }: { open: boo
     };
     void (async () => {
       try {
-        const next = await update.apply();
+        const next = await applyUpdate();
         if (!active) return;
         setStatus(next);
         started = Date.now();

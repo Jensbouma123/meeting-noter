@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useOnChange } from '@/hooks/useOnChange';
 import { DEFAULT_SETTINGS, loadSettings, loadSavedTitle, type AppSettings } from '@/components/meeting';
 import { getSessionMetadata } from '@/lib/meeting/session-open';
 import { loadAutosavedSession } from '@/lib/meeting/autosave';
@@ -9,8 +10,7 @@ export function useHydratedSessionState(initialSessionId?: string) {
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [resumeCandidate, setResumeCandidate] = useState<AutosavedSession | null>(null);
 
-  useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect -- one-shot hydration from localStorage */
+  useOnChange(initialSessionId, () => {
     setTitle(
       initialSessionId
         ? (getSessionMetadata(initialSessionId)?.title ?? 'Untitled meeting')
@@ -25,8 +25,7 @@ export function useHydratedSessionState(initialSessionId?: string) {
     } catch {
       return;
     }
-    /* eslint-enable react-hooks/set-state-in-effect */
-  }, [initialSessionId]);
+  });
 
   return { title, setTitle, settings, setSettings, resumeCandidate, setResumeCandidate };
 }

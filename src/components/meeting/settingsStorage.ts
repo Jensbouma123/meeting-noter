@@ -3,7 +3,7 @@ import type { AppSettings } from './types';
 
 export const DEFAULT_SETTINGS: AppSettings = {
   mode: 'both',
-  systemVia: 'native',
+  systemVia: 'browser',
   micDeviceId: 'default',
   language: 'auto',
   autoScroll: true,
@@ -22,7 +22,7 @@ export function loadSettings(): AppSettings {
     const parsed = JSON.parse(raw);
     return {
       mode: parsed.mode === 'system' ? 'both' : (parsed.mode ?? DEFAULT_SETTINGS.mode),
-      systemVia: parsed.systemVia ?? DEFAULT_SETTINGS.systemVia,
+      systemVia: parsed.systemVia === 'native' ? 'browser' : (parsed.systemVia ?? DEFAULT_SETTINGS.systemVia),
       micDeviceId: parsed.micDeviceId ?? DEFAULT_SETTINGS.micDeviceId,
       language: parsed.language ?? DEFAULT_SETTINGS.language,
       autoScroll: parsed.autoScroll ?? DEFAULT_SETTINGS.autoScroll,

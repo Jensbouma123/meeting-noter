@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useEffectEvent, useRef } from 'react';
 import { clearSearchHighlights, getHighlightApi } from './highlightApi';
 import { ACTIVE_TURN_CLASS } from './transcriptSearchConstants';
 import type { UseScrollToActiveMatchArgs } from './useScrollToActiveMatch.types';
@@ -12,7 +12,7 @@ export function useScrollToActiveMatch({
   const activeTurnRef = useRef<Element | null>(null);
   const lastScrolledKeyRef = useRef<string | null>(null);
 
-  useEffect(() => {
+  const scrollToMatch = useEffectEvent(() => {
     const container = getScrollElement();
     if (!container || !activeMatch || query.length === 0) return;
     const key = `${activeMatch.segId}:${activeMatch.start}`;
@@ -35,7 +35,11 @@ export function useScrollToActiveMatch({
       turn.scrollIntoView({ block: 'center', behavior: 'smooth' });
     }
     onNavigatedAway?.();
-  }, [activeMatch, query, getScrollElement, onNavigatedAway]);
+  });
+
+  useEffect(() => {
+    scrollToMatch();
+  }, [activeMatch, query]);
 
   useEffect(
     () => () => {

@@ -8,6 +8,7 @@ import type { SearchPanelProps, SearchState } from './SearchPanel.types';
 import { useT } from '@/lib/i18n/useT';
 
 const IDLE: SearchState = { status: 'idle' };
+const LOADING: SearchState = { status: 'loading' };
 
 export function SearchPanel({
   search,
@@ -19,25 +20,24 @@ export function SearchPanel({
 }: SearchPanelProps) {
   const t = useT('search');
   const [query, setQuery] = useState('');
-  const [state, setState] = useState<SearchState>({ status: 'idle' });
+  const [result, setResult] = useState<{ q: string; state: SearchState } | null>(null);
   const requestId = useRef(0);
 
-  const view: SearchState = query.trim() === '' ? IDLE : state;
+  const trimmed = query.trim();
+  const view: SearchState = trimmed === '' ? IDLE : result?.q === trimmed ? result.state : LOADING;
 
   useEffect(() => {
     const q = query.trim();
     const id = ++requestId.current;
     if (q === '') return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setState({ status: 'loading' });
     const timer = setTimeout(() => {
       search(q, limit).then(
         (hits) => {
-          if (id === requestId.current) setState({ status: 'done', query: q, hits });
+          if (id === requestId.current) setResult({ q, state: { status: 'done', query: q, hits } });
         },
         (err: unknown) => {
           if (id === requestId.current) {
-            setState({ status: 'error', message: err instanceof Error ? err.message : String(err) });
+            setResult({ q, state: { status: 'error', message: err instanceof Error ? err.message : String(err) } });
           }
         },
       );

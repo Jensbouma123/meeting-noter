@@ -18,4 +18,9 @@ describe('saved mode migration', () => {
     expect(s.mode).toBe('mic');
     expect(s.retention).toBe('2y');
   });
+
+  it("turns a saved 'native' system capture into 'browser'", () => {
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({ ...DEFAULT_SETTINGS, systemVia: 'native' }));
+    expect(loadSettings().systemVia).toBe('browser');
+  });
 });

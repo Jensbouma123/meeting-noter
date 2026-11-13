@@ -5,7 +5,6 @@ import type { CaptureMode } from '@/lib/meeting';
 import { useT } from '@/lib/i18n/useT';
 import type { SettingsSectionProps } from './types';
 import { useMicDevices } from './useMicDevices';
-import { useSettleLegacyNativeCapture } from './useSettleLegacyNativeCapture';
 import { SettingsGroup } from './SettingsGroup';
 import { SettingsRow } from './SettingsRow';
 import { SettingsStackedRow } from './SettingsStackedRow';
@@ -16,7 +15,6 @@ export function AudioCaptureSection({
 }: SettingsSectionProps) {
   const t = useT('settings');
   const devices = useMicDevices();
-  useSettleLegacyNativeCapture({ settings, onSettingsChange });
 
   const needsPermission = devices.length > 0 && devices.every((d) => !d.label);
 
