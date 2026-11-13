@@ -46,6 +46,11 @@ function handle(url: string, init?: RequestInit): Response {
     if (!f) return json(404, { ok: false, error: 'not-found' });
     if ('name' in body) f.name = String(body.name);
     if ('parentId' in body) f.parentId = body.parentId as string | null;
+    if ('index' in body) {
+      const sib = server.folders.filter((x) => x.parentId === f.parentId && x !== f);
+      sib.splice(body.index as number, 0, f);
+      server.folders = [...server.folders.filter((x) => x.parentId !== f.parentId), ...sib];
+    }
     return json(200, { ok: true, folder: f });
   }
   if (folderMatch && method === 'DELETE') {
@@ -171,14 +176,38 @@ describe('FolderTree', () => {
     await waitFor(() => expect(mutations('PUT')[0]?.body).toBe(JSON.stringify({ folderId: 'a' })));
   });
 
-  it('moves a meeting out of its folder through the root drop zone', async () => {
+  it('has no root drop zone', async () => {
     renderTree();
-    const source = (await screen.findByText('Standup')).closest('[draggable="true"]') as HTMLElement;
-    const dataTransfer = dragStart(source);
-    const root = await screen.findByText('Top level');
-    fireEvent.dragOver(root, { dataTransfer });
-    fireEvent.drop(root, { dataTransfer });
-    await waitFor(() => expect(mutations('PUT')[0]?.body).toBe(JSON.stringify({ folderId: null })));
+    await screen.findByText('Standup');
+    expect(screen.queryByText('Top level')).toBeNull();
+  });
+
+  it('reorders sibling folders live while dragging and persists the position', async () => {
+    server.folders.push(folder('c', null, 'Home'));
+    renderTree();
+    const work = (await screen.findByRole('button', { name: /^Work/ })).closest('[draggable="true"]') as HTMLElement;
+    const home = screen.getByRole('button', { name: /^Home/ }).closest('[draggable="true"]') as HTMLElement;
+    const dataTransfer = dragStart(work);
+    fireEvent.dragOver(home, { dataTransfer });
+    const names = () => screen.getAllByRole('button', { name: /^(Work|Home)/ }).map((b) => b.textContent);
+    await waitFor(() => expect(names()).toEqual(['Home', 'Work']));
+    fireEvent.drop(home, { dataTransfer });
+    fireEvent.dragEnd(work, { dataTransfer });
+    await waitFor(() => expect(mutations('PATCH')[0]?.body).toBe(JSON.stringify({ index: 1 })));
+    expect(mutations('PUT')).toHaveLength(0);
+  });
+
+  it('shows five meetings per folder, newest first, and loads ten more on demand', async () => {
+    const many = Array.from({ length: 17 }, (_, i) => ({ ...session, sessionId: `s${i}`, title: `Meet ${i}`, createdAt: i }) as SessionMetadata);
+    server.meetings = Object.fromEntries(many.map((m) => [m.sessionId, 'b']));
+    render(<ToastProvider><Harness items={many} /></ToastProvider>);
+    await screen.findByText('Meet 16');
+    expect(screen.getAllByText(/^Meet \d+$/).map((e) => e.textContent)).toEqual(['Meet 16', 'Meet 15', 'Meet 14', 'Meet 13', 'Meet 12']);
+    fireEvent.click(screen.getByRole('button', { name: 'Show more' }));
+    expect(screen.getAllByText(/^Meet \d+$/)).toHaveLength(15);
+    fireEvent.click(screen.getByRole('button', { name: 'Show more' }));
+    expect(screen.getAllByText(/^Meet \d+$/)).toHaveLength(17);
+    expect(screen.queryByRole('button', { name: 'Show more' })).toBeNull();
   });
 
   it('refuses to move a folder into its own descendant by drop', async () => {
@@ -210,7 +239,7 @@ describe('FolderTree', () => {
     openActions('Work');
     await pick('New subfolder');
     const input = await screen.findByRole('textbox', { name: 'Folder name' });
-    expect(screen.getByLabelText('Location')).toHaveValue('a');
+    expect(screen.getByRole('combobox', { name: 'Location' })).toHaveTextContent('Work');
     fireEvent.change(input, { target: { value: 'Planning' } });
     fireEvent.click(screen.getByRole('button', { name: 'Create' }));
     await waitFor(() => expect(mutations('POST')[0].body).toBe(JSON.stringify({ name: 'Planning', parentId: 'a' })));
@@ -371,5 +400,28 @@ describe('FolderTree', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Cancel' }));
     await waitFor(() => expect(screen.queryByText('Delete “Work”?')).toBeNull());
     expect(mutations('DELETE')).toHaveLength(0);
+  });
+
+  it('calls onNewSession with the folder id and expands a collapsed folder when + is clicked', async () => {
+    const onNewSession = vi.fn();
+    function NewSessionHarness() {
+      const ctl = useFolderController(sessions);
+      return (
+        <FolderTree
+          controller={ctl}
+          sessions={sessions}
+          renderSession={(s) => <span>{s.title}</span>}
+          onNewSession={onNewSession}
+        />
+      );
+    }
+    render(<ToastProvider><NewSessionHarness /></ToastProvider>);
+    await screen.findByText('Q1');
+    // Collapse Work first so clicking + verifies both expansion and callback.
+    fireEvent.click(screen.getByRole('button', { name: 'Work' }));
+    expect(screen.queryByText('Q1')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'New meeting in “Work”' }));
+    expect(onNewSession).toHaveBeenCalledWith('a');
+    expect(screen.getByText('Q1')).toBeInTheDocument();
   });
 });

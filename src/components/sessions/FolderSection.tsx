@@ -11,6 +11,7 @@ import {
   HStack,
   Input,
   Modal,
+  Select,
   Text,
   VStack,
   useToast,
@@ -351,23 +352,21 @@ function CreateFolderDialog({
             }
           }}
         />
-        <label className="flex flex-col gap-1 text-sm">
-          <span>{t('location')}</span>
-          <select
-            aria-label={t('location')}
-            value={parentId ?? ''}
-            onChange={(event) => {
-              setParentId(event.target.value || null);
-              setError('');
-            }}
-            className="min-h-10 rounded-md border border-border-subtle bg-surface px-3 text-sm"
-          >
-            <option value="">{t('topLevel')}</option>
-            {folderPickerOptions(folders).map((folder) => (
-              <option key={folder.id} value={folder.id}>{`${'　'.repeat(folder.depth)}${folder.name}`}</option>
-            ))}
-          </select>
-        </label>
+        <Select
+          label={t('location')}
+          value={parentId ?? ''}
+          options={[
+            { value: '', label: t('topLevel') },
+            ...folderPickerOptions(folders).map((folder) => ({
+              value: folder.id,
+              label: `${'　'.repeat(folder.depth)}${folder.name}`,
+            })),
+          ]}
+          onChange={(value) => {
+            setParentId(value || null);
+            setError('');
+          }}
+        />
         {error && <Text role="alert" size="xs" variant="muted">{error}</Text>}
       </VStack>
     </Modal>
@@ -657,7 +656,7 @@ function FolderItem({ node, depth, controller, counts, byFolder, collapsed, onTo
             }}
             className={`flex min-w-0 flex-1 items-center gap-2 rounded-md py-1.5 text-left text-sm ${FOCUS}`}
           >
-            {expanded ? <FolderOpen className="size-4 shrink-0 text-primary-600" aria-hidden="true" /> : <Folder className="size-4 shrink-0 text-primary-600" aria-hidden="true" />}
+            {expanded ? <FolderOpen className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" /> : <Folder className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />}
             <span className="truncate">{folder.name}</span>
             {(counts.get(folder.id) ?? 0) > 0 && <Badge variant="neutral" size="xs">{counts.get(folder.id)}</Badge>}
           </button>
@@ -667,7 +666,10 @@ function FolderItem({ node, depth, controller, counts, byFolder, collapsed, onTo
             variant="ghost"
             size="sm"
             iconOnly
-            onClick={() => onNewSession(folder.id)}
+            onClick={() => {
+              if (!expanded) onToggle(folder.id);
+              onNewSession(folder.id);
+            }}
             tooltip={t('newMeetingIn').replace('{name}', folder.name)}
             aria-label={t('newMeetingIn').replace('{name}', folder.name)}
             leadingIcon={<Plus className="size-4" />}

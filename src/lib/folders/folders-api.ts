@@ -51,6 +51,11 @@ export async function moveFolder(id: string, parentId: string | null): Promise<A
   return changed(await call(`/api/folders/${encodeURIComponent(id)}`, json('PATCH', { parentId })));
 }
 
+/** Persist a folder's position among its siblings. */
+export async function reorderFolder(id: string, index: number): Promise<ApiResult<{ folder: FolderRow }>> {
+  return changed(await call(`/api/folders/${encodeURIComponent(id)}`, json('PATCH', { index })));
+}
+
 export async function deleteFolder(
   id: string,
   mode: FolderDeleteMode,

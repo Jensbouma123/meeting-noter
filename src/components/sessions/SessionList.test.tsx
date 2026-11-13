@@ -137,3 +137,26 @@ describe('RailSessionRow folder path in search', () => {
     expect(screen.queryByText(/\//)).toBeNull();
   });
 });
+
+describe('RailSessionRow leading icon', () => {
+  it('renders a muted pencil icon for drafts and no leading audio icon for recorded sessions', () => {
+    const { container, rerender } = render(
+      <RailSessionRow session={draft({ isDraft: true })} isActive={false} onOpen={noop} onClear={noop} onDelete={noop} />,
+    );
+    expect(container.querySelector('.text-muted-foreground svg')).not.toBeNull();
+    expect(container.querySelector('.text-primary-600')).toBeNull();
+
+    rerender(
+      <RailSessionRow
+        session={draft({ isDraft: false, segmentCount: 2, durationSeconds: 65, captureMode: 'mic' })}
+        isActive={false}
+        onOpen={noop}
+        onClear={noop}
+        onDelete={noop}
+      />,
+    );
+    expect(container.querySelector('.text-muted-foreground svg')).toBeNull();
+    expect(container.querySelector('.text-primary-600')).toBeNull();
+    expect(screen.queryByText('Microphone')).toBeNull();
+  });
+});

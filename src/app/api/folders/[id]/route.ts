@@ -1,6 +1,6 @@
 /**
- * `/api/folders/:id`. `PATCH {name?, parentId?}` renames and/or moves the
- * folder (`parentId: null` is the root): 404 `not-found`, 400 `bad-name` /
+ * `/api/folders/:id`. `PATCH {name?, parentId?, index?}` renames, moves and/or
+ * reorders the folder (`parentId: null` is the root; `index` is its position among its siblings): 404 `not-found`, 400 `bad-name` /
  * `bad-parent`, 409 `cycle`. `DELETE ?mode=move-up|delete-contents` (default
  * `move-up`) removes it: its subfolders and meetings go to its parent, or
  * everything below it is deleted for good, Markdown files included.
@@ -25,10 +25,11 @@ export async function PATCH(request: Request, { params }: Ctx): Promise<Response
   if (!parsed.ok) return parsed.response;
   const body = parsed.value;
   if (!body || typeof body !== 'object' || Array.isArray(body)) return failure('bad-folder', 400);
-  const { name, parentId } = body as { name?: unknown; parentId?: unknown };
-  if (name === undefined && parentId === undefined) return failure('bad-folder', 400);
+  const { name, parentId, index } = body as { name?: unknown; parentId?: unknown; index?: unknown };
+  if (name === undefined && parentId === undefined && index === undefined) return failure('bad-folder', 400);
   if (name !== undefined && typeof name !== 'string') return failure('bad-name', 400);
   if (parentId !== undefined && parentId !== null && !isMeetingId(parentId)) return failure('bad-parent', 400);
+  if (index !== undefined && (typeof index !== 'number' || !Number.isInteger(index) || index < 0)) return failure('bad-folder', 400);
   try {
     const store = meetingStore();
     const { db } = store;
@@ -36,6 +37,7 @@ export async function PATCH(request: Request, { params }: Ctx): Promise<Response
     if (!folder) return failure('not-found', 404);
     if (name !== undefined) folder = store.renameFolder(id, name as string);
     if (parentId !== undefined) folder = store.moveFolder(id, parentId as string | null);
+    if (index !== undefined) folder = store.reorderFolder(id, index as number);
     return Response.json({ ok: true, folder });
   } catch (err) {
     return folderFailure(err);

@@ -24,10 +24,6 @@ import {
 } from '@jensbouma123/acciva-ui';
 import {
   ArrowRight,
-  AudioLines,
-  FileText,
-  Mic,
-  MonitorSpeaker,
   MoreHorizontal,
   PanelLeftClose,
   PanelLeftOpen,
@@ -40,7 +36,6 @@ import {
   FolderInput,
 } from 'lucide-react';
 import { formatClock } from '@/lib/meeting/export';
-import type { CaptureMode } from '@/lib/meeting/types';
 import { loadSessionTranscript } from '@/lib/meeting/persist';
 import { searchMeetingIds } from '@/lib/meeting/server-sync';
 import { filterSessions, groupSessionsByDay } from '@/lib/meeting/session-groups';
@@ -499,21 +494,6 @@ export function SessionSidebar({
 /* Compact rail row.                                                          */
 /* -------------------------------------------------------------------------- */
 
-/** Capture-source glyph; sessions recorded before it was stored keep the document icon. */
-function CaptureIcon({ mode }: { mode: CaptureMode | undefined }) {
-  const t = useT('sidebar');
-  const label =
-    mode === 'mic' ? t('microphone') : mode === 'system' ? t('systemAudio') : mode === 'both' ? t('micAndSystem') : null;
-  if (!label) return <FileText className="size-4" />;
-  const Icon = mode === 'mic' ? Mic : mode === 'system' ? MonitorSpeaker : AudioLines;
-  return (
-    <span title={label} className="inline-flex">
-      <Icon className="size-4" />
-      <span className="sr-only">{label}</span>
-    </span>
-  );
-}
-
 interface RailSessionRowProps {
   session: SessionMetadata;
   isActive: boolean;
@@ -560,9 +540,11 @@ export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete, o
         selected={isActive}
         onClick={onOpen}
         leading={
-          <span aria-hidden="true" className={session.isDraft ? 'text-muted-foreground' : 'text-primary-600'}>
-            {session.isDraft ? <Pencil className="size-4" /> : <CaptureIcon mode={session.captureMode} />}
-          </span>
+          session.isDraft ? (
+            <span aria-hidden="true" className="text-muted-foreground">
+              <Pencil className="size-4" />
+            </span>
+          ) : undefined
         }
         trailing={<>
           {count > 0 && <Badge variant="neutral" size="xs">{t('openCount').replace('{n}', String(count))}</Badge>}
