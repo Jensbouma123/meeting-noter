@@ -50,8 +50,10 @@ vi.mock('@/components/meeting', () => ({
   loadSavedTitle: () => 'Untitled meeting',
   saveTitle: vi.fn(),
 }));
-vi.mock('@/components/meeting/modelReadiness', () => ({
+vi.mock('@/components/meeting/modelProgress', () => ({
   deriveModelProgress: () => ({ stage: null, percent: null }),
+}));
+vi.mock('@/components/meeting/modelReadiness', () => ({
   deriveModelReadiness: () => 'ready',
 }));
 vi.mock('@/lib/meeting', () => ({
@@ -93,11 +95,13 @@ vi.mock('@/lib/meeting/session-store', () => ({
   startRecordingInSession: vi.fn(),
   clearSessionTranscript: vi.fn(),
 }));
-vi.mock('@/lib/meeting/persist', () => ({
+vi.mock('@/lib/meeting/autosave', () => ({
   loadAutosavedSession: () => null,
   scheduleAutosave: vi.fn(),
   clearAutosavedSession: vi.fn(),
   flushAutosave: vi.fn(),
+}));
+vi.mock('@/lib/meeting/client-session-id', () => ({
   getClientSessionId: () => 'client-1',
 }));
 vi.mock('@/lib/meeting/server-sync', () => ({ ensureMeetingLoaded: () => Promise.resolve() }));

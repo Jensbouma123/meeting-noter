@@ -14,7 +14,8 @@ import {
   getServerPostStopProgress,
   subscribePostStopTranscription,
 } from '@/lib/meeting';
-import { deriveModelProgress, deriveModelReadiness } from '@/components/meeting/modelReadiness';
+import { deriveModelProgress } from '@/components/meeting/modelProgress';
+import { deriveModelReadiness } from '@/components/meeting/modelReadiness';
 import type { BrowserASRPhase } from '@/lib/asr/browser/types';
 
 export function useModelStatus() {

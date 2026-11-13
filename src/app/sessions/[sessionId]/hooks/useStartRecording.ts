@@ -12,7 +12,8 @@ import {
   getSessionMetadata,
   sessionHasTranscript,
 } from '@/lib/meeting/session-store';
-import { clearAutosavedSession, flushAutosave, getClientSessionId } from '@/lib/meeting/persist';
+import { clearAutosavedSession, flushAutosave } from '@/lib/meeting/autosave';
+import { getClientSessionId } from '@/lib/meeting/client-session-id';
 import { hasAskedParticipants } from '@/lib/meeting/participants';
 import { buildStartOptions } from '../buildStartOptions';
 import { markSessionActive } from '../markSessionActive';

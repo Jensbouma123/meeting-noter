@@ -1,9 +1,11 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import type { AppSettings } from '@/components/meeting';
-import type { AutosavedSession } from '@/lib/meeting/persist';
+import type { AutosavedSession } from '@/lib/meeting/types/autosave';
 import type { getPostStopTranscriptionProgress, Segment, Speaker } from '@/lib/meeting';
 import type { getState } from '@/lib/meeting/store';
 import type { deriveModelReadiness } from '@/components/meeting/modelReadiness';
+
+import type { BrowserASRPhase } from '@/lib/asr/browser/types';
 
 export interface TargetPrompt {
   title: string;
@@ -29,6 +31,30 @@ export interface StartRecordingParams {
   setTargetPrompt: Dispatch<SetStateAction<TargetPrompt | null>>;
   setParticipantsPrompt: Dispatch<SetStateAction<boolean>>;
   setLangOverride: Dispatch<SetStateAction<string | null>>;
+  setResumeCandidate: Dispatch<SetStateAction<AutosavedSession | null>>;
+}
+
+export interface MeetingBannerStateParams {
+  initialSessionId?: string;
+  otherRecording: boolean;
+  error: string | null;
+  warning: string | null;
+  modelProgress: { stage?: unknown };
+  modelReadiness: ModelReadiness;
+  isRecording: boolean;
+  asrEnabled: boolean;
+  asrPhase: BrowserASRPhase;
+  postStop: PostStopProgress;
+}
+
+export interface RecordingFlowParams {
+  initialSessionId?: string;
+  settings: AppSettings;
+  modelReady: boolean;
+  modelReadiness: ModelReadiness;
+  status: MeetingStatus;
+  title: string;
+  setTitle: Dispatch<SetStateAction<string>>;
   setResumeCandidate: Dispatch<SetStateAction<AutosavedSession | null>>;
 }
 
