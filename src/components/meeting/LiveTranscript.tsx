@@ -13,6 +13,7 @@ import { TranscriptSearch } from './TranscriptSearch';
 import { meeting } from './store';
 import { buildTranscriptItems, estimateItemHeight, itemKey, turnGridClass } from './transcriptItems';
 import { useLiveEdge } from './useLiveEdge';
+import { useSeekFromQuery } from './useSeekFromQuery';
 import { useTranscriptSearchJump } from './useTranscriptSearchJump';
 import type { LiveTranscriptProps, TranscriptItem } from './LiveTranscript.types';
 
@@ -50,6 +51,8 @@ export function LiveTranscript({
     lines,
     segments,
   });
+
+  useSeekFromQuery(listRef, lines);
 
   const pastHour = segments.some((seg) => seg.start >= 3600);
   const rowClass = turnGridClass(pastHour);

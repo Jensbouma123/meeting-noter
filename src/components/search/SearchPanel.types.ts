@@ -5,6 +5,7 @@ export interface SearchPanelProps {
   meetingTitles?: Record<string, string>;
   sessionHref: (meetingId: string, startSeconds: number) => string;
   limit?: number;
+  placeholder?: string;
   debounceMs?: number;
 }
 

@@ -11,8 +11,10 @@ import { CollapsedRail } from './rail/CollapsedRail';
 import { DeleteSessionDialog } from './rail/DeleteSessionDialog';
 import { RailBody } from './rail/RailBody';
 import { RailHeader } from './rail/RailHeader';
+import { RailLibrarySearch } from './rail/RailLibrarySearch';
 import { RailSearch } from './rail/RailSearch';
 import { RailSessionRow } from './rail/RailSessionRow';
+import { useBackfillIndex } from './rail/useBackfillIndex';
 import { useSessionIndex } from './rail/useSessionIndex';
 import { useSessionSearch } from './rail/useSessionSearch';
 import type { SessionSidebarProps } from './rail/types';
@@ -21,6 +23,7 @@ export function SessionSidebar({ activeSessionId, onOpenSession, onNewSession, o
   const t = useT('sidebar');
   const router = useRouter();
   const { sessions, remove, clear } = useSessionIndex();
+  const indexing = useBackfillIndex(sessions.length);
   const folderCtl = useFolderController(sessions);
   const [deleteTarget, setDeleteTarget] = useState<SessionMetadata | null>(null);
   const [clearTarget, setClearTarget] = useState<SessionMetadata | null>(null);
@@ -58,6 +61,7 @@ export function SessionSidebar({ activeSessionId, onOpenSession, onNewSession, o
     <VStack spacing="none" fill className="h-full bg-surface">
       <RailHeader sessionCount={sessions.length} open={open} onNewSession={() => onNewSession()} onToggle={onToggle} />
       {sessions.length > 0 && <RailSearch query={query} onChange={setQuery} />}
+      {sessions.length > 0 && <RailLibrarySearch sessions={sessions} progress={indexing} />}
       <RailBody sessions={sessions} groups={groups} searching={searching} folderCtl={folderCtl} renderRow={renderRow} onNewSession={onNewSession} />
     </VStack>
   );

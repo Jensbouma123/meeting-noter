@@ -12,6 +12,11 @@ export const search = {
     noChapters: 'No chapters',
     noChaptersHint: 'Chapters appear once the meeting is long enough to split by topic.',
     chapterLabel: 'Chapter {n}: {title}, starts at {time}',
+    indexing: 'Indexing meetings… {done}/{total}',
+    indexingDone: 'All meetings are searchable',
+    libraryPlaceholder: 'Ask your meetings…',
+    libraryToggle: 'Ask your meetings',
+    modelLoading: 'Loading search model…',
   },
   nl: {
     panelLabel: 'Meetings doorzoeken',
@@ -26,5 +31,10 @@ export const search = {
     noChapters: 'Geen hoofdstukken',
     noChaptersHint: 'Hoofdstukken verschijnen zodra de meeting lang genoeg is om op onderwerp te splitsen.',
     chapterLabel: 'Hoofdstuk {n}: {title}, begint bij {time}',
+    indexing: 'Meetings indexeren… {done}/{total}',
+    indexingDone: 'Alle meetings zijn doorzoekbaar',
+    libraryPlaceholder: 'Vraag het aan je meetings…',
+    libraryToggle: 'Vraag het aan je meetings',
+    modelLoading: 'Zoekmodel laden…',
   },
 } as const;

@@ -14,6 +14,7 @@ export function SearchPanel({
   meetingTitles,
   sessionHref,
   limit = 8,
+  placeholder,
   debounceMs = 250,
 }: SearchPanelProps) {
   const t = useT('search');
@@ -50,7 +51,7 @@ export function SearchPanel({
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder={t('placeholder')}
+        placeholder={placeholder ?? t('placeholder')}
         aria-label={t('queryLabel')}
       />
 

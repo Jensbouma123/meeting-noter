@@ -1,14 +1,29 @@
 import { loadSessionTranscript } from '../meeting/session-transcript-storage';
 import { isCaptureActive } from '../meeting/transcript-session';
 import { SemanticIndex } from './index';
-import { listIndexedMeetingIds, loadIndex, saveIndex } from './store';
+import { indexSignature, listIndexedMeetingIds, loadIndex, saveIndex } from './store';
 import { createWorkerEmbedder } from './worker-embedder';
-import type { Chapter, Embedder, Hit, SearchDeps, TranscriptLine, WorkerEmbedder } from './types';
+import type { Chapter, Embedder, Hit, KeyValueStore, SearchDeps, TranscriptLine, WorkerEmbedder } from './types';
 
 let sharedEmbedder: WorkerEmbedder | null = null;
+let embedderUsers = 0;
 
 function defaultEmbedder(): Embedder {
   return (sharedEmbedder ??= createWorkerEmbedder());
+}
+
+export function getSharedEmbedder(): Embedder {
+  return defaultEmbedder();
+}
+
+export async function withEmbedder<T>(run: (embedder: Embedder) => Promise<T>): Promise<T> {
+  embedderUsers++;
+  try {
+    return await run(defaultEmbedder());
+  } finally {
+    embedderUsers--;
+    if (embedderUsers === 0) disposeSharedEmbedder();
+  }
 }
 
 export function disposeSharedEmbedder(): void {
@@ -32,12 +47,11 @@ export async function indexMeeting(
   const lines = (deps.loadLines ?? defaultLoadLines)(meetingId);
   if (!lines || lines.length === 0) return null;
 
-  const index = new SemanticIndex(deps.embedder ?? defaultEmbedder());
-  try {
-    await index.addMeeting(meetingId, lines);
-  } finally {
-    if (!deps.embedder) disposeSharedEmbedder();
-  }
+  const embed = (embedder: Embedder) => {
+    const fresh = new SemanticIndex(embedder);
+    return fresh.addMeeting(meetingId, lines).then(() => fresh);
+  };
+  const index = deps.embedder ? await embed(deps.embedder) : await withEmbedder(embed);
   const stored = index.exportMeeting(meetingId);
   if (!stored || stored.windows.length === 0) return null;
   const chapters = index.chapters(meetingId);
@@ -45,7 +59,36 @@ export async function indexMeeting(
     deps.store === undefined
       ? saveIndex(meetingId, { ...stored, chapters })
       : saveIndex(meetingId, { ...stored, chapters }, deps.store);
+  if (ok) resetSearchCache();
   return ok ? chapters : null;
+}
+
+interface CachedIndex {
+  signature: string;
+  embedder: Embedder;
+  store: KeyValueStore | null | undefined;
+  index: SemanticIndex;
+}
+
+let cached: CachedIndex | null = null;
+
+export function resetSearchCache(): void {
+  cached = null;
+}
+
+function libraryIndex(embedder: Embedder, store: KeyValueStore | null | undefined): SemanticIndex {
+  const ids = store === undefined ? listIndexedMeetingIds() : listIndexedMeetingIds(store);
+  const signature = indexSignature(ids, store);
+  if (cached && cached.signature === signature && cached.embedder === embedder && cached.store === store) {
+    return cached.index;
+  }
+  const index = new SemanticIndex(embedder);
+  for (const id of ids) {
+    const saved = store === undefined ? loadIndex(id) : loadIndex(id, store);
+    if (saved) index.restoreMeeting(id, saved.windows, saved.vectors);
+  }
+  cached = { signature, embedder, store, index };
+  return index;
 }
 
 export async function searchMeetings(
@@ -54,13 +97,7 @@ export async function searchMeetings(
   deps: SearchDeps = {},
 ): Promise<Hit[]> {
   if (query.trim() === '') return [];
-  const store = deps.store === undefined ? undefined : deps.store;
-  const ids = store === undefined ? listIndexedMeetingIds() : listIndexedMeetingIds(store);
-  const index = new SemanticIndex(deps.embedder ?? defaultEmbedder());
-  for (const id of ids) {
-    const saved = store === undefined ? loadIndex(id) : loadIndex(id, store);
-    if (saved) index.restoreMeeting(id, saved.windows, saved.vectors);
-  }
+  const index = libraryIndex(deps.embedder ?? defaultEmbedder(), deps.store);
   if (index.size === 0) return [];
   return index.search(query, k);
 }

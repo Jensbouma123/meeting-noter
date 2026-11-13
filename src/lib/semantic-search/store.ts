@@ -89,3 +89,19 @@ export function removeIndex(
 export function listIndexedMeetingIds(store: KeyValueStore | null = defaultStore()): string[] {
   return store ? readIds(store) : [];
 }
+
+export function indexSignature(
+  ids: string[],
+  store: KeyValueStore | null = defaultStore(),
+): string {
+  if (!store) return '';
+  return ids
+    .map((id) => {
+      try {
+        return `${id}:${store.getItem(indexKey(id))?.length ?? 0}`;
+      } catch {
+        return `${id}:0`;
+      }
+    })
+    .join('|');
+}

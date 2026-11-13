@@ -90,3 +90,22 @@ describe('indexMeeting / searchMeetings', () => {
     expect(await indexMeeting('nope', base())).toBeNull();
   });
 });
+
+describe('searchMeetings cache', () => {
+  it('reuses the restored index and rebuilds when an index changes', async () => {
+    const { resetSearchCache } = await import('./service');
+    resetSearchCache();
+    const store = memoryStore();
+    const embedder = createFakeEmbedder();
+    const loadLines = (id: string) => (id === 'm1' ? BUDGET : HOLIDAY);
+    await indexMeeting('m1', { embedder, store, loadLines, captureActive: () => false });
+    const first = await searchMeetings('budget', 3, { embedder, store });
+    expect(first.every((h) => h.meetingId === 'm1')).toBe(true);
+    await indexMeeting('m2', { embedder, store, loadLines, captureActive: () => false });
+    const second = await searchMeetings('summer holiday', 3, { embedder, store });
+    expect(second[0].meetingId).toBe('m2');
+    removeIndex('m2', store);
+    const third = await searchMeetings('summer holiday', 3, { embedder, store });
+    expect(third.every((h) => h.meetingId === 'm1')).toBe(true);
+  });
+});
