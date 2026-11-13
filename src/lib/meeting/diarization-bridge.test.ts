@@ -232,6 +232,45 @@ describe('diarization bridge — open turns', () => {
     expect(tl.turnEnds('mic', 0, 14)).toEqual([12]);
     timeline.mockRestore();
   });
+
+  it('does not cut at the end of a back-channel the other speaker talks through', async () => {
+    const { bridge } = await consentedAndCached();
+    const asr = await import('./browser-asr');
+    const timeline = vi.spyOn(asr, 'setSpeakerTimeline');
+    bridge.startDiarization(['mic']);
+    const emit = fakes.turn.get('mic')!;
+    const tl = timeline.mock.calls.at(-1)![0]!;
+
+    // mic:0 talks on (still open) while mic:1 says "yeah" at 3–3.6 s.
+    emit({ speaker: 'mic:0', source: 'mic', start: 0, end: 6, id: 'mic#0', final: false });
+    emit({ speaker: 'mic:1', source: 'mic', start: 3, end: 3.6, id: 'mic#1', final: true });
+    expect(tl.turnEnds('mic', 0, 6)).toEqual([]);
+
+    // The same, across the seam of a turn split for running long.
+    emit({ speaker: 'mic:0', source: 'mic', start: 0, end: 8, id: 'mic#0', final: true, continues: true });
+    emit({ speaker: 'mic:0', source: 'mic', start: 8, end: 12, id: 'mic#2', final: false });
+    emit({ speaker: 'mic:1', source: 'mic', start: 7.6, end: 8.4, id: 'mic#3', final: true });
+    expect(tl.turnEnds('mic', 0, 12)).toEqual([]);
+    timeline.mockRestore();
+  });
+
+  it('still cuts where the speaker changes or pauses', async () => {
+    const { bridge } = await consentedAndCached();
+    const asr = await import('./browser-asr');
+    const timeline = vi.spyOn(asr, 'setSpeakerTimeline');
+    bridge.startDiarization(['mic']);
+    const emit = fakes.turn.get('mic')!;
+    const tl = timeline.mock.calls.at(-1)![0]!;
+
+    // mic:1 talks over the end of mic:0's turn and takes over: a change.
+    emit({ speaker: 'mic:0', source: 'mic', start: 0, end: 4, id: 'mic#0', final: true });
+    emit({ speaker: 'mic:1', source: 'mic', start: 3.5, end: 9, id: 'mic#1', final: true });
+    // mic:1's "yeah" ends in mic:0's silence: mic:0 paused.
+    emit({ speaker: 'mic:0', source: 'mic', start: 10, end: 12, id: 'mic#2', final: true });
+    emit({ speaker: 'mic:1', source: 'mic', start: 11.8, end: 12.5, id: 'mic#3', final: true });
+    expect(tl.turnEnds('mic', 0, 14)).toEqual([4, 9, 12, 12.5]);
+    timeline.mockRestore();
+  });
 });
 
 describe('diarization bridge — provisional labels', () => {

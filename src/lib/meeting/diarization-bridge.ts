@@ -269,12 +269,32 @@ function changePoints(source: Source, start: number, end: number): number[] {
 /** Where turns closed. A still-open turn's end is only where the diarizer's
  *  last step stopped, and a turn split off a long run (`continues`) ends
  *  where it ran long: neither is where anyone stopped talking, and cutting
- *  the live segment there cut a monologue every 8 s. */
+ *  the live segment there cut a monologue every 8 s. Nor is the end of a
+ *  back-channel ("yeah") that another speaker talks through: cutting there
+ *  split the other speaker's sentence. */
 function turnEnds(source: Source, start: number, end: number): number[] {
-  return turnsOf(source)
+  const list = turnsOf(source);
+  return list
     .filter((turn) => turn.final !== false && !turn.continues)
-    .map((turn) => turn.end)
-    .filter((t) => t > start && t < end);
+    .filter((turn) => turn.end > start && turn.end < end && !talkedThrough(list, turn))
+    .map((turn) => turn.end);
+}
+
+/** Whether one other speaker was already talking when `turn` began and is
+ *  still talking when it ends. Their turns may be several pieces (an open
+ *  turn, or one split for running long). */
+function talkedThrough(list: readonly SpeakerTurn[], turn: SpeakerTurn): boolean {
+  const before = new Set<string>();
+  const after = new Set<string>();
+  for (let i = firstTurnReaching(turn.source, turn.start); i < list.length; i += 1) {
+    const other = list[i];
+    if (other.start > turn.end) break;
+    if (other.speaker === turn.speaker) continue;
+    if (other.start < turn.start && other.end >= turn.start) before.add(other.speaker);
+    if (other.start <= turn.end && other.end > turn.end) after.add(other.speaker);
+  }
+  for (const speaker of before) if (after.has(speaker)) return true;
+  return false;
 }
 
 function insertTurn(turn: SpeakerTurn): void {
