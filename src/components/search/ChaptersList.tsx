@@ -3,7 +3,7 @@
 import { EmptyState, Text, VStack } from '@jensbouma123/acciva-ui';
 import { formatClock } from '@/lib/meeting/transcript-format';
 import { useT } from '@/lib/i18n/useT';
-import type { Chapter } from '@/lib/semantic-search';
+import type { Chapter } from '@/lib/semantic-search/types';
 
 export interface ChaptersListProps {
   /** Chapters of one meeting, e.g. `index.chapters(meetingId)`. */

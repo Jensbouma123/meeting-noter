@@ -1,7 +1,6 @@
 import { EMBEDDING_DIM, type Embedder } from './types';
 import { tokenize } from './text';
 
-/** 32-bit FNV-1a with a seed mixed into the offset basis. */
 function hash(s: string, seed: number): number {
   let h = (0x811c9dc5 ^ seed) >>> 0;
   for (let i = 0; i < s.length; i++) {
@@ -11,10 +10,6 @@ function hash(s: string, seed: number): number {
   return h >>> 0;
 }
 
-/**
- * Features of a text: content tokens (weight 1) plus character trigrams of
- * each token (weight 0.5), so Dutch compounds share mass with their parts.
- */
 function features(text: string): Array<[string, number]> {
   const out: Array<[string, number]> = [];
   for (const token of tokenize(text)) {
@@ -27,11 +22,6 @@ function features(text: string): Array<[string, number]> {
   return out;
 }
 
-/**
- * Deterministic bag-of-features embedder with the EmbeddingGemma dimension.
- * It is lexical, not semantic: it exists so the index, chunking and chapter
- * code run in tests with no model. Cross-lingual quality is untested here.
- */
 export function createFakeEmbedder(dim: number = EMBEDDING_DIM): Embedder {
   const embedOne = (text: string): Float32Array => {
     const v = new Float32Array(dim);

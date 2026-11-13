@@ -1,18 +1,5 @@
-import type { TranscriptLine, Window } from './types';
+import type { ChunkOpts, TranscriptLine, Window } from './types';
 
-export interface ChunkOpts {
-  /** Window length in seconds. */
-  windowSeconds?: number;
-  /** Distance between window starts. Equal to `windowSeconds` by default (no overlap). */
-  strideSeconds?: number;
-}
-
-/**
- * Cuts a finished transcript into time windows. A line belongs to the window
- * that holds its midpoint, so no line is ever embedded twice in one window
- * and lines that straddle a boundary land in exactly one place.
- * Windows with no text are skipped.
- */
 export function chunkTranscript(
   meetingId: string,
   lines: TranscriptLine[],

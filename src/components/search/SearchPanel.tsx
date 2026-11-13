@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Card, EmptyState, Input, Text, VStack } from '@jensbouma123/acciva-ui';
 import { formatClock } from '@/lib/meeting/transcript-format';
-import type { Hit } from '@/lib/semantic-search';
+import type { Hit } from '@/lib/semantic-search/types';
 import { useT } from '@/lib/i18n/useT';
 
 export const SNIPPET_MAX_CHARS = 160;

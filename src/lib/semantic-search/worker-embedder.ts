@@ -1,23 +1,5 @@
-import type { EmbedWorkerIn, EmbedWorkerOut } from './worker';
-import { EMBEDDING_DIM, type Embedder } from './types';
+import { EMBEDDING_DIM, type EmbedWorkerLike, type WorkerEmbedder } from './types';
 
-/** The slice of `Worker` this client uses; a test passes a fake. */
-export interface EmbedWorkerLike {
-  postMessage(msg: EmbedWorkerIn): void;
-  onmessage: ((e: { data: EmbedWorkerOut }) => void) | null;
-  onerror: ((e: { message?: string }) => void) | null;
-  terminate(): void;
-}
-
-export interface WorkerEmbedder extends Embedder {
-  /** Stops the worker and frees the model. A later `embed` starts a fresh one. */
-  terminate(): void;
-}
-
-/**
- * `Embedder` that runs on a Web Worker. The worker (and so the model) starts
- * on the first `embed` call, never at construction.
- */
 export function createWorkerEmbedder(
   spawn: () => EmbedWorkerLike = () =>
     new Worker(new URL('./worker.ts', import.meta.url), {
