@@ -5,10 +5,10 @@ import {
   FakeAudioWorkletNode,
   flush,
   tracks,
-  useLifecycleEnv,
+  registerLifecycleEnv,
 } from './capture-lifecycle.testUtils';
 
-useLifecycleEnv();
+registerLifecycleEnv();
 
 describe('levels reach the meters', () => {
   it('publishes speech-level RMS from each worklet as a visible meter level', async () => {

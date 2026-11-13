@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   deferred,
   env,
@@ -6,10 +6,10 @@ import {
   fakeStream,
   flush,
   tracks,
-  useLifecycleEnv,
+  registerLifecycleEnv,
 } from './capture-lifecycle.testUtils';
 
-useLifecycleEnv();
+registerLifecycleEnv();
 
 describe('meeting: every acquired track is stopped', () => {
   it('requests nothing before Record: importing the module never touches the mic', async () => {

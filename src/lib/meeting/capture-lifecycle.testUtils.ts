@@ -117,7 +117,7 @@ export function expectAllReleased(): void {
 
 export const flush = () => new Promise((r) => setTimeout(r, 0));
 
-export function useLifecycleEnv(): void {
+export function registerLifecycleEnv(): void {
   beforeEach(() => {
     resetLifecycleFakes();
     installBrowser();

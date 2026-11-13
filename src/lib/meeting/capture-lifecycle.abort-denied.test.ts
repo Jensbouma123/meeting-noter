@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   contexts,
   deferred,
@@ -9,10 +9,10 @@ import {
   installBrowser,
   SAFARI,
   tracks,
-  useLifecycleEnv,
+  registerLifecycleEnv,
 } from './capture-lifecycle.testUtils';
 
-useLifecycleEnv();
+registerLifecycleEnv();
 
 describe('meeting: every acquired track is stopped', () => {
   it('on a denied mic', async () => {

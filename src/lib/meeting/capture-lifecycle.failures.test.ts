@@ -8,10 +8,10 @@ import {
   installBrowser,
   SAFARI,
   tracks,
-  useLifecycleEnv,
+  registerLifecycleEnv,
 } from './capture-lifecycle.testUtils';
 
-useLifecycleEnv();
+registerLifecycleEnv();
 
 describe('Capture: every acquired track is stopped', () => {
   const handler = { onFrame: vi.fn(), onLevel: vi.fn(), onSourceEnded: vi.fn() };
