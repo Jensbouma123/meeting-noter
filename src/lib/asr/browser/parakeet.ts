@@ -6,6 +6,7 @@ import type {
   BrowserRecognizeResult,
   BrowserTranscribeResult,
 } from './types';
+import { SingleFlight } from './single-flight';
 import { DEFAULT_BROWSER_ASR_CONFIG } from './constants';
 import { installQuietAsrConsole } from './quiet-console';
 import { BiaserSlot } from '@/lib/vocabulary/biaser-slot';
@@ -24,7 +25,7 @@ export class BrowserASREngine {
   private config: BrowserASRConfig;
   private events: BrowserASREvents;
   private status: BrowserASRStatus = 'idle';
-  private loadingPromise: Promise<void> | null = null;
+  private readonly loading = new SingleFlight();
   private readonly segmenter = new ParakeetSegmenter();
   private languageLocked = false;
   private readonly vocabulary = new BiaserSlot();
@@ -44,14 +45,7 @@ export class BrowserASREngine {
 
   async ensureLoaded(): Promise<void> {
     if (this.isReady) return;
-    if (this.loadingPromise !== null) return this.loadingPromise;
-
-    this.loadingPromise = this._loadModel();
-    try {
-      await this.loadingPromise;
-    } finally {
-      this.loadingPromise = null;
-    }
+    return this.loading.run(() => this._loadModel());
   }
 
   private async _loadModel(): Promise<void> {
@@ -62,9 +56,7 @@ export class BrowserASREngine {
         this.config,
         this.vocabulary,
         (progress) => this.events.onLoadProgress?.(progress),
-        (model) => {
-          this.model = model;
-        },
+        (model) => (this.model = model),
       );
       this.status = 'ready';
       this.events.onStatusChange('ready');
@@ -132,7 +124,7 @@ export class BrowserASREngine {
     this.vocabulary.setVocab(null);
     this.segmenter.resetDecoder();
     this.status = 'disabled';
-    this.loadingPromise = null;
+    this.loading.clear();
     this.events.onStatusChange('disabled');
   }
 

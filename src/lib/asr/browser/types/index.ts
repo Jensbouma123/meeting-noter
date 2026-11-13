@@ -8,3 +8,4 @@ export type { BrowserASRConfig } from './config';
 export type { BrowserASRLoadProgress } from './load-progress';
 export type { BrowserASREvents } from './events';
 export type { ModelFileUrls } from './model-file-urls';
+export type { NemotronGraph } from './nemotron-graph';
