@@ -1,6 +1,6 @@
 import { activateStagedAppend, cancelAppend } from './append-mode';
 import { restorableSegments } from './restored-segment';
-import { emit, getState, setState } from './store-core';
+import { getState, setState } from './store-core';
 import { isCaptureActive, setTranscriptSessionId } from './transcript-session';
 import type { CaptureMode, Speaker } from './types';
 import type { IdleSnapshot } from './types/idle-snapshot';
