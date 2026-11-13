@@ -45,7 +45,8 @@ function sanitizeSnapshot(input: AutosaveInput): AutosavedSession | null {
     const segments = rawSegments
       .filter((s) => s && s.final === true && typeof s.text === 'string')
       // Word timings only serve live re-attribution, and would multiply the
-      // snapshot's size against the storage quota.
+      // snapshot's size against the storage quota. `lowConfSpans` is kept:
+      // it is the compact form of the same confidence data.
       .map((s) => (s.words ? { ...s, words: undefined } : s));
     const speakers: Record<string, Speaker> =
       input.speakers && typeof input.speakers === 'object' ? input.speakers : {};

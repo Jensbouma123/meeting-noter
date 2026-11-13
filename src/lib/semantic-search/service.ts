@@ -7,7 +7,7 @@ import {
   saveIndex,
   type KeyValueStore,
 } from './store';
-import { createWorkerEmbedder } from './worker-embedder';
+import { createWorkerEmbedder, type WorkerEmbedder } from './worker-embedder';
 import type { Chapter, Embedder, Hit, TranscriptLine } from './types';
 
 /** Seams for tests; production uses the defaults. */
@@ -18,11 +18,21 @@ export interface SearchDeps {
   captureActive?: () => boolean;
 }
 
-let sharedEmbedder: Embedder | null = null;
+let sharedEmbedder: WorkerEmbedder | null = null;
 
 /** One worker-backed embedder per page; the worker and model start on first use. */
 function defaultEmbedder(): Embedder {
   return (sharedEmbedder ??= createWorkerEmbedder());
+}
+
+/**
+ * Stops the shared EmbeddingGemma 2 worker (~175 MB model) so it is never
+ * resident beside ASR, diarization or D1. A later search or index spawns a
+ * fresh one; in-flight embeds on it reject.
+ */
+export function disposeSharedEmbedder(): void {
+  sharedEmbedder?.terminate();
+  sharedEmbedder = null;
 }
 
 function defaultLoadLines(meetingId: string): TranscriptLine[] | null {
@@ -48,7 +58,12 @@ export async function indexMeeting(
   if (!lines || lines.length === 0) return null;
 
   const index = new SemanticIndex(deps.embedder ?? defaultEmbedder());
-  await index.addMeeting(meetingId, lines);
+  try {
+    await index.addMeeting(meetingId, lines);
+  } finally {
+    // Indexing is a one-shot post-stop job: free the model right away.
+    if (!deps.embedder) disposeSharedEmbedder();
+  }
   const stored = index.exportMeeting(meetingId);
   if (!stored || stored.windows.length === 0) return null;
   const chapters = index.chapters(meetingId);

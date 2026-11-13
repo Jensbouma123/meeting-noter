@@ -64,6 +64,7 @@ import {
   setLanguageOverride,
   resetLanguageOverride,
 } from './langid-bridge';
+import { disposeSharedEmbedder, indexMeeting } from '@/lib/semantic-search/service';
 
 export type { CaptureMode, LanguageInfo, Levels, MeetingState, Source, Status, Segment, Speaker, StartOpts, SystemVia } from './types';
 export { useSpeakerStats, computeSpeakerStats, type SpeakerStat } from './store';
@@ -126,6 +127,51 @@ let undecidedFrames: { source: Source; pcm: ArrayBuffer; at: number }[] = [];
 let backendResolved: Promise<void> = Promise.resolve();
 /** How long a decision waits on a probe that never answers before giving up. */
 const BACKEND_DECISION_TIMEOUT_MS = 5000;
+
+/** Tracks whether capture left `idle`/`error`, so the store subscription fires
+ *  post-stop intelligence on the transition back to `idle` even if rAF coalesces. */
+let sawActiveCapture = false;
+let postStopChain: Promise<void> = Promise.resolve();
+
+async function runPostStopIntelligence(): Promise<void> {
+  if (getState().status !== 'idle') return;
+  const sessionId = getTranscriptSessionId();
+  const { segments } = getState();
+  if (!sessionId || !segments.some((s) => s.final && s.text.trim().length > 0)) return;
+
+  try {
+    await indexMeeting(sessionId);
+  } catch (err) {
+    console.warn('Semantic indexing failed', err);
+  }
+}
+
+function schedulePostStopIntelligence(pendingStop: Promise<void> | null): void {
+  // Wait for stopPromise + a microtask so `MeetingView.stopRecording()` saves
+  // the final snapshot (`flushAutosave` / `persistSession`) before indexing runs.
+  postStopChain = postStopChain
+    .catch(() => {})
+    .then(async () => {
+      if (pendingStop) await pendingStop.catch(() => {});
+      await Promise.resolve();
+      await runPostStopIntelligence();
+    });
+}
+
+subscribe(() => {
+  const { status } = getState();
+  if (status === 'error') {
+    sawActiveCapture = false;
+    return;
+  }
+  if (status !== 'idle') {
+    sawActiveCapture = true;
+    return;
+  }
+  if (!sawActiveCapture) return;
+  sawActiveCapture = false;
+  schedulePostStopIntelligence(stopPromise);
+});
 
 function routeAsrFrame(source: Source, pcm: ArrayBuffer, at: number): void {
   if (sessionPostStop === null) {
@@ -352,6 +398,13 @@ async function runStop(): Promise<void> {
     confirmAllSegments();
   }
   setState({ status: 'idle' });
+  // Also schedule directly here in case start()+stop() completed within one
+  // animation frame and `store.ts`'s rAF-coalesced `subscribe` never saw a
+  // non-idle status.
+  if (sawActiveCapture) {
+    sawActiveCapture = false;
+    schedulePostStopIntelligence(stopPromise);
+  }
 }
 
 export function useMeeting<T>(selector: (s: MeetingState) => T): T {
@@ -410,7 +463,11 @@ export const meeting = {
     beginSpeakerSession();
     captureClock.clear();
     frameFeed.clear();
+    sawActiveCapture = true;
     setState({ status: 'requesting', mode: opts.mode, startedAt: Date.now() });
+    // Free the embedder before capture; not awaited, so `getDisplayMedia`
+    // below keeps the click's user activation.
+    disposeSharedEmbedder();
 
     // Resolve the backend for this device, and start the buffer. Deliberately
     // NOT awaited here: `getDisplayMedia` below must be called synchronously
@@ -568,6 +625,7 @@ export const meeting = {
   release(): Promise<void> {
     const stopped = meeting.stop();
     void releaseCapture();
+    disposeSharedEmbedder();
     return stopped;
   },
 

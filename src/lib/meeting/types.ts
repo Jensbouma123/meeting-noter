@@ -16,7 +16,15 @@ export interface SegmentWord {
   text: string;
   start: number;
   end: number;
+  /** The model's confidence (0 … 1). Absent when the engine gives none. */
+  confidence?: number;
 }
+
+/**
+ * A low-confidence stretch of a segment's text, as UTF-16 offsets into
+ * `Segment.text` (end exclusive) and the lowest word confidence in it.
+ */
+export type LowConfSpan = [startChar: number, endChar: number, conf: number];
 
 /**
  * A stretch where two or more speakers' diarization turns overlap, on the
@@ -41,6 +49,9 @@ export interface Segment {
    *  that arrives after the line is final can then split it between words
    *  (`speaker-attribution.ts`). Never persisted. */
   words?: SegmentWord[];
+  /** Compact list of the words the model was unsure of (confidence below
+   *  0.65), set when a final segment is built. Persisted, unlike `words`. */
+  lowConfSpans?: LowConfSpan[];
   /** Set while no diarization turn covers the line yet, so `speaker` is a
    *  guess and the UI shows a placeholder instead of a name. Cleared when a
    *  turn confirms it, and for every line at Stop (`confirmAllSegments`). */

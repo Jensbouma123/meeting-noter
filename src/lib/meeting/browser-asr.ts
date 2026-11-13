@@ -67,7 +67,7 @@ import { attributeSpeakers } from '@/lib/meeting/speaker-attribution';
 import { publishLiveUpdate } from '@/lib/meeting/speaker-attribution';
 import { LiveChunker, type LiveWindowRequest } from '@/lib/asr/live-chunker';
 import { CAPTURE_SAMPLE_RATE, int16ToFloat32 } from './pcm';
-import type { Segment, SegmentWord } from '@/lib/meeting/types';
+import type { LowConfSpan, Segment, SegmentWord } from '@/lib/meeting/types';
 import type { BrowserSegment, BrowserLanguageInfo } from '@/lib/asr/browser';
 import {
   getBrowserASRDownloadManager,
@@ -434,7 +434,7 @@ export function getRecordingTranscriptionMode(): 'live' | 'post-stop' | null {
  *
  * Called by `meeting.stop()`. Resolves `true` when every window transcribed;
  * the model is loaded on demand (the download may still need consent, in which
- * case this resolves `false` and the buffered audio is already gone — the
+ * case this resolves `false` and the buffered audio is dropped — the
  * consent dialog says why, and re-recording is the remedy).
  *
  * Never rejects: a failure here is recorded as post-stop progress
@@ -455,6 +455,8 @@ export async function transcribeRecordedAudioAfterStop(): Promise<boolean> {
   const engine = await acquireEngine();
   if (engine === null || !engine.isReady) {
     console.error('[asr] The recorded audio could not be transcribed — no model');
+    // Drop the buffered PCM (up to ~460 MB) rather than hold it while idle.
+    clearPostStopCapture();
     return false;
   }
   const ok = await transcribeRecordedAudio(async (audio, source, isFinal, startSample) => {
@@ -1493,14 +1495,61 @@ function placeSegment(seg: BrowserSegment): Segment {
     if (seg.words) {
       words = [
         ...(segmentWords.get(seg.id) ?? []),
-        ...seg.words.map((w) => ({ text: w.text, start: winStart + w.start, end: winStart + w.end })),
+        ...seg.words.map((w) => ({
+          text: w.text,
+          start: winStart + w.start,
+          end: winStart + w.end,
+          ...(w.confidence !== undefined ? { confidence: w.confidence } : {}),
+        })),
       ];
       if (seg.final) segmentWords.delete(seg.id);
       else segmentWords.set(seg.id, words);
     }
   }
   const speaker = speakerTimeline?.speakerFor(seg.source, start, end) ?? seg.speaker;
-  return { id: seg.id, source: seg.source, speaker, text: seg.text, start, end, final: seg.final, ...(words ? { words } : {}) };
+  const lowConfSpans = seg.final && words ? lowConfidenceSpans(seg.text, words) : [];
+  return {
+    id: seg.id,
+    source: seg.source,
+    speaker,
+    text: seg.text,
+    start,
+    end,
+    final: seg.final,
+    ...(words ? { words } : {}),
+    ...(lowConfSpans.length > 0 ? { lowConfSpans } : {}),
+  };
+}
+
+/** Words below this confidence are kept as `Segment.lowConfSpans`. */
+export const LOW_CONFIDENCE_THRESHOLD = 0.65;
+
+/**
+ * Locate each low-confidence word in `text` as UTF-16 offsets. Words are
+ * matched in order, each after the previous one, so a repeated word finds its
+ * own occurrence; a word that cannot be found is skipped rather than guessed.
+ */
+export function lowConfidenceSpans(text: string, words: SegmentWord[]): LowConfSpan[] {
+  const spans: LowConfSpan[] = [];
+  let cursor = 0;
+  for (const w of words) {
+    const needle = w.text.trim();
+    if (!needle) continue;
+    const at = text.indexOf(needle, cursor);
+    if (at < 0) continue;
+    cursor = at + needle.length;
+    if (w.confidence !== undefined && w.confidence < LOW_CONFIDENCE_THRESHOLD) {
+      const last = spans[spans.length - 1];
+      // Adjacent low words share one span (the lowest confidence wins).
+      if (last && last[1] >= at) {
+        last[1] = cursor;
+        last[2] = Math.min(last[2], w.confidence);
+      } else {
+        spans.push([at, cursor, w.confidence]);
+      }
+    }
+  }
+  return spans;
 }
 
 /* ------------------------------------------------------------------ */

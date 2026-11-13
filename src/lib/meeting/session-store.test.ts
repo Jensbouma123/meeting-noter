@@ -411,4 +411,26 @@ describe('no transcript text stays in the browser after delete or clear', () => 
     expect(everything().toLowerCase()).not.toContain(SECRET);
     expect(localStorage.getItem('mn.settings')).not.toBeNull();
   });
+
+  it('createDraftSessionInFolder flushes server sync before moving the draft into the folder', async () => {
+    const order: string[] = [];
+    vi.doMock('./server-sync', () => ({
+      flushServerSync: vi.fn(async () => { order.push('flush'); }),
+      queueMeetingDelete: vi.fn(),
+      queueMeetingSync: vi.fn(),
+    }));
+    vi.doMock('@/lib/folders/folders-api', () => ({
+      moveMeeting: vi.fn(async (id: string, folderId: string | null) => {
+        order.push(`move:${id}:${folderId}`);
+        return { ok: true, data: {} };
+      }),
+    }));
+    const { createDraftSessionInFolder } = await import('./session-store');
+    const id = await createDraftSessionInFolder('Folder draft', 'folder-1');
+    expect(order).toEqual(['flush', `move:${id}:folder-1`]);
+
+    order.length = 0;
+    await createDraftSessionInFolder('Unfiled draft', null);
+    expect(order).toEqual([]);
+  });
 });

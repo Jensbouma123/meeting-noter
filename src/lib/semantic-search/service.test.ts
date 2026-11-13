@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createEg2Embedder, DOCUMENT_PREFIX, QUERY_PREFIX } from './eg2-embedder';
 import { createFakeEmbedder } from './fake-embedder';
-import { indexMeeting, searchMeetings } from './service';
+import { disposeSharedEmbedder, indexMeeting, searchMeetings } from './service';
 import { listIndexedMeetingIds, loadIndex, removeIndex, type KeyValueStore } from './store';
 import { createEmbedHandler, type EmbedWorkerIn, type EmbedWorkerOut } from './worker';
 import { createWorkerEmbedder, type EmbedWorkerLike } from './worker-embedder';
@@ -99,6 +99,11 @@ describe('indexMeeting / searchMeetings', () => {
     store: memoryStore(),
     loadLines: (id: string) => transcripts[id] ?? null,
     captureActive: () => false,
+  });
+
+  it('disposeSharedEmbedder is safe with no embedder and idempotent', () => {
+    disposeSharedEmbedder();
+    expect(() => disposeSharedEmbedder()).not.toThrow();
   });
 
   it('persists windows, vectors and chapters', async () => {

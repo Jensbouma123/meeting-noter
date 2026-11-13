@@ -2,6 +2,7 @@ import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { PARAKEET_TDT_V3_WEBGPU, PARAKEET_TDT_V3_WEBGPU_FP16 } from '@/lib/asr/browser/model-manifest';
 import { voice } from '@/lib/asr/test-signals';
+import { lowConfidenceSpans } from './browser-asr';
 
 /**
  * The "Record produces no transcript, and no error" failure, end to end.
@@ -1058,6 +1059,19 @@ describe('post-stop transcription on a CPU-only device', () => {
     expect(asr.getPostStopTranscriptionProgress()?.phase).toBe('error');
     expect(consoleError).toHaveBeenCalled();
   });
+
+  it('drops the buffered audio when the model cannot load', async () => {
+    const asr = await loadPostStopAsr();
+    engineState.failLoad = true;
+
+    asr.beginRecordedAudioCapture();
+    asr.bufferRecordedAudio('mic', frame());
+    const { hasBufferedAudio } = await import('./post-stop-transcription');
+    expect(hasBufferedAudio()).toBe(true);
+
+    expect(await asr.transcribeRecordedAudioAfterStop()).toBe(false);
+    expect(hasBufferedAudio()).toBe(false);
+  });
 });
 
 /**
@@ -1422,6 +1436,34 @@ describe('the overlap second pass on the live engine', () => {
     await pass;
     expect(engineState.recognized).toHaveLength(1);
     expect(store.getState().segments.some((s) => s.id.startsWith('ovl-'))).toBe(false);
+  });
+});
+
+describe('lowConfidenceSpans', () => {
+  it('spans each word under 0.65 at its character offsets, one span per run', () => {
+    const text = 'we ship the the release friday';
+    const words = [
+      { text: 'we', start: 0, end: 1, confidence: 0.99 },
+      { text: 'ship', start: 1, end: 2, confidence: 0.4 },
+      { text: 'the', start: 2, end: 3, confidence: 0.9 },
+      { text: 'the', start: 3, end: 4, confidence: 0.5 },
+      { text: 'release', start: 4, end: 5, confidence: 0.2 },
+      { text: 'friday', start: 5, end: 6, confidence: 0.95 },
+    ];
+    expect(lowConfidenceSpans(text, words)).toEqual([
+      [3, 7, 0.4],
+      [12, 15, 0.5],
+      [16, 23, 0.2],
+    ]);
+  });
+
+  it('skips words without confidence and words it cannot locate', () => {
+    expect(
+      lowConfidenceSpans('hello world', [
+        { text: 'hello', start: 0, end: 1 },
+        { text: 'missing', start: 1, end: 2, confidence: 0.1 },
+      ]),
+    ).toEqual([]);
   });
 });
 
