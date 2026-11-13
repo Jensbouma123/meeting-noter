@@ -1,8 +1,3 @@
-/**
- * `GET /api/app/update`  — is a newer release available and can this install apply it?
- * `POST /api/app/update` — start applying it (progress: GET /api/app/update/status).
- * Contract: ux-redesign/backend-contract.md.
- */
 import { refuseForeign } from '@/lib/lifecycle/request-guard';
 import { lifecycle } from '@/lib/lifecycle/server-lifecycle';
 import { buildCheck, fetchRelease } from '@/lib/update/release-check';
@@ -12,12 +7,11 @@ import { readUpdateStatus, updateRunning } from '@/lib/update/update-files';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-/** GitHub allows 60 unauthenticated calls an hour; one check per 10 min is plenty. */
-const CACHE_MS = 10 * 60_000;
+const GITHUB_RATE_LIMIT_SAFE_CACHE_MS = 10 * 60_000;
 let cache: { at: number; release: Awaited<ReturnType<typeof fetchRelease>> } | null = null;
 
 async function release(refresh: boolean) {
-  if (!refresh && cache && Date.now() - cache.at < CACHE_MS) return cache.release;
+  if (!refresh && cache && Date.now() - cache.at < GITHUB_RATE_LIMIT_SAFE_CACHE_MS) return cache.release;
   const r = await fetchRelease(lifecycle().install.current);
   cache = { at: Date.now(), release: r };
   return r;
@@ -34,8 +28,8 @@ export async function GET(request: Request): Promise<Response> {
 export async function POST(request: Request): Promise<Response> {
   const refused = refuseForeign(request);
   if (refused) return refused;
-  // A JSON content type makes a cross-origin POST need a CORS preflight, which this route never grants.
-  if (!(request.headers.get('content-type') ?? '').startsWith('application/json')) {
+  const requiresCorsPreflight = (request.headers.get('content-type') ?? '').startsWith('application/json');
+  if (!requiresCorsPreflight) {
     return Response.json({ ok: false, error: 'json-required' }, { status: 415 });
   }
   const { install } = lifecycle();

@@ -1,10 +1,4 @@
-/**
- * `/api/folders/:id`. `PATCH {name?, parentId?, index?}` renames, moves and/or
- * reorders the folder (`parentId: null` is the root; `index` is its position among its siblings): 404 `not-found`, 400 `bad-name` /
- * `bad-parent`, 409 `cycle`. `DELETE ?mode=move-up|delete-contents` (default
- * `move-up`) removes it: its subfolders and meetings go to its parent, or
- * everything below it is deleted for good, Markdown files included.
- */
+import type { IdRouteContext } from '@/app/api/types';
 import { refuseForeign } from '@/lib/lifecycle/request-guard';
 import { folderFailure } from '@/lib/meeting-db/folders-http';
 import { failure, readJson } from '@/lib/meeting-db/http';
@@ -14,9 +8,7 @@ import { isMeetingId } from '@/lib/meeting-db/validate';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-type Ctx = { params: Promise<{ id: string }> };
-
-export async function PATCH(request: Request, { params }: Ctx): Promise<Response> {
+export async function PATCH(request: Request, { params }: IdRouteContext): Promise<Response> {
   const refused = refuseForeign(request);
   if (refused) return refused;
   const { id } = await params;
@@ -44,7 +36,7 @@ export async function PATCH(request: Request, { params }: Ctx): Promise<Response
   }
 }
 
-export async function DELETE(request: Request, { params }: Ctx): Promise<Response> {
+export async function DELETE(request: Request, { params }: IdRouteContext): Promise<Response> {
   const refused = refuseForeign(request);
   if (refused) return refused;
   const { id } = await params;

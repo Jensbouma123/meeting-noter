@@ -4,8 +4,6 @@ import { POST as heartbeat } from './heartbeat/route';
 import { GET as updateCheck, POST as update } from './update/route';
 import { GET as updateStatus } from './update/status/route';
 
-/** The /api/app routes act on this Mac: foreign pages and rebound hosts get 403 before anything runs. */
-
 const make = (method: string, headers: Record<string, string>, body?: string) =>
   new Request('http://localhost:3000/api/app/x', { method, headers, body });
 const FOREIGN: Record<string, string>[] = [

@@ -1,8 +1,3 @@
-/**
- * `/api/folders` — the folder tree. `GET` lists every folder (siblings in
- * `sort` order; build the tree from `parentId`). `POST {name, parentId?}`
- * creates one (201); 400 `bad-name` / `bad-parent`.
- */
 import { refuseForeign } from '@/lib/lifecycle/request-guard';
 import { folderFailure } from '@/lib/meeting-db/folders-http';
 import { failure, readJson, storageFailure } from '@/lib/meeting-db/http';

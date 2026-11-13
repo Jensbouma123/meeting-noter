@@ -1,8 +1,4 @@
-/**
- * `PUT /api/meetings/:id/folder` with `{folderId: string | null}` files the
- * meeting in a folder (null: unfiled). 404 `not-found` (meeting), 400
- * `bad-parent` (no such folder). Bumps the meeting's `updatedAt` so browsers pull it.
- */
+import type { IdRouteContext } from '@/app/api/types';
 import { refuseForeign } from '@/lib/lifecycle/request-guard';
 import { folderFailure } from '@/lib/meeting-db/folders-http';
 import { failure, readJson } from '@/lib/meeting-db/http';
@@ -12,9 +8,7 @@ import { isMeetingId } from '@/lib/meeting-db/validate';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-type Ctx = { params: Promise<{ id: string }> };
-
-export async function PUT(request: Request, { params }: Ctx): Promise<Response> {
+export async function PUT(request: Request, { params }: IdRouteContext): Promise<Response> {
   const refused = refuseForeign(request);
   if (refused) return refused;
   const { id } = await params;

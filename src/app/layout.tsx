@@ -2,8 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider, ThemeInitScript } from "@jensbouma123/acciva-ui/theme";
 import { ToastProvider } from "@jensbouma123/acciva-ui";
-// NOTE: the acciva-ui token/base CSS is imported from `globals.css`, not here —
-// Tailwind can only register its `@theme` utilities in the file it processes.
 import "./globals.css";
 import { UpdateBanner } from "@/components/UpdateBanner";
 import { I18nProvider } from "@/lib/i18n/I18nProvider";
@@ -25,8 +23,6 @@ export const metadata: Metadata = {
   description: "Live meeting transcripts with speaker labels, processed on your device.",
 };
 
-// `viewportFit: cover` is what makes the `env(safe-area-inset-*)` offsets on
-// the dock and rails resolve to real values on notched phones.
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,

@@ -4,10 +4,8 @@ import { describe, expect, it } from 'vitest';
 
 const CSS = readFileSync(join(__dirname, 'globals.css'), 'utf8');
 
-/** CSS without comments, so prose about colours and motion never counts as a rule. */
 const RULES = CSS.replace(/\/\*[\s\S]*?\*\//g, '');
 
-/** The body of `@media (prefers-reduced-motion: reduce) { … }`, by brace matching. */
 function reducedMotion(): string {
   const start = RULES.indexOf('@media (prefers-reduced-motion: reduce)');
   if (start === -1) return '';
@@ -24,10 +22,8 @@ function reducedMotion(): string {
 }
 
 const REDUCED = reducedMotion();
-/** Rules outside the reduced-motion block: what runs at full motion. */
 const MOTION_RULES = REDUCED ? RULES.replace(REDUCED, '') : RULES;
 
-/** Class names of rules that start an animation (not `animation: none`). */
 function animatedClasses(): string[] {
   const classes = new Set<string>();
   for (const match of MOTION_RULES.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
@@ -49,29 +45,21 @@ describe('globals.css', () => {
   });
 
   it('still every local animation under prefers-reduced-motion', () => {
-    // A new animated class without an override is exactly how a vestibular
-    // trigger ships: the library's 0ms tokens only reach transitions.
     const animated = animatedClasses();
-    // Guards the analyser itself: an empty list would pass vacuously.
     expect(animated).toEqual(expect.arrayContaining(['mn-word-new', 'animate-turn-enter', 'animate-banner-enter']));
     const unhandled = animated.filter((cls) => !REDUCED.includes(`.${cls}`));
     expect(unhandled).toEqual([]);
   });
 
   it('stops the animation of remounted transcript rows', () => {
-    // Virtualised rows remount when scrolled back into view; replaying the
-    // enter animation there reads as a flicker.
     expect(MOTION_RULES).toMatch(/\.mn-vrow\s+\.animate-turn-enter\s*\{[^}]*animation:\s*none/);
   });
 
   it('declares no colour of its own', () => {
-    // Colour comes from the acciva-ui tokens, which have a dark counterpart;
-    // a literal here is a colour that breaks in the other theme.
     expect(RULES).not.toMatch(/#[0-9a-f]{3,8}\b|\brgba?\(|\bhsla?\(|\boklch\(/i);
   });
 
   it('lets long translated dialog actions wrap instead of clipping', () => {
-    // The library fixes its control height; Dutch button labels overflow it.
     const block = MOTION_RULES.match(/\.dialog-actions\s*\{([^}]*)\}/)?.[1] ?? '';
     expect(block).toMatch(/flex-wrap:\s*wrap/);
     const buttons = MOTION_RULES.match(/\.dialog-actions\s*>\s*button\s*\{([^}]*)\}/)?.[1] ?? '';

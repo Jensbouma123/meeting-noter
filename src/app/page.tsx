@@ -10,14 +10,11 @@ import { createDraftSessionInFolder, listSessions } from '@/lib/meeting/session-
 import { clearIdleSession } from '@/lib/meeting/store';
 import { NewSessionDialog, HomeLayout } from '@/components/sessions';
 
-/* Root — opens the most recent session; with none, a minimal empty state.    */
-
 export default function Home() {
   const t = useT('home');
   const router = useRouter();
   const [empty, setEmpty] = useState(false);
   const [newDialogOpen, setNewDialogOpen] = useState(false);
-  // Folder the dialog's meeting is filed in; cleared on close.
   const [newDialogFolderId, setNewDialogFolderId] = useState<string | null>(null);
 
   const openNewSession = useCallback((folderId?: string) => {

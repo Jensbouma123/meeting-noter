@@ -1,9 +1,4 @@
-/**
- * `/api/meetings/:id` — one meeting. `GET` reads it with its transcript,
- * `PUT` stores it (the newer `updatedAt` wins: an older copy gets 409 and the
- * stored one; a deleted one gets 410), `DELETE` removes it and its Markdown
- * file for good.
- */
+import type { IdRouteContext } from '@/app/api/types';
 import { refuseForeign } from '@/lib/lifecycle/request-guard';
 import { MAX_MEETING_BODY_BYTES, failure, readJson, storageFailure } from '@/lib/meeting-db/http';
 import { meetingStore } from '@/lib/meeting-db/store';
@@ -12,9 +7,7 @@ import { isMeetingId, parseStoredMeeting } from '@/lib/meeting-db/validate';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-type Ctx = { params: Promise<{ id: string }> };
-
-export async function GET(request: Request, { params }: Ctx): Promise<Response> {
+export async function GET(request: Request, { params }: IdRouteContext): Promise<Response> {
   const refused = refuseForeign(request);
   if (refused) return refused;
   const { id } = await params;
@@ -27,7 +20,7 @@ export async function GET(request: Request, { params }: Ctx): Promise<Response> 
   }
 }
 
-export async function PUT(request: Request, { params }: Ctx): Promise<Response> {
+export async function PUT(request: Request, { params }: IdRouteContext): Promise<Response> {
   const refused = refuseForeign(request);
   if (refused) return refused;
   const { id } = await params;
@@ -48,7 +41,7 @@ export async function PUT(request: Request, { params }: Ctx): Promise<Response> 
   }
 }
 
-export async function DELETE(request: Request, { params }: Ctx): Promise<Response> {
+export async function DELETE(request: Request, { params }: IdRouteContext): Promise<Response> {
   const refused = refuseForeign(request);
   if (refused) return refused;
   const { id } = await params;
