@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { addNameToVocabulary } from '@/lib/vocabulary/names';
 import { uniqueNames } from './participant-names';
-import { queueMeetingSync } from './server-sync';
+import { queueMeetingSync } from './sync-queue';
 
 const SESSION_KEY_PREFIX = 'mn.participants.';
 const SESSION_KEY_SUFFIX = '.v1';

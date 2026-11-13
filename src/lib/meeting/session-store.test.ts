@@ -414,8 +414,10 @@ describe('no transcript text stays in the browser after delete or clear', () => 
 
   it('createDraftSessionInFolder flushes server sync before moving the draft into the folder', async () => {
     const order: string[] = [];
-    vi.doMock('./server-sync', () => ({
+    vi.doMock('./sync-flush', () => ({
       flushServerSync: vi.fn(async () => { order.push('flush'); }),
+    }));
+    vi.doMock('./sync-queue', () => ({
       queueMeetingDelete: vi.fn(),
       queueMeetingSync: vi.fn(),
     }));

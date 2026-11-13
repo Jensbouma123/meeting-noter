@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { meeting } from '@/components/meeting';
-import { getState, getTranscriptSessionId } from '@/lib/meeting/store';
+import { getState } from '@/lib/meeting/store-core';
+import { getTranscriptSessionId } from '@/lib/meeting/transcript-session';
 import { persistSession, getSessionMetadata } from '@/lib/meeting/session-store';
 import { flushAutosave } from '@/lib/meeting/autosave';
 

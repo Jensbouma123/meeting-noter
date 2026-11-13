@@ -1,6 +1,6 @@
 import { Alert } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
-import { getTranscriptSessionId } from '@/lib/meeting/store';
+import { getTranscriptSessionId } from '@/lib/meeting/transcript-session';
 import { getSessionMetadata } from '@/lib/meeting/session-store';
 import { fillTemplate } from '../fillTemplate';
 

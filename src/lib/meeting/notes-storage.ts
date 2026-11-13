@@ -1,4 +1,4 @@
-import { queueMeetingSync } from './server-sync';
+import { queueMeetingSync } from './sync-queue';
 import type { ActionItem, Decision, Notes } from './types/notes';
 
 const EMPTY_NOTES: Notes = { actions: [], decisions: [] };

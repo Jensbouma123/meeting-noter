@@ -2,7 +2,7 @@ import type { Speaker } from './types';
 import type { AutosaveInput, AutosavedSession } from './types/autosave';
 import { AUTOSAVE_VERSION, sanitizeSnapshot } from './autosave-snapshot';
 import { loadSessionTranscript, saveSessionTranscript } from './session-transcript-storage';
-import { queueMeetingSync } from './server-sync';
+import { queueMeetingSync } from './sync-queue';
 import { isStorageAvailable } from './storage-available';
 import { isCaptureActive } from './store';
 

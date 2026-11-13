@@ -1,11 +1,8 @@
 import { useCallback } from 'react';
 import { meeting } from '@/components/meeting';
 import { promptBrowserASRDownload } from '@/lib/meeting';
-import {
-  bindTranscriptSession,
-  getTranscriptSessionId,
-  getState,
-} from '@/lib/meeting/store';
+import { bindTranscriptSession, getTranscriptSessionId } from '@/lib/meeting/transcript-session';
+import { getState } from '@/lib/meeting/store-core';
 import {
   persistSession,
   archiveAutosavedSession,

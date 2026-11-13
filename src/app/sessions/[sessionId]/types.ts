@@ -2,7 +2,7 @@ import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import type { AppSettings } from '@/components/meeting';
 import type { AutosavedSession } from '@/lib/meeting/types/autosave';
 import type { getPostStopTranscriptionProgress, Segment, Speaker } from '@/lib/meeting';
-import type { getState } from '@/lib/meeting/store';
+import type { getState } from '@/lib/meeting/store-core';
 import type { deriveModelReadiness } from '@/components/meeting/modelReadiness';
 
 import type { BrowserASRPhase } from '@/lib/asr/browser/types';

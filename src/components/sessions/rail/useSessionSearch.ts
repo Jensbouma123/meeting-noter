@@ -1,6 +1,6 @@
 import { useContext, useEffect, useMemo, useState } from 'react';
 import type { SessionMetadata } from '@/lib/meeting/session-store';
-import { searchMeetingIds } from '@/lib/meeting/server-sync';
+import { searchMeetingIds } from '@/lib/meeting/sync-control';
 import { filterSessions, groupSessionsByDay } from '@/lib/meeting/session-groups';
 import { useT } from '@/lib/i18n/useT';
 import { LanguageContext } from '@/lib/i18n/LanguageContext';

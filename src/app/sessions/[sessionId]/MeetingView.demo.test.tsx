@@ -6,15 +6,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 const h = vi.hoisted(() => ({
   start: vi.fn(async () => {}),
   state: {
-    status: 'idle',
-    error: null,
-    warning: null,
-    startedAt: null,
-    segments: [],
-    speakers: [],
-    stats: {},
-    language: 'auto',
+    status: 'idle', error: null, warning: null, startedAt: null,
+    segments: [], speakers: [], stats: {}, language: 'auto',
   } as Record<string, unknown>,
+  settings: {
+    mode: 'both', systemVia: 'browser', micDeviceId: 'default', language: 'auto',
+    autoScroll: true, retention: 'forever', ownerName: '',
+  },
   browserASR: { enabled: true, phase: 'ready' },
   registry: { entries: {} },
 }));
@@ -28,24 +26,8 @@ vi.mock('@/components/meeting', () => ({
   LiveTranscript: () => null,
   BottomDock: () => null,
   SettingsSheet: () => null,
-  DEFAULT_SETTINGS: {
-    mode: 'both',
-    systemVia: 'browser',
-    micDeviceId: 'default',
-    language: 'auto',
-    autoScroll: true,
-    retention: 'forever',
-    ownerName: '',
-  },
-  loadSettings: () => ({
-    mode: 'both',
-    systemVia: 'browser',
-    micDeviceId: 'default',
-    language: 'auto',
-    autoScroll: true,
-    retention: 'forever',
-    ownerName: '',
-  }),
+  DEFAULT_SETTINGS: h.settings,
+  loadSettings: () => ({ ...h.settings }),
   saveSettings: vi.fn(),
   loadSavedTitle: () => 'Untitled meeting',
   saveTitle: vi.fn(),
@@ -101,10 +83,8 @@ vi.mock('@/lib/meeting/autosave', () => ({
   clearAutosavedSession: vi.fn(),
   flushAutosave: vi.fn(),
 }));
-vi.mock('@/lib/meeting/client-session-id', () => ({
-  getClientSessionId: () => 'client-1',
-}));
-vi.mock('@/lib/meeting/server-sync', () => ({ ensureMeetingLoaded: () => Promise.resolve() }));
+vi.mock('@/lib/meeting/client-session-id', () => ({ getClientSessionId: () => 'client-1' }));
+vi.mock('@/lib/meeting/meeting-loader', () => ({ ensureMeetingLoaded: () => Promise.resolve() }));
 vi.mock('@/lib/meeting/participants', () => ({
   getParticipants: () => [],
   hasAskedParticipants: () => true,
@@ -148,8 +128,6 @@ describe('MeetingView ?demo=1 auto-start', () => {
     const { rerender } = render(<MeetingView initialSessionId="s1" />);
     await waitFor(() => expect(h.start).toHaveBeenCalledTimes(1));
 
-    // `status` is a dependency of startRecording, so this re-render hands the
-    // old effect a new callback identity.
     h.state.status = 'live';
     rerender(<MeetingView initialSessionId="s1" />);
     await new Promise((resolve) => setTimeout(resolve, 20));

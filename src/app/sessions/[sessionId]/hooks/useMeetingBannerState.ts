@@ -1,4 +1,4 @@
-import { getTranscriptSessionId } from '@/lib/meeting/store';
+import { getTranscriptSessionId } from '@/lib/meeting/transcript-session';
 import { useAsrBannerState } from './useAsrBannerState';
 import { useMeetingToasts } from './useMeetingToasts';
 import type { MeetingBannerStateParams, BannerKind } from '../types';

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { VStack } from '@jensbouma123/acciva-ui';
 import { ModelRegistryProvider } from '@/components/models';
 import { useMeeting, TopBar } from '@/components/meeting';
-import { getTranscriptSessionId } from '@/lib/meeting/store';
+import { getTranscriptSessionId } from '@/lib/meeting/transcript-session';
 import { MeetingBanners } from './components/MeetingBanners';
 import { MeetingDialogs } from './components/MeetingDialogs';
 import { MeetingWorkspace } from './components/MeetingWorkspace';

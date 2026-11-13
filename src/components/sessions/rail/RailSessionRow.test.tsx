@@ -3,7 +3,9 @@ import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import type { SessionMetadata } from '@/lib/meeting/session-store';
-import { bindTranscriptSession, clearIdleSession, setState } from '@/lib/meeting/store';
+import { bindTranscriptSession } from '@/lib/meeting/transcript-session';
+import { clearIdleSession } from '@/lib/meeting/session-reset';
+import { setState } from '@/lib/meeting/store-core';
 import { RailSessionRow } from './RailSessionRow';
 import { draft, recorded } from './test-support/draftSession';
 

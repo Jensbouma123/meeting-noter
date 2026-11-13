@@ -7,7 +7,7 @@ import { Plus, Video } from 'lucide-react';
 import { Button, Heading, Text, VStack } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { createDraftSessionInFolder, listSessions } from '@/lib/meeting/session-store';
-import { clearIdleSession } from '@/lib/meeting/store';
+import { clearIdleSession } from '@/lib/meeting/session-reset';
 import { NewSessionDialog, HomeLayout } from '@/components/sessions';
 
 export default function Home() {

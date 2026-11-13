@@ -6,13 +6,9 @@ import { Suspense, useState, useCallback } from 'react';
 import MeetingView from './MeetingView';
 import { HomeLayout, NewSessionDialog } from '@/components/sessions';
 import { createDraftSessionInFolder } from '@/lib/meeting/session-store';
-import { clearIdleSession } from '@/lib/meeting/store';
+import { clearIdleSession } from '@/lib/meeting/session-reset';
 import { useT } from '@/lib/i18n/useT';
 import { Skeleton, Text, useToast, VStack } from '@jensbouma123/acciva-ui';
-
-/* -------------------------------------------------------------------------- */
-/* Session page — sidebar rail + meeting view (no separate home route).       */
-/* -------------------------------------------------------------------------- */
 
 function MeetingViewShell() {
   const t = useT('meeting');

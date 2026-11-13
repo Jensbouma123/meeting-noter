@@ -3,7 +3,9 @@
 import { useEffect } from 'react';
 import { useToast } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
-import { MIGRATED_EVENT, startServerSync, type MigrationResult } from '@/lib/meeting/server-sync';
+import { MIGRATED_EVENT } from '@/lib/meeting/sync-migrate';
+import { startServerSync } from '@/lib/meeting/sync-control';
+import { type MigrationResult } from '@/lib/meeting/types/server-sync';
 
 /**
  * Starts the browser-to-disk meetings sync (`server-sync.ts`) once per tab and
