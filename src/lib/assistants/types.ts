@@ -26,3 +26,8 @@ export type ConnectResult =
   | { needsConfirm: true; configPath: string; backupPath: string }
   | { ok: true; status: AssistantStatus }
   | { ok: false; error: string; manualCommand?: string | null };
+
+export interface McpLocation {
+  cwd?: string;
+  exists?: (file: string) => boolean;
+}

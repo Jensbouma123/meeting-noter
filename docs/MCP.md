@@ -91,7 +91,7 @@ action items."*
 
 ## Running from source
 
-Build the server once (and after pulling changes), then point the config at
+The installed app never builds the server: Claude Desktop's "Herstel nodig" repair only rewrites `claude_desktop_config.json`, pointing at `app/mcp/meetings-mcp.mjs` and the bundled `app/node/bin/node`. In a checkout, build the server once (and after pulling changes), then point the config at
 your checkout with your own Node.js (22.13 or newer):
 
 ```bash

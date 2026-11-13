@@ -90,6 +90,7 @@ de browser wist u via de websitegegevens van `localhost` in uw browser.
 | `~/Library/LaunchAgents/nl.jensbouma.meeting-noter.audio-helper.plist` | start de audio-helper (alleen macOS 14.4+) |
 | `~/Library/Application Support/Meeting Noter/meetings.db`, `meetings/` | uw vergaderingen: database en een Markdown-bestand per vergadering (blijven bewaard bij updates en verwijderen) |
 | `~/Library/Application Support/Meeting Noter/app/mcp/meetings-mcp.mjs` | MCP-server waarmee AI-assistenten uw vergaderingen lezen ([MCP.md](MCP.md)) |
+| `~/Library/Application Support/Meeting Noter/app/node/bin/node` | Meegeleverde Node.js; de Claude Desktop-koppeling gebruikt deze en bouwt nooit zelf |
 | `~/Library/Application Support/Meeting Noter/models/` | het zelfgebouwde WebGPU-spraakmodel (blijft bewaard bij updates) |
 | `~/Library/Application Support/Meeting Noter/bin/uv` | modelbouwer, alleen gebruikt om het model te maken |
 | `/Applications/Meeting Noter.app` (of `~/Applications/…`) | opent `http://localhost:3000`, biedt updates aan |

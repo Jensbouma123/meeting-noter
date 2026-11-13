@@ -9,7 +9,7 @@ import type { AssistantDeps, AssistantInfo, AssistantStatus, ConnectResult } fro
 function statusOf(file: string, deps: AssistantDeps): AssistantStatus {
   if (!fs.existsSync(path.dirname(file))) return 'not-found';
   if (!hasEntry(readDesktopConfig(file))) return 'not-connected';
-  return deps.fileExists(mcpScriptPath(deps.env)) ? 'connected' : 'needs-repair';
+  return deps.fileExists(mcpScriptPath(deps.env, { exists: deps.fileExists })) ? 'connected' : 'needs-repair';
 }
 
 export function desktopInfo(deps: AssistantDeps): AssistantInfo {

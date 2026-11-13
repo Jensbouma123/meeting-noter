@@ -6,7 +6,7 @@ async function statusOf(bin: string, deps: AssistantDeps): Promise<AssistantStat
   const { ok, stdout } = await deps.runCli(bin, ['mcp', 'list']);
   const listed = ok && stdout.split('\n').some((l) => l.trim().startsWith(`${MCP_SERVER_NAME}:`) || l.trim().startsWith(`${MCP_SERVER_NAME} `));
   if (!listed) return 'not-connected';
-  return deps.fileExists(mcpScriptPath(deps.env)) ? 'connected' : 'needs-repair';
+  return deps.fileExists(mcpScriptPath(deps.env, { exists: deps.fileExists })) ? 'connected' : 'needs-repair';
 }
 
 export async function cliInfo(id: CliAssistant, deps: AssistantDeps): Promise<AssistantInfo> {
