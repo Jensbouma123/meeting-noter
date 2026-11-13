@@ -49,3 +49,10 @@ export interface SourceState {
   recheckAfterSamples: number;
   running: boolean;
 }
+
+export interface PostedMessage {
+  type: string;
+  id: string;
+  code?: string;
+  message?: string;
+}

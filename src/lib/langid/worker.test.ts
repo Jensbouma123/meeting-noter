@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LANGID_N_SAMPLES } from './manifest';
-import { settle, type PostedMessage } from './worker-test-helpers';
+import type { PostedMessage } from './types';
+import { settle } from './worker-test-helpers';
 
 const fakes = vi.hoisted(() => ({
   load: vi.fn(),
