@@ -142,6 +142,51 @@ describe('MeetingsDb', () => {
     expect(db.get('meeting-1')?.participants).toEqual(['Noor']);
   });
 
+  it('round-trips lowConfSpans per segment; segments without them read back without the field', () => {
+    const db = openDb();
+    const base = sampleMeeting();
+    db.upsert(sampleMeeting({ segments: [{ ...base.segments[0], lowConfSpans: [[3, 9, 0.41], [12, 15, 0.5]] }, base.segments[1]] }));
+    const got = db.get('meeting-1')!;
+    expect(got.segments.find((s) => s.id === 's2')?.lowConfSpans).toEqual([[3, 9, 0.41], [12, 15, 0.5]]);
+    expect('lowConfSpans' in got.segments.find((s) => s.id === 's1')!).toBe(false);
+  });
+
+  it('migrates a v4 DB (no low_conf_spans column): old meetings still load, new spans can be saved', () => {
+    const file = path.join(tmpDir(), 'meetings.db');
+    const v4 = new MeetingsDb(file);
+    v4.upsert(sampleMeeting());
+    v4.db.exec('ALTER TABLE segments DROP COLUMN low_conf_spans; PRAGMA user_version = 4;');
+    v4.close();
+    const db = new MeetingsDb(file);
+    expect(db.db.prepare('PRAGMA user_version').get()).toEqual({ user_version: 5 });
+    expect(db.get('meeting-1')!.segments.every((s) => s.lowConfSpans === undefined)).toBe(true);
+    db.upsert(sampleMeeting({ updatedAt: Date.now(), segments: [{ ...sampleMeeting().segments[0], lowConfSpans: [[0, 2, 0.3]] }] }));
+    expect(db.get('meeting-1')!.segments[0].lowConfSpans).toEqual([[0, 2, 0.3]]);
+    db.close();
+  });
+
+  it('reads a read-only handle on a pre-v5 DB without the column', () => {
+    const file = path.join(tmpDir(), 'meetings.db');
+    const w = new MeetingsDb(file);
+    w.upsert(sampleMeeting());
+    w.db.exec('ALTER TABLE segments DROP COLUMN low_conf_spans; PRAGMA user_version = 4;');
+    w.close();
+    const r = new MeetingsDb(file, { readOnly: true });
+    expect(r.get('meeting-1')!.segments).toHaveLength(2);
+    r.close();
+  });
+
+  it('keeps well-formed lowConfSpans from HTTP input and drops malformed ones', () => {
+    const base = sampleMeeting();
+    const body = { ...base, segments: [
+      { ...base.segments[0], lowConfSpans: [[1, 4, 0.5], [5, 2, 0.5], 'x', [1, 2]] },
+      { ...base.segments[1], lowConfSpans: 'bad' },
+    ] };
+    const parsed = parseStoredMeeting(body);
+    expect(parsed?.segments[0].lowConfSpans).toEqual([[1, 4, 0.5]]);
+    expect(parsed?.segments[1].lowConfSpans).toBeUndefined();
+  });
+
   it('migrates a v1 DB straight to the current version: meetings kept, participants column and tombstones work', () => {
     const file = path.join(tmpDir(), 'meetings.db');
     const v1 = new MeetingsDb(file);
@@ -149,7 +194,7 @@ describe('MeetingsDb', () => {
     v1.db.exec('DROP TABLE deleted_meetings; DROP TABLE meta; ALTER TABLE meetings DROP COLUMN participants; PRAGMA user_version = 1;');
     v1.close();
     const db = new MeetingsDb(file);
-    expect(db.db.prepare('PRAGMA user_version').get()).toEqual({ user_version: 4 });
+    expect(db.db.prepare('PRAGMA user_version').get()).toEqual({ user_version: 5 });
     expect(db.get('meeting-1')?.participants).toBeNull();
     expect(db.search('budget').map((h) => h.id)).toEqual(['meeting-1']);
     db.upsert(sampleMeeting({ updatedAt: Date.now(), participants: ['Noor'] }));

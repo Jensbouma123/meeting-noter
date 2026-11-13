@@ -162,8 +162,9 @@ export function buildStoredMeeting(sessionId: string, now = Date.now()): StoredM
   if (autosaved && autosaved.sessionId === sessionId && (!transcript || autosaved.savedAt > transcript.savedAt)) {
     transcript = autosaved;
   }
-  const segments = (transcript?.segments ?? []).map(({ id, source, speaker, text, start, end, overlap }) => ({
+  const segments = (transcript?.segments ?? []).map(({ id, source, speaker, text, start, end, overlap, lowConfSpans }) => ({
     id, source, speaker, text, start, end, ...(overlap ? { overlap } : {}),
+    ...(lowConfSpans?.length ? { lowConfSpans } : {}),
   }));
   return {
     id: sessionId,

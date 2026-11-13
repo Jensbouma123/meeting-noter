@@ -1,4 +1,4 @@
-import type { CaptureMode, SegmentOverlap, Source, Speaker } from '../meeting/types';
+import type { CaptureMode, LowConfSpan, SegmentOverlap, Source, Speaker } from '../meeting/types';
 import type { Notes } from '../meeting/notes';
 
 /** One final transcript line as the meetings DB stores it (no word timings). */
@@ -10,6 +10,8 @@ export interface StoredSegment {
   start: number;
   end: number;
   overlap?: SegmentOverlap;
+  /** Words the model was unsure of; the D1 "Words to check" scan reads them. Absent on meetings saved before v5. */
+  lowConfSpans?: LowConfSpan[];
 }
 
 /**

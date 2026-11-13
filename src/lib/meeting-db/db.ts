@@ -20,7 +20,7 @@ import type { FolderRow, MeetingSearchHit, MeetingSummaryRow, StoredMeeting, Sto
  * so there is no native module to build per arch.
  */
 
-const SCHEMA_VERSION = 4;
+const SCHEMA_VERSION = 5;
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS meetings (
@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS segments (
   end_s REAL NOT NULL,
   text TEXT NOT NULL,
   overlap TEXT,
+  low_conf_spans TEXT,
   PRIMARY KEY (meeting_id, seq)
 );
 CREATE TABLE IF NOT EXISTS speakers (
@@ -169,6 +170,9 @@ export class MeetingsDb {
       if (!columns.includes('participants')) this.db.exec('ALTER TABLE meetings ADD COLUMN participants TEXT');
       // v4: folder_id.
       if (!columns.includes('folder_id')) this.db.exec('ALTER TABLE meetings ADD COLUMN folder_id TEXT');
+      // v5: segments.low_conf_spans (JSON); old rows stay NULL, which reads as no spans.
+      const segmentColumns = this.db.prepare('PRAGMA table_info(segments)').all().map((c) => String(c.name));
+      if (!segmentColumns.includes('low_conf_spans')) this.db.exec('ALTER TABLE segments ADD COLUMN low_conf_spans TEXT');
       this.db.exec(`PRAGMA user_version = ${SCHEMA_VERSION}`);
     }
     this.db.exec("INSERT INTO meetings_fts (meetings_fts, rank) VALUES ('secure-delete', 1)");
@@ -268,12 +272,13 @@ export class MeetingsDb {
 
       this.db.prepare('DELETE FROM segments WHERE meeting_id = ?').run(meeting.id);
       const insertSegment = this.db.prepare(
-        `INSERT INTO segments (meeting_id, seq, segment_id, source, speaker_id, start_s, end_s, text, overlap)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO segments (meeting_id, seq, segment_id, source, speaker_id, start_s, end_s, text, overlap, low_conf_spans)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       );
       segments.forEach((s, seq) => {
         insertSegment.run(meeting.id, seq, s.id, s.source, s.speaker, s.start, s.end, s.text,
-          s.overlap ? JSON.stringify(s.overlap) : null);
+          s.overlap ? JSON.stringify(s.overlap) : null,
+          s.lowConfSpans?.length ? JSON.stringify(s.lowConfSpans) : null);
       });
 
       this.db.prepare('DELETE FROM speakers WHERE meeting_id = ?').run(meeting.id);
@@ -398,6 +403,18 @@ export class MeetingsDb {
       this.db
         .prepare('UPDATE folders SET parent_id = ?, sort = ?, updated_at = ? WHERE id = ?')
         .run(parentId, this.nextSort(parentId), now, id);
+      return this.folderRow(id);
+    });
+  }
+
+  /** Put a folder at `index` among its siblings and renumber them. Throws `not-found`. */
+  reorderFolder(id: string, index: number, now = Date.now()): FolderRow {
+    return this.transaction(() => {
+      const folder = this.folderRow(id);
+      const siblings = this.listFolders().filter((f) => f.parentId === folder.parentId && f.id !== id);
+      siblings.splice(Math.max(0, Math.min(index, siblings.length)), 0, folder);
+      const update = this.db.prepare('UPDATE folders SET sort = ?, updated_at = ? WHERE id = ?');
+      siblings.forEach((f, i) => update.run(i, f.id === id ? now : f.updatedAt, f.id));
       return this.folderRow(id);
     });
   }
@@ -534,6 +551,8 @@ export class MeetingsDb {
         };
         const overlap = parseJson<StoredSegment['overlap'] | null>(s.overlap, null);
         if (overlap) seg.overlap = overlap;
+        const spans = parseJson<StoredSegment['lowConfSpans'] | null>(s.low_conf_spans, null);
+        if (spans?.length) seg.lowConfSpans = spans;
         return seg;
       });
     const speakers: Record<string, Speaker> = {};

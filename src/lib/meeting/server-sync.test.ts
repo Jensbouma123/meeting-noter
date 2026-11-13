@@ -88,6 +88,25 @@ describe('server sync', () => {
     db.close();
   });
 
+  it('persists lowConfSpans through the sync and hands them back on load', async () => {
+    const sync = await import('./server-sync');
+    await sync.startServerSync();
+    const sessions = await import('./session-store');
+    const id = sessions.persistSession({
+      title: 'Spans', speakers: {},
+      segments: [{ ...line('w1', 'we ship with framna', 0), lowConfSpans: [[13, 19, 0.4]] }, line('w2', 'sure', 3)],
+    });
+    await sync.flushServerSync();
+
+    const db = readDb();
+    expect(db.get(id)!.segments.map((s) => s.lowConfSpans)).toEqual([[[13, 19, 0.4]], undefined]);
+    db.close();
+
+    localStorage.clear();
+    expect(await sync.ensureMeetingLoaded(id)).toBe(true);
+    expect(sessions.getFullSession(id)?.segments[0].lowConfSpans).toEqual([[13, 19, 0.4]]);
+  });
+
   it('sends nothing before startServerSync', async () => {
     const { persistSession } = await import('./session-store');
     persistSession({ title: 'Quiet', segments: [line('a', 'hello', 0)], speakers: {} });

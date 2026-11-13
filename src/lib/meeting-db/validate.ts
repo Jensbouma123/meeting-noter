@@ -1,4 +1,4 @@
-import type { CaptureMode, SegmentOverlap, Source, Speaker } from '../meeting/types';
+import type { CaptureMode, LowConfSpan, SegmentOverlap, Source, Speaker } from '../meeting/types';
 import type { ActionItem, Decision, Notes } from '../meeting/notes';
 import type { StoredMeeting, StoredSegment } from './types';
 
@@ -28,6 +28,15 @@ function parseOverlap(v: unknown): SegmentOverlap | undefined {
   return { start: v.start, end: v.end, speakers: v.speakers.filter(isStr) };
 }
 
+function parseLowConfSpans(v: unknown): LowConfSpan[] | undefined {
+  if (!Array.isArray(v)) return undefined;
+  const spans = v
+    .filter((s): s is [number, number, number] => Array.isArray(s) && s.length === 3 && s.every(isNum) && s[0] >= 0 && s[1] > s[0])
+    .slice(0, 200)
+    .map(([a, b, c]): LowConfSpan => [a, b, c]);
+  return spans.length > 0 ? spans : undefined;
+}
+
 function parseSegment(v: unknown): StoredSegment | null {
   if (!isObj(v)) return null;
   if (!isStr(v.id) || !isStr(v.speaker) || !isStr(v.text) || !isNum(v.start) || !isNum(v.end)) return null;
@@ -44,6 +53,8 @@ function parseSegment(v: unknown): StoredSegment | null {
   };
   const overlap = parseOverlap(v.overlap);
   if (overlap) seg.overlap = overlap;
+  const lowConfSpans = parseLowConfSpans(v.lowConfSpans);
+  if (lowConfSpans) seg.lowConfSpans = lowConfSpans;
   return seg;
 }
 

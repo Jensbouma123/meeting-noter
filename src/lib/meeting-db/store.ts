@@ -52,6 +52,12 @@ export class MeetingStore {
     return folder;
   }
 
+  reorderFolder(id: string, index: number) {
+    const folder = this.db.reorderFolder(id, index);
+    this.rewriteAllMarkdown();
+    return folder;
+  }
+
   moveMeeting(id: string, folderId: string | null): void {
     this.db.moveMeeting(id, folderId);
     const meeting = this.db.get(id);
