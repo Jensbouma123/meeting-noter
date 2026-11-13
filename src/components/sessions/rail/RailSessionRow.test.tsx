@@ -111,3 +111,21 @@ describe('RailSessionRow leading icon', () => {
     expect(screen.queryByText('Microphone')).toBeNull();
   });
 });
+
+describe('RailSessionRow folder suggestion', () => {
+  it('shows the chip next to the meeting row and runs accept and decline', () => {
+    const onAccept = vi.fn();
+    const onDecline = vi.fn();
+    render(<RailSessionRow session={draft()} isActive={false} onOpen={noop} onClear={noop} onDelete={noop} suggestion={{ folderLabel: 'Clients / Acme', onAccept, onDecline }} />);
+    expect(screen.getByText('Standup')).toBeInTheDocument();
+    expect(screen.getByText('Suggested folder: Clients / Acme')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Move “Standup” to suggested folder/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Dismiss folder suggestion/ }));
+    expect([onAccept.mock.calls.length, onDecline.mock.calls.length]).toEqual([1, 1]);
+  });
+
+  it('shows no chip without a suggestion', () => {
+    render(row(draft()));
+    expect(screen.queryByTestId('folder-suggestion')).toBeNull();
+  });
+});

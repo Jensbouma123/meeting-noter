@@ -3,13 +3,13 @@
 ## Types (`src/lib/meeting-db/types.ts`)
 ```ts
 interface FolderRow { id: string; parentId: string | null; name: string; sort: number; createdAt: number; updatedAt: number }
-interface MeetingSummaryRow { …existing; folderId: string | null }   // list/search rows
+interface MeetingSummaryRow { …existing; folderId: string | null; folderSuggestionDeclined: string[] }   // list/search rows; the declined field is not in MCP output
 interface StoredMeeting   { …existing; folderId?: string | null }    // get() always sets it
 ```
 `StoredMeeting.folderId` on PUT: absent = keep stored filing (browser sync sends none today); `null` = unfile; unknown folder id = unfiled.
 `adoptStoredMeeting` fills `folderId` for the summary row but the browser's session index does NOT store it yet (wave 2: read it from `GET /api/meetings` rows / `GET /api/folders`).
 
-## DB (`MeetingsDb`, `src/lib/meeting-db/db.ts`, schema v4)
+## DB (`MeetingsDb`, `src/lib/meeting-db/db.ts`, schema v7)
 ```ts
 class FolderError extends Error { code: 'not-found' | 'bad-name' | 'bad-parent' | 'cycle' }
 type FolderDeleteMode = 'move-up' | 'delete-contents'
@@ -17,6 +17,7 @@ listFolders(): FolderRow[]                                   // by sort, name
 createFolder(name, parentId = null, now?, id?): FolderRow    // bad-name | bad-parent; appended last among siblings
 renameFolder(id, name, now?): FolderRow                      // not-found | bad-name
 moveFolder(id, parentId | null, now?): FolderRow             // not-found | bad-parent | cycle; appended last
+declineFolderSuggestion(meetingId, folderId): boolean        // false = unknown meeting; stored in meetings.folder_suggestion_declined (JSON array, added by the v6→v7 migration); an upsert never overwrites it
 moveMeeting(meetingId, folderId | null, now?): void          // not-found (meeting) | bad-parent (folder); bumps updated_at
 deleteFolder(id, mode, now?): { folders, meetings, markdownFiles }
 ```
@@ -30,6 +31,10 @@ Names: trimmed, whitespace collapsed, 1–200 chars. `delete-contents` deletes m
 | `PATCH /api/folders/:id` | `{name?, parentId?: string\|null}` | `{ok, folder}` | 400 bad-id/bad-name/bad-parent, 404 `not-found`, 409 `cycle` |
 | `DELETE /api/folders/:id?mode=move-up\|delete-contents` (default move-up) | – | `{ok, deleted:{folders, meetings}}` | 400 `bad-mode`, 404 |
 | `PUT /api/meetings/:id/folder` | `{folderId: string\|null}` | `{ok}` | 400 `bad-parent`, 404 `not-found` |
+| `PUT /api/meetings/:id/folder-suggestion` | `{folderId: string}` | `{ok}` | 400 `bad-id`/`bad-parent`, 404 `not-found` |
 | `GET /api/meetings`, `GET /api/meetings/:id`, `PUT /api/meetings/:id` | as before | rows/meetings carry `folderId` | |
 
 After a move/delete the affected meetings' `updatedAt` is bumped, so `pullFromServer` re-adopts them. Not touched: UI, markdown export, `src/mcp`, i18n.
+
+## Folder suggestion (unfiled meetings)
+Text only, local, computed in the browser from the stored text-index vectors (`src/lib/semantic-search/folder-suggest/`). Meeting centroid = normalized mean of its window vectors (needs >= 3 windows). Folder centroid = mean of its direct meetings' centroids (needs >= 2 indexed meetings). Suggest the nearest folder when cosine >= 0.62 and it leads the runner-up by >= 0.04; declined folders are skipped. Accept = `moveMeeting`; Decline = `PUT /api/meetings/:id/folder-suggestion`, so the meeting is never asked about that folder again. The meeting stays in the normal list.
