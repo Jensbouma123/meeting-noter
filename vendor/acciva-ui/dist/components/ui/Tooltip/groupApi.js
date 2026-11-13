@@ -1,5 +1,6 @@
 "use client";
 import { createContext } from "react";
+import { visibleRect } from "./visibleRect.js";
 /** The nearest TooltipGroup, or `null` when a Tooltip stands alone. */
 export const TooltipGroupContext = createContext(null);
 /**
@@ -15,12 +16,13 @@ export function createGroupApi(setState) {
         warm: () => bubbleRef.current !== null || Date.now() - closedAt < skipDelayRef.current,
         publish(slot) {
             const bubble = bubbleRef.current;
-            const from = bubble && last && last.owner !== slot.owner
+            const prev = bubble && last && last.owner !== slot.owner ? visibleRect(bubble) : null;
+            const from = bubble && prev
                 ? {
-                    rect: bubble.getBoundingClientRect(),
+                    rect: prev,
                     arrow: getComputedStyle(bubble).getPropertyValue("--tooltip-arrow").trim() || "50%",
                     placed: bubble.dataset.placed,
-                    content: last.content,
+                    content: last?.content,
                 }
                 : null;
             last = slot;

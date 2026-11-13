@@ -52,6 +52,7 @@ export function useTooltipMorph(
       return settle();
     }
     const end = bubble.getBoundingClientRect();
+    if (end.width <= 0 || end.height <= 0) return settle();
     bubble.setAttribute("data-morph", "from");
     s.width = px(from.rect.width);
     s.height = px(from.rect.height);

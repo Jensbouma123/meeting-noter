@@ -1,12 +1,3 @@
-.tooltip.tooltip[data-morph="to"] {
-  transition-property: opacity;
-  transition-duration: var(--motion-feedback);
-}
-
-.tooltip.tooltip[data-morph="to"] .tooltip-layer {
-  transition-duration: var(--motion-feedback);
-}
-
 @supports (anchor-name: --a) {
   .mn-tips-below .tooltip[data-side] {
     margin-block: calc(var(--spacing) * 2);
@@ -22,8 +13,5 @@
 @media (prefers-reduced-motion: reduce) {
   .mn-tips-below .tooltip[data-side] {
     transition-delay: 0ms;
-  }
-  .tooltip.tooltip[data-morph="to"] {
-    transition-duration: 0ms;
   }
 }

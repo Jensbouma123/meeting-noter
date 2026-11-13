@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, type Dispatch, type SetStateAction } from "react";
+import { visibleRect } from "@/components/ui/Tooltip/visibleRect";
 import type { TooltipGroupApi, TooltipMorphFrom, TooltipSlot } from "@/components/ui/Tooltip/types";
 
 export interface TooltipGroupState {
@@ -25,13 +26,14 @@ export function createGroupApi(setState: Dispatch<SetStateAction<TooltipGroupSta
     warm: () => bubbleRef.current !== null || Date.now() - closedAt < skipDelayRef.current,
     publish(slot) {
       const bubble = bubbleRef.current;
+      const prev = bubble && last && last.owner !== slot.owner ? visibleRect(bubble) : null;
       const from: TooltipMorphFrom | null =
-        bubble && last && last.owner !== slot.owner
+        bubble && prev
           ? {
-              rect: bubble.getBoundingClientRect(),
+              rect: prev,
               arrow: getComputedStyle(bubble).getPropertyValue("--tooltip-arrow").trim() || "50%",
               placed: bubble.dataset.placed,
-              content: last.content,
+              content: last?.content,
             }
           : null;
       last = slot;
