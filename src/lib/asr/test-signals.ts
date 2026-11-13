@@ -1,12 +1,5 @@
-/**
- * Synthetic audio for the speech gate and chunker tests (16 kHz, Float32).
- * A steady voice is what the gate must pass; the rest is what a meeting
- * microphone hears between words and must never reach the model.
- */
-
 const SR = 16_000;
 
-/** Deterministic pseudo-random numbers in [0, 1). */
 function rng(seed: number): () => number {
   let x = seed >>> 0;
   return () => {
@@ -15,8 +8,6 @@ function rng(seed: number): () => number {
   };
 }
 
-/** `length` samples of a steady 140 Hz voice at RMS `level`, from capture
- *  sample `at` (phase-continuous across frames). */
 export function voice(length: number, level: number, at = 0): Float32Array {
   const out = new Float32Array(length);
   const rmsOfShape = Math.sqrt((1 + 0.25 + 0.09) / 2);
@@ -27,7 +18,6 @@ export function voice(length: number, level: number, at = 0): Float32Array {
   return out;
 }
 
-/** White noise at RMS `level`. */
 export function noise(length: number, level: number, seed = 1): Float32Array {
   const next = rng(seed);
   const out = new Float32Array(length);
@@ -35,8 +25,6 @@ export function noise(length: number, level: number, seed = 1): Float32Array {
   return out;
 }
 
-/** Room tone at `level`, with a mouse click (a few kHz ringing for ~10 ms)
- *  every `every` samples at peak `peak`. */
 export function clicks(length: number, every: number, peak: number, seed = 2): Float32Array {
   const next = rng(seed);
   const out = noise(length, 0.001, seed);
@@ -50,7 +38,6 @@ export function clicks(length: number, every: number, peak: number, seed = 2): F
   return out;
 }
 
-/** Room tone with key presses (a low thump plus a click, ~30 ms) at `perSecond`. */
 export function typing(length: number, perSecond: number, peak: number, seed = 3): Float32Array {
   const next = rng(seed);
   const out = noise(length, 0.001, seed);
@@ -66,7 +53,6 @@ export function typing(length: number, perSecond: number, peak: number, seed = 3
   return out;
 }
 
-/** Breathing: band-limited noise swelling and fading every `period` samples. */
 export function breathing(length: number, period: number, peak: number, seed = 4): Float32Array {
   const next = rng(seed);
   const out = noise(length, 0.001, seed);
@@ -83,7 +69,6 @@ export function breathing(length: number, period: number, peak: number, seed = 4
   return out;
 }
 
-/** `audio` cut into capture frames of `frame` samples. */
 export function frames(audio: Float32Array, frame = SR / 10): Float32Array[] {
   const out: Float32Array[] = [];
   for (let i = 0; i < audio.length; i += frame) out.push(audio.subarray(i, Math.min(audio.length, i + frame)));

@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { SPEECH_GATE_SAMPLE_RATE as SR, SpeechGate, isFiller, isNoiseText, steadiness, voicing } from './speech-gate';
+import { isFiller, isNoiseText } from './noise-text';
+import { SpeechGate } from './speech-gate';
+import { SPEECH_GATE_SAMPLE_RATE as SR } from './speech-gate-constants';
+import { steadiness, voicing } from './voicing';
 import { breathing, clicks, frames, noise, typing, voice } from './test-signals';
 
 function concat(...parts: Float32Array[]): Float32Array {
@@ -12,14 +15,12 @@ function concat(...parts: Float32Array[]): Float32Array {
   return out;
 }
 
-/** Push `audio` through a fresh gate in 100 ms frames. */
 function gate(audio: Float32Array, gateIn = new SpeechGate()) {
   return frames(audio).map((f) => gateIn.push(f));
 }
 
 describe('voicing', () => {
   it('is high for a voice and low for noise', () => {
-    // One 30 ms analysis frame, decimated to 8 kHz as the gate does.
     expect(voicing(voice(480, 0.1).filter((_, i) => i % 2 === 0))).toBeGreaterThan(0.9);
     expect(voicing(noise(240, 0.1))).toBeLessThan(0.4);
     expect(voicing(new Float32Array(240))).toBe(0);
@@ -50,12 +51,9 @@ describe('speech gate', () => {
   it('lets a voice through after the minimum speech duration, keeping its onset', () => {
     const out = gate(concat(noise(SR, 0.001), voice(SR, 0.05, SR), noise(SR, 0.001)));
     const first = out.findIndex((f) => f.speech);
-    // Speech starts at frame 10 (1 s); the run needs ~300 ms before it opens.
     expect(first).toBeGreaterThanOrEqual(12);
     expect(first).toBeLessThanOrEqual(14);
-    // The frames before it are kept: the run reaches back to the onset.
     expect(out[first].runSamples).toBeGreaterThanOrEqual((first - 10) * (SR / 10));
-    // It stays open through the voice, and not past it.
     expect(out.slice(first, 20).every((f) => f.speech)).toBe(true);
     expect(out.slice(21).some((f) => f.speech)).toBe(false);
   });
@@ -63,7 +61,6 @@ describe('speech gate', () => {
   it('never opens an utterance for a voice shorter than that ("hm")', () => {
     const out = gate(concat(noise(SR, 0.001), voice(0.2 * SR, 0.05, SR), noise(2 * SR, 0.001)));
     expect(out.some((f) => f.speech)).toBe(false);
-    // It was heard as voiced, just not for long enough.
     expect(out.some((f) => f.voiced)).toBe(true);
   });
 
@@ -117,12 +114,9 @@ describe('filler and noise text', () => {
   it('drops what the model was not sure of, when it says', () => {
     expect(isNoiseText(words('Amen.', 0.3))).toBe(true);
     expect(isNoiseText(words('Amen.', 0.9))).toBe(false);
-    // One word needs more: a hum comes back as "Amen." at about 0.6 …
     expect(isNoiseText(words('Amen.', 0.6))).toBe(true);
     expect(isNoiseText(words('Two words.', 0.6))).toBe(false);
-    // … but a one-word reply is often that unsure and still real.
     expect(isNoiseText(words('Yeah.', 0.55))).toBe(false);
-    // Without confidences, text alone decides.
     expect(isNoiseText(words('Amen.'))).toBe(false);
   });
 });
