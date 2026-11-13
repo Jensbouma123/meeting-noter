@@ -20,23 +20,6 @@ const box = (n: string) => screen.getByRole('checkbox', { name: n });
 const search = () => screen.getByLabelText('Search people') as HTMLInputElement;
 const seed = () => setParticipants('old', ['Anna', 'Piet', 'Sam', 'Els', 'Bram']);
 
-beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ParticipantsDialog } from './ParticipantsDialog';
-import { setParticipants } from '@/lib/meeting/participants';
-import { LanguageContext } from '@/lib/i18n/LanguageContext';
-
-function show(over: Partial<React.ComponentProps<typeof ParticipantsDialog>> = {}) {
-  const onSkip = vi.fn();
-  const onStart = vi.fn();
-  render(
-    <LanguageContext.Provider value="en">
-      <ParticipantsDialog ownerName="Jens" initial={[]} onSkip={onSkip} onStart={onStart} {...over} />
-    </LanguageContext.Provider>,
-  );
-  return { onSkip, onStart };
-}
-const field = () => screen.getByLabelText('Add a name') as HTMLInputElement;
-
 beforeAll(() => {
   HTMLDialogElement.prototype.showModal ||= function (this: HTMLDialogElement) { this.setAttribute('open', ''); };
   HTMLDialogElement.prototype.close ||= function (this: HTMLDialogElement) { this.removeAttribute('open'); };
