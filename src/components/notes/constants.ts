@@ -1,0 +1,1 @@
+export const CHIP = 'inline-flex max-w-full min-w-0 items-center gap-1 rounded-full border border-border-subtle px-2 py-0.5 text-xs text-muted-foreground hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-offset-1';
