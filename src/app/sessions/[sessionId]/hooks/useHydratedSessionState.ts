@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { DEFAULT_SETTINGS, loadSettings, loadSavedTitle, type AppSettings } from '@/components/meeting';
-import { getSessionMetadata } from '@/lib/meeting/session-store';
+import { getSessionMetadata } from '@/lib/meeting/session-open';
 import { loadAutosavedSession } from '@/lib/meeting/autosave';
 import { type AutosavedSession } from '@/lib/meeting/types/autosave';
 

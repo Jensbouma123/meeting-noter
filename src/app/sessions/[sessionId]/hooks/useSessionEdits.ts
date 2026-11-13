@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { saveSettings, saveTitle, type AppSettings } from '@/components/meeting';
-import { renameSession } from '@/lib/meeting/session-store';
+import { renameSession } from '@/lib/meeting/session-crud';
 import type { CaptureMode } from '@/lib/meeting';
 import type { SessionEditsParams } from '../types';
 

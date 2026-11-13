@@ -1,9 +1,9 @@
 import fs from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { POST } from './route';
-import { env, filesIn, postJson, useBenchTempDirs } from './testSupport';
+import { env, filesIn, postJson, registerBenchTempDirs } from './testSupport';
 
-const tmpDir = useBenchTempDirs();
+const tmpDir = registerBenchTempDirs();
 
 describe('POST body limits', () => {
   it('rejects an oversized declared content-length before reading the body', async () => {

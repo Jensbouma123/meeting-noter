@@ -5,9 +5,9 @@ import { sampleMeeting } from '@/lib/meeting-db/test-meeting';
 import { DELETE as removeAll, GET as list } from './route';
 import { DELETE as remove, GET as get, PUT as put } from './[id]/route';
 import { POST as importMeetings } from './import/route';
-import { LOCAL, dataDirFiles, idContext, rawRequest, useTempDataDir } from './testHelpers';
+import { LOCAL, dataDirFiles, idContext, rawRequest, registerTempDataDir } from './testHelpers';
 
-const data = useTempDataDir('meetings-guards-');
+const data = registerTempDataDir('meetings-guards-');
 
 describe('Host/Origin on every meetings handler', () => {
   const m = sampleMeeting();

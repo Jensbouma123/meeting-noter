@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getTranscriptSessionId } from '@/lib/meeting/transcript-session';
 import { loadIdleSession } from '@/lib/meeting/session-reset';
-import { sessionExists, openSession } from '@/lib/meeting/session-store';
+import { sessionExists, openSession } from '@/lib/meeting/session-open';
 import { ensureMeetingLoaded } from '@/lib/meeting/meeting-loader';
 
 export function useOtherRecordingGuard(initialSessionId?: string): boolean {

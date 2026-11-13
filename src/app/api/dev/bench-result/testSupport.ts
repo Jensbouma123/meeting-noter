@@ -11,7 +11,7 @@ export const CHROME_UA =
 
 export const env = process.env as Record<string, string | undefined>;
 
-export function useBenchTempDirs() {
+export function registerBenchTempDirs() {
   const dirs: string[] = [];
   const previous = { node: env.NODE_ENV, dir: env.ASR_BENCH_RESULT_DIR };
   afterEach(() => {

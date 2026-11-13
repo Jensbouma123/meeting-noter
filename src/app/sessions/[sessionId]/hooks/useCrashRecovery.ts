@@ -4,7 +4,7 @@ import { saveTitle } from '@/components/meeting';
 import { useT } from '@/lib/i18n/useT';
 import { restoreSnapshot } from '@/lib/meeting/session-reset';
 import { bindTranscriptSession, getTranscriptSessionId } from '@/lib/meeting/transcript-session';
-import { renameSession } from '@/lib/meeting/session-store';
+import { renameSession } from '@/lib/meeting/session-crud';
 import { fillTemplate } from '../fillTemplate';
 import type { CrashRecoveryParams } from '../types';
 

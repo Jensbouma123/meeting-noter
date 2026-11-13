@@ -9,7 +9,7 @@ export const LOCAL = { host: 'localhost:3000' };
 
 export const idContext = (id: string) => ({ params: Promise.resolve({ id }) });
 
-export function useTempDataDir(prefix: string) {
+export function registerTempDataDir(prefix: string) {
   const data = { dir: '' };
   const previousDir = env.MEETING_NOTER_DATA_DIR;
   beforeEach(() => {

@@ -11,10 +11,10 @@ import {
   lastSettings,
   recordConsent,
   setEntries,
-  useOnboardingTestEnv,
+  registerOnboardingTestEnv,
 } from './OnboardingDialog.testSupport';
 
-useOnboardingTestEnv();
+registerOnboardingTestEnv();
 
 const clickContinue = () => fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
 

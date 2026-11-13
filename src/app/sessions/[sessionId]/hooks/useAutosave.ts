@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { getTranscriptSessionId } from '@/lib/meeting/transcript-session';
-import { getSessionMetadata } from '@/lib/meeting/session-store';
+import { getSessionMetadata } from '@/lib/meeting/session-open';
 import { scheduleAutosave } from '@/lib/meeting/autosave';
 import type { AutosaveParams } from '../types';
 

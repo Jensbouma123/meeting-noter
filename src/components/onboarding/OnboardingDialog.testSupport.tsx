@@ -61,7 +61,7 @@ export const entry = (status: string) => ({
 
 export const lastSettings = { current: DEFAULT_SETTINGS as AppSettings };
 
-export function useOnboardingTestEnv() {
+export function registerOnboardingTestEnv() {
   beforeEach(() => {
     localStorage.clear();
     window.history.pushState({}, '', '/');

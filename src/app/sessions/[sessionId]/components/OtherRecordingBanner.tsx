@@ -1,7 +1,7 @@
 import { Alert } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { getTranscriptSessionId } from '@/lib/meeting/transcript-session';
-import { getSessionMetadata } from '@/lib/meeting/session-store';
+import { getSessionMetadata } from '@/lib/meeting/session-open';
 import { fillTemplate } from '../fillTemplate';
 
 export function OtherRecordingBanner() {

@@ -4,9 +4,9 @@ import { describe, expect, it } from 'vitest';
 import { markdownFileName } from '@/lib/meeting-db/markdown';
 import { sampleMeeting } from '@/lib/meeting-db/test-meeting';
 import { DELETE as remove, GET as get, PUT as put } from './[id]/route';
-import { LOCAL, dataDirFiles, idContext, rawRequest, useTempDataDir } from './testHelpers';
+import { LOCAL, dataDirFiles, idContext, rawRequest, registerTempDataDir } from './testHelpers';
 
-const data = useTempDataDir('meetings-guards-');
+const data = registerTempDataDir('meetings-guards-');
 
 describe('meeting ids never reach a path', () => {
   const bad = ['..', '../x', '..%2Fx', 'a/b', 'a\\b', '/etc/passwd', 'C:\\x', 'a\0b', 'a b', '.', '', 'x'.repeat(101), 'é'];

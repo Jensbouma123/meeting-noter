@@ -4,9 +4,9 @@ import { describe, expect, it } from 'vitest';
 import { sampleMeeting } from '@/lib/meeting-db/test-meeting';
 import { GET as list } from './route';
 import { GET as get, PUT as put } from './[id]/route';
-import { idContext, jsonRequest, localRequest, useTempDataDir } from './testHelpers';
+import { idContext, jsonRequest, localRequest, registerTempDataDir } from './testHelpers';
 
-const data = useTempDataDir('meetings-api-');
+const data = registerTempDataDir('meetings-api-');
 
 describe('/api/meetings', () => {
   it('stores a meeting with PUT, reads it back, lists and searches it', async () => {

@@ -8,10 +8,10 @@ import {
   OnboardingDialogHarness as OnboardingDialog,
   entry,
   setEntries,
-  useOnboardingTestEnv,
+  registerOnboardingTestEnv,
 } from './OnboardingDialog.testSupport';
 
-useOnboardingTestEnv();
+registerOnboardingTestEnv();
 
 describe('OnboardingDialog visibility', () => {
   it('shows on first run with the welcome step', () => {

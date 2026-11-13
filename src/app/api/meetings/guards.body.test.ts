@@ -6,9 +6,9 @@ import { sampleMeeting } from '@/lib/meeting-db/test-meeting';
 import { GET as list } from './route';
 import { PUT as put } from './[id]/route';
 import { POST as importMeetings } from './import/route';
-import { LOCAL, dataDirFiles, env, idContext, meetingsUrl, rawRequest, useTempDataDir } from './testHelpers';
+import { LOCAL, dataDirFiles, env, idContext, meetingsUrl, rawRequest, registerTempDataDir } from './testHelpers';
 
-const data = useTempDataDir('meetings-guards-');
+const data = registerTempDataDir('meetings-guards-');
 
 describe('body checks', () => {
   const putMeetingBody = (headers: Record<string, string>, body: string) => {

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useRecordingControls } from './useRecordingControls';
 import { useStartInSession } from './useStartInSession';
 import { useStartRecording } from './useStartRecording';
@@ -10,11 +10,10 @@ export function useRecordingFlow(params: RecordingFlowParams) {
   const [langOverride, setLangOverride] = useState<string | null>(null);
   const [targetPrompt, setTargetPrompt] = useState<TargetPrompt | null>(null);
   const [participantsPrompt, setParticipantsPrompt] = useState(false);
-  const participantsAnswered = useRef(false);
 
-  const startRecording = useStartRecording({
+  const { startRecording, markParticipantsAnswered } = useStartRecording({
     initialSessionId, settings, modelReady, modelReadiness, status, title,
-    participantsAnswered, setTargetPrompt, setParticipantsPrompt, setLangOverride, setResumeCandidate,
+    setTargetPrompt, setParticipantsPrompt, setLangOverride, setResumeCandidate,
   });
   const startInSession = useStartInSession({
     initialSessionId, settings, setTitle, setTargetPrompt, setLangOverride, setResumeCandidate,
@@ -22,7 +21,7 @@ export function useRecordingFlow(params: RecordingFlowParams) {
   const controls = useRecordingControls(setLangOverride);
 
   const answerParticipants = () => {
-    participantsAnswered.current = true;
+    markParticipantsAnswered();
     setParticipantsPrompt(false);
     void startRecording();
   };

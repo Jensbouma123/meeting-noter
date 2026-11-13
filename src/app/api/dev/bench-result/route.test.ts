@@ -2,9 +2,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { POST } from './route';
-import { SAFARI_UA, env, filesIn, postJson, useBenchTempDirs } from './testSupport';
+import { SAFARI_UA, env, filesIn, postJson, registerBenchTempDirs } from './testSupport';
 
-const tmpDir = useBenchTempDirs();
+const tmpDir = registerBenchTempDirs();
 
 describe('POST', () => {
   it('writes one file per run and reports where it went', async () => {

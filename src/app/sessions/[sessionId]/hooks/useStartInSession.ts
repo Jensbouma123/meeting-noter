@@ -6,7 +6,7 @@ import { sessionPath } from '@/lib/session-path';
 import { useT } from '@/lib/i18n/useT';
 import { cancelAppend } from '@/lib/meeting/append-mode';
 import { getState } from '@/lib/meeting/store-core';
-import { startRecordingInSession } from '@/lib/meeting/session-store';
+import { startRecordingInSession } from '@/lib/meeting/session-recording';
 import { buildStartOptions } from '../buildStartOptions';
 import { markSessionActive } from '../markSessionActive';
 import type { StartInSessionParams } from '../types';

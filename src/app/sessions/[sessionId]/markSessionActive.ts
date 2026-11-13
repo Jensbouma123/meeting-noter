@@ -1,4 +1,4 @@
-import { unmarkDraft, setSessionCaptureMode } from '@/lib/meeting/session-store';
+import { unmarkDraft, setSessionCaptureMode } from '@/lib/meeting/session-crud';
 import type { AppSettings } from '@/components/meeting';
 
 export const markSessionActive = (sessionId: string | undefined, mode: AppSettings['mode']) => {

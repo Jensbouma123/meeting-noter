@@ -1,4 +1,4 @@
-import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import type { AppSettings } from '@/components/meeting';
 import type { AutosavedSession } from '@/lib/meeting/types/autosave';
 import type { getPostStopTranscriptionProgress, Segment, Speaker } from '@/lib/meeting';
@@ -27,7 +27,6 @@ export interface StartRecordingParams {
   modelReadiness: ModelReadiness;
   status: MeetingStatus;
   title: string;
-  participantsAnswered: MutableRefObject<boolean>;
   setTargetPrompt: Dispatch<SetStateAction<TargetPrompt | null>>;
   setParticipantsPrompt: Dispatch<SetStateAction<boolean>>;
   setLangOverride: Dispatch<SetStateAction<string | null>>;

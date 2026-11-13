@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useToast } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
-import { clearSessionTranscript } from '@/lib/meeting/session-store';
+import { clearSessionTranscript } from '@/lib/meeting/session-delete';
 
 export function useClearTranscript(initialSessionId?: string) {
   const t = useT('meeting');

@@ -1,14 +1,10 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { meeting } from '@/components/meeting';
 import { promptBrowserASRDownload } from '@/lib/meeting';
 import { bindTranscriptSession, getTranscriptSessionId } from '@/lib/meeting/transcript-session';
 import { getState } from '@/lib/meeting/store-core';
-import {
-  persistSession,
-  archiveAutosavedSession,
-  getSessionMetadata,
-  sessionHasTranscript,
-} from '@/lib/meeting/session-store';
+import { persistSession } from '@/lib/meeting/session-crud';
+import { archiveAutosavedSession, getSessionMetadata, sessionHasTranscript } from '@/lib/meeting/session-open';
 import { clearAutosavedSession, flushAutosave } from '@/lib/meeting/autosave';
 import { getClientSessionId } from '@/lib/meeting/client-session-id';
 import { hasAskedParticipants } from '@/lib/meeting/participants';
@@ -52,14 +48,14 @@ export function useStartRecording(params: StartRecordingParams) {
     modelReadiness,
     status,
     title,
-    participantsAnswered,
     setTargetPrompt,
     setParticipantsPrompt,
     setLangOverride,
     setResumeCandidate,
   } = params;
+  const participantsAnswered = useRef(false);
 
-  return useCallback(async () => {
+  const startRecording = useCallback(async () => {
     if (!modelReady) {
       if (modelReadiness !== 'loading' && modelReadiness !== 'downloading') {
         promptBrowserASRDownload();
@@ -100,10 +96,15 @@ export function useStartRecording(params: StartRecordingParams) {
     initialSessionId,
     status,
     title,
-    participantsAnswered,
     setTargetPrompt,
     setParticipantsPrompt,
     setLangOverride,
     setResumeCandidate,
   ]);
+
+  const markParticipantsAnswered = useCallback(() => {
+    participantsAnswered.current = true;
+  }, []);
+
+  return { startRecording, markParticipantsAnswered };
 }

@@ -2,7 +2,8 @@ import { useCallback } from 'react';
 import { meeting } from '@/components/meeting';
 import { getState } from '@/lib/meeting/store-core';
 import { getTranscriptSessionId } from '@/lib/meeting/transcript-session';
-import { persistSession, getSessionMetadata } from '@/lib/meeting/session-store';
+import { persistSession } from '@/lib/meeting/session-crud';
+import { getSessionMetadata } from '@/lib/meeting/session-open';
 import { flushAutosave } from '@/lib/meeting/autosave';
 
 const persistFinalTranscript = () => {

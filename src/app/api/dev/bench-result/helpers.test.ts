@@ -7,9 +7,9 @@ import {
   slug,
   variantFromPayload,
 } from './helpers';
-import { CHROME_UA, SAFARI_UA, env, useBenchTempDirs } from './testSupport';
+import { CHROME_UA, SAFARI_UA, env, registerBenchTempDirs } from './testSupport';
 
-useBenchTempDirs();
+registerBenchTempDirs();
 
 describe('slug', () => {
   it('keeps only filename-safe characters, bounded and lowercase', () => {

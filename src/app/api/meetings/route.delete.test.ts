@@ -6,9 +6,9 @@ import { meetingStore } from '@/lib/meeting-db/store';
 import { DELETE as removeAll, GET as list } from './route';
 import { DELETE as remove, GET as get, PUT as put } from './[id]/route';
 import { POST as importMeetings } from './import/route';
-import { idContext, jsonRequest, localRequest, useTempDataDir } from './testHelpers';
+import { idContext, jsonRequest, localRequest, registerTempDataDir } from './testHelpers';
 
-const data = useTempDataDir('meetings-api-');
+const data = registerTempDataDir('meetings-api-');
 
 describe('/api/meetings deletion', () => {
   it('deletes a meeting and its Markdown file', async () => {
