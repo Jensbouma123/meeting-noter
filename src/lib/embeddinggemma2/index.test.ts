@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import { EG2_DIM, EG2_MAX_AUDIO_SECONDS, createEmbeddingGemma2 } from './index';
+import { EG2_DIM, EG2_MAX_AUDIO_SECONDS } from './constants';
+import { createEmbeddingGemma2 } from './index';
 
-/** Fake transformers.js: records every load and returns deterministic 768-d outputs. */
 function fakeTransformers(
   outputFor: (rows: number) => { data: Float32Array; dim: number } = (rows) => {
     const data = new Float32Array(rows * EG2_DIM);
-    for (let i = 0; i < rows; i++) data[i * EG2_DIM] = 3 + i; // non-unit on purpose
+    for (let i = 0; i < rows; i++) data[i * EG2_DIM] = 3 + i;
     return { data, dim: EG2_DIM };
   },
 ) {

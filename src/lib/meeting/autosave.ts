@@ -19,16 +19,21 @@ function transcriptChanged(a: AutosavedSession | null, b: AutosavedSession | nul
   return JSON.stringify([a.segments, a.speakers]) !== JSON.stringify([b.segments, b.speakers]);
 }
 
-export function saveAutosavedSession(input: AutosaveInput): void {
-  if (!isStorageAvailable()) return;
+function writeAutosaveSlot(input: AutosaveInput): boolean {
   try {
     const snapshot = sanitizeSnapshot(input);
-    if (!snapshot) return;
-    if (snapshot.segments.length === 0) return;
+    if (!snapshot) return false;
+    if (snapshot.segments.length === 0) return false;
     window.localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(snapshot));
   } catch {
-    return;
+    return true;
   }
+  return true;
+}
+
+export function saveAutosavedSession(input: AutosaveInput): void {
+  if (!isStorageAvailable()) return;
+  if (!writeAutosaveSlot(input)) return;
   const before = isCaptureActive() ? undefined : loadSessionTranscript(input.sessionId);
   saveSessionTranscript(input);
   if (before !== undefined && transcriptChanged(before, loadSessionTranscript(input.sessionId))) {

@@ -12,6 +12,11 @@ export interface LangIdPrediction {
   confidence: number;
 }
 
+export interface Detection {
+  code: string;
+  confidence: number;
+}
+
 export type DownloadProgressHandler = (loaded: number, total: number, file: string) => void;
 
 export interface LanguageResult {

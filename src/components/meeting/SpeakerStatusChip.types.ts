@@ -1,5 +1,5 @@
 import type { DiarizationStatus } from '@/lib/meeting/types';
-import type { SettingsSectionId } from '@/components/settings/sections';
+import type { SettingsSectionId } from '@/components/settings/types';
 
 export interface SpeakerStatusChipProps {
   status: DiarizationStatus | undefined;

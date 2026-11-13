@@ -1,5 +1,5 @@
 import { ASR_SUPPORTED_LANGUAGES } from './languages';
-import type { LangIdPrediction } from './types';
+import type { Detection, LangIdPrediction } from './types';
 
 export const MIN_SPEECH_SAMPLES = 3 * 16_000;
 export const MIN_CONFIDENCE = 0.5;
@@ -7,11 +7,6 @@ export const SWITCH_CONFIDENCE = 0.8;
 
 export function pickSupportedLanguage(predictions: readonly LangIdPrediction[]): LangIdPrediction | undefined {
   return predictions.find((p) => ASR_SUPPORTED_LANGUAGES.has(p.code));
-}
-
-export interface Detection {
-  code: string;
-  confidence: number;
 }
 
 export function createLanguageSwitcher() {

@@ -1,15 +1,7 @@
 import { useEffect, useRef, useState, type DragEvent } from 'react';
 import { AUTO_EXPAND_DELAY_MS, FOLDER_MIME } from './constants';
 import { draggableProps, readDragItem } from './dragData';
-import type { FolderController } from './types';
-
-interface FolderRowDropInput {
-  folderId: string;
-  controller: FolderController;
-  expanded: boolean;
-  hasContent: boolean;
-  onToggle: (id: string) => void;
-}
+import type { FolderRowDropInput } from './types';
 
 export function useFolderRowDrop({ folderId, controller, expanded, hasContent, onToggle }: FolderRowDropInput) {
   const [over, setOver] = useState(false);

@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import type { SettingsSectionId } from '@/components/settings/sections';
+import type { SettingsSectionId } from '@/components/settings/types';
 
 export function useSettingsDialog() {
   const [settingsOpen, setSettingsOpen] = useState(false);

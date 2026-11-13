@@ -1,5 +1,5 @@
 import type { BrowserASRPhase } from '@/lib/asr/browser/types';
-import type { SettingsSectionId } from '@/components/settings/sections';
+import type { SettingsSectionId } from '@/components/settings/types';
 import type { BannerKind, PostStopProgress } from '../types';
 
 export interface MeetingBannersProps {

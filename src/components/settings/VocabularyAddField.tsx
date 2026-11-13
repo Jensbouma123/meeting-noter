@@ -1,23 +1,14 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { Button, HStack, Input, Text, VStack } from '@jensbouma123/acciva-ui';
 import { Plus } from 'lucide-react';
 import { useT } from '@/lib/i18n/useT';
 import { addVocabularyEntries } from '@/lib/vocabulary/store';
 import { parseWordList } from '@/lib/vocabulary/parse-word-list';
+import { vocabularyFill, vocabularyWordCount } from './vocabularyText';
+import type { VocabularyAddFieldProps } from './types';
 
-export const vocabularyFill = (text: string, values: Record<string, string | number>) =>
-  text.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key] ?? ''));
-
-export const vocabularyWordCount = (t: (key: string) => string, n: number) =>
-  n === 1 ? t('vocab.one') : vocabularyFill(t('vocab.many'), { n });
-
-/**
- * The "add words" field shared by the Vocabulary tab and onboarding: Enter
- * adds, commas split, and a status line says what was added. `children` sit
- * beside the Add button (the tab puts its import/export menu there).
- */
 export function VocabularyAddField({
   id,
   children,
@@ -25,14 +16,7 @@ export function VocabularyAddField({
   onNotice,
   placeholder,
   onAdded,
-}: {
-  id: string;
-  children?: ReactNode;
-  notice?: string | null;
-  onNotice?: (notice: string | null) => void;
-  placeholder?: string;
-  onAdded?: (words: string[]) => void;
-}) {
+}: VocabularyAddFieldProps) {
   const t = useT('settings');
   const [draft, setDraft] = useState('');
   const [ownNotice, setOwnNotice] = useState<string | null>(null);

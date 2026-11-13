@@ -1,17 +1,14 @@
 'use client';
 
 import { Select } from '@jensbouma123/acciva-ui';
-import type { AppSettings } from '@/components/meeting/types';
 import { useT } from '@/lib/i18n/useT';
+import type { SettingsSectionProps } from './types';
 import { SettingsGroup, SettingsRow } from './SettingsRow';
 
 export function TranscriptionSection({
   settings,
   onSettingsChange,
-}: {
-  settings: AppSettings;
-  onSettingsChange: (settings: AppSettings) => void;
-}) {
+}: SettingsSectionProps) {
   const t = useT('settings');
   const languageOptions = [
     { value: 'auto', label: t('autoDetect') },

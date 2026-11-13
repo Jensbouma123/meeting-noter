@@ -8,8 +8,8 @@ import {
   DEFAULT_SETTINGS_SECTION,
   loadLastSettingsSection,
   saveLastSettingsSection,
-  type SettingsSectionId,
 } from '@/components/settings/sections';
+import type { SettingsSectionId } from '@/components/settings/types';
 import { GeneralSection } from '@/components/settings/GeneralSection';
 import { AdvancedSection } from '@/components/settings/AdvancedSection';
 import { VocabularySection } from '@/components/settings/VocabularySection';

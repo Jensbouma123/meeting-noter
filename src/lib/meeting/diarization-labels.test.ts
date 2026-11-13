@@ -31,15 +31,11 @@ describe('diarization bridge — provisional labels', () => {
 
   async function wired(sources: ('mic' | 'system')[]) {
     const m = await consentedAndCached();
-    const asr = await import('./asr/speaker');
+    const { asrState } = await import('./asr/state');
     const { publishLiveUpdate } = await import('./speaker-attribution');
-    const timeline = vi.spyOn(asr, 'setSpeakerTimeline');
-    const labeler = vi.spyOn(asr, 'setSpeakerLabeler');
     m.bridge.startDiarization(sources);
-    const tl = timeline.mock.calls.at(-1)![0]!;
-    const label = labeler.mock.calls.at(-1)![0]!;
-    timeline.mockRestore();
-    labeler.mockRestore();
+    const tl = asrState.speakerTimeline!;
+    const label = asrState.speakerLabeler;
     const publish = (source: 'mic' | 'system', u: ReturnType<typeof update>) =>
       publishLiveUpdate(source, u, tl, () => label(source, new Float32Array(0)));
     const line = () => m.store.getState().segments.map((s) => [s.id, s.speaker]);

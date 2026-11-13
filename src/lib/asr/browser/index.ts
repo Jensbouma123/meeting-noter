@@ -1,6 +1,7 @@
 export { BrowserASREngine } from './parakeet';
-export { createBrowserASREngine, type AsrEngine } from './engine-client';
+export { createBrowserASREngine } from './engine-client';
 export type {
+  AsrEngine,
   BrowserASRConfig,
   BrowserASREvents,
   BrowserASRLoadProgress,

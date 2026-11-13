@@ -1,24 +1,3 @@
-/**
- * `POST /api/dev/bench-result` — the sink a `/dev/asr-bench` run posts itself to.
- *
- * Why this exists: safaridriver cannot open a session on this Mac (`POST /session`
- * → `500 session not created: The session timed out while connecting to a Safari
- * instance`), so the bench runs without any WebDriver: a human opens one chained
- * URL in Safari, the page runs each variant and POSTs the very same JSON it
- * renders into `#bench-result` here. `scripts/asr-bench-score.mjs` then reads the
- * files from disk and scores WER offline. The **absence** of a file is the crash
- * signal — a tab that dies mid-run never gets to post.
- *
- * One file per POST: `<variant>-<browser>-<timestamp>.json` under
- * `<repo>/../test-audio/bench-results/`, so a retried or repeated run adds rows
- * instead of overwriting the evidence of the previous one.
- *
- * Dev-only by construction: in a production build this handler 404s, so the
- * route cannot become a write-anywhere endpoint in a deployed app. It also only
- * ever writes inside the bench directory (`join` + sanitised components), never
- * to a path taken from the request body.
- */
-
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { readJson } from '@/lib/meeting-db/http';
@@ -26,25 +5,20 @@ import { refuseForeign } from '@/lib/lifecycle/request-guard';
 import { benchResultsDir, disambiguate, resultFileName } from './helpers';
 
 export const runtime = 'nodejs';
-/** Never cache: every POST writes a distinct file. */
 export const dynamic = 'force-dynamic';
 
-/** Refuse absurd bodies (a 5-minute transcript is a few KB; this is a backstop). */
 const MAX_BODY_BYTES = 1_000_000;
+const MAX_FILENAME_ATTEMPTS = 100;
+
+const errorMessage = (err: unknown): string => (err instanceof Error ? err.message : String(err));
 
 export async function POST(request: Request): Promise<Response> {
-  // Read at request time (not module scope) so this stays testable and honest
-  // if NODE_ENV is set after the module is evaluated.
   if (process.env.NODE_ENV === 'production') {
     return new Response('Not found', { status: 404 });
   }
 
-  // Dev-only, but any page in the browser can fire a CORS-simple POST here, and a
-  // DNS-rebinding page can reach it under a foreign Host: refuse both, and oversized
-  // bodies, before reading anything.
   const refused = refuseForeign(request);
   if (refused) return refused;
-  // readJson counts bytes while streaming: past the cap it cancels the body and answers 413.
   const body = await readJson(request, MAX_BODY_BYTES);
   if (!body.ok) return body.response;
   const parsed = body.value;
@@ -63,15 +37,13 @@ export async function POST(request: Request): Promise<Response> {
     await mkdir(dir, { recursive: true });
   } catch (err) {
     return Response.json(
-      { ok: false, error: `could not create ${dir}: ${err instanceof Error ? err.message : String(err)}` },
+      { ok: false, error: `could not create ${dir}: ${errorMessage(err)}` },
       { status: 500 },
     );
   }
 
-  // `wx` = create-or-fail, so two POSTs in the same millisecond cannot clobber
-  // each other; the loser retries under the next free name.
   let file = null;
-  for (let nth = 0; nth < 100; nth++) {
+  for (let nth = 0; nth < MAX_FILENAME_ATTEMPTS; nth++) {
     const candidate = nth === 0 ? name : disambiguate(name, nth);
     try {
       await writeFile(path.join(dir, candidate), serialize(candidate), { encoding: 'utf8', flag: 'wx' });
@@ -80,10 +52,7 @@ export async function POST(request: Request): Promise<Response> {
     } catch (err) {
       if ((err as NodeJS.ErrnoException)?.code === 'EEXIST') continue;
       return Response.json(
-        {
-          ok: false,
-          error: `could not write ${dir}: ${err instanceof Error ? err.message : String(err)}`,
-        },
+        { ok: false, error: `could not write ${dir}: ${errorMessage(err)}` },
         { status: 500 },
       );
     }

@@ -8,19 +8,16 @@ import { isCaptureActive } from '@/lib/meeting/store';
 import { deleteSession, listSessions, sweepMeetingStorage } from '@/lib/meeting/session-store';
 import { deleteAllOnServer } from '@/lib/meeting/server-sync';
 import { getTranscriptSessionId } from '@/lib/meeting/store';
-import type { AppSettings } from '@/components/meeting/types';
 import { getPersistentStorageStatus, requestPersistentStorage } from '@/lib/meeting/persistent-storage';
 import { RETENTION_OPTIONS, parseRetention, purgeExpiredSessions } from '@/lib/meeting/retention';
 import { useT } from '@/lib/i18n/useT';
+import type { SettingsSectionProps } from './types';
 import { SettingsGroup, SettingsRow } from './SettingsRow';
 
 export function StorageSection({
   settings,
   onSettingsChange,
-}: {
-  settings: AppSettings;
-  onSettingsChange: (settings: AppSettings) => void;
-}) {
+}: SettingsSectionProps) {
   const t = useT('settings');
   const { toast } = useToast();
   const [sessionCount, setSessionCount] = useState(() => listSessions().length);
@@ -35,29 +32,25 @@ export function StorageSection({
     };
   }, []);
 
-  const protect = async () => {
+  const requestStorageProtection = async () => {
     setPersisted(await requestPersistentStorage());
   };
 
   const changeRetention = (value: string) => {
     const retention = parseRetention(value);
     onSettingsChange({ ...settings, retention });
-    // Apply right away so shortening the period is not a surprise at next start.
     if (purgeExpiredSessions(retention) > 0) {
       setSessionCount(listSessions().length);
       window.dispatchEvent(new Event('mn:sessions-changed'));
     }
   };
 
-  const clearAll = () => {
-    // deleteSession refuses the meeting being recorded; keep it (and its autosave).
+  const deleteAllMeetings = () => {
     for (const session of listSessions()) {
       deleteSession(session.sessionId);
     }
     if (!isCaptureActive()) clearAutosavedSession();
-    // Orphans no index entry points to, then the server's copies (DB rows, search index, Markdown files).
     sweepMeetingStorage(isCaptureActive() ? getTranscriptSessionId() : null);
-    // While recording, the open meeting must stay storable: the per-meeting deletes queued above cover the rest.
     if (!isCaptureActive()) void deleteAllOnServer();
     const remaining = listSessions().length;
     setSessionCount(remaining);
@@ -114,7 +107,7 @@ export function StorageSection({
           }
           control={
             persisted === false ? (
-              <Button variant="secondary" size={{ base: 'md', md: 'sm' }} onClick={protect} className="max-sm:w-full">
+              <Button variant="secondary" size={{ base: 'md', md: 'sm' }} onClick={requestStorageProtection} className="max-sm:w-full">
                 {t('protectNow')}
               </Button>
             ) : null
@@ -125,7 +118,7 @@ export function StorageSection({
       <ConfirmDialog
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
-        onConfirm={clearAll}
+        onConfirm={deleteAllMeetings}
         title={t('deleteAllMeetingsTitle')}
         description={t('deleteAllMeetingsDescription')}
         confirmText={t('deleteAllMeetings')}

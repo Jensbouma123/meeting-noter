@@ -1,4 +1,4 @@
-import type { SettingsSectionId } from '@/components/settings/sections';
+import type { SettingsSectionId } from '@/components/settings/types';
 import type { AppSettings } from './types';
 
 export interface SettingsSheetProps {

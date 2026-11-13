@@ -1,6 +1,6 @@
 import type { AppSettings } from '@/components/meeting';
 import type { deriveModelProgress } from '@/components/meeting/modelProgress';
-import type { SettingsSectionId } from '@/components/settings/sections';
+import type { SettingsSectionId } from '@/components/settings/types';
 import type { CaptureMode, Segment, Speaker } from '@/lib/meeting';
 import type { MeetingStatus, ModelReadiness } from '../types';
 

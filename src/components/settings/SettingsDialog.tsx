@@ -1,26 +1,11 @@
 'use client';
 
-import type { ReactNode } from 'react';
 import { Badge, Heading, Modal, ScrollView, Tab, TabList, TabPanel, Tabs, VStack } from '@jensbouma123/acciva-ui';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useT } from '@/lib/i18n/useT';
-import { SETTINGS_SECTIONS, type SettingsSectionId } from './sections';
+import { SETTINGS_SECTIONS } from './sections';
+import type { SettingsDialogProps, SettingsSectionId } from './types';
 
-interface SettingsDialogProps {
-  open: boolean;
-  onClose: () => void;
-  activeSection: SettingsSectionId;
-  onSectionChange: (section: SettingsSectionId) => void;
-  /** Section ids that should show a red attention dot in the sidebar (e.g. a failed download). */
-  alertSections?: SettingsSectionId[];
-  children: ReactNode;
-}
-
-/**
- * Settings dialog: a vertical section list beside the content from sm up, a
- * horizontally scrolling tab strip above it on phones. Built on the shared
- * `Modal` (portal, focus trap, Escape, scroll lock) and `Tabs` (roving arrow keys).
- */
 export function SettingsDialog({
   open,
   onClose,

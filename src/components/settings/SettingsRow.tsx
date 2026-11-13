@@ -1,10 +1,9 @@
 'use client';
 
-import type { ReactNode } from 'react';
 import { Card, Text, VStack } from '@jensbouma123/acciva-ui';
+import type { SettingsGroupProps, SettingsRowProps, SettingsStackedRowProps } from './types';
 
-/** One grouped-list card of settings rows. */
-export function SettingsGroup({ children }: { children: ReactNode }) {
+export function SettingsGroup({ children }: SettingsGroupProps) {
   return (
     <Card variant="bordered" padding="none" className="w-full overflow-hidden">
       <VStack spacing="none" className="w-full divide-y divide-border-subtle">
@@ -14,19 +13,12 @@ export function SettingsGroup({ children }: { children: ReactNode }) {
   );
 }
 
-/** Label + description; stacks above the control on phones, sits beside it from sm up. */
 export function SettingsRow({
   label,
   description,
   control,
   htmlFor,
-}: {
-  label: ReactNode;
-  description?: ReactNode;
-  control: ReactNode;
-  /** id of the control, so the label is programmatically associated with it. */
-  htmlFor?: string;
-}) {
+}: SettingsRowProps) {
   return (
     <div className="flex w-full flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
       <VStack spacing="xs" className="min-w-0 flex-1">
@@ -50,16 +42,11 @@ export function SettingsRow({
   );
 }
 
-/** A row that stacks a full-width control below the label (e.g. a `RadioGroup`). */
 export function SettingsStackedRow({
   label,
   description,
   children,
-}: {
-  label: ReactNode;
-  description?: ReactNode;
-  children: ReactNode;
-}) {
+}: SettingsStackedRowProps) {
   return (
     <VStack spacing="sm" className="w-full p-4">
       <VStack spacing="xs" className="min-w-0">

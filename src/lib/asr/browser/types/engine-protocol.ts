@@ -6,7 +6,7 @@ import type {
   BrowserRecognizeResult,
   BrowserSegment,
   BrowserTranscribeResult,
-} from './types';
+} from './index';
 import type { VocabularyBiasConfig } from '@/lib/vocabulary/types';
 
 export interface TranscribeArgs {
@@ -31,7 +31,6 @@ export type EngineWorkerIn =
   | ({ type: 'call'; callId: number } & EngineCall);
 
 export type EngineWorkerOut =
-
   | { type: 'hello'; webgpu: boolean }
   | { type: 'status'; status: BrowserASRStatus; ready: boolean }
   | { type: 'segment'; segment: BrowserSegment }

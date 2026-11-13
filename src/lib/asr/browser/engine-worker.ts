@@ -1,6 +1,6 @@
 import { createLocalAsrEngine, type LocalAsrEngine } from './engine-factory';
 import { setQuietAsrConsoleDebug } from './quiet-console';
-import type { EngineWorkerIn, EngineWorkerOut } from './engine-protocol';
+import type { EngineWorkerIn, EngineWorkerOut } from './types/engine-protocol';
 import type { BrowserASREvents, BrowserRecognizeResult, BrowserTranscribeResult } from './types';
 
 let engine: LocalAsrEngine | null = null;

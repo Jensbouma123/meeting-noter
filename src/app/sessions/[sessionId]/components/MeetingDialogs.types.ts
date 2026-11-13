@@ -1,5 +1,5 @@
 import type { AppSettings } from '@/components/meeting';
-import type { SettingsSectionId } from '@/components/settings/sections';
+import type { SettingsSectionId } from '@/components/settings/types';
 import type { Segment, Speaker } from '@/lib/meeting';
 import type { RecordingPromptsProps } from './RecordingPrompts.types';
 

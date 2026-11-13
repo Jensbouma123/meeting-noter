@@ -8,16 +8,13 @@ import type { Language } from '@/lib/i18n/types';
 import { useContext } from 'react';
 import { AudioCaptureSection } from './AudioCaptureSection';
 import { AppearanceSection } from './AppearanceSection';
-import type { AppSettings } from '@/components/meeting/types';
+import type { SettingsSectionProps } from './types';
 import { SettingsGroup, SettingsRow } from './SettingsRow';
 
 export function GeneralSection({
   settings,
   onSettingsChange,
-}: {
-  settings: AppSettings;
-  onSettingsChange: (settings: AppSettings) => void;
-}) {
+}: SettingsSectionProps) {
   const t = useT('settings');
   const setLanguage = useContext(SetLanguageContext);
   const language = settings.language === 'nl' || settings.language === 'en'

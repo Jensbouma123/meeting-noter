@@ -1,19 +1,5 @@
-import type { ComponentType } from 'react';
-import {
-  Database,
-  Info,
-  SpellCheck,
-  SlidersHorizontal,
-} from 'lucide-react';
-
-export type SettingsSectionId = 'general' | 'vocabulary' | 'storage' | 'about' | 'advanced';
-
-export interface SettingsSectionMeta {
-  id: SettingsSectionId;
-  /** Settings-namespace i18n key (render with `useT('settings')`), not display text. */
-  label: string;
-  icon: ComponentType<{ className?: string }>;
-}
+import { Database, Info, SpellCheck, SlidersHorizontal } from 'lucide-react';
+import type { SettingsSectionId, SettingsSectionMeta } from './types';
 
 export const SETTINGS_SECTIONS: SettingsSectionMeta[] = [
   { id: 'general', label: 'section.general', icon: SlidersHorizontal },
@@ -34,7 +20,7 @@ export function loadLastSettingsSection(): SettingsSectionId {
     if (raw === 'speech-model') return 'advanced';
     if (raw && SETTINGS_SECTIONS.some((s) => s.id === raw)) return raw as SettingsSectionId;
   } catch {
-    // localStorage unavailable — fall back to the default.
+    return DEFAULT_SETTINGS_SECTION;
   }
   return DEFAULT_SETTINGS_SECTION;
 }
@@ -44,6 +30,6 @@ export function saveLastSettingsSection(section: SettingsSectionId): void {
   try {
     localStorage.setItem(SECTION_STORAGE_KEY, section);
   } catch {
-    // Ignore write failures — the section just won't be remembered.
+    return;
   }
 }

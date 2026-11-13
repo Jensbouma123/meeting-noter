@@ -18,12 +18,6 @@ import {
 import { categorizeManifestFile } from './resumable-download';
 import { configFromManifest } from './config-from-manifest';
 
-/**
- * Parakeet stays selectable next to Nemotron: the family is one stored
- * choice, and every manifest decision (`activeAsrManifest`, the WebGPU
- * fallback walk, the download manager's lookup) reads it.
- */
-
 function stubStorage(initial: Record<string, string> = {}) {
   const store = new Map(Object.entries(initial));
   vi.stubGlobal('localStorage', {
@@ -119,7 +113,6 @@ describe('Nemotron manifests', () => {
       'jointData',
       'tokenizer',
     ]);
-    // Parakeet's names are untouched.
     expect(categorizeManifestFile('decoder_joint-model.int8.onnx')).toBe('decoder');
     expect(categorizeManifestFile('encoder-model.q4f16.onnx')).toBe('encoder');
   });

@@ -1,14 +1,7 @@
-import { useCallback, useRef, type Dispatch, type SetStateAction } from 'react';
+import { useCallback, useRef } from 'react';
 import type { FolderRow } from '@/lib/meeting-db/types';
 import { reorderFolder } from '@/lib/folders/folders-api';
-import type { ApiResult } from '@/lib/folders/types';
-
-interface FolderReorderInput {
-  folders: FolderRow[];
-  setFolders: Dispatch<SetStateAction<FolderRow[]>>;
-  report: (result: ApiResult<object>) => boolean;
-  refresh: () => Promise<void>;
-}
+import type { FolderReorderInput } from './types';
 
 export function useFolderReorder({ folders, setFolders, report, refresh }: FolderReorderInput) {
   const dragFolderId = useRef<string | null>(null);

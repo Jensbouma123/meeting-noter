@@ -9,3 +9,6 @@ export type { BrowserASRLoadProgress } from './load-progress';
 export type { BrowserASREvents } from './events';
 export type { ModelFileUrls } from './model-file-urls';
 export type { NemotronGraph } from './nemotron-graph';
+export type { AsrEngine } from './asr-engine';
+export type { EngineCallResult, PendingCall } from './pending-call';
+export type { TranscribeArgs, EngineCall, EngineWorkerIn, EngineWorkerOut } from './engine-protocol';

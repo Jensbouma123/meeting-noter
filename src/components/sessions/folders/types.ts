@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import type { FolderRow } from '@/lib/meeting-db/types';
 import type { SessionMetadata } from '@/lib/meeting/session-store';
 import type { FolderDeleteMode, FolderNode } from '@/lib/folders/types';
@@ -81,4 +81,19 @@ export interface RenameInputProps {
 export interface FolderRowMenuProps {
   folder: FolderRow;
   controller: FolderController;
+}
+
+export interface FolderReorderInput {
+  folders: FolderRow[];
+  setFolders: Dispatch<SetStateAction<FolderRow[]>>;
+  report: (result: ApiResult<object>) => boolean;
+  refresh: () => Promise<void>;
+}
+
+export interface FolderRowDropInput {
+  folderId: string;
+  controller: FolderController;
+  expanded: boolean;
+  hasContent: boolean;
+  onToggle: (id: string) => void;
 }
