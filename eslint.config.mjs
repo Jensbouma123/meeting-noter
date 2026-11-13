@@ -17,6 +17,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Vendored third-party package with its own build/lint pipeline.
     "vendor/**",
+    // Other branches' checkouts; each is linted on its own branch.
+    ".worktrees/**",
   ]),
 ]);
 

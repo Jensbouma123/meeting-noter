@@ -15,8 +15,9 @@ export default defineConfig({
     },
   },
   test: {
-    // build/, .next/, dist/ and out/ hold stale compiled copies of test files.
-    exclude: [...configDefaults.exclude, 'build/**', '.next/**', 'dist/**', 'out/**'],
+    // build/, .next/, dist/ and out/ hold stale compiled copies of test files;
+    // .worktrees/ holds other branches' checkouts, gated on their own.
+    exclude: [...configDefaults.exclude, 'build/**', '.next/**', 'dist/**', 'out/**', '.worktrees/**'],
     // acciva-ui is installed as a copy (install-links), so vitest would load it
     // through Node ESM, which cannot resolve its extensionless `next/link`.
     server: { deps: { inline: [/@jensbouma123\/acciva-ui/] } },
