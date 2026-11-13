@@ -1,7 +1,8 @@
 'use client';
 
-import { Alert, Badge, Button, Text } from '@jensbouma123/acciva-ui';
+import { Alert, Badge, Button } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
+import { AssistantDetails } from './AssistantDetails';
 import { AssistantConfirm } from './AssistantConfirm';
 import { AssistantCopyButton } from './AssistantCopyButton';
 import { SettingsRow } from './SettingsRow';
@@ -26,7 +27,7 @@ export function AssistantCard({ assistant, busy, error, confirm, onConnect, onDi
     ) : null;
 
   return (
-    <>
+    <div>
       <SettingsRow
         label={
           <span className="flex items-center gap-2">
@@ -36,20 +37,12 @@ export function AssistantCard({ assistant, busy, error, confirm, onConnect, onDi
         }
         description={t(status === 'not-found' ? 'notFoundHint' : `hint.${id}`)}
         control={control}
+        footer={(configPath || manualCommand) && <AssistantDetails configPath={configPath} manualCommand={manualCommand} />}
       />
       {isDesktop && confirm && (
         <AssistantConfirm backupPath={confirm.backupPath} busy={busy} onConfirm={() => onConnect(true)} onCancel={onCancelConfirm} />
       )}
       {error && <Alert variant="danger" layout="inline">{t('error')}</Alert>}
-      {(configPath || manualCommand) && (
-        <details className="px-4 pb-4">
-          <summary className="cursor-pointer text-xs text-muted">{t('details')}</summary>
-          <div className="mt-2 flex flex-col gap-1">
-            {configPath && <Text size="xs" variant="muted" font="mono" className="break-all">{configPath}</Text>}
-            {manualCommand && <Text size="xs" variant="muted" font="mono" className="break-all">{manualCommand}</Text>}
-          </div>
-        </details>
-      )}
-    </>
+    </div>
   );
 }

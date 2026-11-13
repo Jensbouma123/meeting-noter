@@ -33,6 +33,7 @@ export interface SettingsRowProps {
   description?: ReactNode;
   control: ReactNode;
   htmlFor?: string;
+  footer?: ReactNode;
 }
 
 export interface SettingsStackedRowProps {

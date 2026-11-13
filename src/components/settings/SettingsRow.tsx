@@ -8,6 +8,7 @@ export function SettingsRow({
   description,
   control,
   htmlFor,
+  footer,
 }: SettingsRowProps) {
   return (
     <div className="flex w-full flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
@@ -26,6 +27,7 @@ export function SettingsRow({
             {description}
           </Text>
         )}
+        {footer}
       </VStack>
       <div className="min-w-0 max-sm:w-full sm:shrink-0">{control}</div>
     </div>

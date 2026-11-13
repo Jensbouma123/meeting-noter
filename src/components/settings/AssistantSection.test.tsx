@@ -81,4 +81,21 @@ describe('AssistantSection', () => {
     await waitFor(() => expect(screen.getByText('Connected')).toBeTruthy());
     expect(fetchMock).toHaveBeenCalledWith('/api/assistants/claude-code/connect', expect.objectContaining({ method: 'POST' }));
   });
+
+  it('puts Advanced details inside the assistant row and toggles it', async () => {
+    mockFetch(() => LIST);
+    const { container } = renderSection();
+    await screen.findByText('Connected');
+    const details = container.querySelectorAll('details');
+    expect(details).toHaveLength(2);
+    const row = details[0].parentElement as HTMLElement;
+    expect(row.textContent).toContain('Claude Desktop');
+    expect(details[0].closest('div.p-4')).toBeTruthy();
+    const summary = details[0].querySelector('summary') as HTMLElement;
+    expect(summary.textContent).toBe('Advanced details');
+    expect(details[0].open).toBe(false);
+    details[0].open = true;
+    expect(screen.getByText('/cfg.json')).toBeTruthy();
+    expect(details[0].open).toBe(true);
+  });
 });
