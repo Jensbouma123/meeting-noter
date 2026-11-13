@@ -16,6 +16,7 @@ import {
 
 registerOnboardingTestEnv();
 
+const skipAssistants = () => fireEvent.click(screen.getByRole('button', { name: /Skip, I'll do this later/ }));
 const clickContinue = () => fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
 
 describe('OnboardingDialog steps', () => {
@@ -23,21 +24,21 @@ describe('OnboardingDialog steps', () => {
     render(<OnboardingDialog />);
     clickContinue();
     clickContinue();
-    expect(screen.getByText('Step 3 of 5')).toBeInTheDocument();
+    expect(screen.getByText('Step 3 of 6')).toBeInTheDocument();
     fireEvent.click(await screen.findByRole('button', { name: 'Download 2 GB' }));
     expect(recordConsent).toHaveBeenCalledWith('accepted', ['asr']);
     expect(initiateDownloads).toHaveBeenCalled();
     act(() => setEntries({ asr: entry('downloading') }));
     expect(screen.getByRole('status')).toHaveTextContent('50%');
     clickContinue();
-    expect(screen.getByText('Step 4 of 5')).toBeInTheDocument();
+    expect(screen.getByText('Step 4 of 6')).toBeInTheDocument();
   });
 
   it('saves the owner name, and lets you leave it empty', () => {
     setEntries({ asr: entry('cached') });
     render(<OnboardingDialog />);
     clickContinue();
-    expect(screen.getByText('Step 2 of 5')).toBeInTheDocument();
+    expect(screen.getByText('Step 2 of 6')).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Your name'), { target: { value: 'Jens' } });
     expect(lastSettings.current.ownerName).toBe('Jens');
     expect(screen.getByLabelText('Your name')).toHaveValue('Jens');
@@ -48,7 +49,7 @@ describe('OnboardingDialog steps', () => {
     render(<OnboardingDialog />);
     clickContinue();
     clickContinue();
-    expect(screen.getByText('Step 4 of 5')).toBeInTheDocument();
+    expect(screen.getByText('Step 4 of 6')).toBeInTheDocument();
     expect(initiateDownloads).not.toHaveBeenCalled();
   });
 
@@ -57,6 +58,7 @@ describe('OnboardingDialog steps', () => {
     render(<OnboardingDialog />);
     clickContinue();
     clickContinue();
+    skipAssistants();
     const field = screen.getByLabelText('Add a word');
     expect(field).toHaveAttribute('placeholder', 'Framna');
     fireEvent.change(field, { target: { value: 'Framna, Hezelaer' } });

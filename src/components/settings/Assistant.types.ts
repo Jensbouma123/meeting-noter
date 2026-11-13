@@ -49,3 +49,10 @@ export interface AssistantPending {
 export interface AssistantLogoProps {
   id: AssistantId;
 }
+
+export type AssistantState = ReturnType<typeof import('./AssistantState').useAssistantState>;
+
+export interface AssistantListProps {
+  assistants: AssistantInfo[];
+  state: AssistantState;
+}

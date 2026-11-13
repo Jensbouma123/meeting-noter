@@ -1,1 +1,1 @@
-export const STEPS = ['welcome', 'who', 'models', 'words', 'done'] as const;
+export const STEPS = ['welcome', 'who', 'models', 'assistant', 'words', 'done'] as const;

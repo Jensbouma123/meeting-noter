@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { Modal, Text, VStack } from '@jensbouma123/acciva-ui';
+import { useAssistantState } from '@/components/settings/AssistantState';
+import { SEARCH_REGISTRY_KEY } from '@/lib/asr/browser/model-registry-known-keys';
 import { useT } from '@/lib/i18n/useT';
 import { finishOnboarding } from '@/lib/onboarding/store';
 import { STEPS } from './constants';
 import { fillTemplate } from './fillTemplate';
+import { AssistantStep } from './AssistantStep';
 import { ModelsStep } from './ModelsStep';
 import { OnboardingFooter } from './OnboardingFooter';
 import { WhoStep } from './WhoStep';
@@ -15,6 +18,9 @@ export function OnboardingSteps({ settings, onSettingsChange }: OnboardingDialog
   const t = useT('onboarding');
   const [stepId, setStepId] = useState<StepId>('welcome');
   const models = useOnboardingModels();
+  const assistants = useAssistantState();
+  const detecting = assistants.assistants === null && !assistants.loadFailed;
+  const searchEntry = models.list.find((e) => e.key === SEARCH_REGISTRY_KEY);
   const step = STEPS.indexOf(stepId) + 1;
   const isLast = stepId === 'done';
 
@@ -35,6 +41,7 @@ export function OnboardingSteps({ settings, onSettingsChange }: OnboardingDialog
         <OnboardingFooter
           step={step}
           isLast={isLast}
+          nextDisabled={stepId === 'assistant' && detecting}
           onSkip={finishOnboarding}
           onBack={() => move(-1)}
           onNext={() => move(1)}
@@ -45,6 +52,13 @@ export function OnboardingSteps({ settings, onSettingsChange }: OnboardingDialog
         {stepId === 'welcome' && <Text size="sm">{t('welcome.body')}</Text>}
         {stepId === 'who' && <WhoStep settings={settings} onSettingsChange={onSettingsChange} />}
         {stepId === 'models' && <ModelsStep models={models} />}
+        {stepId === 'assistant' && (
+          <AssistantStep
+            state={assistants}
+            searchMissing={!!searchEntry && searchEntry.status !== 'cached'}
+            onSkip={() => move(1)}
+          />
+        )}
         {stepId === 'words' && <WordsStep />}
         {stepId === 'done' && (
           <VStack spacing="sm" className="w-full">
