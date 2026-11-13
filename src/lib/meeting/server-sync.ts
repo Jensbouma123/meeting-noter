@@ -1,7 +1,8 @@
 import type { MeetingSummaryRow, StoredMeeting } from '@/lib/meeting-db/types';
 import { getNotes, hasLocalNotes } from './notes';
 import { getStoredParticipants } from './participants';
-import { loadAutosavedSession, loadSessionTranscript } from './persist';
+import { loadAutosavedSession } from './autosave';
+import { loadSessionTranscript } from './session-transcript-storage';
 import {
   adoptMeetingSummary,
   adoptStoredMeeting,

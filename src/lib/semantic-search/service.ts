@@ -1,4 +1,4 @@
-import { loadSessionTranscript } from '../meeting/persist';
+import { loadSessionTranscript } from '../meeting/session-transcript-storage';
 import { isCaptureActive } from '../meeting/store';
 import { SemanticIndex } from './index';
 import {

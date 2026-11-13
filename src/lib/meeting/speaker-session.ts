@@ -1,5 +1,5 @@
 import { seedSpeakerStates, takeReportedSpeakerStates } from '@/lib/diarization/browser/speaker-state';
-import { loadSpeakerState, saveSpeakerState } from './persist';
+import { loadSpeakerState, saveSpeakerState } from './speaker-state-storage';
 import { session } from './session-state';
 import { getTranscriptSessionId, isAppendActive } from './store';
 

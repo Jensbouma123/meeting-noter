@@ -1,17 +1,8 @@
 import type { CaptureMode, Segment, Speaker } from './types';
-import {
-  loadAutosavedSession,
-  clearAutosavedSession,
-  saveSessionTranscript,
-  loadSessionTranscript,
-  removeSessionTranscript,
-  removeSpeakerState,
-  flushAutosave,
-  cancelPendingAutosave,
-  sessionTranscriptKey,
-  speakerStateKey,
-  type AutosavedSession,
-} from './persist';
+import { loadAutosavedSession, clearAutosavedSession, flushAutosave, cancelPendingAutosave } from './autosave';
+import { saveSessionTranscript, loadSessionTranscript, removeSessionTranscript, sessionTranscriptKey } from './session-transcript-storage';
+import { removeSpeakerState, speakerStateKey } from './speaker-state-storage';
+import { type AutosavedSession } from './types/autosave';
 import {
   armAppend,
   bindTranscriptSession,

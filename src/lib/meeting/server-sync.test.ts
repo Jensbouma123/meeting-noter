@@ -116,7 +116,7 @@ describe('server sync', () => {
 
   it('moves the browser meetings and an unfiled autosave into the DB once, and says so', async () => {
     const { persistSession } = await import('./session-store');
-    const { saveAutosavedSession } = await import('./persist');
+    const { saveAutosavedSession } = await import('./autosave');
     const { addDecision } = await import('./notes');
     const a = persistSession({ title: 'Kickoff', segments: [line('a1', 'welcome everyone', 0)], speakers: {}, startedAt: 1_000 });
     addDecision(a, 'Weekly demos on Thursday');
@@ -543,7 +543,7 @@ describe('participants and speaker names are meeting data in the DB', () => {
     const sync = await import('./server-sync');
     await sync.startServerSync();
     const store = await import('./session-store');
-    const { saveAutosavedSession } = await import('./persist');
+    const { saveAutosavedSession } = await import('./autosave');
     const speakers = { 'mic:0': { id: 'mic:0', source: 'mic' as const, label: 'Speaker 0', colorIndex: 0 } };
     const id = store.persistSession({ title: 'Named later', segments: [line('a', 'hello there', 0)], speakers });
     await sync.flushServerSync();

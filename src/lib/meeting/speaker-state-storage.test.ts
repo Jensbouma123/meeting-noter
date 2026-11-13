@@ -1,20 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SerializedSpeakerState } from '@/lib/diarization/browser/speaker-state';
-import {
-  MAX_SPEAKER_STATES,
-  loadSpeakerState,
-  removeSpeakerState,
-  saveSessionTranscript,
-  saveSpeakerState,
-  sessionTranscriptKey,
-  speakerStateKey,
-} from './persist';
-
-/**
- * A session's speaker state (`saveSpeakerState`) is large next to its
- * transcript, so it lives under its own key, is kept for a few sessions only,
- * and gives way when the quota is full — never the transcripts.
- */
+import { MAX_SPEAKER_STATES, loadSpeakerState, removeSpeakerState, saveSpeakerState, speakerStateKey } from './speaker-state-storage';
+import { saveSessionTranscript, sessionTranscriptKey } from './session-transcript-storage';
 
 function memoryStorage(quotaChars = Infinity) {
   const data = new Map<string, string>();

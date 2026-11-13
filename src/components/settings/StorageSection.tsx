@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Alert, Button, ConfirmDialog, Select, useToast } from '@jensbouma123/acciva-ui';
 import { Trash2 } from 'lucide-react';
-import { clearAutosavedSession } from '@/lib/meeting/persist';
+import { clearAutosavedSession } from '@/lib/meeting/autosave';
 import { isCaptureActive } from '@/lib/meeting/store';
 import { deleteSession, listSessions, sweepMeetingStorage } from '@/lib/meeting/session-store';
 import { deleteAllOnServer } from '@/lib/meeting/server-sync';

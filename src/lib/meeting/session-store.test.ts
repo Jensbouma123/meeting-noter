@@ -36,7 +36,7 @@ describe('deleteSession and the resume prompt', () => {
   it('clears the in-memory transcript and autosave when the open session is deleted', async () => {
     const { createDraftSession, deleteSession } = await import('./session-store');
     const { loadIdleSession, getState, getTranscriptSessionId } = await import('./store');
-    const { saveAutosavedSession, loadAutosavedSession } = await import('./persist');
+    const { saveAutosavedSession, loadAutosavedSession } = await import('./autosave');
     const id = createDraftSession('Standup');
     loadIdleSession(id, snapshot(id) as never);
     saveAutosavedSession(snapshot(id) as never);
@@ -60,7 +60,7 @@ describe('deleteSession and the resume prompt', () => {
 
   it("drops the deleted session's autosave, so it is not offered for resume", async () => {
     const { createDraftSession, deleteSession } = await import('./session-store');
-    const { saveAutosavedSession, loadAutosavedSession } = await import('./persist');
+    const { saveAutosavedSession, loadAutosavedSession } = await import('./autosave');
     const id = createDraftSession('Standup');
     saveAutosavedSession(snapshot(id) as never);
     expect(loadAutosavedSession()?.sessionId).toBe(id);
@@ -70,7 +70,7 @@ describe('deleteSession and the resume prompt', () => {
 
   it('drops an older autosave saved under a per-tab id that matches no session', async () => {
     const { createDraftSession, deleteSession } = await import('./session-store');
-    const { saveAutosavedSession, loadAutosavedSession } = await import('./persist');
+    const { saveAutosavedSession, loadAutosavedSession } = await import('./autosave');
     const id = createDraftSession('Standup');
     saveAutosavedSession(snapshot('tab-uuid-from-an-older-build') as never);
     deleteSession(id);
@@ -79,7 +79,7 @@ describe('deleteSession and the resume prompt', () => {
 
   it("keeps another, still existing session's autosave", async () => {
     const { createDraftSession, deleteSession } = await import('./session-store');
-    const { saveAutosavedSession, loadAutosavedSession } = await import('./persist');
+    const { saveAutosavedSession, loadAutosavedSession } = await import('./autosave');
     const keep = createDraftSession('Keep');
     const gone = createDraftSession('Gone');
     saveAutosavedSession(snapshot(keep) as never);
@@ -105,7 +105,7 @@ describe('per-session transcripts (B1)', () => {
   });
 
   it('the throttled autosave also writes the per-session key', async () => {
-    const { saveAutosavedSession, loadSessionTranscript } = await import('./persist');
+    const { saveAutosavedSession } = await import('./autosave'); const { loadSessionTranscript } = await import('./session-transcript-storage');
     saveAutosavedSession({ sessionId: 'a', title: 'A', segments: [seg('a1', 0, 1)], speakers: {} });
     saveAutosavedSession({ sessionId: 'b', title: 'B', segments: [seg('b1', 0, 1)], speakers: {} });
     expect(loadSessionTranscript('a')?.segments.map((s) => s.id)).toEqual(['a1']);
@@ -122,7 +122,7 @@ describe('per-session transcripts (B1)', () => {
 
   it("deleteSession removes only that session's transcript", async () => {
     const { createDraftSession, persistSession, deleteSession } = await import('./session-store');
-    const { loadSessionTranscript } = await import('./persist');
+    const { loadSessionTranscript } = await import('./session-transcript-storage');
     const a = createDraftSession('A');
     const b = createDraftSession('B');
     persistSession({ sessionId: a, segments: [seg('a1', 0, 1)], speakers: {} });
@@ -134,7 +134,7 @@ describe('per-session transcripts (B1)', () => {
 
   it('openSession falls back to this session\'s autosave and repairs the stale index counts', async () => {
     const { createDraftSession, openSession, getSessionMetadata } = await import('./session-store');
-    const { AUTOSAVE_KEY } = await import('./persist');
+    const { AUTOSAVE_KEY } = await import('./autosave');
     const a = createDraftSession('A');
     // A crash before the per-session key existed: only the global slot holds A.
     localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({
@@ -172,7 +172,7 @@ describe('navigating between sessions (B2)', () => {
 describe('Record in an existing session (B3)', () => {
   it('archiveAutosavedSession keeps the previous transcript retrievable after the slot is cleared', async () => {
     const { createDraftSession, archiveAutosavedSession, getFullSession } = await import('./session-store');
-    const { AUTOSAVE_KEY, clearAutosavedSession } = await import('./persist');
+    const { AUTOSAVE_KEY, clearAutosavedSession } = await import('./autosave');
     const a = createDraftSession('A');
     localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({
       version: 1, savedAt: Date.now(), sessionId: a, title: 'A',
@@ -222,7 +222,7 @@ describe('deleting the recording session (B6)', () => {
   it("deleting another session does not clear the active session's autosave as an orphan", async () => {
     const store = await import('./store');
     const { createDraftSession, deleteSession } = await import('./session-store');
-    const { saveAutosavedSession, loadAutosavedSession } = await import('./persist');
+    const { saveAutosavedSession, loadAutosavedSession } = await import('./autosave');
     const other = createDraftSession('Other');
     // The live session has no index entry (e.g. its entry was removed by "clear all").
     store.bindTranscriptSession('live-session');
@@ -261,7 +261,7 @@ describe('startRecordingInSession', () => {
   const setup = async () => {
     const ss = await import('./session-store');
     const store = await import('./store');
-    const persist = await import('./persist');
+    const persist = await import('./autosave');
     const id = ss.createDraftSession('Standup');
     store.loadIdleSession(id, { segments: [seg('s1', 0, 5), seg('s2', 5, 10)] as never, speakers: {}, startedAt: 1 });
     ss.persistSession({ sessionId: id, segments: [seg('s1', 0, 5), seg('s2', 5, 10)] as never, speakers: {}, startedAt: 1 });
@@ -312,7 +312,7 @@ describe('startRecordingInSession', () => {
 
 describe('word timings', () => {
   it('are left out of a saved transcript', async () => {
-    const { saveSessionTranscript, loadSessionTranscript } = await import('./persist');
+    const { saveSessionTranscript, loadSessionTranscript } = await import('./session-transcript-storage');
     const words = [{ text: 'hello', start: 0, end: 0.4 }, { text: 'there', start: 0.5, end: 1 }];
     saveSessionTranscript({ ...snapshot('w1'), segments: [{ ...snapshot('w1').segments[0], words }] } as never);
 
@@ -327,7 +327,7 @@ describe('clearSessionTranscript', () => {
     const { createDraftSession, persistSession, clearSessionTranscript, getSessionMetadata, sessionExists } =
       await import('./session-store');
     const { loadIdleSession, getState, getTranscriptSessionId } = await import('./store');
-    const { saveAutosavedSession, loadAutosavedSession, loadSessionTranscript } = await import('./persist');
+    const { saveAutosavedSession, loadAutosavedSession } = await import('./autosave'); const { loadSessionTranscript } = await import('./session-transcript-storage');
     const id = createDraftSession('Standup');
     persistSession({ sessionId: id, segments: snapshot(id).segments as never, speakers: {}, startedAt: 1 });
     loadIdleSession(id, snapshot(id) as never);
@@ -346,7 +346,7 @@ describe('clearSessionTranscript', () => {
 
   it('leaves another session’s autosave alone and refuses unknown ids', async () => {
     const { createDraftSession, clearSessionTranscript } = await import('./session-store');
-    const { saveAutosavedSession, loadAutosavedSession } = await import('./persist');
+    const { saveAutosavedSession, loadAutosavedSession } = await import('./autosave');
     const a = createDraftSession('A');
     const b = createDraftSession('B');
     saveAutosavedSession(snapshot(b) as never);
@@ -370,7 +370,7 @@ describe('no transcript text stays in the browser after delete or clear', () => 
   const SECRET = 'hello there';
   async function seed() {
     const store = await import('./session-store');
-    const { saveSpeakerState, scheduleAutosave } = await import('./persist');
+    const { saveSpeakerState } = await import('./speaker-state-storage'); const { scheduleAutosave } = await import('./autosave');
     const { addDecision } = await import('./notes');
     const { saveIndex } = await import('@/lib/semantic-search/store');
     const id = store.persistSession({ title: 'Secret plans', segments: snapshot('x').segments as never, speakers: {}, startedAt: 1 });

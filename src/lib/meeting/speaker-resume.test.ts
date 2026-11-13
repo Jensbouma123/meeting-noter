@@ -259,7 +259,7 @@ describe('appending a recording to a session', () => {
 
   it('still appends to a session saved without speaker state, numbering afresh', async () => {
     const id = await recordFirstMeeting();
-    const { speakerStateKey } = await import('./persist');
+    const { speakerStateKey } = await import('./speaker-state-storage');
     storage.removeItem(speakerStateKey(id));
     const resumed = await appendMeeting(id);
     // Without the cache the first voice is channel 0 again — the old
@@ -270,11 +270,11 @@ describe('appending a recording to a session', () => {
 
   it('drops the speaker state with the transcript', async () => {
     const id = await recordFirstMeeting();
-    const { loadSpeakerState } = await import('./persist');
+    const { loadSpeakerState } = await import('./speaker-state-storage');
     expect(loadSpeakerState(id)?.mic).toBeDefined();
     const page = await loadPage();
     expect(page.sessions.clearSessionTranscript(id)).toBe(true);
-    const persist = await import('./persist');
+    const persist = await import('./speaker-state-storage');
     expect(persist.loadSpeakerState(id)).toBeNull();
   }, 30_000);
 });
