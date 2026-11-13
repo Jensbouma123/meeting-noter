@@ -8,10 +8,14 @@ import { useOnDemandSuggestion } from './useOnDemandSuggestion';
 import { draft } from './test-support/draftSession';
 
 const toast = vi.hoisted(() => ({ info: vi.fn() }));
+const gate = vi.hoisted(() => ({ ready: true }));
+const dialog = vi.hoisted(() => ({ openDialog: vi.fn() }));
 const vectors = vi.hoisted(() => ({ byId: {} as Record<string, Float32Array[]> }));
 
 vi.mock('@jensbouma123/acciva-ui', async (orig) => ({ ...(await orig<object>()), useToast: () => ({ toast }) }));
 vi.mock('@/lib/semantic-search/store', () => ({ loadIndex: (id: string) => (vectors.byId[id] ? { vectors: vectors.byId[id] } : null) }));
+vi.mock('@/lib/semantic-search/model-gate', () => ({ isSearchModelReady: () => gate.ready }));
+vi.mock('@/lib/asr/browser/model-registry-dialog', () => dialog);
 vi.mock('@/lib/folders/folders-api', () => ({ moveMeeting: vi.fn(), declineFolderSuggestion: vi.fn() }));
 
 const noop = () => {};
@@ -23,6 +27,7 @@ afterEach(() => {
   cleanup();
   vi.clearAllMocks();
   vectors.byId = {};
+  gate.ready = true;
 });
 
 describe('Suggest folder menu item', () => {
@@ -64,6 +69,17 @@ describe('useOnDemandSuggestion', () => {
     await act(() => result.current.suggest('x'));
     expect(toast.info).toHaveBeenCalledWith('No matching folder found');
     expect(result.current.views.x).toBeUndefined();
+  });
+
+  it('says the model is missing, opens the download dialog and never toasts no-match', async () => {
+    gate.ready = false;
+    const { result, rerender } = renderHook(() => useOnDemandSuggestion([folder('fa')], { x: null }));
+    rerender();
+    expect(toast.info).not.toHaveBeenCalled();
+    await act(() => result.current.suggest('x'));
+    expect(toast.info).toHaveBeenCalledTimes(1);
+    expect(toast.info).toHaveBeenCalledWith('Download the search model to get folder suggestions.');
+    expect(dialog.openDialog).toHaveBeenCalledOnce();
   });
 
   it('toasts to create a folder when there are none', async () => {

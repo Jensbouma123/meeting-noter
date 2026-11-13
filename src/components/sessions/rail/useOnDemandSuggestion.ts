@@ -4,6 +4,8 @@ import type { FolderRow } from '@/lib/meeting-db/types';
 import { declineFolderSuggestion, moveMeeting } from '@/lib/folders/folders-api';
 import { folderPath } from '@/lib/folders/folder-tree';
 import { suggestFolderOnDemand } from '@/lib/semantic-search/folder-suggest/on-demand';
+import { isSearchModelReady } from '@/lib/semantic-search/model-gate';
+import { openDialog } from '@/lib/asr/browser/model-registry-dialog';
 import { loadIndex } from '@/lib/semantic-search/store';
 import { useFoldersT } from '../folders/useFoldersT';
 import type { OnDemandSuggestions } from './on-demand-suggestion.types';
@@ -22,6 +24,11 @@ export function useOnDemandSuggestion(
     async (id: string) => {
       if (folders.length === 0) {
         toast.info(t('suggestNoFolders'));
+        return;
+      }
+      if (!isSearchModelReady()) {
+        toast.info(t('suggestNeedsModel'));
+        openDialog();
         return;
       }
       setPendingId(id);
