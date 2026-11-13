@@ -5,7 +5,6 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { LanguageContext } from '@/lib/i18n/LanguageContext';
 import type { Levels } from '@/lib/meeting';
 
-// Drive the level bus by hand: the real one is fed by the capture worklet.
 let pushLevels: ((levels: Levels) => void) | null = null;
 vi.mock('./store', () => ({
   meeting: {
@@ -20,8 +19,6 @@ vi.mock('./store', () => ({
 
 import { LevelMeter } from './LevelMeter';
 
-// jsdom runs a real rAF timer; stepping frames by hand keeps the smoothing
-// arithmetic deterministic.
 const frames: FrameRequestCallback[] = [];
 let cancelled = 0;
 
@@ -57,11 +54,10 @@ function renderMeter(mode: 'mic' | 'both', active = true) {
 }
 
 describe('LevelMeter', () => {
-  it('mirrors the smoothed level onto the meter track for assistive tech', () => {
+  it('mirrors the smoothed level (attack 0.5: half the remaining distance in the first frame) onto the meter track for assistive tech', () => {
     renderMeter('both');
     pushLevels!({ mic: 1, system: 0.5 });
     step();
-    // Attack is 0.5: half of the remaining distance in the first frame.
     expect(meter('Mic level')).toHaveAttribute('aria-valuenow', '50');
     expect(meter('Call audio level')).toHaveAttribute('aria-valuenow', '25');
     const fill = meter('Mic level').firstElementChild as HTMLElement;

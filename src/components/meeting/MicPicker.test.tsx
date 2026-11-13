@@ -43,7 +43,7 @@ describe('MicPicker level bars', () => {
     </LanguageContext.Provider>
   );
 
-  it('shows a vertical mic bar and a call bar in both mode', () => {
+  it('shows a vertical mic bar and a call bar in both mode, filling by height rather than width', () => {
     stubDevices(DEVICES);
     render(withMode('both'));
     const meters = screen.getAllByRole('meter', { hidden: true });
@@ -51,7 +51,6 @@ describe('MicPicker level bars', () => {
     for (const m of meters) {
       expect(m).toHaveAttribute('aria-valuemin', '0');
       expect(m).toHaveAttribute('aria-valuemax', '100');
-      // Fill grows by height (bottom to top), never by width.
       expect((m.firstElementChild as HTMLElement).style.height).toBe('8%');
     }
   });
@@ -90,12 +89,11 @@ describe('MicPicker', () => {
     expect(loadSettings().micDeviceId).toBe('a1');
   });
 
-  it('opens above the button, right-aligned, with an 8px gap', async () => {
+  it('opens above the button, right-aligned, with an 8px gap (placement is CSS via .mic-menu)', async () => {
     stubDevices(DEVICES);
     render(ui('default'));
     await open();
     const menu = await screen.findByRole('menu', { hidden: true });
-    // Placement itself is CSS (`.mic-menu` in globals.css: block-start, flips when out of room).
     expect(menu).toHaveClass('mic-menu');
     expect(menu).toHaveAttribute('data-align', 'end');
     expect(menu.style.getPropertyValue('--dropdown-offset')).toBe('8px');

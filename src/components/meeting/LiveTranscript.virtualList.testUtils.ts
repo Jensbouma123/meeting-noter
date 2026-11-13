@@ -1,7 +1,7 @@
 import { act } from '@testing-library/react';
 import { afterEach, beforeEach, vi } from 'vitest';
+import type { ROCallback } from './LiveTranscript.virtualList.testUtils.types';
 
-type ROCallback = (entries: { target: Element; borderBoxSize?: { blockSize: number }[] }[]) => void;
 const observers: { cb: ROCallback; targets: Set<Element> }[] = [];
 
 class FakeResizeObserver {
