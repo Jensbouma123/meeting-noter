@@ -1,124 +1,13 @@
-import type { Segment } from './types';
-import { queueMeetingSync } from './server-sync';
-
-export interface ActionItem {
-  id: string;
-  text: string;
-  ownerSpeakerId?: string;
-  ownerName?: string;
-  due?: string;
-  done: boolean;
-  sourceSegmentId?: string;
-}
-
-export interface Decision {
-  id: string;
-  text: string;
-  sourceSegmentId?: string;
-}
-
-export interface Notes {
-  actions: ActionItem[];
-  decisions: Decision[];
-}
-
-export type ActionItemInput = Partial<Omit<ActionItem, 'id' | 'done' | 'text'>> & { done?: boolean };
-export type DecisionInput = Omit<Decision, 'id'>;
-export type ActionItemPatch = Partial<Omit<ActionItem, 'id'>>;
-export type NotePatch = ActionItemPatch;
-
-export interface NoteSuggestion {
-  text: string;
-  sourceSegmentId: string;
-  kind: 'action' | 'decision';
-}
-
-const EMPTY_NOTES: Notes = { actions: [], decisions: [] };
-const listeners = new Map<string, Set<() => void>>();
-/** Fragments shorter than this are noise, not suggestions. */
-const MIN_SUGGESTION_WORDS = 5;
-const ACTION_CUES = [
-  'actiepunt', 'ik pak', 'wie doet', 'graag', 'deadline', 'action item', "i'll",
-];
-const DECISION_CUES = ['we besluiten', 'afgesproken', 'decided', 'agreed'];
-
-export function notesKey(sessionId: string): string {
-  return `mn.notes.v1.${sessionId}`;
-}
-
-function readNotes(sessionId: string): Notes {
-  if (typeof window === 'undefined' || !sessionId) return { ...EMPTY_NOTES };
-  try {
-    const raw = window.localStorage.getItem(notesKey(sessionId));
-    if (!raw) return { ...EMPTY_NOTES };
-    const parsed = JSON.parse(raw) as Partial<Notes>;
-    if (!parsed || !Array.isArray(parsed.actions) || !Array.isArray(parsed.decisions)) return { ...EMPTY_NOTES };
-    return {
-      actions: parsed.actions.filter((item): item is ActionItem =>
-        !!item && typeof item.id === 'string' && typeof item.text === 'string' && typeof item.done === 'boolean'),
-      decisions: parsed.decisions.filter((item): item is Decision =>
-        !!item && typeof item.id === 'string' && typeof item.text === 'string'),
-    };
-  } catch {
-    return { ...EMPTY_NOTES };
-  }
-}
-
-function notify(sessionId: string): void {
-  listeners.get(sessionId)?.forEach((listener) => listener());
-}
-
-function writeNotes(sessionId: string, notes: Notes): void {
-  if (typeof window === 'undefined' || !sessionId) return;
-  try {
-    window.localStorage.setItem(notesKey(sessionId), JSON.stringify(notes));
-  } catch {
-    // Notes are best-effort when storage is unavailable or full.
-  }
-  queueMeetingSync(sessionId);
-  notify(sessionId);
-}
-
-/** Take in notes from the meetings DB (`server-sync.ts`): stored and shown, not queued back. */
-export function adoptNotes(sessionId: string, notes: Notes): void {
-  if (typeof window === 'undefined' || !sessionId) return;
-  try {
-    window.localStorage.setItem(notesKey(sessionId), JSON.stringify(notes));
-  } catch {
-    // Best-effort, like every other local write.
-  }
-  notify(sessionId);
-}
-
-/** Whether this browser holds the session's notes (it drops them once the DB has them). */
-export function hasLocalNotes(sessionId: string): boolean {
-  try {
-    return typeof window !== 'undefined' && window.localStorage.getItem(notesKey(sessionId)) !== null;
-  } catch {
-    return false;
-  }
-}
+import { readNotes, writeNotes } from './notes-storage';
+import type { ActionItem, ActionItemInput, Decision, NotePatch, Notes } from './types/notes';
 
 function newId(): string {
   try {
     if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
   } catch {
-    // Use the fallback in restricted browser contexts.
+    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
   }
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
-}
-
-export function subscribe(sessionId: string, callback: () => void): () => void {
-  let sessionListeners = listeners.get(sessionId);
-  if (!sessionListeners) {
-    sessionListeners = new Set();
-    listeners.set(sessionId, sessionListeners);
-  }
-  sessionListeners.add(callback);
-  return () => {
-    sessionListeners?.delete(callback);
-    if (sessionListeners?.size === 0) listeners.delete(sessionId);
-  };
 }
 
 export function getNotes(sessionId: string): Notes {
@@ -162,24 +51,4 @@ export function removeDecision(sessionId: string, decisionId: string): void {
 
 export function openCount(sessionId: string): number {
   return readNotes(sessionId).actions.filter((action) => !action.done).length;
-}
-
-export function suggestFromSegments(segments: readonly Segment[], lang?: string): NoteSuggestion[] {
-  const language = lang?.toLowerCase().split(/[-_]/)[0];
-  if (language && language !== 'nl' && language !== 'en') return [];
-  const suggestions: NoteSuggestion[] = [];
-  const seen = new Set<string>();
-  for (const segment of segments) {
-    const text = segment.text.trim();
-    if (text.split(/\s+/).length < MIN_SUGGESTION_WORDS) continue;
-    const normalized = text.toLocaleLowerCase();
-    const kind = DECISION_CUES.some((cue) => normalized.includes(cue))
-      ? 'decision'
-      : ACTION_CUES.some((cue) => normalized.includes(cue)) ? 'action' : null;
-    if (kind && !seen.has(normalized)) {
-      seen.add(normalized);
-      suggestions.push({ text, sourceSegmentId: segment.id, kind });
-    }
-  }
-  return suggestions;
 }

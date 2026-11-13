@@ -1,17 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Segment } from './types';
-import {
-  addAction,
-  addDecision,
-  getNotes,
-  notesKey,
-  openCount,
-  removeAction,
-  removeDecision,
-  subscribe,
-  suggestFromSegments,
-  updateAction,
-} from './notes';
+import { addAction, addDecision, getNotes, openCount, removeAction, removeDecision, updateAction } from './notes';
+import { notesKey, subscribe } from './notes-storage';
+import { suggestFromSegments } from './note-suggestions';
 
 function installStorage() {
   const data = new Map<string, string>();

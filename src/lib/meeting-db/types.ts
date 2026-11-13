@@ -1,5 +1,5 @@
 import type { CaptureMode, LowConfSpan, SegmentOverlap, Source, Speaker } from '../meeting/types';
-import type { Notes } from '../meeting/notes';
+import type { Notes } from '../meeting/types/notes';
 
 /** One final transcript line as the meetings DB stores it (no word timings). */
 export interface StoredSegment {

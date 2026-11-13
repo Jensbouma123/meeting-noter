@@ -6,11 +6,10 @@ import {
   EmptyState, HStack, Heading, Input, Popover, Text, VStack,
 } from '@jensbouma123/acciva-ui';
 import { CalendarDays, ChevronDown, ChevronRight, Check, MoreHorizontal, Pencil, Plus, Trash2, User, X } from 'lucide-react';
-import {
-  addAction, addDecision, getNotes, removeAction, removeDecision, subscribe,
-  suggestFromSegments, updateAction,
-  type ActionItem, type Decision,
-} from '@/lib/meeting/notes';
+import { addAction, addDecision, getNotes, removeAction, removeDecision, updateAction } from '@/lib/meeting/notes';
+import { subscribe } from '@/lib/meeting/notes-storage';
+import { suggestFromSegments } from '@/lib/meeting/note-suggestions';
+import { type ActionItem, type Decision } from '@/lib/meeting/types/notes';
 import type { Segment, Speaker } from '@/lib/meeting/types';
 import { useT } from '@/lib/i18n/useT';
 

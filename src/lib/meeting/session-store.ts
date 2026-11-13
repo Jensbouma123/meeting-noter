@@ -14,7 +14,7 @@ import {
 } from './store';
 import { resetDiarization } from './diarization-bridge';
 import { requestPersistentStorage } from './persistent-storage';
-import { adoptNotes, hasLocalNotes, notesKey } from './notes';
+import { adoptNotes, hasLocalNotes, notesKey } from './notes-storage';
 import { adoptParticipants, hasAskedParticipants, isSessionParticipantsKey, removeParticipants, sessionParticipantsKey } from './participants';
 import { flushServerSync, queueMeetingClear, queueMeetingDelete, queueMeetingSync } from './server-sync';
 import { moveMeeting } from '@/lib/folders/folders-api';

@@ -1,5 +1,5 @@
 import type { CaptureMode, LowConfSpan, SegmentOverlap, Source, Speaker } from '../meeting/types';
-import type { ActionItem, Decision, Notes } from '../meeting/notes';
+import type { ActionItem, Decision, Notes } from '../meeting/types/notes';
 import type { StoredMeeting, StoredSegment } from './types';
 
 /**

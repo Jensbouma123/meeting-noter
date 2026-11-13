@@ -2,7 +2,8 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Segment } from '@/lib/meeting';
-import { addAction, addDecision, getNotes, notesKey } from '@/lib/meeting/notes';
+import { addAction, addDecision, getNotes } from '@/lib/meeting/notes';
+import { notesKey } from '@/lib/meeting/notes-storage';
 import { NotesPanel } from '@/components/notes/NotesPanel';
 import { LiveTranscript } from './LiveTranscript';
 import { TranscriptTurn } from './TranscriptTurn';

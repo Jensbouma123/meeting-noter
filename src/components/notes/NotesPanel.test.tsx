@@ -2,7 +2,8 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { NotesPanel } from './NotesPanel';
-import { addAction, getNotes, notesKey } from '@/lib/meeting/notes';
+import { addAction, getNotes } from '@/lib/meeting/notes';
+import { notesKey } from '@/lib/meeting/notes-storage';
 import type { Segment } from '@/lib/meeting/types';
 
 describe('NotesPanel', () => {

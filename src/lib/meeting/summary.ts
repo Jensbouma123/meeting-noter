@@ -1,4 +1,4 @@
-import type { ActionItem, Decision } from './notes';
+import type { ActionItem, Decision } from './types/notes';
 import type { useT } from '@/lib/i18n/useT';
 
 type SummaryTranslator = ReturnType<typeof useT<'summary'>>;

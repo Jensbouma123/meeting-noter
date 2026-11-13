@@ -1,6 +1,6 @@
 import { DatabaseSync, type SQLOutputValue } from 'node:sqlite';
 import type { CaptureMode, Source, Speaker } from '../meeting/types';
-import type { ActionItem, Decision } from '../meeting/notes';
+import type { ActionItem, Decision } from '../meeting/types/notes';
 import { searchSummary, speakerNames, summaryText, transcriptText } from './markdown';
 import { randomUUID } from 'node:crypto';
 import type { FolderRow, MeetingSearchHit, MeetingSummaryRow, StoredMeeting, StoredSegment } from './types';

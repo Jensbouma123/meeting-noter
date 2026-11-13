@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
-import { getMeetingDiagnostics, type CaptureMode } from '@/lib/meeting';
+import { getMeetingDiagnostics } from '@/lib/meeting';
 import { callAudioHint } from '@/lib/meeting/call-audio-hint';
 import { Divider } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
