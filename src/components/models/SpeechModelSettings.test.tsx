@@ -52,9 +52,11 @@ vi.mock('@/lib/meeting/browser-asr', () => ({
   resetBrowserASR: mocks.resetBrowserASR,
 }));
 
-vi.mock('./ModelPreparationProgress', () => ({
-  ModelPreparationBar: () => null,
-  isPreparing: () => true,
+vi.mock('./preparation/ModelPreparationBar', () => ({ ModelPreparationBar: () => null }));
+
+vi.mock('./preparation/describePreparation', () => ({ isPreparing: () => true }));
+
+vi.mock('./preparation/useModelPreparation', () => ({
   useModelPreparation: () => ({
     asrEntry: undefined,
     downloadPercent: 50,
@@ -69,7 +71,6 @@ import { SpeechModelSettings } from './SpeechModelSettings';
 
 describe('DeleteDownloadedModels mid-download', () => {
   beforeEach(() => {
-    // acciva-ui 0.17 Modal is a native <dialog>; jsdom has no showModal/close.
     HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) {
       this.setAttribute('open', '');
     };
@@ -99,7 +100,6 @@ describe('DeleteDownloadedModels mid-download', () => {
     fireEvent.click(await screen.findByRole('button', { name: /^delete models$/i }));
 
     await waitFor(() => expect(mocks.deleteDownloadedModels).toHaveBeenCalledTimes(1));
-    // The loaded engine is dropped first, so no live session outlives its files.
     expect(mocks.resetBrowserASR).toHaveBeenCalledTimes(1);
     expect(await screen.findByText(/models deleted/i)).toBeInTheDocument();
   });
