@@ -1,7 +1,7 @@
 /** `GET /api/app/status` — identifies this server (launcher.sh tells "ours" from another program on the port). */
 import { refuseForeign } from '@/lib/lifecycle/request-guard';
 import { lifecycle } from '@/lib/lifecycle/server-lifecycle';
-import { updateRunning } from '@/lib/update/server-update';
+import { updateRunning } from '@/lib/update/update-files';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';

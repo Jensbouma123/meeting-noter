@@ -3,7 +3,8 @@
 import { Input, Select, Switch } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { addNameToVocabulary } from '@/lib/vocabulary/names';
-import { SetLanguageContext, type Language } from '@/lib/i18n/LanguageContext';
+import { SetLanguageContext } from '@/lib/i18n/LanguageContext';
+import type { Language } from '@/lib/i18n/types';
 import { useContext } from 'react';
 import { AudioCaptureSection } from './AudioCaptureSection';
 import { AppearanceSection } from './AppearanceSection';

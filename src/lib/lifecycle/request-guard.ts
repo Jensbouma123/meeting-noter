@@ -1,8 +1,3 @@
-/**
- * The /api/app routes act on this Mac (stop the server, run the installer), so
- * only same-origin pages on localhost may call them: a foreign page fails the
- * Origin check, and a DNS-rebinding page fails the Host check.
- */
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
 
 export function refuseForeign(request: Request): Response | null {

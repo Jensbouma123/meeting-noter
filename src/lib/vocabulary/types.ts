@@ -25,3 +25,30 @@ export interface VocabularyState {
 }
 
 export type VocabularyEditResult = 'ok' | 'empty' | 'duplicate';
+
+export interface Chunk {
+  lead: string;
+  core: string;
+  trail: string;
+}
+
+export interface PreparedEntry {
+  word: string;
+  spellings: string[][];
+  size: number;
+  letters: string;
+  key: string;
+  maxEdits: number;
+  edge: { lead: string; trail: string };
+}
+
+export interface Prepared {
+  entries: PreparedEntry[];
+  longest: number;
+}
+
+export interface Match {
+  from: number;
+  to: number;
+  word: string;
+}

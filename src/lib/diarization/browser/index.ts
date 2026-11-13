@@ -1,23 +1,14 @@
-/**
- * Public entry point: `createDiarizer({ source })` — see `types.ts` for the
- * returned shape and `README.md` for the full write-up (model choices,
- * sizes, algorithm, and how a pipeline worker should wire this in).
- *
- * Spins up (or reuses) one shared Web Worker for the page — all diarizer
- * instances share it, so the ~73 MB model is downloaded and loaded
- * once regardless of how many sources (`mic`, `system`) are diarized. That
- * worker is terminated when the **last** diarizer is disposed, so the sessions
- * are genuinely returned between recordings rather than pinned for the life of
- * the page: sharing is what avoids duplication *while* recording, and on a
- * memory-bound tab (see `src/lib/asr/browser/parakeet.ts` for the same
- * reasoning on the much larger speech model) holding it forever is the wrong
- * trade.
- */
-
 import { debugEnabled } from '../../asr/browser/quiet-console';
-import { reportSpeakerState, speakerSeedFor } from './speaker-state';
-import type { Diarizer, DiarizerErrorCode, DiarizerOptions, DiarizerReady, SpeakerTurn } from './types';
-import type { WorkerInMessage, WorkerOutMessage } from './worker';
+import { reportSpeakerState, speakerSeedFor } from './speaker-handoff';
+import type {
+  Diarizer,
+  DiarizerErrorCode,
+  DiarizerOptions,
+  DiarizerReady,
+  SpeakerTurn,
+  WorkerInMessage,
+  WorkerOutMessage,
+} from './types';
 
 let sharedWorker: Worker | null = null;
 let liveDiarizers = 0;
@@ -116,9 +107,6 @@ export function createDiarizer(options: DiarizerOptions): Diarizer {
     dispose(): void {
       if (disposed) return;
       disposed = true;
-      // Drop this source's core and its buffered audio in the worker, then
-      // detach. The worker itself (and its ONNX sessions) goes away with the
-      // last diarizer.
       const msg: WorkerInMessage = { type: 'dispose', id };
       worker.postMessage(msg);
       worker.removeEventListener('message', onMessage);

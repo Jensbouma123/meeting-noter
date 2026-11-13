@@ -1,14 +1,14 @@
 'use client';
 
 import { useContext } from 'react';
-import { LanguageContext, type Language } from './LanguageContext';
-import { t, type Namespace } from './index';
+import { t } from './index';
+import { LanguageContext } from './LanguageContext';
+import type { Language, Namespace } from './types';
 
 export function getDefaultLanguage(browserLanguage?: string): Language {
   return browserLanguage?.toLowerCase().startsWith('nl') ? 'nl' : 'en';
 }
 
-/** The language the interface is in: the provider's, or the browser's until it mounts. */
 export function useLanguage(): Language {
   const context = useContext(LanguageContext);
   return (

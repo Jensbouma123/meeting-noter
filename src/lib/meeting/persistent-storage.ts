@@ -1,10 +1,10 @@
-/**
- * Ask the browser not to evict this origin's storage. Resolves to the
- * resulting status; false when unsupported or refused. Never throws.
- */
+function storageApi(): StorageManager | undefined {
+  return typeof navigator !== 'undefined' ? navigator.storage : undefined;
+}
+
 export async function requestPersistentStorage(): Promise<boolean> {
   try {
-    const storage = typeof navigator !== 'undefined' ? navigator.storage : undefined;
+    const storage = storageApi();
     if (!storage?.persist) return false;
     if (storage.persisted && (await storage.persisted())) return true;
     return await storage.persist();
@@ -13,10 +13,9 @@ export async function requestPersistentStorage(): Promise<boolean> {
   }
 }
 
-/** Current persisted status, or null when the browser cannot tell. */
 export async function getPersistentStorageStatus(): Promise<boolean | null> {
   try {
-    const storage = typeof navigator !== 'undefined' ? navigator.storage : undefined;
+    const storage = storageApi();
     if (!storage?.persisted) return null;
     return await storage.persisted();
   } catch {

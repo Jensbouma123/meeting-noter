@@ -1,24 +1,8 @@
-/**
- * Band-limited resampler from any input rate to 16 kHz, mono Float32 in and out.
- *
- * Each output sample is a windowed-sinc low-pass (cutoff 7.2 kHz, or 0.45 of
- * an input slower than 16 kHz; 4-term Blackman-Harris window over ±2.5 ms)
- * evaluated at its exact fractional input position. Without the low-pass,
- * 8–24 kHz content (sibilants, keyboard clicks, hiss) folds into the speech
- * band at 16 kHz. The kernel is tabulated at `PHASES` sub-sample offsets and
- * linearly interpolated between them; each phase sums to 1, so DC passes
- * unchanged. The signal lags by half the kernel (2.5 ms); sample counts do not.
- *
- * `helper/Sources/Downsampler.swift` is the same algorithm with the same
- * constants: a helper frame and a browser frame are resampled alike.
- */
-
 export const OUT_RATE = 16000;
 const CUTOFF_HZ = 7200;
 const HALF_WIDTH_SEC = 0.0025;
 const PHASES = 256;
 
-/** The window at `u` in [-1, 1]. */
 function blackmanHarris(u) {
   const x = Math.PI * (u + 1);
   return 0.35875 - 0.48829 * Math.cos(x) + 0.14128 * Math.cos(2 * x) - 0.01168 * Math.cos(3 * x);
@@ -26,13 +10,11 @@ function blackmanHarris(u) {
 
 export class Resampler {
   constructor(inputRate) {
-    this.ratio = inputRate / OUT_RATE; // input samples per output sample
-    const fc = Math.min(CUTOFF_HZ, 0.45 * inputRate) / inputRate; // cycles per input sample
+    this.ratio = inputRate / OUT_RATE;
+    const fc = Math.min(CUTOFF_HZ, 0.45 * inputRate) / inputRate;
     const half = Math.max(1, Math.ceil(HALF_WIDTH_SEC * inputRate));
     this.half = half;
     this.taps = 2 * half;
-    // Row p holds the weights for an output `p / PHASES` input samples past
-    // the input sample that tap `half - 1` reads.
     this.table = new Float32Array((PHASES + 1) * this.taps);
     for (let p = 0; p <= PHASES; p++) {
       let sum = 0;
@@ -48,16 +30,12 @@ export class Resampler {
       }
       for (let k = 0; k < this.taps; k++) this.table[row + k] /= sum;
     }
-    // The last `taps` inputs, written twice so a window is always contiguous.
-    // It starts as `taps` samples of silence, so the first output is ready
-    // with the first input.
     this.hist = new Float32Array(2 * this.taps);
     this.received = this.taps;
-    this.whole = this.taps - half; // next output's position in input samples: whole + frac
+    this.whole = this.taps - half;
     this.frac = 0;
   }
 
-  /** Adds one input sample; calls `emit` with each output sample it completes. */
   push(x, emit) {
     const slot = this.received % this.taps;
     this.hist[slot] = x;

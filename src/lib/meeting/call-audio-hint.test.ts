@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { callAudioHint } from './call-audio-hint';
-import type { CaptureDiagnostics } from './capture';
+import type { CaptureDiagnostics } from './types/capture';
 
 function diag(over: Partial<CaptureDiagnostics>): CaptureDiagnostics {
   return {

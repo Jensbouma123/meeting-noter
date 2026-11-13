@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { mergeEntries } from './merge-entries';
-import { prepareVocabulary, type Prepared } from './replace';
-import type { VocabularyBiasConfig, VocabularyEditResult, VocabularyEntry, VocabularyState } from './types';
+import { prepareVocabulary } from './prepare-vocabulary';
+import type { Prepared, VocabularyBiasConfig, VocabularyEditResult, VocabularyEntry, VocabularyState } from './types';
 import { clampStrength, EMPTY_VOCABULARY, loadVocabulary, persistVocabulary } from './vocabulary-storage';
 
 let current: VocabularyState | null = null;

@@ -1,65 +1,4 @@
-/**
- * Per-frame speaker probabilities → closed speaker turns, incrementally.
- *
- * Each of the model's speaker channels is tracked on its own, so overlapping
- * speech gives overlapping turns. A channel's run opens at its first frame
- * above `threshold` (above `overlapThreshold` instead while another channel
- * is on, since the second speaker's probability sags under the louder one's;
- * default: `threshold`) and stays on while it is above `offThreshold`
- * (default: `threshold`); once off, it closes after staying off for more than
- * `maxGapSec` (default 1 s: one person's pauses between phrases do not split
- * their turn; on the AMI scoring clip this took DER from 43% to 35%). A run
- * shorter than `minTurnSec` is dropped as a blip. A run still open after
- * `maxOpenSec` is emitted up to the current frame and continues as a new
- * turn, so a long monologue is labelled while it is still going.
- *
- * With `provisional`, every push also reports each open run as it stands
- * (`final: false`), under the id its closing span will carry: the caller
- * learns who is speaking within one step instead of after the turn ends.
- *
- * Frame `f` covers `[f, f + 1) * frameSec` on the tracker's own clock.
- */
-
-export interface TurnSpan {
-  speaker: number;
-  /** Seconds on the tracker's clock. */
-  start: number;
-  end: number;
-  /** Identifies the run: a provisional span and its later final one share it. */
-  run: number;
-  /** False while the run is still open and may grow. */
-  final: boolean;
-  /** Set on a span cut off at `maxOpenSec`: the speaker goes on talking, so
-   *  its end is no turn end. */
-  continues?: true;
-}
-
-export interface TurnTrackerOptions {
-  numSpeakers: number;
-  frameSec: number;
-  threshold?: number;
-  /** A channel already on stays on down to this (hysteresis). */
-  offThreshold?: number;
-  /** Where a channel turns on while another one was on in the previous frame. */
-  overlapThreshold?: number;
-  maxGapSec?: number;
-  minTurnSec?: number;
-  maxOpenSec?: number;
-  /** Also report open runs after every push (see the module doc). */
-  provisional?: boolean;
-}
-
-interface OpenRun {
-  id: number;
-  startFrame: number;
-  /** End frame of the last provisional span reported for this run. */
-  reportedEnd: number;
-  /** Last frame above threshold. */
-  lastActive: number;
-  /** Continues a force-flushed run: kept however short it is, since its
-   *  start is the previous turn's end rather than a blip. */
-  continued: boolean;
-}
+import type { OpenRun, TurnSpan, TurnTrackerOptions } from './types';
 
 export class TurnTracker {
   private readonly numSpeakers: number;
@@ -88,16 +27,10 @@ export class TurnTracker {
     this.open = new Array<OpenRun | null>(options.numSpeakers).fill(null);
   }
 
-  /** Frames seen so far. */
   get framesSeen(): number {
     return this.nextFrame;
   }
 
-  /**
-   * Feed consecutive frames of probabilities, row-major (frames, numSpeakers).
-   * Returns the turns they closed, by start time, then (with `provisional`)
-   * the open runs that grew, the most recently active last.
-   */
   push(probs: Float32Array): TurnSpan[] {
     const s = this.numSpeakers;
     const frames = Math.floor(probs.length / s);
@@ -129,21 +62,24 @@ export class TurnTracker {
     this.nextFrame += frames;
     closed.sort((a, b) => a.start - b.start);
     if (!this.provisional) return closed;
+    return closed.concat(this.growingRuns());
+  }
+
+  flush(): TurnSpan[] {
+    const closed: TurnSpan[] = [];
+    for (let k = 0; k < this.numSpeakers; k += 1) this.close(k, closed);
+    return closed.sort((a, b) => a.start - b.start);
+  }
+
+  private growingRuns(): TurnSpan[] {
     const growing: TurnSpan[] = [];
-    for (let k = 0; k < s; k += 1) {
+    for (let k = 0; k < this.numSpeakers; k += 1) {
       const run = this.open[k];
       if (!run || !this.reportable(run) || run.lastActive + 1 <= run.reportedEnd) continue;
       run.reportedEnd = run.lastActive + 1;
       growing.push(this.span(k, run, run.reportedEnd, false));
     }
-    return closed.concat(growing.sort((a, b) => a.end - b.end));
-  }
-
-  /** Close every open run (end of stream). */
-  flush(): TurnSpan[] {
-    const closed: TurnSpan[] = [];
-    for (let k = 0; k < this.numSpeakers; k += 1) this.close(k, closed);
-    return closed.sort((a, b) => a.start - b.start);
+    return growing.sort((a, b) => a.end - b.end);
   }
 
   private close(speaker: number, into: TurnSpan[]): void {

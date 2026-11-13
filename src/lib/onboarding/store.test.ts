@@ -28,7 +28,7 @@ describe('onboarding store', () => {
   it('finishing records the flag, so the next page load stays closed', () => {
     finishOnboarding();
     expect(localStorage.getItem(ONBOARDING_STORAGE_KEY)).toBe('1');
-    resetOnboardingForTests(); // a fresh page load: in-memory state gone, storage kept
+    resetOnboardingForTests();
     expect(shouldShowOnboarding()).toBe(false);
   });
 

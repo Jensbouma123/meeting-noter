@@ -1,7 +1,8 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { translations, type Namespace } from './index';
+import { translations } from './index';
+import type { Namespace, UsedKey } from './types';
 
 const SRC = join(__dirname, '..', '..');
 const NAMESPACES = Object.keys(translations) as Namespace[];
@@ -14,11 +15,8 @@ function sourceFiles(dir: string): string[] {
   });
 }
 
-interface Used { file: string; key: string; prefix: boolean; namespaces: Namespace[] }
-
-/** Every `t('key')` / ``t(`prefix.${x}`)`` call in a file that binds `useT('ns')`. */
-function usedKeys(): Used[] {
-  const used: Used[] = [];
+function usedKeys(): UsedKey[] {
+  const used: UsedKey[] = [];
   for (const file of sourceFiles(SRC)) {
     if (file.includes(`${join('src', 'lib', 'i18n')}`)) continue;
     const text = readFileSync(file, 'utf8');

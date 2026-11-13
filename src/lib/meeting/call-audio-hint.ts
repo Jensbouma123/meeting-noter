@@ -1,4 +1,4 @@
-import type { CaptureDiagnostics } from './capture';
+import type { CaptureDiagnostics } from './types/capture';
 
 export function callAudioHint(diag: CaptureDiagnostics | null): string {
   const lost =

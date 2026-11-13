@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Capture, SAFARI_MIC_NEEDS_HELPER, SHARE_SOUND_RMS, SILENT_MIC_FRAMES, SILENT_MIC_WARNING, SILENT_SHARE_FRAMES } from './capture';
+import { Capture } from './capture';
+import { SAFARI_MIC_NEEDS_HELPER, SHARE_SOUND_RMS, SILENT_MIC_FRAMES, SILENT_MIC_WARNING, SILENT_SHARE_FRAMES } from './capture-constants';
 
 /**
  * Meeting audio played through the speakers reaches a mic-only recording only

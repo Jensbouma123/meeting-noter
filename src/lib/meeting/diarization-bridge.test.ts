@@ -394,7 +394,7 @@ describe('diarization bridge — overlap second pass', () => {
     bridge.startDiarization(['mic']);
     const emit = fakes.turn.get('mic')!;
     store.upsertSegment({
-      id: `${pass.OVERLAP_SEGMENT_PREFIX}1`, source: 'mic', speaker: 'mic:1', text: 'right', start: 3.2, end: 3.5,
+      id: `${OVERLAP_SEGMENT_PREFIX}1`, source: 'mic', speaker: 'mic:1', text: 'right', start: 3.2, end: 3.5,
       final: true, words: [{ text: 'right', start: 3.2, end: 3.5 }],
     });
     emit({ speaker: 'mic:0', source: 'mic', start: 1, end: 4, id: 'mic#0', final: true });

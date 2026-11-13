@@ -1,20 +1,6 @@
-/**
- * pcm16 AudioWorkletProcessor
- *
- * Input: Float32 mono/stereo render quanta at the context sample rate.
- * Output (posted to port): { type: 'frame', pcm: ArrayBuffer, rms: number }
- *   - pcm: 1600 Int16LE mono samples @ 16 kHz (100 ms), transferable.
- *   - rms: 0..1 RMS level of the frame (for meters; not sent to server).
- *
- * Resampling is band-limited (`resampler.js`): a low-pass at 7.2 kHz keeps
- * 8–24 kHz content from folding into the speech band. Its state carries
- * across process() calls, so block boundaries are seamless. No allocations
- * per output frame beyond the frame buffer itself.
- */
-
 import { Resampler } from './resampler.js';
 
-const FRAME_SAMPLES = 1600; // 100 ms
+const FRAME_SAMPLES = 1600;
 
 class Pcm16Processor extends AudioWorkletProcessor {
   constructor(options) {

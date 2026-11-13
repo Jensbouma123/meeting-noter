@@ -15,7 +15,7 @@
 //   5. to a good release again.
 // It never touches ~/Library/Application Support/Meeting Noter, launchd or port 3000.
 import { spawn } from 'node:child_process';
-import { closeSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, openSync, readFileSync, readlinkSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { closeSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, openSync, readdirSync, readFileSync, readlinkSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { homedir, tmpdir } from 'node:os';
 import path from 'node:path';
@@ -71,7 +71,10 @@ function run(cmd, args, env) {
 
 const SERVER_JS = (broken) => `// Stand-in for the Next.js server: the update calls of src/app/api/app/update/route.ts.
 import { createServer } from 'node:http';
-import { buildCheck, detectInstall, fetchRelease, readUpdateStatus, startUpdate, updateRunning } from './server-update.ts';
+import { buildCheck, fetchRelease } from './release-check.ts';
+import { detectInstall } from './detect-install.ts';
+import { startUpdate } from './start-update.ts';
+import { readUpdateStatus, updateRunning } from './update-files.ts';
 if (${broken}) { console.error('update-e2e: this release does not start'); process.exit(1); }
 const install = detectInstall();
 const json = (res, status, body) => { res.writeHead(status, { 'content-type': 'application/json' }); res.end(JSON.stringify(body)); };
@@ -97,7 +100,10 @@ async function makeRelease(version, { broken = false } = {}) {
   symlinkSync(process.execPath, path.join(stage, 'node/bin/node'));
   writeFileSync(path.join(stage, 'server/package.json'), '{"type":"module"}\n');
   writeFileSync(path.join(stage, 'server/server.js'), SERVER_JS(broken));
-  copyFileSync(path.join(repo, 'src/lib/update/server-update.ts'), path.join(stage, 'server/server-update.ts'));
+  for (const f of readdirSync(path.join(repo, 'src/lib/update')).filter((n) => n.endsWith('.ts') && !n.includes('.test.') && n !== 'test-fixtures.ts')) {
+    const src = readFileSync(path.join(repo, 'src/lib/update', f), 'utf8').replace(/from '(\.\/[\w-]+)'/g, "from '$1.ts'");
+    writeFileSync(path.join(stage, 'server', f), src);
+  }
   copyFileSync(path.join(repo, 'src/lib/update/version.mjs'), path.join(stage, 'server/version.mjs'));
   copyFileSync(path.join(here, 'launcher.sh'), path.join(stage, 'launcher/launcher.sh'));
   writeFileSync(path.join(stage, 'launcher/AppIcon.icns'), 'icns');

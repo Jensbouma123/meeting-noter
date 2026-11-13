@@ -11,7 +11,7 @@ import {
   VStack,
 } from '@jensbouma123/acciva-ui';
 import { useLanguage, useT } from '@/lib/i18n/useT';
-import type { Language } from '@/lib/i18n/LanguageContext';
+import type { Language } from '@/lib/i18n/types';
 
 const MAX_NAME_LENGTH = 80;
 

@@ -5,7 +5,9 @@
  */
 import { refuseForeign } from '@/lib/lifecycle/request-guard';
 import { lifecycle } from '@/lib/lifecycle/server-lifecycle';
-import { buildCheck, fetchRelease, readUpdateStatus, startUpdate, updateRunning } from '@/lib/update/server-update';
+import { buildCheck, fetchRelease } from '@/lib/update/release-check';
+import { startUpdate } from '@/lib/update/start-update';
+import { readUpdateStatus, updateRunning } from '@/lib/update/update-files';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';

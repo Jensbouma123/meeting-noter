@@ -1,7 +1,7 @@
 /** `GET /api/app/update/status` — progress of the last in-app update (survives the server restart). */
 import { refuseForeign } from '@/lib/lifecycle/request-guard';
 import { lifecycle } from '@/lib/lifecycle/server-lifecycle';
-import { readUpdateStatus } from '@/lib/update/server-update';
+import { readUpdateStatus } from '@/lib/update/update-files';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';

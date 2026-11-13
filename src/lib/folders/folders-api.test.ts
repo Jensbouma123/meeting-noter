@@ -10,9 +10,9 @@ import {
   moveMeeting,
   renameFolder,
 } from './folders-api';
+import type { MockReply } from './types';
 
-type Reply = Response | Error;
-let replies: Reply[];
+let replies: MockReply[];
 let calls: { url: string; init?: RequestInit }[];
 
 const reply = (status: number, body: unknown) =>

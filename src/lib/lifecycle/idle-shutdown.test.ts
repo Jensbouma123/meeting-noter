@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { IdleTracker, parseBeat } from './idle-shutdown';
+import { IdleTracker } from './idle-shutdown';
+import { parseBeat } from './parse-beat';
 
 function setup() {
   let t = 1_000_000;

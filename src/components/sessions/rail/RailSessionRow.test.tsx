@@ -1,0 +1,111 @@
+// @vitest-environment jsdom
+import '@testing-library/jest-dom/vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import type { SessionMetadata } from '@/lib/meeting/session-store';
+import { bindTranscriptSession, clearIdleSession, setState } from '@/lib/meeting/store';
+import { RailSessionRow } from './RailSessionRow';
+import { draft, recorded } from './test-support/draftSession';
+
+const noop = () => {};
+
+function row(session: SessionMetadata, props: { isActive?: boolean; pathLabel?: string } = {}) {
+  return <RailSessionRow session={session} isActive={props.isActive ?? true} onOpen={noop} onClear={noop} onDelete={noop} pathLabel={props.pathLabel} />;
+}
+
+beforeEach(() => {
+  vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
+    cb(0);
+    return 0;
+  });
+});
+
+afterEach(() => {
+  act(() => {
+    setState({ status: 'idle' });
+    clearIdleSession();
+    bindTranscriptSession(null);
+  });
+  vi.unstubAllGlobals();
+  cleanup();
+});
+
+describe('RailSessionRow more menu', () => {
+  const openMenu = (sessionTitle: string) => fireEvent.click(screen.getByRole('button', { name: `More actions for “${sessionTitle}”` }));
+
+  it('hides "Open" for the meeting that is currently open', () => {
+    render(row(draft()));
+    openMenu('Standup');
+    expect(screen.getByRole('menuitem', { name: 'Clear transcript', hidden: true })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Delete meeting', hidden: true })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Open', hidden: true })).toBeNull();
+  });
+
+  it('keeps "Open" for a meeting that is not currently open', () => {
+    render(row(draft(), { isActive: false }));
+    openMenu('Standup');
+    expect(screen.getByRole('menuitem', { name: 'Open', hidden: true })).toBeInTheDocument();
+  });
+});
+
+describe('RailSessionRow recording badge', () => {
+  const startRecording = () =>
+    act(() => {
+      bindTranscriptSession('sess-1');
+      setState({ status: 'live' });
+    });
+
+  it('shows "Not recorded" for a draft that is not recording', () => {
+    render(row(draft()));
+    expect(screen.getByText('Not recorded')).toBeInTheDocument();
+    expect(screen.queryByText('Recording')).toBeNull();
+  });
+
+  it('shows a recording state while the session is being recorded', () => {
+    const { rerender } = render(row(draft()));
+    expect(screen.getByText('Not recorded')).toBeInTheDocument();
+    startRecording();
+    rerender(row(draft()));
+    expect(screen.getByText('Recording')).toBeInTheDocument();
+    expect(screen.queryByText('Not recorded')).toBeNull();
+  });
+
+  it('shows the duration like other rows after stopping', () => {
+    const { rerender } = render(row(draft()));
+    startRecording();
+    rerender(row(draft()));
+    expect(screen.getByText('Recording')).toBeInTheDocument();
+    act(() => {
+      setState({ status: 'idle' });
+    });
+    rerender(row(recorded()));
+    expect(screen.queryByText('Recording')).toBeNull();
+    expect(screen.queryByText('Not recorded')).toBeNull();
+    expect(screen.getByText(/· 01:05$/)).toBeInTheDocument();
+  });
+});
+
+describe('RailSessionRow folder path in search', () => {
+  it('shows the folder path ahead of the time and duration', () => {
+    render(row(recorded(), { isActive: false, pathLabel: 'Work / Q1' }));
+    expect(screen.getByText(/^Work \/ Q1 · /)).toBeInTheDocument();
+  });
+
+  it('shows no path when the meeting is unfiled', () => {
+    render(row(recorded(), { isActive: false }));
+    expect(screen.queryByText(/\//)).toBeNull();
+  });
+});
+
+describe('RailSessionRow leading icon', () => {
+  it('renders a muted pencil icon for drafts and no leading audio icon for recorded sessions', () => {
+    const { container, rerender } = render(row(draft({ isDraft: true }), { isActive: false }));
+    expect(container.querySelector('.text-muted-foreground svg')).not.toBeNull();
+    expect(container.querySelector('.text-primary-600')).toBeNull();
+
+    rerender(row(recorded({ captureMode: 'mic' }), { isActive: false }));
+    expect(container.querySelector('.text-muted-foreground svg')).toBeNull();
+    expect(container.querySelector('.text-primary-600')).toBeNull();
+    expect(screen.queryByText('Microphone')).toBeNull();
+  });
+});

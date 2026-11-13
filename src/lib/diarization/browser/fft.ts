@@ -1,9 +1,3 @@
-/** Minimal iterative radix-2 Cooley-Tukey FFT, real input.
- *
- * `fbank.ts` is the only caller; sizes are always a power of two (512 for
- * the 25 ms/16 kHz analysis frame used there).
- */
-
 function bitReverseIndices(n: number): Uint32Array {
   const bits = Math.log2(n);
   const out = new Uint32Array(n);
@@ -19,12 +13,6 @@ function bitReverseIndices(n: number): Uint32Array {
   return out;
 }
 
-/**
- * In-place-ish real FFT. `real` must have length `n` (a power of two);
- * returns { re, im } of length `n`. Only the first n/2+1 bins are meaningful
- * for a real input (the rest mirror by conjugate symmetry) — callers that
- * only need the power spectrum up to Nyquist should just read those.
- */
 export function fftReal(real: Float64Array): { re: Float64Array; im: Float64Array } {
   const n = real.length;
   if (n <= 1 || (n & (n - 1)) !== 0) {
@@ -58,7 +46,6 @@ export function fftReal(real: Float64Array): { re: Float64Array; im: Float64Arra
   return { re, im };
 }
 
-/** Smallest power of two >= n. */
 export function nextPowerOfTwo(n: number): number {
   let p = 1;
   while (p < n) p *= 2;

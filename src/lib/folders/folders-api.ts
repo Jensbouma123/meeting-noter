@@ -1,9 +1,7 @@
-/** Browser client for the folder routes (`docs/FOLDERS-CONTRACT.md`). Every call resolves to a result; none throws. */
 import type { FolderRow } from '@/lib/meeting-db/types';
+import type { ApiResult, FolderDeleteMode } from './types';
 
 export const FOLDERS_CHANGED_EVENT = 'mn:folders-changed';
-export type FolderDeleteMode = 'move-up' | 'delete-contents';
-export type ApiResult<T = Record<string, never>> = ({ ok: true } & T) | { ok: false; error: string };
 
 async function call<T>(url: string, init?: RequestInit): Promise<ApiResult<T>> {
   try {
@@ -32,7 +30,6 @@ export async function fetchFolders(): Promise<FolderRow[] | null> {
   return r.ok ? r.folders : null;
 }
 
-/** meetingId → folderId for every stored meeting (one page of the list route, 1000 at most). */
 export async function fetchMeetingFolders(): Promise<Record<string, string | null> | null> {
   const r = await call<{ meetings: { id: string; folderId?: string | null }[] }>('/api/meetings');
   if (!r.ok) return null;
@@ -51,7 +48,6 @@ export async function moveFolder(id: string, parentId: string | null): Promise<A
   return changed(await call(`/api/folders/${encodeURIComponent(id)}`, json('PATCH', { parentId })));
 }
 
-/** Persist a folder's position among its siblings. */
 export async function reorderFolder(id: string, index: number): Promise<ApiResult<{ folder: FolderRow }>> {
   return changed(await call(`/api/folders/${encodeURIComponent(id)}`, json('PATCH', { index })));
 }

@@ -18,7 +18,7 @@ import { summary } from './ns/summary';
 import { topbar } from './ns/topbar';
 import { transcript } from './ns/transcript';
 import { update } from './ns/update';
-import type { Language } from './LanguageContext';
+import type { Language, Namespace } from './types';
 
 export const translations = {
   common,
@@ -42,9 +42,6 @@ export const translations = {
   transcript,
   update,
 } as const;
-
-export type Namespace = keyof typeof translations;
-export type TranslationKey<N extends Namespace> = string & keyof (typeof translations)[N]['en'];
 
 export function t<N extends Namespace>(namespace: N, key: string, language: Language): string {
   const table = translations[namespace] as Record<Language, Record<string, string>>;

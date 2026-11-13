@@ -1,8 +1,3 @@
-/**
- * First-run onboarding state: shown once, then remembered in `localStorage`.
- * `?onboarding=1` in the URL forces it open (for testing), and Settings
- * reopens it through `openOnboarding()`.
- */
 import { useSyncExternalStore } from 'react';
 
 export const ONBOARDING_STORAGE_KEY = 'mn.onboarding.done';
@@ -27,7 +22,6 @@ function isDone(): boolean {
   try {
     return localStorage.getItem(ONBOARDING_STORAGE_KEY) === '1';
   } catch {
-    // No storage: ask once per page load rather than on every render.
     return finished;
   }
 }
@@ -37,35 +31,25 @@ export function shouldShowOnboarding(): boolean {
   return reopened || (forcedByUrl() && !finished) || !isDone();
 }
 
-/** Mark onboarding as seen (finished or skipped) and close it. */
 export function finishOnboarding(): void {
   reopened = false;
   finished = true;
   try {
     localStorage.setItem(ONBOARDING_STORAGE_KEY, '1');
-  } catch {
-    // Ignore — it will show again next load.
-  }
+  } catch {}
   emit();
 }
 
-/** Reopen the welcome tour. */
 export function openOnboarding(): void {
   reopened = true;
   emit();
 }
 
-/**
- * Settings → Restart onboarding: clear the done flag and open at step 1.
- * The user's saved words and name are untouched, so the steps show them.
- */
 export function restartOnboarding(): void {
   finished = false;
   try {
     localStorage.removeItem(ONBOARDING_STORAGE_KEY);
-  } catch {
-    // Ignore — `reopened` below still opens it for this page.
-  }
+  } catch {}
   reopened = true;
   emit();
 }

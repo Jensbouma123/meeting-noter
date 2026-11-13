@@ -1,15 +1,5 @@
 'use client';
 
-/**
- * Tells the on-demand server this tab is open (see idle-shutdown.ts), so it
- * stops once the last Meeting Noter tab closes but never while one records.
- *
- *   useServerHeartbeat();             // once per tab, near the root
- *   useServerHeartbeat(isRecording);  // where the recording state lives
- *
- * Every mount in a tab shares one client id (sessionStorage, so a reload keeps
- * it) and one timer; the tab counts as recording while any mount passes true.
- */
 import { useEffect, useState } from 'react';
 
 export const HEARTBEAT_URL = '/api/app/heartbeat';
@@ -41,22 +31,21 @@ function clientId(): string {
 }
 
 const recording = () => [...mounts.values()].some(Boolean);
-const body = (closing: boolean) =>
+const heartbeatBody = (closing: boolean) =>
   JSON.stringify({ clientId: clientId(), recording: recording(), ...(closing ? { closing: true } : {}) });
 
 function beat(): void {
   void fetch(HEARTBEAT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: body(false),
+    body: heartbeatBody(false),
     keepalive: true,
   }).catch(() => {});
 }
 
 function onPageHide(): void {
-  // A string body goes out as text/plain, which a beacon may always send.
-  if (typeof navigator.sendBeacon === 'function' && navigator.sendBeacon(HEARTBEAT_URL, body(true))) return;
-  void fetch(HEARTBEAT_URL, { method: 'POST', body: body(true), keepalive: true }).catch(() => {});
+  if (typeof navigator.sendBeacon === 'function' && navigator.sendBeacon(HEARTBEAT_URL, heartbeatBody(true))) return;
+  void fetch(HEARTBEAT_URL, { method: 'POST', body: heartbeatBody(true), keepalive: true }).catch(() => {});
 }
 
 function onVisibility(): void {

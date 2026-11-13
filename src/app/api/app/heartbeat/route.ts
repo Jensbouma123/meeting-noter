@@ -1,5 +1,5 @@
 /** `POST /api/app/heartbeat` — a tab says it is open, recording or closing (useServerHeartbeat). */
-import { parseBeat } from '@/lib/lifecycle/idle-shutdown';
+import { parseBeat } from '@/lib/lifecycle/parse-beat';
 import { refuseForeign } from '@/lib/lifecycle/request-guard';
 import { lifecycle } from '@/lib/lifecycle/server-lifecycle';
 

@@ -5,10 +5,6 @@ import { describe, expect, it } from 'vitest';
 const SRC = join(__dirname, '..', '..');
 const COMPONENTS = join(SRC, 'components');
 
-/**
- * Files another test-pass slice owns: onboarding, the update flow and the
- * vocabulary settings UI. Their strings are checked where those slices live.
- */
 const OTHER_SLICE = [
   join('components', 'onboarding'),
   join('components', 'update'),
@@ -26,11 +22,6 @@ function sources(dir: string): string[] {
   });
 }
 
-/**
- * User-facing attributes that must come from the dictionary. A literal here
- * ships English to a Dutch screen reader, and nothing else catches it: the
- * visible label can be perfectly translated while `aria-label` is not.
- */
 const ATTRIBUTES = ['aria-label', 'aria-description', 'aria-placeholder', 'placeholder', 'alt', 'title', 'tooltip'];
 
 function offenders(): string[] {
@@ -40,7 +31,6 @@ function offenders(): string[] {
     if (OTHER_SLICE.some((skip) => rel.startsWith(skip))) continue;
     const text = readFileSync(file, 'utf8');
     for (const attribute of ATTRIBUTES) {
-      // `attribute="text"` (a literal) versus `attribute={t('key')}` (translated).
       const literal = new RegExp(`(?<![A-Za-z-])${attribute}="([^"{}]*[A-Za-z][^"{}]*)"`, 'g');
       for (const match of text.matchAll(literal)) {
         const line = text.slice(0, match.index).split('\n').length;

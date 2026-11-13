@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { translations, type Namespace } from './index';
+import { translations } from './index';
+import type { Namespace } from './types';
 
 const NAMESPACES = Object.keys(translations) as Namespace[];
 
-/** `{name}`-style slots, sorted so order changes do not matter. */
 function placeholders(value: string): string[] {
   return [...value.matchAll(/\{([a-zA-Z0-9_]+)\}/g)].map((m) => m[1]).sort();
 }
@@ -21,8 +21,6 @@ describe('catalog parity', () => {
         const enValue = en.get(key) ?? '';
         const enSlots = placeholders(enValue).join(',');
         const nlSlots = placeholders(nlValue).join(',');
-        // A slot only one side has renders as a literal `{name}` for that
-        // language, or silently drops the value the caller passed in.
         if (enSlots !== nlSlots) mismatched.push(`${namespace}.${key}: en{${enSlots}} nl{${nlSlots}}`);
       }
     }
@@ -42,11 +40,9 @@ describe('catalog parity', () => {
   });
 
   it('leaves no Dutch string in English', () => {
-    // Multi-word values that are identical in both catalogs are almost always
-    // an untranslated entry; single words can legitimately coincide ("Mic").
     const allowed = new Set([
-      'common.brand', // the product name
-      'settings.uiEnglish', // endonyms: a language is always shown in its own language
+      'common.brand',
+      'settings.uiEnglish',
       'settings.uiDutch',
       'settings.english',
       'settings.dutch',
@@ -56,9 +52,8 @@ describe('catalog parity', () => {
       'settings.italian',
       'settings.portuguese',
       'settings.japanese',
-      // Same words in both languages, not a translation gap.
-      'sidebar.openCount', // "{n} open" is Dutch too
-      'onboarding.models.download', // "Download 120 MB" is Dutch too
+      'sidebar.openCount',
+      'onboarding.models.download',
     ]);
     const untranslated: string[] = [];
     for (const namespace of NAMESPACES) {

@@ -1,12 +1,11 @@
 // @vitest-environment jsdom
 import { renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { SentHeartbeat } from './types';
 import { HEARTBEAT_URL, useServerHeartbeat } from './useServerHeartbeat';
 
-type Sent = { clientId: string; recording: boolean; closing?: boolean };
-
 let fetchMock: ReturnType<typeof vi.fn>;
-const sent = (): Sent[] => fetchMock.mock.calls.map(([, init]) => JSON.parse(init.body));
+const sent = (): SentHeartbeat[] => fetchMock.mock.calls.map(([, init]) => JSON.parse(init.body));
 
 beforeEach(() => {
   vi.useFakeTimers();

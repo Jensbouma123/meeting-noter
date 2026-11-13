@@ -1,19 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { Resampler } from './resampler.js';
 
-/**
- * Tones through the capture resampler. The box average it replaced let
- * 9 kHz through to 7 kHz at -4.6 dB, 12 kHz to 4 kHz at -9.5 dB and 20 kHz
- * to 4 kHz at -12.3 dB from 48 kHz input, and drooped -2.6 dB at 7 kHz.
- */
-
-/** Output RMS over input RMS, in dB, for a 0.5-amplitude sine at `hz`. */
 export function toneGainDb(inputRate, hz) {
   const resampler = new Resampler(inputRate);
   const out = [];
-  const n = inputRate; // 1 s
+  const n = inputRate;
   for (let i = 0; i < n; i++) resampler.push(0.5 * Math.sin((2 * Math.PI * hz * i) / inputRate), (y) => out.push(y));
-  const settled = out.slice(800); // past the kernel's start-up
+  const settled = out.slice(800);
   const rms = Math.sqrt(settled.reduce((s, y) => s + y * y, 0) / settled.length);
   return 20 * Math.log10(rms / (0.5 / Math.SQRT2));
 }
