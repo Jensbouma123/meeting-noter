@@ -72,6 +72,7 @@ describe('ParticipantsDialog', () => {
     fireEvent.change(search(), { target: { value: 'an' } });
     expect(screen.getByRole('checkbox', { name: 'Anna' })).toBeInTheDocument();
     expect(screen.queryByRole('checkbox', { name: 'Piet' })).toBeNull();
+    fireEvent.change(search(), { target: { value: 'anna' } });
     expect(screen.queryByRole('button', { name: 'Add' })).toBeNull();
   });
 
