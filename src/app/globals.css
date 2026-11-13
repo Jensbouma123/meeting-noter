@@ -8,7 +8,7 @@
    `globals.css` unaware of the colour names and silently drops every
    `bg-primary-500` / `text-muted-foreground` utility. Never copy this file
    into `src/` — a vendored duplicate drifts from the published one. */
-@import "@jensbouma123/acciva-ui/styles";
+@import "../lib/theme/tokens.css";
 
 @theme inline {
   --font-sans: var(--font-geist-sans);

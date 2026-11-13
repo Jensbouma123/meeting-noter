@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider, ThemeInitScript } from "@jensbouma123/acciva-ui/theme";
 import { ToastProvider } from "@jensbouma123/acciva-ui";
 import "./globals.css";
+import { PinThemeSeed } from "@/lib/theme/PinThemeSeed";
+import { THEME_SEED } from "@/lib/theme/theme-seed";
 import { UpdateBanner } from "@/components/UpdateBanner";
 import { I18nProvider } from "@/lib/i18n/I18nProvider";
 import { LifecycleClient } from "@/components/lifecycle/LifecycleClient";
@@ -30,8 +32,8 @@ export const viewport: Viewport = {
   viewportFit: "cover",
   interactiveWidget: "resizes-content",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#e2eae6" },
-    { media: "(prefers-color-scheme: dark)", color: "#060a08" },
+    { media: "(prefers-color-scheme: light)", color: "#e2e9ee" },
+    { media: "(prefers-color-scheme: dark)", color: "#060a0d" },
   ],
 };
 
@@ -48,11 +50,12 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
+        <PinThemeSeed />
         <ThemeInitScript />
       </head>
       <body className="min-h-dvh h-full flex flex-col bg-background text-foreground selection:bg-primary-100 selection:text-primary-900">
         <I18nProvider>
-          <ThemeProvider>
+          <ThemeProvider stylesheet={THEME_SEED}>
             <ToastProvider position="bottom-right">
               <UpdateBanner />
               <LifecycleClient />
