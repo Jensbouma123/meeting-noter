@@ -5,10 +5,11 @@ import { useT } from '@/lib/i18n/useT';
 import { AssistantDetails } from './AssistantDetails';
 import { AssistantConfirm } from './AssistantConfirm';
 import { AssistantCopyButton } from './AssistantCopyButton';
+import { ASSISTANT_NAMES } from './AssistantNames';
+import { AssistantLogo } from './AssistantLogo';
 import { SettingsRow } from './SettingsRow';
 import type { AssistantCardProps } from './Assistant.types';
 
-const NAMES = { 'claude-desktop': 'Claude Desktop', 'claude-code': 'Claude Code', codex: 'Codex' } as const;
 const BADGE = { connected: 'success', 'needs-repair': 'warning', 'not-connected': 'neutral', 'not-found': 'warning' } as const;
 
 export function AssistantCard({ assistant, busy, error, confirm, onConnect, onDisconnect, onCancelConfirm }: AssistantCardProps) {
@@ -27,11 +28,12 @@ export function AssistantCard({ assistant, busy, error, confirm, onConnect, onDi
     ) : null;
 
   return (
-    <div>
+    <div role="group" aria-label={ASSISTANT_NAMES[id]}>
       <SettingsRow
         label={
-          <span className="flex items-center gap-2">
-            {NAMES[id]}
+          <span className="flex items-center gap-3">
+            <AssistantLogo id={id} />
+            {ASSISTANT_NAMES[id]}
             <Badge variant={BADGE[status]} size="sm">{t(`status.${status}`)}</Badge>
           </span>
         }

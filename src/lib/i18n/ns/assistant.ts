@@ -1,7 +1,7 @@
 export const assistant = {
   en: {
     intro: 'Connect an AI assistant so you can ask it questions about your meetings. Everything stays on this Mac.',
-    loading: 'Looking for assistants…',
+    loading: 'Looking for AI assistants…',
     loadFailed: 'Could not check your assistants. Try again later.',
     connect: 'Connect',
     disconnect: 'Disconnect',
@@ -28,7 +28,7 @@ export const assistant = {
   },
   nl: {
     intro: 'Koppel een AI-assistent zodat je vragen kunt stellen over je gesprekken. Alles blijft op deze Mac.',
-    loading: 'Assistenten zoeken…',
+    loading: 'Zoeken naar AI-assistenten…',
     loadFailed: 'Kon je assistenten niet controleren. Probeer het later opnieuw.',
     connect: 'Koppelen',
     disconnect: 'Ontkoppelen',

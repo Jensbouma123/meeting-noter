@@ -44,3 +44,7 @@ export interface AssistantPending {
   configPath: string;
   backupPath: string;
 }
+
+export interface AssistantLogoProps {
+  id: AssistantId;
+}
