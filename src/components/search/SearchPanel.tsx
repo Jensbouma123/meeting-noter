@@ -3,51 +3,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Card, EmptyState, Input, Text, VStack } from '@jensbouma123/acciva-ui';
 import { formatClock } from '@/lib/meeting/transcript-format';
-import type { Hit } from '@/lib/semantic-search/types';
+import { makeSnippet } from './snippet';
+import type { SearchPanelProps, SearchState } from './SearchPanel.types';
 import { useT } from '@/lib/i18n/useT';
 
-export const SNIPPET_MAX_CHARS = 160;
-
-/**
- * A short excerpt of `text` around the first query term that occurs in it.
- * Falls back to the text start when no term matches.
- */
-export function makeSnippet(text: string, query: string, max = SNIPPET_MAX_CHARS): string {
-  const flat = text.replace(/\s+/g, ' ').trim();
-  if (flat.length <= max) return flat;
-  const lower = flat.toLowerCase();
-  const terms = query.toLowerCase().split(/\s+/).filter((t) => t.length > 1);
-  let at = -1;
-  for (const term of terms) {
-    const idx = lower.indexOf(term);
-    if (idx !== -1 && (at === -1 || idx < at)) at = idx;
-  }
-  if (at === -1) return `${flat.slice(0, max).trimEnd()}…`;
-  const from = Math.max(0, at - Math.floor(max / 3));
-  const body = flat.slice(from, from + max).trim();
-  return `${from > 0 ? '…' : ''}${body}${from + max < flat.length ? '…' : ''}`;
-}
-
-export interface SearchPanelProps {
-  /** Runs the query. Inject `(q, k) => index.search(q, k)` for a SemanticIndex. */
-  search: (query: string, k: number) => Promise<Hit[]>;
-  /** Display title per meeting id; falls back to the id. */
-  meetingTitles?: Record<string, string>;
-  /** Link target for a hit: the session view, seeked to the window start. */
-  sessionHref: (meetingId: string, startSeconds: number) => string;
-  /** Number of hits requested per query. Default 8. */
-  limit?: number;
-  /** Debounce before a typed query runs, in ms. Default 250. */
-  debounceMs?: number;
-}
-
-type State =
-  | { status: 'idle' }
-  | { status: 'loading' }
-  | { status: 'done'; query: string; hits: Hit[] }
-  | { status: 'error'; message: string };
-
-const IDLE: State = { status: 'idle' };
+const IDLE: SearchState = { status: 'idle' };
 
 export function SearchPanel({
   search,
@@ -58,18 +18,15 @@ export function SearchPanel({
 }: SearchPanelProps) {
   const t = useT('search');
   const [query, setQuery] = useState('');
-  const [state, setState] = useState<State>({ status: 'idle' });
-  // Only the newest request may write state; older results are dropped.
+  const [state, setState] = useState<SearchState>({ status: 'idle' });
   const requestId = useRef(0);
 
-  // A blank query shows the idle view by derivation; the effect below only runs the debounced request.
-  const view: State = query.trim() === '' ? IDLE : state;
+  const view: SearchState = query.trim() === '' ? IDLE : state;
 
   useEffect(() => {
     const q = query.trim();
     const id = ++requestId.current;
     if (q === '') return;
-    // Loading is shown as soon as a non-blank query changes; the debounced request below is the external sync.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setState({ status: 'loading' });
     const timer = setTimeout(() => {

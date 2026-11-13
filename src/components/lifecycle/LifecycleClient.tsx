@@ -44,7 +44,6 @@ export function LifecycleClient() {
   return failed ? <Alert layout="banner" variant="warning" role="status">{t('connectionLost')}</Alert> : null;
 }
 
-/** Context language, else the stored/browser language. `nl` is the SSR snapshot (localStorage is unreadable on the server). */
 function useLanguage(): 'en' | 'nl' {
   const contextLanguage = useContext(LanguageContext);
   const storedLanguage = useSyncExternalStore(subscribeSettings, readStoredLanguage, serverLanguage);

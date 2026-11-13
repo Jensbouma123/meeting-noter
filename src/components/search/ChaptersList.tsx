@@ -3,16 +3,8 @@
 import { EmptyState, Text, VStack } from '@jensbouma123/acciva-ui';
 import { formatClock } from '@/lib/meeting/transcript-format';
 import { useT } from '@/lib/i18n/useT';
-import type { Chapter } from '@/lib/semantic-search/types';
+import type { ChaptersListProps } from './ChaptersList.types';
 
-export interface ChaptersListProps {
-  /** Chapters of one meeting, e.g. `index.chapters(meetingId)`. */
-  chapters: Chapter[];
-  /** Called with the chapter start in seconds when a chapter is clicked. */
-  onSeek: (seconds: number) => void;
-}
-
-/** Topic chapters of one meeting. Clicking a chapter seeks to its start. */
 export function ChaptersList({ chapters, onSeek }: ChaptersListProps) {
   const t = useT('search');
   if (chapters.length === 0) {

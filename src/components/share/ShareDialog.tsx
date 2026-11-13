@@ -8,15 +8,7 @@ import { copyToClipboard, downloadFile } from '@/lib/meeting/export-browser';
 import { exportFilename, formatExport, formatMeta } from '@/lib/meeting/export-formats';
 import { finalSegments } from '@/lib/meeting/transcript-format';
 import { type ExportFormat } from '@/lib/meeting/types/export';
-import type { Segment, Speaker } from '@/lib/meeting/types';
-
-export interface ShareDialogProps {
-  open: boolean;
-  onClose: () => void;
-  title: string;
-  segments: Segment[];
-  speakers: Record<string, Speaker>;
-}
+import type { ShareDialogProps } from './ShareDialog.types';
 
 export function ShareDialog({ open, onClose, title, segments, speakers }: ShareDialogProps) {
   const t = useT('share');

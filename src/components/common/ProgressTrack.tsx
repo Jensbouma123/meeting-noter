@@ -1,17 +1,8 @@
 'use client';
 
-/** ACCIVA ships no progress bar; `value === null` renders an indeterminate pulse. */
-export function ProgressTrack({
-  value,
-  label,
-  className,
-  barClassName,
-}: {
-  value: number | null;
-  label: string;
-  className?: string;
-  barClassName?: string;
-}) {
+import type { ProgressTrackProps } from './ProgressTrack.types';
+
+export function ProgressTrack({ value, label, className, barClassName }: ProgressTrackProps) {
   const track = `h-1.5 w-full overflow-hidden rounded-full bg-elevation-2 ${className ?? ''}`;
   if (value === null) {
     return (

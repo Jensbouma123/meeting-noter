@@ -2,49 +2,13 @@
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import type { Chapter, Hit } from '@/lib/semantic-search/types';
-import { ChaptersList } from './ChaptersList';
-import { makeSnippet, SearchPanel } from './SearchPanel';
+import type { Hit } from '@/lib/semantic-search/types';
+import { SearchPanel } from './SearchPanel';
+import { hit } from './fixtures';
 
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
-});
-
-const hit = (meetingId: string, index: number, start: number, text: string): Hit => ({
-  meetingId,
-  score: 0.9,
-  window: { meetingId, index, start, end: start + 30, text },
-});
-
-const chapter = (index: number, start: number, end: number, title: string): Chapter => ({
-  meetingId: 'm1',
-  index,
-  start,
-  end,
-  windowStart: 0,
-  windowEnd: 1,
-  title,
-  terms: [title],
-});
-
-describe('makeSnippet', () => {
-  it('returns short text unchanged', () => {
-    expect(makeSnippet('  hello   world ', 'x')).toBe('hello world');
-  });
-
-  it('centres a long text on the first matching term', () => {
-    const text = `${'alpha '.repeat(60)}budget review ${'omega '.repeat(60)}`;
-    const snip = makeSnippet(text, 'budget', 80);
-    expect(snip).toContain('budget');
-    expect(snip.startsWith('…')).toBe(true);
-    expect(snip.length).toBeLessThanOrEqual(82);
-  });
-
-  it('falls back to the start when no term matches', () => {
-    const snip = makeSnippet('a'.repeat(300), 'zzz', 50);
-    expect(snip).toBe(`${'a'.repeat(50)}…`);
-  });
 });
 
 describe('SearchPanel', () => {
@@ -141,28 +105,5 @@ describe('SearchPanel', () => {
 
     expect(screen.getByText('second result')).toBeInTheDocument();
     expect(screen.queryByText('first result')).not.toBeInTheDocument();
-  });
-});
-
-describe('ChaptersList', () => {
-  it('renders chapters with time ranges and seeks on click', () => {
-    const onSeek = vi.fn();
-    render(
-      <ChaptersList
-        chapters={[chapter(0, 0, 120, 'budget · hiring'), chapter(1, 120, 300, 'launch')]}
-        onSeek={onSeek}
-      />,
-    );
-
-    expect(screen.getByText('00:00 – 02:00')).toBeInTheDocument();
-    expect(screen.getByText('launch')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /Chapter 2: launch/ }));
-    expect(onSeek).toHaveBeenCalledWith(120);
-  });
-
-  it('shows an empty state with no chapters', () => {
-    render(<ChaptersList chapters={[]} onSeek={() => {}} />);
-    expect(screen.getByText('No chapters')).toBeInTheDocument();
   });
 });
