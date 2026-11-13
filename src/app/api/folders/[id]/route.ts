@@ -4,6 +4,7 @@ import { folderFailure } from '@/lib/meeting-db/folders-http';
 import { failure, readJson } from '@/lib/meeting-db/http';
 import { meetingStore } from '@/lib/meeting-db/meeting-store';
 import { isMeetingId } from '@/lib/meeting-db/validate';
+import { normalizeRoster } from '@/lib/folders/roster-input';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -18,10 +19,16 @@ export async function PATCH(request: Request, { params }: IdRouteContext): Promi
   const body = parsed.value;
   if (!body || typeof body !== 'object' || Array.isArray(body)) return failure('bad-folder', 400);
   const { name, parentId, index } = body as { name?: unknown; parentId?: unknown; index?: unknown };
-  if (name === undefined && parentId === undefined && index === undefined) return failure('bad-folder', 400);
+  const { roster, inheritRoster } = body as { roster?: unknown; inheritRoster?: unknown };
+  if (name === undefined && parentId === undefined && index === undefined && roster === undefined && inheritRoster === undefined) {
+    return failure('bad-folder', 400);
+  }
   if (name !== undefined && typeof name !== 'string') return failure('bad-name', 400);
   if (parentId !== undefined && parentId !== null && !isMeetingId(parentId)) return failure('bad-parent', 400);
   if (index !== undefined && (typeof index !== 'number' || !Number.isInteger(index) || index < 0)) return failure('bad-folder', 400);
+  if (inheritRoster !== undefined && typeof inheritRoster !== 'boolean') return failure('bad-roster', 400);
+  const cleanRoster = roster === undefined ? undefined : normalizeRoster(roster);
+  if (cleanRoster === null) return failure('bad-roster', 400);
   try {
     const store = meetingStore();
     const { db } = store;
@@ -30,6 +37,9 @@ export async function PATCH(request: Request, { params }: IdRouteContext): Promi
     if (name !== undefined) folder = store.renameFolder(id, name as string);
     if (parentId !== undefined) folder = store.moveFolder(id, parentId as string | null);
     if (index !== undefined) folder = store.reorderFolder(id, index as number);
+    if (cleanRoster !== undefined || inheritRoster !== undefined) {
+      folder = store.setFolderRoster(id, cleanRoster ?? folder.roster, (inheritRoster as boolean | undefined) ?? folder.inheritRoster);
+    }
     return Response.json({ ok: true, folder });
   } catch (err) {
     return folderFailure(err);

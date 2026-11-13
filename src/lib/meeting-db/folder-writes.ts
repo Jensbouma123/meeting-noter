@@ -46,6 +46,23 @@ export function renumberSiblings(db: DatabaseSync, id: string, index: number, no
   return readFolder(db, id);
 }
 
+export function updateFolderRoster(
+  db: DatabaseSync,
+  id: string,
+  roster: readonly string[],
+  inheritRoster: boolean,
+  now: number,
+): FolderRow {
+  readFolder(db, id);
+  db.prepare('UPDATE folders SET roster = ?, roster_inherit = ?, updated_at = ? WHERE id = ?').run(
+    JSON.stringify(roster),
+    inheritRoster ? 1 : 0,
+    now,
+    id,
+  );
+  return readFolder(db, id);
+}
+
 export function fileMeetingInFolder(db: DatabaseSync, meetingId: string, folderId: string | null, now: number): void {
   if (!db.prepare('SELECT 1 FROM meetings WHERE id = ?').get(meetingId)) throw new FolderError('not-found');
   if (folderId !== null && !folderExists(db, folderId)) throw new FolderError('bad-parent');

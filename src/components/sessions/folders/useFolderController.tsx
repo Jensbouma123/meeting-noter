@@ -17,6 +17,7 @@ import { DeleteFolderDialog } from './DeleteFolderDialog';
 import { MoveToDialog } from './MoveToDialog';
 import { useFolderData } from './useFolderData';
 import { useFolderReorder } from './useFolderReorder';
+import { useFolderSettings } from './useFolderSettings';
 import { useFoldersT } from './useFoldersT';
 import type { FolderController, MoveTarget } from './types';
 
@@ -38,6 +39,7 @@ export function useFolderController(sessions: readonly SessionMetadata[]): Folde
     [toast, t],
   );
   const reorder = useFolderReorder({ folders, setFolders, report, refresh });
+  const settings = useFolderSettings({ folders, report });
 
   const addFolder = useCallback((parentId: string | null) => setCreateParentId(parentId), []);
   const createNewFolder = useCallback(async (name: string, parentId: string | null) => {
@@ -101,6 +103,7 @@ export function useFolderController(sessions: readonly SessionMetadata[]): Folde
 
   const dialogs = (
     <>
+      {settings.dialog}
       {createParentId !== undefined && (
         <CreateFolderDialog
           initialParentId={createParentId}
@@ -132,6 +135,7 @@ export function useFolderController(sessions: readonly SessionMetadata[]): Folde
     ...reorder,
     requestMove: setMoveTarget,
     requestDelete: setDeleteTarget,
+    requestSettings: settings.requestSettings,
     dialogs,
   };
 }

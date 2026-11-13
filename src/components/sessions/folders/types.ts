@@ -24,6 +24,7 @@ export interface FolderController {
   commitReorder: () => void;
   requestMove: (target: MoveTarget) => void;
   requestDelete: (folder: FolderRow) => void;
+  requestSettings: (folder: FolderRow) => void;
   dialogs: ReactNode;
 }
 
@@ -96,4 +97,26 @@ export interface FolderRowDropInput {
   expanded: boolean;
   hasContent: boolean;
   onToggle: (id: string) => void;
+}
+
+export interface FolderRosterEditorProps {
+  names: string[];
+  onChange: (names: string[]) => void;
+}
+
+export interface FolderSettingsDialogProps {
+  folder: FolderRow;
+  folders: FolderRow[];
+  onClose: () => void;
+  onSave: (roster: string[], inheritRoster: boolean) => void;
+}
+
+export interface FolderSettingsInput {
+  folders: FolderRow[];
+  report: (result: ApiResult<object>) => boolean;
+}
+
+export interface FolderSettingsState {
+  requestSettings: (folder: FolderRow) => void;
+  dialog: ReactNode;
 }

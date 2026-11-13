@@ -17,6 +17,9 @@ export function prepareWritableDatabase(db: DatabaseSync): void {
     if (!meetingColumns.includes('insights')) db.exec('ALTER TABLE meetings ADD COLUMN insights TEXT');
     if (!meetingColumns.includes('folder_suggestion_declined')) db.exec('ALTER TABLE meetings ADD COLUMN folder_suggestion_declined TEXT');
     if (!columnNames(db, 'segments').includes('low_conf_spans')) db.exec('ALTER TABLE segments ADD COLUMN low_conf_spans TEXT');
+    const folderColumns = columnNames(db, 'folders');
+    if (!folderColumns.includes('roster')) db.exec('ALTER TABLE folders ADD COLUMN roster TEXT');
+    if (!folderColumns.includes('roster_inherit')) db.exec('ALTER TABLE folders ADD COLUMN roster_inherit INTEGER NOT NULL DEFAULT 1');
     db.exec(`PRAGMA user_version = ${SCHEMA_VERSION}`);
   }
   db.exec("INSERT INTO meetings_fts (meetings_fts, rank) VALUES ('secure-delete', 1)");

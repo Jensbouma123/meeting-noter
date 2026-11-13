@@ -65,6 +65,14 @@ export async function deleteFolder(
   return changed(await call(`/api/folders/${encodeURIComponent(id)}?mode=${mode}`, { method: 'DELETE' }));
 }
 
+export async function updateFolderRoster(
+  id: string,
+  roster: readonly string[],
+  inheritRoster: boolean,
+): Promise<ApiResult<{ folder: FolderRow }>> {
+  return changed(await call(`/api/folders/${encodeURIComponent(id)}`, json('PATCH', { roster, inheritRoster })));
+}
+
 export async function moveMeeting(meetingId: string, folderId: string | null): Promise<ApiResult> {
   return changed(await call(`/api/meetings/${encodeURIComponent(meetingId)}/folder`, json('PUT', { folderId })));
 }

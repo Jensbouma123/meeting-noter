@@ -16,8 +16,8 @@ function show(over: Partial<React.ComponentProps<typeof ParticipantsDialog>> = {
   );
   return { onSkip, onStart };
 }
-const box = (n: string) => screen.getByRole('checkbox', { name: n });
-const search = () => screen.getByLabelText('Search people') as HTMLInputElement;
+const option = (name: string) => screen.getByRole('option', { name });
+const search = () => screen.getByRole('combobox', { name: 'Search people' }) as HTMLInputElement;
 const seed = () => setParticipants('old', ['Anna', 'Piet', 'Sam', 'Els', 'Bram']);
 
 beforeAll(() => {
@@ -28,10 +28,10 @@ beforeEach(() => localStorage.clear());
 afterEach(cleanup);
 
 describe('ParticipantsDialog', () => {
-  it('lists known people with the owner checked', () => {
+  it('lists known people with the owner selected', () => {
     show();
     expect(screen.getByText('Who is in this meeting?')).toBeInTheDocument();
-    expect(box('Jens')).toBeChecked();
+    expect(option('Jens')).toHaveAttribute('aria-selected', 'true');
   });
 
   it('Skip starts immediately without saving names', () => {
@@ -41,52 +41,71 @@ describe('ParticipantsDialog', () => {
     expect(onStart).not.toHaveBeenCalled();
   });
 
-  it('checking and unchecking people drives the started names', () => {
+  it('ticking and unticking people drives the started names', () => {
     setParticipants('old', ['Marieke']);
     const { onStart } = show();
-    fireEvent.click(box('Marieke'));
+    fireEvent.click(option('Marieke'));
     fireEvent.click(screen.getByRole('button', { name: 'Start' }));
-    expect(onStart).toHaveBeenCalledWith(['Jens', 'Marieke']);
+    expect(onStart).toHaveBeenCalledWith(['Jens', 'Marieke'], false);
     cleanup();
     const second = show();
-    fireEvent.click(box('Jens'));
+    fireEvent.click(option('Jens'));
     fireEvent.click(screen.getByRole('button', { name: 'Start' }));
-    expect(second.onStart).toHaveBeenCalledWith([]);
+    expect(second.onStart).toHaveBeenCalledWith([], false);
   });
 
-  it('hides search at 5 people and shows it above 5', () => {
-    setParticipants('old', ['Anna', 'Piet', 'Sam', 'Els']);
-    show();
-    expect(screen.getAllByRole('checkbox')).toHaveLength(5);
-    expect(screen.queryByLabelText('Search people')).toBeNull();
-    cleanup();
+  it('always offers a search combobox and filters the options', () => {
     seed();
     show();
-    expect(screen.getAllByRole('checkbox')).toHaveLength(6);
     expect(search()).toBeInTheDocument();
-  });
-
-  it('search filters the list', () => {
-    seed();
-    show();
+    expect(screen.getAllByRole('option')).toHaveLength(6);
     fireEvent.change(search(), { target: { value: 'an' } });
-    expect(screen.getByRole('checkbox', { name: 'Anna' })).toBeInTheDocument();
-    expect(screen.queryByRole('checkbox', { name: 'Piet' })).toBeNull();
-    fireEvent.change(search(), { target: { value: 'anna' } });
-    expect(screen.queryByRole('button', { name: 'Add' })).toBeNull();
+    expect(option('Anna')).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Piet' })).toBeNull();
   });
 
-  it('an unmatched name shows an Add row on top that creates and checks the person', () => {
+  it('an unmatched name offers an Add row that creates and ticks the person', () => {
     seed();
     const { onStart } = show();
     fireEvent.change(search(), { target: { value: 'Zoë' } });
-    const rows = screen.getAllByRole('listitem');
-    expect(rows[0]).toHaveTextContent('Zoë');
-    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+    const add = option('Add Zoë');
+    expect(add).toBeInTheDocument();
+    fireEvent.click(add);
     expect(search().value).toBe('');
-    expect(box('Zoë')).toBeChecked();
+    expect(option('Zoë')).toHaveAttribute('aria-selected', 'true');
     fireEvent.click(screen.getByRole('button', { name: 'Start' }));
-    expect(onStart).toHaveBeenCalledWith(['Jens', 'Zoë']);
+    expect(onStart).toHaveBeenCalledWith(['Jens', 'Zoë'], false);
+  });
+
+  it('selected people show as removable chips', () => {
+    const { onStart } = show();
+    fireEvent.change(search(), { target: { value: 'Marieke' } });
+    fireEvent.click(option('Add Marieke'));
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Marieke' }));
+    expect(screen.queryByRole('button', { name: 'Remove Marieke' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Start' }));
+    expect(onStart).toHaveBeenCalledWith(['Jens'], false);
+  });
+
+  it('offers the folder roster on top with nothing ticked', () => {
+    const { onStart } = show({ roster: ['Anna', 'Piet'], folderName: 'Work' });
+    expect(screen.getByText('Usual people in Work')).toBeInTheDocument();
+    expect(option('Anna')).toHaveAttribute('aria-selected', 'false');
+    expect(option('Piet')).toHaveAttribute('aria-selected', 'false');
+    expect(option('Jens')).toHaveAttribute('aria-selected', 'false');
+    fireEvent.click(option('Anna'));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Remember new people for this folder' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Start' }));
+    expect(onStart).toHaveBeenCalledWith(['Anna'], true);
+  });
+
+  it('passes the remember choice only when ticked', () => {
+    const { onStart } = show({ folderName: 'Work' });
+    const boxes = screen.getAllByRole('checkbox');
+    expect(boxes).toHaveLength(1);
+    fireEvent.click(boxes[0]);
+    fireEvent.click(screen.getByRole('button', { name: 'Start' }));
+    expect(onStart).toHaveBeenCalledWith(['Jens'], true);
   });
 
   it('R starts at once, but not while typing', () => {
@@ -95,6 +114,6 @@ describe('ParticipantsDialog', () => {
     fireEvent.keyDown(search(), { key: 'r' });
     expect(onStart).not.toHaveBeenCalled();
     fireEvent.keyDown(window, { key: 'r' });
-    expect(onStart).toHaveBeenCalledWith(['Jens']);
+    expect(onStart).toHaveBeenCalledWith(['Jens'], false);
   });
 });
