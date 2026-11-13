@@ -1,6 +1,7 @@
 'use client';
 
-import { useAssistantOnboardingOpen, useOnboardingOpen } from '@/lib/onboarding/store';
+import { useOnboardingOpen } from '@/lib/onboarding/store';
+import { useAssistantOnboardingOpen } from '@/lib/onboarding/useAssistantOnboardingOpen';
 import { AssistantOnlyDialog } from './AssistantOnlyDialog';
 import { OnboardingSteps } from './OnboardingSteps';
 import type { OnboardingDialogProps } from './types';

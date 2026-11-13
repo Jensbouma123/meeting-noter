@@ -87,15 +87,11 @@ export function resetOnboardingForTests(): void {
   emit();
 }
 
-function subscribe(fn: () => void): () => void {
+export function subscribe(fn: () => void): () => void {
   listeners.add(fn);
   return () => listeners.delete(fn);
 }
 
 export function useOnboardingOpen(): boolean {
   return useSyncExternalStore(subscribe, shouldShowOnboarding, () => false);
-}
-
-export function useAssistantOnboardingOpen(): boolean {
-  return useSyncExternalStore(subscribe, shouldShowAssistantOnboarding, () => false);
 }
