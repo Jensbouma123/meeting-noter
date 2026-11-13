@@ -1,10 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-/**
- * WebGPU → WASM fallback in `loadLangIdModel()`: a half-built WebGPU pair
- * (encoder created, decoder failed) must not leak the encoder session.
- */
-
 const fakes = vi.hoisted(() => ({
   sessions: [] as Array<{ backend: string; file: unknown; release: ReturnType<typeof vi.fn> }>,
 }));

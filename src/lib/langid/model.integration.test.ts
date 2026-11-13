@@ -4,20 +4,13 @@ import * as ort from 'onnxruntime-web';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { computeLogMelSpectrogram } from './mel';
-import { detectLanguage, type LangIdModel } from './model';
+import { detectLanguage } from './detect-language';
+import type { LangIdModel } from './types';
 import { pickSupportedLanguage } from './decision';
 
-/**
- * Real-model regression: Dutch speech must come out as Dutch. Needs the two
- * ~40 MB Whisper-tiny graphs, which are not in the repo — point
- * `LANGID_MODEL_DIR` at a folder holding `encoder_model_quantized.onnx` and
- * `decoder_model_quantized.onnx` (from `Xenova/whisper-tiny`, `onnx/`).
- * Skipped without it, so the suite stays offline.
- */
 const dir = process.env.LANGID_MODEL_DIR;
 vi.setConfig({ testTimeout: 120_000 });
 
-/** 16 kHz mono PCM16 WAV → Float32 (canonical 44-byte header, as written by ffmpeg). */
 function readWav16k(path: string): Float32Array {
   const buf = readFileSync(path);
   const pcm = new Int16Array(buf.buffer.slice(buf.byteOffset + 44, buf.byteOffset + buf.byteLength));

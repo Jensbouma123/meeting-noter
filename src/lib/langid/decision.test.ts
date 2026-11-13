@@ -3,7 +3,6 @@ import { createLanguageSwitcher, pickSupportedLanguage } from './decision';
 
 describe('pickSupportedLanguage', () => {
   it('skips languages the ASR cannot transcribe and keeps the full-softmax confidence', () => {
-    // The shape of the reported bug: an exotic top-1 on thin audio, Dutch right behind it.
     const picked = pickSupportedLanguage([
       { code: 'ha', confidence: 0.4 },
       { code: 'cy', confidence: 0.2 },
@@ -31,7 +30,6 @@ describe('createLanguageSwitcher', () => {
     sw.offer({ code: 'nl', confidence: 0.9 });
     expect(sw.offer({ code: 'en', confidence: 0.6 })?.code).toBe('nl');
     expect(sw.offer({ code: 'nl', confidence: 0.8 })?.code).toBe('nl');
-    // The blip did not count towards a later switch.
     expect(sw.offer({ code: 'en', confidence: 0.6 })?.code).toBe('nl');
   });
 

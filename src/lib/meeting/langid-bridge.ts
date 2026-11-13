@@ -1,5 +1,6 @@
 import { isConsentGiven, getModelStatus } from '@/lib/asr/browser';
-import { createLanguageDetector, type LanguageDetector } from '@/lib/langid';
+import { createLanguageDetector } from '@/lib/langid';
+import type { LanguageDetector } from '@/lib/langid/types';
 import { languageNameFor } from '@/lib/langid/languages';
 import { createLanguageSwitcher } from '@/lib/langid/decision';
 import { setAsrLanguageHint } from '@/lib/asr/browser/language-hint';

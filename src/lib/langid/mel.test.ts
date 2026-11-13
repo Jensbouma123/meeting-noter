@@ -2,16 +2,11 @@ import { describe, expect, it, vi } from 'vitest';
 import { computeLogMelSpectrogram } from './mel';
 import { LANGID_N_MELS, LANGID_N_FRAMES, LANGID_N_SAMPLES } from './manifest';
 
-// Every call runs a direct DFT over the fixed 30s/3000-frame window
-// (~240M multiply-adds), regardless of input length. That's ~150-300ms of
-// real work per call, but under a loaded CI/sandbox host it can be several
-// times slower — the default 5s per-test budget is too tight for that, not
-// because the computation hangs.
 vi.setConfig({ testTimeout: 20_000 });
 
 describe('computeLogMelSpectrogram', () => {
   it('returns a flat [n_mels, n_frames] array', () => {
-    const silence = new Float32Array(16_000); // 1s
+    const silence = new Float32Array(16_000);
     const mel = computeLogMelSpectrogram(silence);
     expect(mel).toHaveLength(LANGID_N_MELS * LANGID_N_FRAMES);
   });
@@ -27,7 +22,6 @@ describe('computeLogMelSpectrogram', () => {
       if (v < min) min = v;
       if (v > max) max = v;
     }
-    // The clamp floor is (max_log - 8 + 4) / 4 = max_log_scaled - 2.
     expect(max - min).toBeLessThanOrEqual(2 + 1e-6);
   });
 
@@ -44,7 +38,7 @@ describe('computeLogMelSpectrogram', () => {
     const melSilence = computeLogMelSpectrogram(silence);
     const melTone = computeLogMelSpectrogram(tone);
 
-    const frameIndex = 50; // well within the first second of audio
+    const frameIndex = 50;
     let sumSilence = 0;
     let sumTone = 0;
     for (let m = 0; m < LANGID_N_MELS; m++) {

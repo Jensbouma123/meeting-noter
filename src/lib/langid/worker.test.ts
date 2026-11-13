@@ -1,11 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LANGID_N_SAMPLES } from './manifest';
-
-/**
- * The worker's buffering and scheduling, driven through its message handler
- * with the model and mel front end stood in: `self` and `postMessage` are
- * stubbed, so each test imports a fresh copy of the module.
- */
+import { settle, type PostedMessage } from './worker-test-helpers';
 
 const fakes = vi.hoisted(() => ({
   load: vi.fn(),
@@ -16,40 +11,33 @@ const fakes = vi.hoisted(() => ({
 
 vi.mock('./model', () => ({
   loadLangIdModel: fakes.load,
+}));
+
+vi.mock('./detect-language', () => ({
   detectLanguage: fakes.detect,
 }));
 
-vi.mock('./speech', () => ({
-  countSpeechSamples: fakes.speech,
-}));
+vi.mock('./speech', () => ({ countSpeechSamples: fakes.speech }));
 
-vi.mock('./mel', () => ({
-  computeLogMelSpectrogram: fakes.mel,
-}));
+vi.mock('./mel', () => ({ computeLogMelSpectrogram: fakes.mel }));
 
 const FIVE_SECONDS = 5 * 16_000;
 const TWENTY_SECONDS = 20 * 16_000;
 
-type Out = { type: string; id: string; code?: string; message?: string };
-let posted: Out[];
+let posted: PostedMessage[];
 let handler: (event: { data: unknown }) => void;
 
 async function loadWorker(): Promise<void> {
   vi.resetModules();
   const self = {} as { onmessage?: (event: { data: unknown }) => void };
   vi.stubGlobal('self', self);
-  vi.stubGlobal('postMessage', (message: Out) => posted.push(message));
+  vi.stubGlobal('postMessage', (message: PostedMessage) => posted.push(message));
   await import('./worker');
   handler = self.onmessage!;
 }
 
 function send(data: unknown): void {
   handler({ data });
-}
-
-/** Let queued inference passes (and their awaits) finish. */
-async function settle(): Promise<void> {
-  for (let i = 0; i < 20; i += 1) await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
 beforeEach(async () => {
@@ -69,7 +57,6 @@ describe('langid worker', () => {
   it('never runs two sources through the shared sessions at once', async () => {
     let inFlight = 0;
     fakes.detect.mockImplementation(async () => {
-      // A real ORT session rejects an overlapping run ("Session already started").
       if (inFlight > 0) throw new Error('Session already started');
       inFlight += 1;
       await new Promise((resolve) => setTimeout(resolve, 5));
@@ -139,8 +126,6 @@ describe('langid worker', () => {
 
   it('runs detection on exactly the last 30 s once more than that has arrived', async () => {
     send({ type: 'init', id: 'mic' });
-    // A ramp in 1 s frames. Passes fire at 5 s, 25 s and 45 s; only the last
-    // sees more than 30 s of audio.
     const frame = 16_000;
     const total = 46 * 16_000;
     fakes.detect.mockImplementation(async () => [{ code: 'nl', confidence: 0.9 }]);

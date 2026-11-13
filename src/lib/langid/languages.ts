@@ -1,7 +1,3 @@
-/** Whisper's 99-language token map (`Xenova/whisper-tiny/generation_config.json`
- *  → `lang_to_id`), ISO 639-1 code with its decoder vocabulary token id, plus
- *  a display name for each. This *is* Whisper's language set — not a subset —
- *  so it stays a flat literal table rather than something derived at runtime. */
 export const LANGID_TOKEN_IDS: Readonly<Record<string, number>> = Object.freeze({
   en: 50259, zh: 50260, de: 50261, es: 50262, ru: 50263, ko: 50264, fr: 50265, ja: 50266,
   pt: 50267, tr: 50268, pl: 50269, ca: 50270, nl: 50271, ar: 50272, sv: 50273, it: 50274,
@@ -39,7 +35,6 @@ export const LANGID_LANGUAGE_NAMES: Readonly<Record<string, string>> = Object.fr
   ba: 'Bashkir', jw: 'Javanese', su: 'Sundanese',
 });
 
-/** Token id → ISO 639-1 code, built once from `LANGID_TOKEN_IDS`. */
 export const LANGID_ID_TO_TOKEN: ReadonlyMap<number, string> = new Map(
   Object.entries(LANGID_TOKEN_IDS).map(([code, id]) => [id, code]),
 );
@@ -48,10 +43,6 @@ export function languageNameFor(code: string): string {
   return LANGID_LANGUAGE_NAMES[code] ?? code;
 }
 
-/** Languages the speech model (Parakeet TDT 0.6B v3) transcribes — its 25
- *  European languages. Detection is restricted to these: Whisper-tiny knows 99
- *  and on thin or noisy audio will happily answer Hausa, Welsh or Nynorsk,
- *  none of which the ASR can do anything with. */
 export const ASR_SUPPORTED_LANGUAGES: ReadonlySet<string> = new Set([
   'bg', 'hr', 'cs', 'da', 'nl', 'en', 'et', 'fi', 'fr', 'de', 'el', 'hu', 'it',
   'lv', 'lt', 'mt', 'pl', 'pt', 'ro', 'sk', 'sl', 'es', 'sv', 'ru', 'uk',

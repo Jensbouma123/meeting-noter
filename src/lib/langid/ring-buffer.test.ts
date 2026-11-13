@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SampleRing } from './ring-buffer';
 
-/** The naive window the worker used to keep: append, then keep the tail. */
 function naiveWindow(frames: Float32Array[], capacity: number): Float32Array {
   const all = new Float32Array(frames.reduce((n, f) => n + f.length, 0));
   let offset = 0;
@@ -18,7 +17,6 @@ describe('SampleRing', () => {
     const ring = new SampleRing(capacity);
     const frames: Float32Array[] = [];
     let next = 0;
-    // Uneven frame sizes, including one longer than the whole window.
     for (const size of [160, 300, 999, 1, 1600, 250, 77, 480, 333]) {
       const frame = new Float32Array(size);
       for (let i = 0; i < size; i += 1) frame[i] = next++;
