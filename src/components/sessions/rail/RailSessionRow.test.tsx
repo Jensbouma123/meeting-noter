@@ -136,9 +136,17 @@ describe('RailSessionRow folder suggestion', () => {
     const onDecline = vi.fn();
     render(<RailSessionRow session={draft()} isActive={false} onOpen={noop} onClear={noop} onDelete={noop} suggestion={{ folderLabel: 'Clients / Acme', onAccept, onDecline }} />);
     expect(screen.getByText('Standup')).toBeInTheDocument();
-    expect(screen.getByText('Suggested folder: Clients / Acme')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Move “Standup” to suggested folder/ }));
-    fireEvent.click(screen.getByRole('button', { name: /Dismiss folder suggestion/ }));
+    const label = screen.getByText('Suggested folder: Clients / Acme', { exact: true });
+    expect(label).toBeInTheDocument();
+    expect(label).not.toHaveClass('truncate');
+    const accept = screen.getByRole('button', { name: 'Move' });
+    const decline = screen.getByRole('button', { name: 'No thanks' });
+    expect(accept).toHaveTextContent('');
+    expect(decline).toHaveTextContent('');
+    expect(accept).toHaveAttribute('aria-label', 'Move');
+    expect(decline).toHaveAttribute('aria-label', 'No thanks');
+    fireEvent.click(accept);
+    fireEvent.click(decline);
     expect([onAccept.mock.calls.length, onDecline.mock.calls.length]).toEqual([1, 1]);
   });
 
