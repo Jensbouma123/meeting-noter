@@ -12,3 +12,12 @@ export type { NemotronGraph } from './nemotron-graph';
 export type { AsrEngine } from './asr-engine';
 export type { EngineCallResult, PendingCall } from './pending-call';
 export type { TranscribeArgs, EngineCall, EngineWorkerIn, EngineWorkerOut } from './engine-protocol';
+export type {
+  OrtTensorLike,
+  OrtLike,
+  SessionLike,
+  NemotronSessions,
+  NemotronToken,
+  NemotronResult,
+  NemotronRecognizeOptions,
+} from './nemotron-core';

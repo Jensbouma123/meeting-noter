@@ -1,6 +1,7 @@
 import { probeCachedModelFiles } from './resumable-download';
 import { SESSION_STALL_MS, describeSessionStall, startStallWatchdog } from './engine-load';
-import { NEMOTRON, nemotronLangId, type NemotronRecognizer } from './nemotron-core';
+import { NEMOTRON, nemotronLangId } from './nemotron-constants';
+import type { NemotronRecognizer } from './nemotron-recognizer';
 import { createNemotronRecognizer } from './nemotron-recognizer-factory';
 import type { BiaserSlot } from '@/lib/vocabulary/biaser-slot';
 import type { BrowserASRConfig, BrowserASRLoadProgress } from './types';

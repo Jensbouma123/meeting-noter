@@ -2,8 +2,7 @@ import type * as Ort from 'onnxruntime-web';
 import { takeBlobUrlBytes } from './resumable-download';
 import { isSafariBrowser } from './engine-load';
 import { NEMOTRON_GRAPHS } from './nemotron-graphs';
-import type { NemotronSessions } from './nemotron-core';
-import type { BrowserASRConfig, NemotronGraph } from './types';
+import type { BrowserASRConfig, NemotronGraph, NemotronSessions } from './types';
 
 export async function bytesOf(url: string): Promise<Uint8Array> {
   const held = takeBlobUrlBytes(url);

@@ -6,10 +6,12 @@ import {
   describeStall,
   startStallWatchdog,
 } from './engine-load';
-import { NEMOTRON, NemotronRecognizer, parseNemotronVocab, type OrtLike } from './nemotron-core';
+import { NEMOTRON } from './nemotron-constants';
+import { NemotronRecognizer } from './nemotron-recognizer';
+import { parseNemotronVocab } from './nemotron-vocab';
 import { NEMOTRON_GRAPHS } from './nemotron-graphs';
 import { bytesOf, createNemotronSessions } from './nemotron-ort';
-import type { BrowserASRConfig, BrowserASRLoadProgress } from './types';
+import type { BrowserASRConfig, BrowserASRLoadProgress, OrtLike } from './types';
 
 async function downloadModelFiles(
   config: BrowserASRConfig,

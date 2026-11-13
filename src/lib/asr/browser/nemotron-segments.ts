@@ -1,4 +1,4 @@
-import { NEMOTRON } from './nemotron-core';
+import { NEMOTRON } from './nemotron-constants';
 import type { BrowserLanguageInfo, BrowserRecognizeResult, BrowserSegment } from './types';
 
 let segmentCounter = 0;

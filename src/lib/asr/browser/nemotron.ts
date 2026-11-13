@@ -1,4 +1,5 @@
-import { nemotronLangId, NemotronRecognizer } from './nemotron-core';
+import { nemotronLangId } from './nemotron-constants';
+import type { NemotronRecognizer } from './nemotron-recognizer';
 import { loadNemotronRecognizer } from './nemotron-loader';
 import { buildNemotronLanguageInfo, resetNemotronSegmentIds } from './nemotron-segments';
 import { NemotronSegmenter } from './nemotron-segmenter';
@@ -16,8 +17,8 @@ import { DEFAULT_BROWSER_ASR_CONFIG } from './constants';
 import { installQuietAsrConsole } from './quiet-console';
 import { BiaserSlot } from '@/lib/vocabulary/biaser-slot';
 import type { VocabularyBiasConfig } from '@/lib/vocabulary/types';
-
 installQuietAsrConsole();
+
 export class NemotronASREngine {
   private recognizer: NemotronRecognizer | null = null;
   private config: BrowserASRConfig;
@@ -131,12 +132,9 @@ export class NemotronASREngine {
   }
 
   private _recognizeSerial(recognizer: NemotronRecognizer, audio: Float32Array) {
-    return this.queue.run(() =>
-      recognizer.recognize(audio, {
-        langId: nemotronLangId(this.languageHint ?? 'auto'),
-        biaser: this.vocabulary.get(),
-      }),
-    );
+    const run = () =>
+      recognizer.recognize(audio, { langId: nemotronLangId(this.languageHint ?? 'auto'), biaser: this.vocabulary.get() });
+    return this.queue.run(run);
   }
 
   lockLanguage(): void {
