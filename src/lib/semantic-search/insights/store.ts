@@ -1,18 +1,24 @@
 import type { InsightSet } from './types/insight-set';
+import { INSIGHTS_VERSION } from './version';
 
-const EMPTY: InsightSet = { items: [], dismissed: [] };
+const EMPTY: InsightSet = { version: INSIGHTS_VERSION, items: [], dismissed: [] };
 const listeners = new Map<string, Set<() => void>>();
 
 export function insightsKey(meetingId: string): string {
-  return `mn.insights.${meetingId}.v1`;
+  return `mn.insights.${meetingId}.v${INSIGHTS_VERSION}`;
+}
+
+function dropStale(meetingId: string): void {
+  for (let v = 1; v < INSIGHTS_VERSION; v++) window.localStorage.removeItem(`mn.insights.${meetingId}.v${v}`);
 }
 
 export function loadInsights(meetingId: string): InsightSet {
   if (typeof window === 'undefined') return EMPTY;
   try {
+    dropStale(meetingId);
     const parsed = JSON.parse(window.localStorage.getItem(insightsKey(meetingId)) ?? 'null') as Partial<InsightSet> | null;
-    if (!parsed || !Array.isArray(parsed.items)) return EMPTY;
-    return { items: parsed.items, dismissed: Array.isArray(parsed.dismissed) ? parsed.dismissed : [] };
+    if (!parsed || parsed.version !== INSIGHTS_VERSION || !Array.isArray(parsed.items)) return EMPTY;
+    return { version: INSIGHTS_VERSION, items: parsed.items, dismissed: Array.isArray(parsed.dismissed) ? parsed.dismissed : [] };
   } catch {
     return EMPTY;
   }

@@ -13,6 +13,6 @@ export interface InsightRowProps {
   speakerLabel: string;
   t: NotesTranslate;
   onJump: () => void;
-  onAdd: () => void;
+  onAccept: () => void;
   onDismiss: () => void;
 }

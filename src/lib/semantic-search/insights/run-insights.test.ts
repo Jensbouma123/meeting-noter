@@ -9,7 +9,7 @@ const extract = vi.fn(async () => []);
 vi.mock('./extract', () => ({ extractInsights: extract }));
 const push = vi.fn(async () => true);
 vi.mock('./sync', () => ({ pushInsights: push }));
-vi.mock('./store', () => ({ loadInsights: () => ({ items: [], dismissed: ['x'] }), saveInsights: vi.fn() }));
+vi.mock('./store', () => ({ loadInsights: () => ({ version: 1, items: [], dismissed: ['x'] }), saveInsights: vi.fn() }));
 
 describe('runInsights', () => {
   beforeEach(() => vi.clearAllMocks());
@@ -27,6 +27,6 @@ describe('runInsights', () => {
     const { runInsights } = await import('./run-insights');
     await runInsights('m1', { dim: 1, embed: async () => [] });
     expect(extract).toHaveBeenCalledOnce();
-    expect(push).toHaveBeenCalledWith('m1', { items: [], dismissed: ['x'] });
+    expect(push).toHaveBeenCalledWith('m1', { version: 2, items: [], dismissed: ['x'] });
   });
 });

@@ -1,6 +1,6 @@
 import type { DatabaseSync } from 'node:sqlite';
 import type { CaptureMode, Source, Speaker } from '../meeting/types';
-import type { InsightSet } from '../semantic-search/insights/types/insight-set';
+import { parseInsightSet } from './insights-validate';
 import { num, numOrNull, parseJson, str } from './row-mapping';
 import type { SqlRow, StoredMeeting, StoredNotes, StoredSegment } from './types';
 
@@ -54,6 +54,6 @@ export function readMeeting(db: DatabaseSync, id: string): StoredMeeting | null 
     notes: parseJson<StoredNotes>(row.notes, { actions: [], decisions: [] }),
     participants: parseJson<string[] | null>(row.participants, null),
     folderId: row.folder_id === null ? null : str(row.folder_id),
-    insights: parseJson<InsightSet | null>(row.insights, null),
+    insights: parseInsightSet(parseJson<unknown>(row.insights, null)),
   };
 }

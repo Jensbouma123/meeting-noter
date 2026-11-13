@@ -10,7 +10,7 @@ export function InsightSuggestions({ sessionId, speakers, t }: InsightSuggestion
   const { visible, dismiss } = useInsights(sessionId);
   if (visible.length === 0) return null;
   const labelFor = (id: string) => speakers.find((s) => s.id === id)?.label ?? id;
-  const promote = (i: Insight) => i.kind === 'action'
+  const accept = (i: Insight) => i.kind === 'action'
     ? addAction(sessionId, i.text, { sourceSegmentId: i.segmentId })
     : addDecision(sessionId, i.text, i.segmentId);
   const groups = [['decision', t('suggestedDecisions')], ['action', t('suggestedActions')]] as const;
@@ -18,10 +18,11 @@ export function InsightSuggestions({ sessionId, speakers, t }: InsightSuggestion
     {groups.map(([kind, title]) => {
       const items = visible.filter((i) => i.kind === kind);
       return items.length === 0 ? null : <section key={kind} aria-label={title} className="w-full min-w-0">
-        <Text size="sm" className="font-medium text-muted-foreground">{title} ({items.length})</Text>
+        <Text size="sm" className="font-medium text-muted-foreground">{title}</Text>
+        <Text size="xs" className="text-muted-foreground">{t('suggestionHint')}</Text>
         <ul className="mt-1 flex w-full min-w-0 flex-col gap-2">
           {items.map((i) => <InsightRow key={i.id} insight={i} speakerLabel={labelFor(i.speakerId)} t={t}
-            onJump={() => requestSeek(i.start)} onAdd={() => promote(i)} onDismiss={() => dismiss(i.id)} />)}
+            onJump={() => requestSeek(i.start)} onAccept={() => accept(i)} onDismiss={() => dismiss(i.id)} />)}
         </ul>
       </section>;
     })}

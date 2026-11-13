@@ -56,11 +56,13 @@ describe('MeetingsDb migrations', () => {
     const db = new MeetingsDb(file);
     expect(db.db.prepare('PRAGMA user_version').get()).toEqual({ user_version: 7 });
     expect(db.get('meeting-1')!.insights).toBeNull();
-    const set = { items: [{ id: 'decision:s2:0', kind: 'decision' as const, text: 'We ship the café export on Friday.', segmentId: 's2', speakerId: 'system:1', start: 40, score: 0.7 }], dismissed: [] };
+    const set = { version: 2, items: [{ id: 'decision:s2:0', kind: 'decision' as const, text: 'We ship the café export on Friday.', segmentId: 's2', speakerId: 'system:1', start: 40, score: 0.7 }], dismissed: [] };
     expect(db.setInsights('meeting-1', set)).toBe(true);
     expect(db.setInsights('nope', set)).toBe(false);
     db.upsert(sampleMeeting({ updatedAt: Date.now(), title: 'Renamed' }));
     expect(db.get('meeting-1')!.insights).toEqual(set);
+    db.db.prepare('UPDATE meetings SET insights = ? WHERE id = ?').run(JSON.stringify({ items: set.items, dismissed: [] }), 'meeting-1');
+    expect(db.get('meeting-1')!.insights).toBeNull();
     db.close();
   });
 

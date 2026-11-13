@@ -1,5 +1,6 @@
 import type { Insight } from '../semantic-search/insights/types/insight';
 import type { InsightSet } from '../semantic-search/insights/types/insight-set';
+import { INSIGHTS_VERSION } from '../semantic-search/insights/version';
 
 const MAX_ITEMS = 64;
 const MAX_TEXT = 2000;
@@ -24,8 +25,8 @@ function parseItem(v: unknown): Insight | null {
 }
 
 export function parseInsightSet(v: unknown): InsightSet | null {
-  if (!isObj(v) || !Array.isArray(v.items)) return null;
+  if (!isObj(v) || v.version !== INSIGHTS_VERSION || !Array.isArray(v.items)) return null;
   const items = v.items.slice(0, MAX_ITEMS).map(parseItem).filter((i): i is Insight => i !== null);
   const dismissed = (Array.isArray(v.dismissed) ? v.dismissed : []).filter(isStr).slice(0, MAX_ITEMS * 4);
-  return { items, dismissed };
+  return { version: INSIGHTS_VERSION, items, dismissed };
 }

@@ -28,6 +28,9 @@ export const notes = {
     suggestedActions: 'Suggested action items',
     jump: 'Jump to transcript',
     dismiss: 'Dismiss',
+    accept: 'Accept',
+    suggestionBadge: 'Suggestion',
+    suggestionHint: 'Auto-detected and not counted until you accept it.',
   },
   nl: {
     actions: 'Actiepunten',
@@ -58,5 +61,8 @@ export const notes = {
     suggestedActions: 'Voorgestelde actiepunten',
     jump: 'Naar transcript',
     dismiss: 'Negeren',
+    accept: 'Accepteren',
+    suggestionBadge: 'Suggestie',
+    suggestionHint: 'Automatisch gevonden en pas meegeteld als je het accepteert.',
   },
 } as const;

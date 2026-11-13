@@ -8,7 +8,7 @@ import { LOCAL, idContext, jsonRequest, rawRequest, registerTempDataDir } from '
 registerTempDataDir('insights-route-');
 
 const item = { id: 'decision:s2:0', kind: 'decision', text: 'We ship on Friday.', segmentId: 's2', speakerId: 'system:1', start: 40, score: 0.7 };
-const set = { items: [item], dismissed: ['action:s1:0'] };
+const set = { version: 2, items: [item], dismissed: ['action:s1:0'] };
 
 describe('PUT /api/meetings/:id/insights', () => {
   it('refuses a foreign origin and a rebound host', async () => {
