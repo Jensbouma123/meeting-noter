@@ -64,7 +64,6 @@ describe('RightRail header tabs', () => {
       expect(rail.className).toContain(cls);
     }
     fireEvent.click(screen.getByRole('button', { name: 'Hide panel' }));
-    // Same element stays mounted and animates from w-64 to w-12.
     expect(container.querySelector('aside')).toBe(rail);
     expect(rail.className).toContain('w-12');
     expect(rail.className).toContain('transition-[width]');
@@ -93,7 +92,6 @@ describe('RightRail tab keyboard model', () => {
     participants.focus();
     fireEvent.keyDown(participants, { key: 'ArrowLeft' });
     expect(summary.getAttribute('aria-selected')).toBe('true');
-    // Wrapped past the last tab.
     fireEvent.keyDown(summary, { key: 'ArrowRight' });
     expect(participants.getAttribute('aria-selected')).toBe('true');
     fireEvent.keyDown(participants, { key: 'End' });

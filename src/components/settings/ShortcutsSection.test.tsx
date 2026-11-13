@@ -3,7 +3,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { ShortcutsSection } from './ShortcutsSection';
 import { LanguageContext } from '@/lib/i18n/LanguageContext';
-import { SHORTCUTS } from '@/components/meeting/ShortcutsHelp';
+import { SHORTCUTS } from '@/components/meeting/shortcuts';
 import { t } from '@/lib/i18n';
 
 describe('ShortcutsSection', () => {

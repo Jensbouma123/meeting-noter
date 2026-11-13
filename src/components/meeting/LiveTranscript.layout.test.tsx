@@ -35,17 +35,13 @@ describe('LiveTranscript phone layout (390px)', () => {
         onOpenSettings={() => {}}
       />,
     );
-    // Both names render in full in their own column.
     expect(container.textContent).toContain('Speaker 1');
     expect(container.textContent).toContain('Speaker 2');
 
-    // The phone (base) speaker column is wide enough for "~9 chars + dot":
-    // 6rem = 96px > dot (8px) + gap (6px) + "Speaker 1" (~66px at text-sm).
     const row = container.querySelector('[data-seg-id="a"]')!.parentElement!;
     expect(row.className).toContain('6rem');
     expect(row.className).not.toContain('4.5rem_minmax');
 
-    // Desktop column unchanged.
     expect(row.className).toContain('sm:grid-cols-');
     expect(row.className).toContain('7rem');
   });

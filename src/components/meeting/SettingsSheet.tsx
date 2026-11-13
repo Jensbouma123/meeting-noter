@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { AppSettings } from './types';
+import type { SettingsSheetProps } from './SettingsSheet.types';
 import { useAnyModelFailed } from '@/components/models';
 import { SettingsDialog } from '@/components/settings/SettingsDialog';
 import {
@@ -16,16 +16,6 @@ import { VocabularySection } from '@/components/settings/VocabularySection';
 import { StorageSection } from '@/components/settings/StorageSection';
 import { AboutSection } from '@/components/settings/AboutSection';
 
-interface SettingsSheetProps {
-  open: boolean;
-  onClose: () => void;
-  settings: AppSettings;
-  onSettingsChange: (settings: AppSettings) => void;
-  /** Deep-link to a section on open (e.g. the TopBar model pill jumps to "speech-model").
-   *  Leave unset to keep whatever section the user last had open. */
-  section?: SettingsSectionId | 'speech-model';
-}
-
 export function SettingsSheet({
   open,
   onClose,
@@ -38,16 +28,11 @@ export function SettingsSheet({
   const [prevOpen, setPrevOpen] = useState(open);
   const modelFailed = useAnyModelFailed();
 
-  // Hydrate the remembered section once on mount, in render (not an effect,
-  // to avoid a cascading-render lint flag) — localStorage isn't available
-  // during SSR so this can't run on the server anyway.
   if (!hydrated && typeof window !== 'undefined') {
     setHydrated(true);
     setActiveSection(loadLastSettingsSection());
   }
 
-  // A caller-supplied `section` deep-links to a specific pane each time the
-  // dialog opens; otherwise the remembered section from the last visit wins.
   if (open !== prevOpen) {
     setPrevOpen(open);
     if (open && section) {

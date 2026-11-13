@@ -1,7 +1,7 @@
 'use client';
 
 import { Badge, HStack } from '@jensbouma123/acciva-ui';
-import { SHORTCUTS } from '@/components/meeting/ShortcutsHelp';
+import { SHORTCUTS } from '@/components/meeting/shortcuts';
 import { useT } from '@/lib/i18n/useT';
 import { SettingsGroup, SettingsRow } from './SettingsRow';
 

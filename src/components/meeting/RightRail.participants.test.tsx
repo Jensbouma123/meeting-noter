@@ -53,7 +53,6 @@ describe('RightRail participants', () => {
   it('assigns a participant to an unnamed speaker from the rail', () => {
     view();
     fireEvent.click(screen.getByRole('button', { name: 'Who is this? (Speaker 2)' }));
-    // The menu is portalled after the chips, so its "Jan" item is the last match.
     fireEvent.click(screen.getAllByText('Jan').at(-1) as HTMLElement);
     expect(renameSpeaker).toHaveBeenCalledWith('2', 'Jan');
   });

@@ -12,25 +12,10 @@ import {
 import { useT } from '@/lib/i18n/useT';
 import { meeting } from './store';
 import { LevelMeter } from './LevelMeter';
-import type { CaptureMode } from '@/lib/meeting';
+import type { MicPickerProps } from './MicPicker.types';
 
-interface MicPickerProps {
-  /** `AppSettings.micDeviceId`; `'default'` means the system default. */
-  value: string;
-  onChange: (deviceId: string) => void;
-  /** Recording is active: the pipeline reads the device once at start, so it cannot change live. */
-  locked: boolean;
-  /** Drives the level bars inside the button. */
-  mode: CaptureMode;
-  /** Audio is flowing (live), so the bars move. */
-  active: boolean;
-  callMissing?: boolean;
-}
+const MENU_GAP_PX = 8;
 
-/** Gap between the button and the menu that opens above it. */
-export const MENU_GAP_PX = 8;
-
-/** Microphone menu for the dock; shares its setting with Settings › Microphone. */
 export function MicPicker({ value, onChange, locked, mode, active, callMissing = false }: MicPickerProps) {
   const t = useT('dock');
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
@@ -39,9 +24,7 @@ export function MicPicker({ value, onChange, locked, mode, active, callMissing =
     meeting
       .listMicDevices()
       .then((devs) => setDevices(devs.filter((d) => d.deviceId && d.deviceId !== 'default')))
-      .catch(() => {
-        // Only "Default" is offered when enumeration fails.
-      });
+      .catch(() => setDevices([]));
   }, []);
 
   useEffect(() => {
@@ -52,9 +35,6 @@ export function MicPicker({ value, onChange, locked, mode, active, callMissing =
   }, [refresh]);
 
   const label = t('chooseMic');
-  // The level bars are the button. Same height, radius and quiet ghost fill as the
-  // dock's other secondary controls; the chevron only shows while the menu can open.
-  // Locked is not dimmed: the bars are live audio feedback during a recording.
   const trigger = (
     <button
       type="button"
@@ -68,7 +48,6 @@ export function MicPicker({ value, onChange, locked, mode, active, callMissing =
   );
 
   if (locked) {
-    // A disabled button swallows pointer events, so the tooltip hangs on a wrapper.
     return (
       <Tooltip content={t('micLockedTip')}>
         <span className="inline-flex">{trigger}</span>

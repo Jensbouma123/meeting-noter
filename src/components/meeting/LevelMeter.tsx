@@ -1,23 +1,12 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import type { CaptureMode, Levels } from '@/lib/meeting';
+import type { Levels } from '@/lib/meeting';
 import { meeting } from './store';
 import { Mic, Volume2, VolumeX } from 'lucide-react';
 import { useT } from '@/lib/i18n/useT';
+import type { LevelMeterProps } from './LevelMeter.types';
 
-interface LevelMeterProps {
-  mode: CaptureMode;
-  active: boolean;
-  /** No call source is attached (declined, unsupported, Safari): the call slot shows a muted speaker. */
-  callMissing?: boolean;
-}
-
-/**
- * Icon + slim vertical VU bar per source (mic, then call), drawn inside the
- * dock's microphone button: no tooltips or focus stops of its own, since the
- * surrounding button is the only interactive element.
- */
 export function LevelMeter({ mode, active, callMissing = false }: LevelMeterProps) {
   const t = useT('dock');
   const micBarRef = useRef<HTMLDivElement>(null);
@@ -33,8 +22,7 @@ export function LevelMeter({ mode, active, callMissing = false }: LevelMeterProp
       targetsRef.current.system = active ? l.system : 0;
     });
 
-    // The fill sits inside the role=meter track; mirror the level onto it for assistive tech.
-    const setNow = (fill: HTMLElement, v: number) => {
+    const mirrorLevelToMeterTrack = (fill: HTMLElement, v: number) => {
       const track = fill.parentElement;
       const pct = String(Math.round(v * 100));
       if (track && track.getAttribute('aria-valuenow') !== pct) track.setAttribute('aria-valuenow', pct);
@@ -56,14 +44,14 @@ export function LevelMeter({ mode, active, callMissing = false }: LevelMeterProp
       if (micBarRef.current) {
         const scaleMic = Math.max(0.08, Math.min(1, smoothed.mic));
         micBarRef.current.style.height = `${(scaleMic * 100).toFixed(1)}%`;
-        setNow(micBarRef.current, scaleMic);
+        mirrorLevelToMeterTrack(micBarRef.current, scaleMic);
         micBarRef.current.style.opacity = active ? `${0.45 + scaleMic * 0.55}` : '0.2';
       }
 
       if (sysBarRef.current) {
         const scaleSys = Math.max(0.08, Math.min(1, smoothed.system));
         sysBarRef.current.style.height = `${(scaleSys * 100).toFixed(1)}%`;
-        setNow(sysBarRef.current, scaleSys);
+        mirrorLevelToMeterTrack(sysBarRef.current, scaleSys);
         sysBarRef.current.style.opacity = active ? `${0.45 + scaleSys * 0.55}` : '0.2';
       }
 

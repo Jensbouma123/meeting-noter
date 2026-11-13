@@ -5,23 +5,14 @@ import { Button, Modal } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { uniqueNames, useRecentParticipants } from '@/lib/meeting/participants';
 import { ParticipantsEditor } from './ParticipantsEditor';
+import type { ParticipantsDialogProps } from './ParticipantsDialog.types';
 
-/**
- * "Who is in this meeting?" — shown before a new recording starts. Never in
- * the way: Skip, Enter in the empty field, or R starts straight away.
- */
 export function ParticipantsDialog({
   ownerName,
   initial,
   onSkip,
   onStart,
-}: {
-  ownerName: string;
-  /** Names already on the meeting; the owner is added when there are none. */
-  initial: string[];
-  onSkip: () => void;
-  onStart: (names: string[]) => void;
-}) {
+}: ParticipantsDialogProps) {
   const t = useT('participants');
   const [names, setNames] = useState<string[]>(() =>
     initial.length > 0 ? initial : uniqueNames([ownerName]),

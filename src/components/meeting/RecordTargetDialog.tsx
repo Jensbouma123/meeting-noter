@@ -2,16 +2,7 @@
 
 import { Button, Modal } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
-
-export interface RecordTargetDialogProps {
-  open: boolean;
-  title: string;
-  durationSeconds: number;
-  /** Escape, backdrop click and the Cancel button. Changes nothing. */
-  onCancel: () => void;
-  onAppend: () => void;
-  onStartNew: () => void;
-}
+import type { RecordTargetDialogProps } from './RecordTargetDialog.types';
 
 export function formatDuration(totalSeconds: number): string {
   const s = Math.max(0, Math.round(Number.isFinite(totalSeconds) ? totalSeconds : 0));
@@ -20,10 +11,6 @@ export function formatDuration(totalSeconds: number): string {
   return `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
 }
 
-/**
- * Shown when Record is pressed in a session that already has a transcript:
- * append the new recording to it, or leave it alone and start a new session.
- */
 export function RecordTargetDialog({
   open,
   title,

@@ -10,26 +10,11 @@ import {
   VStack,
 } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
-
-interface ShortcutsHelpProps {
-  open: boolean;
-  onClose: () => void;
-}
-
-export const SHORTCUTS: Array<{ keys: string[]; label: string }> = [
-  { keys: ['R'], label: 'shortcuts.record' },
-  { keys: ['Space'], label: 'shortcuts.pause' },
-  { keys: ['⌘/Ctrl', 'F'], label: 'shortcuts.search' },
-  { keys: ['⌘/Ctrl', 'E'], label: 'shortcuts.export' },
-  { keys: ['?'], label: 'shortcuts.show' },
-  { keys: ['Esc'], label: 'shortcuts.close' },
-];
+import { SHORTCUTS } from './shortcuts';
+import type { ShortcutsHelpProps } from './ShortcutsHelp.types';
 
 export function ShortcutsHelp({ open, onClose }: ShortcutsHelpProps) {
   const t = useT('dialogs');
-  // `Modal` owns the backdrop, the focus trap, Escape handling and the body
-  // scroll lock — all of which the hand-rolled overlay re-implemented (and
-  // got subtly wrong: it focused a bare close button and never restored focus).
   return (
     <Modal
       open={open}
