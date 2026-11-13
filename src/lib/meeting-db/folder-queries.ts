@@ -1,6 +1,6 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { FolderError } from './folder-error';
-import { num, str } from './row-mapping';
+import { num, parseJson, str } from './row-mapping';
 import type { FolderRow } from './types';
 
 export function folderExists(db: DatabaseSync, id: string): boolean {
@@ -34,6 +34,8 @@ export function readFolder(db: DatabaseSync, id: string): FolderRow {
     sort: num(r.sort),
     createdAt: num(r.created_at),
     updatedAt: num(r.updated_at),
+    roster: parseJson<string[]>(r.roster, []),
+    inheritRoster: num(r.roster_inherit ?? 1) === 1,
   };
 }
 

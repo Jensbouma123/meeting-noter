@@ -15,6 +15,11 @@ export const folders = {
     suggestIn: 'Suggested folder: {folder}', accept: 'Move', decline: 'No thanks',
     suggestFolder: 'Suggest folder', suggestNoMatch: 'No matching folder found', suggestNeedsModel: 'Download the search model to get folder suggestions.', suggestNoFolders: 'No folders yet. Create a folder first to get suggestions.',
     suggestAria: 'Move “{title}” to suggested folder “{folder}”', declineAria: 'Dismiss folder suggestion for “{title}”',
+    settings: 'Folder settings', settingsTitle: 'Settings for “{name}”', save: 'Save',
+    people: 'People', rosterHint: 'These people are offered when you start a meeting in this folder.',
+    rosterInherit: 'Inherit from parent folder', rosterInherited: 'Inherited from “{name}”',
+    rosterEmpty: 'No usual people here yet.', rosterAddLabel: 'Add a person', rosterAddPlaceholder: 'Type a name',
+    rosterRemove: 'Remove {name} from this folder', add: 'Add',
   },
   nl: {
     title: 'Mappen', newFolder: 'Nieuwe map', newSubfolder: 'Nieuwe submap', rename: 'Naam wijzigen', deleteFolder: 'Map verwijderen',
@@ -32,5 +37,10 @@ export const folders = {
     suggestIn: 'Voorgestelde map: {folder}', accept: 'Verplaatsen', decline: 'Nee, bedankt',
     suggestFolder: 'Map voorstellen', suggestNoMatch: 'Geen passende map gevonden', suggestNeedsModel: 'Download het zoekmodel om mapvoorstellen te krijgen.', suggestNoFolders: 'Nog geen mappen. Maak eerst een map aan om voorstellen te krijgen.',
     suggestAria: '“{title}” verplaatsen naar voorgestelde map “{folder}”', declineAria: 'Mapvoorstel voor “{title}” negeren',
+    settings: 'Mapinstellingen', settingsTitle: 'Instellingen voor “{name}”', save: 'Opslaan',
+    people: 'Mensen', rosterHint: 'Deze mensen worden aangeboden als je een meeting in deze map start.',
+    rosterInherit: 'Overnemen van bovenliggende map', rosterInherited: 'Overgenomen van “{name}”',
+    rosterEmpty: 'Nog geen vaste mensen hier.', rosterAddLabel: 'Persoon toevoegen', rosterAddPlaceholder: 'Typ een naam',
+    rosterRemove: '{name} uit deze map verwijderen', add: 'Toevoegen',
   },
 } as const;

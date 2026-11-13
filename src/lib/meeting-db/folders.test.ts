@@ -76,6 +76,34 @@ describe('folders', () => {
     expect(db.listFolders()[0].parentId).toBeNull();
   });
 
+  it('stores a per-folder roster with inheritance on by default', () => {
+    const db = openDb();
+    const parent = db.createFolder('Parent');
+    const child = db.createFolder('Child', parent.id);
+    expect(parent.roster).toEqual([]);
+    expect(parent.inheritRoster).toBe(true);
+    const saved = db.setFolderRoster(parent.id, ['Anna', 'Piet'], false);
+    expect(saved.roster).toEqual(['Anna', 'Piet']);
+    expect(saved.inheritRoster).toBe(false);
+    expect(db.listFolders().find((f) => f.id === child.id)!.roster).toEqual([]);
+    expect(db.listFolders().find((f) => f.id === child.id)!.inheritRoster).toBe(true);
+    const overriding = db.setFolderRoster(child.id, ['Sam'], false);
+    expect(overriding.roster).toEqual(['Sam']);
+    expect(db.listFolders().find((f) => f.id === parent.id)!.roster).toEqual(['Anna', 'Piet']);
+    expect(code(() => db.setFolderRoster('nope', ['Sam'], false))).toBe('not-found');
+  });
+
+  it('migrates a folders table without roster columns to inherit', () => {
+    const file = path.join(tmpDir(), 'roster-v7.db');
+    const first = new MeetingsDb(file);
+    first.db.exec('ALTER TABLE folders DROP COLUMN roster; ALTER TABLE folders DROP COLUMN roster_inherit; PRAGMA user_version = 7');
+    first.close();
+    const db = new MeetingsDb(file);
+    const folder = db.createFolder('X');
+    expect(folder.roster).toEqual([]);
+    expect(folder.inheritRoster).toBe(true);
+  });
+
   it('migrates a v3 database', () => {
     const dir = tmpDir();
     const file = path.join(dir, 'meetings.db');

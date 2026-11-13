@@ -8,7 +8,7 @@ import { FolderTree } from './FolderTree';
 import { useFolderController } from './useFolderController';
 import { fake, installFakeFolderServer, mutations } from './test-support/fakeFolderServer';
 import { renderTree, renderTreeWith } from './test-support/FolderHarness';
-import { dragStart, draggableRow } from './test-support/interactions';
+import { dragStart, draggableRow, openActions, pick } from './test-support/interactions';
 import { folder, session, sessions } from './test-support/fixtures';
 
 beforeEach(installFakeFolderServer);
@@ -118,5 +118,20 @@ describe('FolderTree', () => {
     fireEvent.click(screen.getByRole('button', { name: 'New meeting in “Work”' }));
     expect(onNewSession).toHaveBeenCalledWith('a');
     expect(screen.getByText('Q1')).toBeInTheDocument();
+  });
+
+  it('opens folder settings from the row menu and saves the roster', async () => {
+    renderTree();
+    await screen.findByRole('button', { name: 'Actions for folder “Work”' });
+    openActions('Work');
+    await pick('Folder settings');
+    expect(await screen.findByRole('dialog', { name: 'Settings for “Work”' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Inherit from parent folder' }));
+    fireEvent.change(screen.getByLabelText('Add a person'), { target: { value: 'Anna' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() =>
+      expect(mutations('PATCH')[0]?.body).toBe(JSON.stringify({ roster: ['Anna'], inheritRoster: false })),
+    );
   });
 });

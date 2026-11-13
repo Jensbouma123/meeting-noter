@@ -1,5 +1,5 @@
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@jensbouma123/acciva-ui';
-import { FolderInput, FolderPlus, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { FolderInput, FolderPlus, MoreHorizontal, Pencil, Settings, Trash2 } from 'lucide-react';
 import { useFoldersT } from './useFoldersT';
 import type { FolderRowMenuProps } from './types';
 
@@ -23,6 +23,9 @@ export function FolderRowMenu({ folder, controller }: FolderRowMenuProps) {
         </DropdownMenuItem>
         <DropdownMenuItem icon={<Pencil className="size-4" />} onClick={() => controller.setRenamingId(folder.id)}>
           {t('rename')}
+        </DropdownMenuItem>
+        <DropdownMenuItem icon={<Settings className="size-4" />} onClick={() => controller.requestSettings(folder)}>
+          {t('settings')}
         </DropdownMenuItem>
         <DropdownMenuItem icon={<FolderInput className="size-4" />} onClick={() => controller.requestMove({ kind: 'folder', id: folder.id, title: folder.name })}>
           {t('moveTo')}

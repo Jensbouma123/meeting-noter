@@ -14,7 +14,10 @@ export interface ParticipantOption {
 
 export interface ParticipantChipsProps {
   names: string[];
-  compact: boolean;
+  compact?: boolean;
+  readOnly?: boolean;
+  listLabel?: string;
+  removeLabel?: (name: string) => string;
   onChange: (names: string[]) => void;
 }
 

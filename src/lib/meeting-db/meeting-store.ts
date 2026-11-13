@@ -60,6 +60,12 @@ export class MeetingStore {
     if (meeting) this.save(meeting);
   }
 
+  setFolderRoster(id: string, roster: readonly string[], inheritRoster: boolean) {
+    const folder = this.db.setFolderRoster(id, roster, inheritRoster);
+    this.ensureFolderDirectories();
+    return folder;
+  }
+
   setInsights(id: string, insights: InsightSet | null): boolean {
     if (!this.db.setInsights(id, insights)) return false;
     const meeting = this.db.get(id);

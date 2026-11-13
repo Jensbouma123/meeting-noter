@@ -67,6 +67,31 @@ describe('/api/folders', () => {
     expect((await del(req('DELETE', `/folders/${a}`), ctx(a))).status).toBe(404);
   });
 
+  it('stores a folder roster through PATCH and rejects bad shapes', async () => {
+    const response = (await (await post(req('POST', '/folders', { name: 'Team' }))).json()) as {
+      folder: { id: string; roster: string[]; inheritRoster: boolean };
+    };
+    expect(response.folder.roster).toEqual([]);
+    expect(response.folder.inheritRoster).toBe(true);
+    const saved = await patch(
+      req('PATCH', `/folders/${response.folder.id}`, { roster: ['Anna', ' Anna ', ' Piet '], inheritRoster: false }),
+      ctx(response.folder.id),
+    );
+    const body = (await saved.json()) as { folder: { roster: string[]; inheritRoster: boolean } };
+    expect(body.folder.roster).toEqual(['Anna', 'Piet']);
+    expect(body.folder.inheritRoster).toBe(false);
+    expect((await patch(req('PATCH', `/folders/${response.folder.id}`, { roster: 'Anna' }), ctx(response.folder.id))).status).toBe(400);
+    expect((await patch(req('PATCH', `/folders/${response.folder.id}`, { roster: [1] }), ctx(response.folder.id))).status).toBe(400);
+    expect((await patch(req('PATCH', `/folders/${response.folder.id}`, { inheritRoster: 'yes' }), ctx(response.folder.id))).status).toBe(400);
+    const listed = (await (await getFolders(req('GET', '/folders'))).json()) as {
+      folders: Array<{ id: string; roster: string[]; inheritRoster: boolean }>;
+    };
+    expect(listed.folders.find((folder) => folder.id === response.folder.id)).toMatchObject({
+      roster: ['Anna', 'Piet'],
+      inheritRoster: false,
+    });
+  });
+
   it('validates route ids and bodies and exposes folderId through meeting reads', async () => {
     expect((await patch(req('PATCH', '/folders/bad%2Fid', {}), ctx('bad/id'))).status).toBe(400);
     expect((await del(req('DELETE', '/folders/bad%2Fid'), ctx('bad/id'))).status).toBe(400);
