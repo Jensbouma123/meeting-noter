@@ -17,7 +17,7 @@ const events: BrowserASREvents = {
   onLoadProgress: (progress) => post({ type: 'loadProgress', progress }),
 };
 
-async function run(msg: Extract<EngineWorkerIn, { type: 'call' }>): Promise<void> {
+async function executeEngineCall(msg: Extract<EngineWorkerIn, { type: 'call' }>): Promise<void> {
   const { callId } = msg;
   try {
     if (!engine) throw new Error('The speech model worker was not initialised');
@@ -68,7 +68,7 @@ self.onmessage = (event: MessageEvent<EngineWorkerIn>) => {
     setQuietAsrConsoleDebug(msg.debug);
     engine ??= createLocalAsrEngine(msg.config, events);
   } else if (msg.type === 'call') {
-    void run(msg);
+    void executeEngineCall(msg);
   }
 };
 

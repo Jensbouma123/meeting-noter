@@ -20,7 +20,7 @@ export class NemotronMelStream {
     this.lastSample = 0;
   }
 
-  process(chunk: Float32Array): { mel: Float32Array; frames: number } {
+  computeLogMel(chunk: Float32Array): { mel: Float32Array; frames: number } {
     const { nFft, hop, win, nMels, preemph, logEps } = NEMOTRON;
     const pad = nFft / 2;
     const winOffset = (nFft - win) / 2;

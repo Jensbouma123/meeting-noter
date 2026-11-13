@@ -71,7 +71,7 @@ export class NemotronRecognizer {
     for (let c = 0; c < total; c++) {
       const chunk = new Float32Array(chunkSamples);
       if (c < audioChunks) chunk.set(audio.subarray(c * chunkSamples, Math.min(audio.length, (c + 1) * chunkSamples)));
-      const { mel: frames, frames: count } = mel.process(chunk);
+      const { mel: frames, frames: count } = mel.computeLogMel(chunk);
       if (count !== melFramesPerChunk) throw new Error(`Nemotron frontend produced ${count} frames, expected ${melFramesPerChunk}`);
       signal.set(melCache, 0);
       signal.set(frames, melCache.length);
