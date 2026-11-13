@@ -16,7 +16,7 @@ import {
   manifestForVariant,
 } from './model-manifest';
 import { categorizeManifestFile } from './resumable-download';
-import { configFromManifest } from './types';
+import { configFromManifest } from './config-from-manifest';
 
 /**
  * Parakeet stays selectable next to Nemotron: the family is one stored

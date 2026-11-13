@@ -36,7 +36,7 @@ import type {
   BrowserSegment,
   BrowserTranscribeResult,
 } from './types';
-import { DEFAULT_BROWSER_ASR_CONFIG } from './types';
+import { DEFAULT_BROWSER_ASR_CONFIG } from './constants';
 import { installQuietAsrConsole } from './quiet-console';
 import { BiaserSlot } from '@/lib/vocabulary/bias';
 import type { VocabularyBiasConfig } from '@/lib/vocabulary/types';

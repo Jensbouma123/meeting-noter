@@ -17,7 +17,7 @@ import type {
   BrowserRecognizeResult,
   BrowserTranscribeResult,
 } from './types';
-import { DEFAULT_BROWSER_ASR_CONFIG, BROWSER_ASR_LANGUAGE_NAMES } from './types';
+import { DEFAULT_BROWSER_ASR_CONFIG, BROWSER_ASR_LANGUAGE_NAMES } from './constants';
 import { debugEnabled, installQuietAsrConsole } from './quiet-console';
 import { BiaserSlot } from '@/lib/vocabulary/bias';
 import type { VocabularyBiasConfig } from '@/lib/vocabulary/types';

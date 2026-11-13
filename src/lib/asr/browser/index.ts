@@ -12,9 +12,8 @@ export type {
   BrowserRecognizeResult,
   BrowserWord,
 } from './types';
-export { DEFAULT_BROWSER_ASR_CONFIG, BROWSER_ASR_LANGUAGE_NAMES, configFromManifest } from './types';
-
-// Model-preparation progress arithmetic (pure; no browser APIs).
+export { configFromManifest } from './config-from-manifest';
+export { DEFAULT_BROWSER_ASR_CONFIG, BROWSER_ASR_LANGUAGE_NAMES } from './constants';
 export {
   INIT_STAGE_LABELS,
   INIT_STAGE_WEIGHTS,
@@ -28,8 +27,6 @@ export {
   type InitStage,
   type ModelProgressStage,
 } from './model-progress';
-
-// Model download registry (state management + persistence).
 export {
   subscribeRegistry,
   getState,
@@ -64,8 +61,6 @@ export {
   type ConsentState,
   type AsrBackend,
 } from './model-registry';
-
-// Model manifest — the single source of truth for repo + quantisation.
 export {
   PARAKEET_TDT_V3,
   PARAKEET_TDT_V3_WEBGPU,
@@ -85,8 +80,6 @@ export {
   type EncoderQuant,
   type WebgpuEncoderQuant,
 } from './model-manifest';
-
-// Backend detection (WebGPU adapter probe + runtime fallback).
 export {
   detectAsrBackend,
   activeAsrManifest,
@@ -96,9 +89,6 @@ export {
   isSafariEngine,
   resetAsrBackendDetectionForTests,
 } from './backend-detect';
-
-// Model download manager (parakeet.js integration).
-// Re-exports the download functions (types already exported from model-registry above).
 export {
   getBrowserASRDownloadManager,
   initiateDownloads,
@@ -112,9 +102,6 @@ export {
   formatBytes,
   formatSeconds,
 } from './browser-asr-download-manager';
-
-// Resumable downloader — also the cache probe the load path measures with,
-// and the owner of the IndexedDB databases (including their teardown).
 export {
   probeCachedModelFiles,
   areModelFilesCached,
