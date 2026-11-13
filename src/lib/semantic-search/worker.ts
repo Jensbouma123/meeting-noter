@@ -1,6 +1,7 @@
 /** Embedding worker: owns the EmbeddingGemma 2 text model so inference never
  *  runs on the main thread. The model loads on the first request. */
-import { createEmbeddingGemma2, type EmbeddingGemma2 } from '../embeddinggemma2';
+import { createEmbeddingGemma2 } from '../embeddinggemma2';
+import type { EmbeddingGemma2 } from '../embeddinggemma2/types';
 import { createEg2Embedder } from './eg2-embedder';
 import type { Embedder } from './types';
 

@@ -1,4 +1,4 @@
-import type { EmbeddingGemma2 } from '../embeddinggemma2';
+import type { EmbeddingGemma2 } from '../embeddinggemma2/types';
 import { EMBEDDING_DIM, type Embedder } from './types';
 
 /** Task prefixes from the EmbeddingGemma 2 README. */
