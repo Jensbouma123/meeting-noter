@@ -4,13 +4,13 @@ import { meeting } from '@/lib/meeting';
 import { getState, resetSession, upsertSegment } from '@/lib/meeting/store';
 import type { Segment } from '@/lib/meeting/types';
 import {
-  VOCABULARY_STORAGE_KEY,
   addFixedWord,
   getVocabulary,
   getVocabularyBiasConfig,
   resetVocabularyForTests,
   setVocabularyStrength,
 } from './store';
+import { VOCABULARY_STORAGE_KEY } from './vocabulary-storage';
 
 const line = (id: string, text: string, final = true): Segment => ({
   id,
@@ -41,7 +41,6 @@ describe('"Fix this word"', () => {
       { word: 'Framna', variants: ['Fromna'] },
     ]);
     const texts = getState().segments.map((s) => s.text);
-    // Finished lines are fixed; the line still being heard is left for its final version.
     expect(texts).toEqual(['We work at Framna now.', 'Framna, again.', 'Fromna still talking']);
   });
 
