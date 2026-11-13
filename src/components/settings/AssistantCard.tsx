@@ -20,7 +20,7 @@ export function AssistantCard({ assistant, busy, error, confirm, restartNotice, 
     status === 'needs-repair' ? (
       <Button onClick={() => onConnect(false)} disabled={busy || !!confirm}>{t('repair')}</Button>
     ) : status === 'connected' ? (
-      <Button variant="secondary" onClick={onDisconnect} disabled={busy}>{t('disconnect')}</Button>
+      <Button variant="danger" onClick={onDisconnect} disabled={busy}>{t('disconnect')}</Button>
     ) : status === 'not-found' ? null : canAutoConnect ? (
       <Button onClick={() => onConnect(false)} disabled={busy || !!confirm}>{t('connect')}</Button>
     ) : manualCommand ? (

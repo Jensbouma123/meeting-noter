@@ -31,7 +31,7 @@ export function AboutSection() {
         <SettingsRow
           label={tOnboarding('reopen.title')}
           description={tOnboarding('reopen.description')}
-          control={<Button variant="secondary" onClick={restartOnboarding}>{tOnboarding('reopen.action')}</Button>}
+          control={<Button variant="outline" onClick={restartOnboarding}>{tOnboarding('reopen.action')}</Button>}
         />
       </SettingsGroup>
       <SettingsGroup>
@@ -39,8 +39,8 @@ export function AboutSection() {
         {info?.notes && <Alert variant="info" layout="inline">{info.notes}</Alert>}
         {info?.available && !info.canApply && <Alert variant="warning" layout="inline">{t('manual')}</Alert>}
         <div className="p-4 flex flex-wrap gap-2">
-          <Button variant="secondary" onClick={() => void update.refresh()}>{t('checkAgain')}</Button>
-          {info?.available && info.pageUrl && <Button variant="secondary" onClick={() => window.open(info.pageUrl, '_blank', 'noopener,noreferrer')}>{t('whatsNew')}</Button>}
+          <Button variant="primary" onClick={() => void update.refresh()}>{t('checkAgain')}</Button>
+          {info?.available && info.pageUrl && <Button variant="outline" onClick={() => window.open(info.pageUrl, '_blank', 'noopener,noreferrer')}>{t('whatsNew')}</Button>}
           {info?.available && <Button onClick={() => setOpen(true)} disabled={!info.canApply}>{t('updateNow')}</Button>}
         </div>
       </SettingsGroup>
