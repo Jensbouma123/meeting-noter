@@ -1,7 +1,9 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from 'vitest';
 import { meeting } from '@/lib/meeting';
-import { getState, resetSession, upsertSegment } from '@/lib/meeting/store';
+import { getState } from '@/lib/meeting/store-core';
+import { resetSession } from '@/lib/meeting/session-reset';
+import { upsertSegment } from '@/lib/meeting/segment-store';
 import type { Segment } from '@/lib/meeting/types';
 import {
   addFixedWord,

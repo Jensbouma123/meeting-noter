@@ -1,5 +1,5 @@
 import { loadSessionTranscript } from '../meeting/session-transcript-storage';
-import { isCaptureActive } from '../meeting/store';
+import { isCaptureActive } from '../meeting/transcript-session';
 import { SemanticIndex } from './index';
 import { listIndexedMeetingIds, loadIndex, saveIndex } from './store';
 import { createWorkerEmbedder } from './worker-embedder';
