@@ -11,8 +11,6 @@ import { LANGID_REGISTRY_KEY } from '@/lib/asr/browser/model-registry-known-keys
 
 export { LANGID_REGISTRY_KEY };
 
-let downloadHandlerRegistered = false;
-
 async function downloadLangIdFiles(onProgress: Parameters<Parameters<typeof registerDownloadHandler>[1]>[0]): Promise<void> {
   const urls = await Promise.all([
     downloadHfFileResumable(LANGID_MODEL_REPO, LANGID_MODEL_FILES.encoder, LANGID_MODEL_REVISION, {
@@ -28,12 +26,9 @@ async function downloadLangIdFiles(onProgress: Parameters<Parameters<typeof regi
   }
 }
 
-export function registerLangIdModel(backend: AsrBackend): void {
-  if (!downloadHandlerRegistered) {
-    registerDownloadHandler('langid', downloadLangIdFiles);
-    downloadHandlerRegistered = true;
-  }
+registerDownloadHandler('langid', downloadLangIdFiles);
 
+export function registerLangIdModel(backend: AsrBackend): void {
   registerModel({
     key: LANGID_REGISTRY_KEY,
     modelRepo: LANGID_MODEL_REPO,

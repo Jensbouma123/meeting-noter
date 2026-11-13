@@ -16,16 +16,11 @@ export { DIARIZATION_REGISTRY_KEY };
 
 export const DIARIZATION_REGISTRY_IDENTITY = `${DIARIZATION_MODEL_REPO}:${DIARIZATION_MODELS.map((f) => f.filename).join('+')}`;
 
-let downloadHandlerRegistered = false;
+registerDownloadHandler('diarization', async (onProgress) => {
+  await ensureDiarizationModelsCached((_file, p) => onProgress(p));
+});
 
 export function registerDiarizationModel(backend: AsrBackend): void {
-  if (!downloadHandlerRegistered) {
-    registerDownloadHandler('diarization', async (onProgress) => {
-      await ensureDiarizationModelsCached((_file, p) => onProgress(p));
-    });
-    downloadHandlerRegistered = true;
-  }
-
   registerModel({
     key: DIARIZATION_REGISTRY_KEY,
     modelRepo: DIARIZATION_REGISTRY_IDENTITY,
