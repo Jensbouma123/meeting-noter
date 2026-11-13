@@ -1,3 +1,4 @@
+import type { LoadedModules } from './types';
 const ASR_MODULE_LOADERS = [
   () => import('./asr/constants'),
   () => import('./asr/backend'),
@@ -20,13 +21,7 @@ const ASR_MODULE_LOADERS = [
   () => import('@/lib/asr/browser'),
 ] as const;
 
-type Loaded<T extends readonly (() => Promise<unknown>)[]> = T extends readonly [infer H, ...infer R]
-  ? H extends () => Promise<infer M>
-    ? M & Loaded<R extends readonly (() => Promise<unknown>)[] ? R : []>
-    : never
-  : unknown;
-
-export async function importAsrModules(): Promise<Loaded<typeof ASR_MODULE_LOADERS>> {
+export async function importAsrModules(): Promise<LoadedModules<typeof ASR_MODULE_LOADERS>> {
   await import('./asr/init');
   const modules = await Promise.all(ASR_MODULE_LOADERS.map((load) => load()));
   return Object.assign({}, ...modules);

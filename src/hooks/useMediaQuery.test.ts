@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { MediaQueryListener } from './types';
 import { useMediaQuery } from './useMediaQuery';
 
-type Listener = () => void;
 let matches = false;
-const listeners = new Set<Listener>();
+const listeners = new Set<MediaQueryListener>();
 
 beforeEach(() => {
   matches = false;
@@ -15,8 +15,8 @@ beforeEach(() => {
       return matches;
     },
     media: query,
-    addEventListener: (_: string, l: Listener) => listeners.add(l),
-    removeEventListener: (_: string, l: Listener) => listeners.delete(l),
+    addEventListener: (_: string, l: MediaQueryListener) => listeners.add(l),
+    removeEventListener: (_: string, l: MediaQueryListener) => listeners.delete(l),
     addListener() {},
     removeListener() {},
     onchange: null,

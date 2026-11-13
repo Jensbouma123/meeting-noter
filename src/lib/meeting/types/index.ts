@@ -13,3 +13,4 @@ export type { AsrFakes, RaceHarness } from './race-harness';
 export type { ShareSilenceHooks } from './share-silence-hooks';
 export type { SendOutcome } from './send-outcome';
 export type { FakeEngineEvents } from './asr-test';
+export type { LoadedModules } from './loaded-modules';

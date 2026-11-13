@@ -2,11 +2,6 @@
 
 import { useCallback, useSyncExternalStore } from 'react';
 
-/**
- * Whether a CSS media query currently matches. Subscribes to the query's
- * `change` events via `useSyncExternalStore`, so no effect is needed to sync
- * state. The server snapshot is `false`, matching the first client render.
- */
 export function useMediaQuery(query: string): boolean {
   const subscribe = useCallback(
     (onChange: () => void) => {
