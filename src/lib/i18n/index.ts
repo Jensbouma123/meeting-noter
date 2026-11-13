@@ -1,3 +1,4 @@
+import { assistant } from './ns/assistant';
 import { common } from './ns/common';
 import { dialogs } from './ns/dialogs';
 import { dock } from './ns/dock';
@@ -21,6 +22,7 @@ import { update } from './ns/update';
 import type { Language, Namespace } from './types';
 
 export const translations = {
+  assistant,
   common,
   dialogs,
   dock,

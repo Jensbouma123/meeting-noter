@@ -9,6 +9,7 @@ export const settingsEn = {
   ownerName: 'Your name',
   ownerNameDescription: 'Used later to recognise you in transcripts.',
   ownerNamePlaceholder: 'Your name',
+  'section.assistant': 'AI assistant',
   'section.advanced': 'Advanced',
   uiLanguage: 'Interface language',
   uiLanguageDescription: 'Choose the language used in the app.',

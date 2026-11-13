@@ -1,0 +1,69 @@
+// @vitest-environment jsdom
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { AssistantSection } from './AssistantSection';
+import { LanguageContext } from '@/lib/i18n/LanguageContext';
+
+const LIST = {
+  assistants: [
+    { id: 'claude-desktop', status: 'not-connected', canAutoConnect: true, manualCommand: null, configPath: '/cfg.json' },
+    { id: 'claude-code', status: 'connected', canAutoConnect: false, manualCommand: null, configPath: null },
+    { id: 'codex', status: 'not-connected', canAutoConnect: false, manualCommand: 'codex mcp add x', configPath: null },
+  ],
+};
+
+function mockFetch(handler: (url: string, init?: RequestInit) => unknown) {
+  const fn = vi.fn(async (url: string, init?: RequestInit) => ({ ok: true, json: async () => handler(url, init) }));
+  vi.stubGlobal('fetch', fn);
+  return fn;
+}
+
+function renderSection(language: 'en' | 'nl' = 'en') {
+  return render(<LanguageContext.Provider value={language}><AssistantSection /></LanguageContext.Provider>);
+}
+
+describe('AssistantSection', () => {
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
+
+  it('shows statuses per assistant', async () => {
+    mockFetch(() => LIST);
+    renderSection();
+    expect(await screen.findByText('Connected')).toBeTruthy();
+    expect(screen.getAllByText('Not connected')).toHaveLength(2);
+    expect(screen.getByText('Copy command')).toBeTruthy();
+  });
+
+  it('desktop connect asks for confirmation with backup path, then connects', async () => {
+    const fetchMock = mockFetch((url, init) => {
+      if (url === '/api/assistants') return LIST;
+      const confirmed = JSON.parse(String(init?.body)).confirm;
+      return confirmed ? { ok: true, status: 'connected' } : { needsConfirm: true, configPath: '/cfg.json', backupPath: '/cfg.bak' };
+    });
+    renderSection();
+    fireEvent.click((await screen.findAllByText('Connect'))[0]);
+    expect(await screen.findByText('/cfg.bak')).toBeTruthy();
+    fireEvent.click(screen.getByText('Yes, connect'));
+    await waitFor(() => expect(screen.getAllByText('Connected')).toHaveLength(2));
+    expect(fetchMock).toHaveBeenCalledWith('/api/assistants/claude-desktop/connect', expect.objectContaining({ method: 'POST' }));
+  });
+
+  it('disconnects and renders Dutch', async () => {
+    mockFetch((url) => (url === '/api/assistants' ? LIST : { ok: true, status: 'not-connected' }));
+    renderSection('nl');
+    fireEvent.click(await screen.findByText('Ontkoppelen'));
+    await waitFor(() => expect(screen.queryByText('Gekoppeld')).toBeNull());
+  });
+
+  it('copies example questions', async () => {
+    mockFetch(() => LIST);
+    const writeText = vi.fn(async () => undefined);
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
+    renderSection();
+    await screen.findByText('Connected');
+    fireEvent.click(screen.getAllByText('Copy')[0]);
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith('Summarize the meeting I have open'));
+  });
+});

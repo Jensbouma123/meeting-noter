@@ -9,6 +9,7 @@ export const settingsNl = {
   ownerName: 'Jouw naam',
   ownerNameDescription: 'Wordt later gebruikt om jou in transcripten te herkennen.',
   ownerNamePlaceholder: 'Jouw naam',
+  'section.assistant': 'AI-assistent',
   'section.advanced': 'Geavanceerd',
   uiLanguage: 'Taal van de app',
   uiLanguageDescription: 'Kies de taal die de app gebruikt.',
