@@ -104,7 +104,8 @@ describe('meeting.start()', () => {
 
   it('hands captured audio to the ASR engine instead of dropping it', async () => {
     const { meeting } = await import('./index');
-    const { getBrowserASREnabled, getBrowserASRPhase } = await import('./browser-asr');
+    const { getBrowserASREnabled } = await import('./asr/controls');
+    const { getBrowserASRPhase } = await import('./asr/phase');
 
     await meeting.start({ mode: 'mic' });
 
@@ -123,7 +124,7 @@ describe('meeting.start()', () => {
 
   it('buffers the recording and says so on a device without WebGPU', async () => {
     const { meeting } = await import('./index');
-    const { getBrowserASRPhase, getBrowserASRStatusMessage } = await import('./browser-asr');
+    const { getBrowserASRPhase, getBrowserASRStatusMessage } = await import('./asr/phase');
     const { bufferedSeconds } = await import('./post-stop-buffer');
 
     await meeting.start({ mode: 'mic' });

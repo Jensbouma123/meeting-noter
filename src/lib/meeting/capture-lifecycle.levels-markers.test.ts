@@ -66,7 +66,8 @@ describe('crash-loop guard marker', () => {
       areModelFilesCached: async () => ({ complete: true, cached: 1, total: 1 }),
       createBrowserASREngine: () => ({ isReady: false, ensureLoaded: () => new Promise<void>(() => {}) }),
     }));
-    const { ensureBrowserASRReady } = await import('./browser-asr');
+    await import('./asr/init');
+    const { ensureBrowserASRReady } = await import('./asr/engine-acquire');
     void ensureBrowserASRReady();
     await vi.waitFor(() => expect(store.has(MARKER)).toBe(true));
 
@@ -77,7 +78,8 @@ describe('crash-loop guard marker', () => {
   it('keeps a marker the page booted with: that is the previous page crashing', async () => {
     const store = stubSessionStorage();
     store.set(MARKER, String(Date.now()));
-    const { didPreviousModelLoadCrash } = await import('./browser-asr');
+    await import('./asr/init');
+    const { didPreviousModelLoadCrash } = await import('./asr/crash-recovery');
     expect(didPreviousModelLoadCrash()).toBe(true);
 
     env.win.dispatchEvent(new Event('pagehide'));
@@ -87,13 +89,13 @@ describe('crash-loop guard marker', () => {
 
 describe('meeting: a capture track ending mid-session', () => {
   afterEach(() => {
-    vi.doUnmock('./browser-asr');
+    vi.doUnmock('./asr/post-stop-run');
   });
 
   it('runs the post-stop transcription when the last source ends on a CPU device', async () => {
     const transcribeRecordedAudioAfterStop = vi.fn(async () => true);
-    vi.doMock('./browser-asr', async (importOriginal) => ({
-      ...(await importOriginal<typeof import('./browser-asr')>()),
+    vi.doMock('./asr/post-stop-run', async (importOriginal) => ({
+      ...(await importOriginal<typeof import('./asr/post-stop-run')>()),
       transcribeRecordedAudioAfterStop,
     }));
     const { meeting, isPostStopTranscriptionOnly } = await import('./index');

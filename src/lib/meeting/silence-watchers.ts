@@ -1,4 +1,5 @@
 import { SHARE_SOUND_RMS, SILENT_MIC_FRAMES, SILENT_MIC_WARNING, SILENT_SHARE_FRAMES } from './capture-constants';
+import type { ShareSilenceHooks } from './types/share-silence-hooks';
 
 export class MicSilenceWatch {
   private zeroFrames: number | null = 0;
@@ -21,12 +22,6 @@ export class MicSilenceWatch {
     console.warn('[capture] The mic delivers only digital silence');
     this.onSilent(SILENT_MIC_WARNING);
   }
-}
-
-export interface ShareSilenceHooks {
-  canSwapMic(): boolean;
-  swapMic(): void;
-  onCallAudioSilent(silent: boolean): void;
 }
 
 export class ShareSilenceWatch {

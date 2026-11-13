@@ -1,21 +1,18 @@
 import { vi } from 'vitest';
 import { FakeAudioWorkletNode, installBrowserStubs, uninstallBrowserStubs } from './index.testUtils';
+import type { RaceHarness } from './types/race-harness';
 
-export interface AsrFakes {
-  resolveAsrBackend: ReturnType<typeof vi.fn>;
-  pushLiveAudio: ReturnType<typeof vi.fn>;
-  bufferRecordedAudio: ReturnType<typeof vi.fn>;
-  flushLiveAudio: ReturnType<typeof vi.fn>;
-  resetBrowserASR: ReturnType<typeof vi.fn>;
-  ensureBrowserASRReady: ReturnType<typeof vi.fn>;
-  transcribeRecordedAudioAfterStop: ReturnType<typeof vi.fn>;
-}
-
-export interface RaceHarness {
-  backend: 'webgpu' | 'wasm' | null;
-  asr: AsrFakes;
-  startDiarization: ReturnType<typeof vi.fn>;
-}
+const ASR_MOCKED_MODULES = [
+  './asr/backend',
+  './asr/live-push',
+  './asr/recording-mode',
+  './asr/live-flush',
+  './asr/reset',
+  './asr/engine-acquire',
+  './asr/post-stop-run',
+  './asr/controls',
+  './post-stop-progress',
+];
 
 export function installRaceHarness(): RaceHarness {
   installBrowserStubs();
@@ -34,13 +31,20 @@ export function installRaceHarness(): RaceHarness {
     },
     startDiarization: vi.fn(),
   };
-  vi.doMock('./browser-asr', async (importOriginal) => ({
-    ...(await importOriginal<typeof import('./browser-asr')>()),
-    ...harness.asr,
-    getBrowserASREnabled: () => true,
-    isPostStopTranscriptionOnly: () => harness.backend === 'wasm',
-    isPostStopTranscriptionRunning: () => false,
-  }));
+  const overrides: Record<string, Record<string, unknown>> = {
+    './asr/backend': { resolveAsrBackend: harness.asr.resolveAsrBackend, isPostStopTranscriptionOnly: () => harness.backend === 'wasm' },
+    './asr/live-push': { pushLiveAudio: harness.asr.pushLiveAudio },
+    './asr/recording-mode': { bufferRecordedAudio: harness.asr.bufferRecordedAudio },
+    './asr/live-flush': { flushLiveAudio: harness.asr.flushLiveAudio },
+    './asr/reset': { resetBrowserASR: harness.asr.resetBrowserASR },
+    './asr/engine-acquire': { ensureBrowserASRReady: harness.asr.ensureBrowserASRReady },
+    './asr/post-stop-run': { transcribeRecordedAudioAfterStop: harness.asr.transcribeRecordedAudioAfterStop },
+    './asr/controls': { getBrowserASREnabled: () => true },
+    './post-stop-progress': { isPostStopTranscriptionRunning: () => false },
+  };
+  for (const [path, fakes] of Object.entries(overrides)) {
+    vi.doMock(path, async (importOriginal) => ({ ...(await importOriginal<Record<string, unknown>>()), ...fakes }));
+  }
   vi.doMock('./diarization-bridge', async (importOriginal) => ({
     ...(await importOriginal<typeof import('./diarization-bridge')>()),
     startDiarization: harness.startDiarization,
@@ -49,7 +53,7 @@ export function installRaceHarness(): RaceHarness {
 }
 
 export function uninstallRaceHarness(): void {
-  vi.doUnmock('./browser-asr');
+  for (const path of ASR_MOCKED_MODULES) vi.doUnmock(path);
   vi.doUnmock('./diarization-bridge');
   uninstallBrowserStubs();
 }

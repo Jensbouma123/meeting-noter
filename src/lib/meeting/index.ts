@@ -1,7 +1,8 @@
 import { useSyncExternalStore } from 'react';
+import './asr/init';
 import { addFixedWord } from '@/lib/vocabulary/store';
 import { disposeSharedEmbedder } from '@/lib/semantic-search/service';
-import { disableBrowserASR, enableBrowserASR } from './browser-asr';
+import { disableBrowserASR, enableBrowserASR } from './asr/controls';
 import { releaseCapture } from './capture-release';
 import { setLanguageOverride } from './langid-bridge';
 import { INITIAL_STATE } from './initial-state';
@@ -21,36 +22,20 @@ export { getCallAudioMissing, subscribeCallAudio } from './call-audio-missing';
 export { getMeetingDiagnostics } from './diagnostics';
 export { useSpeakerStats, computeSpeakerStats } from './speaker-stats';
 export type { SpeakerStat } from './types/speaker-stat';
-export {
-  enableBrowserASR,
-  disableBrowserASR,
-  resetBrowserASR,
-  getBrowserASREnabled,
-  getBrowserASRReady,
-  getBrowserASRLoading,
-  getBrowserASRFailed,
-  getBrowserASRError,
-  getBrowserASRPhase,
-  getBrowserASRStatusMessage,
-  getBrowserASRProgress,
-  getServerBrowserASRProgress,
-  ensureBrowserASRReady,
-  promptBrowserASRDownload,
-  didPreviousModelLoadCrash,
-  retryCrashedLoadWithSmallerModel,
-  subscribeBrowserASR,
-  warmBrowserASR,
-  setSpeakerLabeler,
-  resolveAsrBackend,
-  isPostStopTranscriptionOnly,
-  isPostStopTranscriptionRunning,
-  transcribeRecordedAudioAfterStop,
-  getPostStopTranscriptionProgress,
-  POST_STOP_MESSAGE,
-  type BrowserASRProgress,
-  type SpeakerLabeler,
-} from './browser-asr';
-export { getServerPostStopProgress, subscribePostStopTranscription } from './post-stop-progress';
+export { enableBrowserASR, disableBrowserASR, getBrowserASREnabled, getBrowserASRReady, getBrowserASRLoading, getBrowserASRFailed, getBrowserASRError } from './asr/controls';
+export { resetBrowserASR } from './asr/reset';
+export { getBrowserASRPhase, getBrowserASRStatusMessage } from './asr/phase';
+export { getBrowserASRProgress, getServerBrowserASRProgress } from './asr/progress-build';
+export { ensureBrowserASRReady, warmBrowserASR } from './asr/engine-acquire';
+export { promptBrowserASRDownload, didPreviousModelLoadCrash, retryCrashedLoadWithSmallerModel } from './asr/crash-recovery';
+export { subscribeBrowserASR } from './asr/listeners';
+export { setSpeakerLabeler } from './asr/speaker';
+export { resolveAsrBackend, isPostStopTranscriptionOnly } from './asr/backend';
+export { isPostStopTranscriptionRunning, getServerPostStopProgress, subscribePostStopTranscription } from './post-stop-progress';
+export { transcribeRecordedAudioAfterStop, getPostStopTranscriptionProgress } from './asr/post-stop-run';
+export { POST_STOP_MESSAGE } from './asr/constants';
+export type { BrowserASRProgress } from './types/asr-progress';
+export type { SpeakerLabeler } from './types/asr-speaker';
 export type { PostStopProgress, PostStopPhase } from './types/post-stop';
 
 export function useMeeting<T>(selector: (s: MeetingState) => T): T {

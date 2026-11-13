@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto';
 import { describe, expect, it, vi } from 'vitest';
 import { PARAKEET_TDT_V3_WEBGPU } from '@/lib/asr/browser/model-manifest-parakeet';
 import { voice } from '@/lib/asr/test-signals';
-import { lowConfidenceSpans } from './browser-asr';
+import { lowConfidenceSpans } from './asr/low-confidence';
 import { consentAndCache } from './asr-test-cache';
 import { installAsrTestLifecycle, loadWebgpuAsr } from './asr-test-setup';
 

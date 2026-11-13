@@ -1,6 +1,7 @@
 import 'fake-indexeddb/auto';
 import { describe, expect, it, vi } from 'vitest';
 import { consentAndCache } from './asr-test-cache';
+import { importAsrModules } from './asr-test-modules';
 import { installAsrTestLifecycle } from './asr-test-setup';
 
 const engineState = await vi.hoisted(async () => (await import('./asr-test-engine-state')).createEngineState());
@@ -33,7 +34,7 @@ describe('a model load that killed the tab', () => {
 
   it('boots blocked with a crash message instead of auto-loading again', async () => {
     stubSessionStorage({ [MARKER]: String(Date.now()) });
-    const asr = await import('./browser-asr');
+    const asr = await importAsrModules();
     asr.registerDefaultModels('wasm');
 
     expect(asr.didPreviousModelLoadCrash()).toBe(true);
@@ -45,7 +46,7 @@ describe('a model load that killed the tab', () => {
   });
   it('retries a crashed load with the smaller model and re-opens consent', async () => {
     const store = stubSessionStorage({ [MARKER]: String(Date.now()) });
-    const asr = await import('./browser-asr');
+    const asr = await importAsrModules();
     asr.registerDefaultModels('wasm');
     expect(asr.didPreviousModelLoadCrash()).toBe(true);
 
@@ -60,7 +61,7 @@ describe('a model load that killed the tab', () => {
   });
   it('still loads on Record after a crash — the guard blocks auto-load, not explicit action', async () => {
     stubSessionStorage({ [MARKER]: String(Date.now()) });
-    const asr = await import('./browser-asr');
+    const asr = await importAsrModules();
     asr.registerDefaultModels('wasm');
     await consentAndCache();
 
@@ -70,7 +71,7 @@ describe('a model load that killed the tab', () => {
   });
   it('clears the in-flight marker once a load settles', async () => {
     const store = stubSessionStorage();
-    const asr = await import('./browser-asr');
+    const asr = await importAsrModules();
     asr.registerDefaultModels('wasm');
     await consentAndCache();
 
@@ -93,7 +94,7 @@ describe('a model load that killed the tab', () => {
     const fire = stubWindow();
     let release = () => {};
     engineState.loadGate = new Promise<void>((resolve) => (release = resolve));
-    const asr = await import('./browser-asr');
+    const asr = await importAsrModules();
     asr.registerDefaultModels('wasm');
     await consentAndCache();
 
@@ -103,7 +104,7 @@ describe('a model load that killed the tab', () => {
     expect(store.has(MARKER)).toBe(false);
 
     vi.resetModules();
-    const next = await import('./browser-asr');
+    const next = await importAsrModules();
     expect(next.didPreviousModelLoadCrash()).toBe(false);
     release();
     await loading;
@@ -111,14 +112,14 @@ describe('a model load that killed the tab', () => {
   it('a reload of the page a crash blocked stays blocked', async () => {
     const store = stubSessionStorage({ [MARKER]: String(Date.now()) });
     const fire = stubWindow();
-    const asr = await import('./browser-asr');
+    const asr = await importAsrModules();
     expect(asr.didPreviousModelLoadCrash()).toBe(true);
 
     fire('pagehide', { persisted: false });
     expect(store.has(MARKER)).toBe(true);
 
     vi.resetModules();
-    const next = await import('./browser-asr');
+    const next = await importAsrModules();
     expect(next.didPreviousModelLoadCrash()).toBe(true);
   });
 });

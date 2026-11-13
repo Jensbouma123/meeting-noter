@@ -5,12 +5,8 @@ import { SAFARI_MIC_NEEDS_HELPER } from './capture-constants';
 import { helperMicUsable, safariMicWarning } from './safari-mic-warning';
 import type { SourceAcquirer } from './source-acquirer';
 import type { CaptureMode } from './types/basics';
+import type { SourceRequests } from './types/source-requests';
 import type { SystemInput } from './types/capture';
-
-export interface SourceRequests {
-  micP: Promise<MediaStream | HelperSource> | null;
-  systemP: Promise<SystemInput> | null;
-}
 
 function prefixed(what: string) {
   return (err: unknown): never => {

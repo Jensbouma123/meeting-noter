@@ -1,16 +1,8 @@
 import type { HelperSource } from './helper-source';
 import { countFrame, newStats } from './capture-readout';
 import { helperMicUsable, safariMicWarning } from './safari-mic-warning';
-import type { FrameHandler, SourceNodes } from './types/capture';
+import type { AttachHost } from './types/source-attach';
 import type { Source } from './types/basics';
-
-export interface AttachHost {
-  handler: FrameHandler;
-  sources: Map<Source, SourceNodes>;
-  watchShare(rms: number): void;
-  watchMic(rms: number): void;
-  setWarning(warning: string): void;
-}
 
 export function attachHelperSource(host: AttachHost, helper: HelperSource, source: Source): void {
   const stats = newStats();

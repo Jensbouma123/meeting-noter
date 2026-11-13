@@ -94,7 +94,6 @@ describe('speaker state persistence', () => {
     expect(loadSpeakerState('old')).toBeNull();
     expect(loadSpeakerState('new')).not.toBeNull();
     expect(storage.getItem(sessionTranscriptKey('t'))).not.toBeNull();
-    // Too large even alone: given up, nothing else touched.
     saveSpeakerState('huge', { mic: state(5000) });
     expect(loadSpeakerState('huge')).toBeNull();
     expect(storage.getItem(sessionTranscriptKey('t'))).not.toBeNull();

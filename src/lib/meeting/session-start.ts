@@ -1,8 +1,6 @@
-import {
-  beginRecordedAudioCapture,
-  ensureBrowserASRReady,
-  resolveAsrBackend,
-} from './browser-asr';
+import { beginRecordedAudioCapture } from './asr/recording-mode';
+import { ensureBrowserASRReady } from './asr/engine-acquire';
+import { resolveAsrBackend } from './asr/backend';
 import { Capture } from './capture';
 import { setCallAudioMissing } from './call-audio-missing';
 import { captureClock, frameFeed } from './diagnostics';

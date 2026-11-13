@@ -5,9 +5,8 @@ import { getSessionMetadata } from './session-open';
 import { getTranscriptSessionId, isCaptureActive } from './transcript-session';
 import { buildStoredMeeting } from './stored-meeting';
 import { syncState } from './sync-state';
+import type { SendOutcome } from './types/send-outcome';
 import { PENDING_KEY, markSynced, readPending, writeJson } from './sync-storage';
-
-type SendOutcome = 'done' | 'deleted' | 'retry';
 
 async function send(method: 'PUT' | 'DELETE', id: string, body?: StoredMeeting): Promise<SendOutcome> {
   try {

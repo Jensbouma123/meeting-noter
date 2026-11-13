@@ -1,4 +1,6 @@
-import { bufferRecordedAudio, isPostStopTranscriptionOnly, pushLiveAudio } from './browser-asr';
+import { bufferRecordedAudio } from './asr/recording-mode';
+import { isPostStopTranscriptionOnly } from './asr/backend';
+import { pushLiveAudio } from './asr/live-push';
 import { session } from './session-state';
 import type { Source } from './types';
 

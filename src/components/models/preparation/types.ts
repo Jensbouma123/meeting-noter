@@ -1,4 +1,4 @@
-import type { BrowserASRProgress } from '@/lib/meeting/browser-asr';
+import type { BrowserASRProgress } from '@/lib/meeting/types/asr-progress';
 import type { ModelEntry } from '@/lib/asr/browser';
 
 export interface ModelPreparationState {

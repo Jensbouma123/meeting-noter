@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FakeAudioWorkletNode, deferred, sendFrame, tick } from './index.testUtils';
-import { installRaceHarness, uninstallRaceHarness, type RaceHarness } from './index.races.testUtils';
+import { installRaceHarness, uninstallRaceHarness } from './index.races.testUtils';
+import type { RaceHarness } from './types/race-harness';
 
 describe('meeting session audio sources and stop ordering', () => {
   let race: RaceHarness;

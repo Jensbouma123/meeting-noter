@@ -66,9 +66,10 @@ export async function downloadModel(): Promise<void> {
 
 export async function readiness(): Promise<string> {
   const registry = { ...(await import('@/lib/asr/browser/model-registry-snapshot')), ...(await import('@/lib/asr/browser/model-registry-consent')), ...(await import('@/lib/asr/browser/model-registry-register')) };
-  const asr = await import('@/lib/meeting/browser-asr');
+  await import('@/lib/meeting/asr/init');
+  const { getBrowserASRProgress } = await import('@/lib/meeting/asr/progress-build');
   const { deriveModelReadiness } = await import('./modelReadiness');
-  const progress = asr.getBrowserASRProgress();
+  const progress = getBrowserASRProgress();
   return deriveModelReadiness(Object.values(registry.getState().entries), {
     enabled: progress.enabled,
     phase: progress.phase,

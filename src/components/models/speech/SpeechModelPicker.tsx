@@ -1,6 +1,6 @@
 import { useState, useSyncExternalStore } from 'react';
 import { Alert, Radio, RadioGroup, VStack } from '@jensbouma123/acciva-ui';
-import { selectSpeechModel } from '@/lib/meeting/browser-asr';
+import { selectSpeechModel } from '@/lib/meeting/asr/crash-recovery';
 import {
   getAsrModelFamily,
   getServerAsrModelFamily,

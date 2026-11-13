@@ -1,8 +1,6 @@
-import {
-  flushLiveAudio,
-  resetBrowserASR,
-  transcribeRecordedAudioAfterStop,
-} from './browser-asr';
+import { flushLiveAudio } from './asr/live-flush';
+import { resetBrowserASR } from './asr/reset';
+import { transcribeRecordedAudioAfterStop } from './asr/post-stop-run';
 import { releaseCapture } from './capture-release';
 import { setCallAudioMissing } from './call-audio-missing';
 import { flushDiarization, stopDiarization } from './diarization-bridge';

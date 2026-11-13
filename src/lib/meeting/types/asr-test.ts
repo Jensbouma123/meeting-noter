@@ -25,3 +25,10 @@ export interface ManifestFiles {
   files: readonly string[];
   fileUrlOverrides?: Readonly<Record<string, string>>;
 }
+
+export interface FakeEngineEvents {
+  onSegment: (seg: unknown) => void;
+  onStatusChange: (status: string) => void;
+  onError: (message: string) => void;
+  onLoadProgress?: (progress: { stage: string; done: number; total: number }) => void;
+}

@@ -14,7 +14,7 @@ registerLifecycleEnv();
 describe('meeting: every acquired track is stopped', () => {
   it('requests nothing before Record: importing the module never touches the mic', async () => {
     await import('./index');
-    await import('./browser-asr');
+    await import('./asr/init');
     await flush();
     expect(env.getUserMedia).not.toHaveBeenCalled();
     expect(env.getDisplayMedia).not.toHaveBeenCalled();

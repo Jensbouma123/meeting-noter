@@ -1,13 +1,10 @@
 import type { HelperSource } from './helper-source';
 import { isStream } from './capture-readout';
 import { safariMicWarning } from './safari-mic-warning';
-import { attachHelperSource, attachStreamSource, type AttachHost } from './source-attach';
+import { attachHelperSource, attachStreamSource } from './source-attach';
+import type { AttachHost } from './types/source-attach';
+import type { AttachOutcome } from './types/attach-outcome';
 import type { SystemInput } from './types/capture';
-
-export interface AttachOutcome {
-  warning: string | null;
-  systemVia: 'share' | 'helper' | null;
-}
 
 export function attachRequestedSources(
   host: AttachHost,

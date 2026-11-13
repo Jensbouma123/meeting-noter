@@ -15,7 +15,7 @@ function chunkedBody(chunks: string[]) {
       controller.enqueue(encoder.encode(chunks[next]));
       next += 1;
     },
-  }, { highWaterMark: 0 }); // pull only on read, so `pulled` counts what the server read
+  }, { highWaterMark: 0 });
   return { stream, state };
 }
 

@@ -1,4 +1,4 @@
-import { getLiveAsrFeed } from './browser-asr';
+import { getLiveAsrFeed } from './asr/live-feed';
 import { getDiarizationFeed } from './diarization-feed';
 import { session } from './session-state';
 import type { Source } from './types';

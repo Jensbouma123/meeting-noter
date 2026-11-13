@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { FakeAudioWorkletNode, deferred, getUserMediaMock, sendFrame, tick } from './index.testUtils';
-import { installRaceHarness, uninstallRaceHarness, type RaceHarness } from './index.races.testUtils';
+import { installRaceHarness, uninstallRaceHarness } from './index.races.testUtils';
+import type { RaceHarness } from './types/race-harness';
 
 describe('meeting session lifecycle races', () => {
   let race: RaceHarness;
@@ -59,10 +60,10 @@ describe('meeting session lifecycle races', () => {
   });
 
   it('replays the frames captured before the probe answered through the live path on a WebGPU device', async () => {
+    const { meeting } = await import('./index');
     const probe = deferred<'webgpu'>();
     race.asr.resolveAsrBackend.mockReturnValueOnce(probe.promise);
     race.backend = null;
-    const { meeting } = await import('./index');
     const started = meeting.start({ mode: 'mic' });
     await tick();
     const node = FakeAudioWorkletNode.instances[0];

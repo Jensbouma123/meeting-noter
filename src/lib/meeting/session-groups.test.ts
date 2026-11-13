@@ -2,9 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { filterSessions, groupSessionsByDay } from './session-groups';
 
 const s = (id: string, at: Date, title = id) => ({ sessionId: id, title, createdAt: at.getTime() });
-// Tuesday 10 Nov 2026, 00:30 local: yesterday's evening is close by.
 const NL = { today: 'Vandaag', yesterday: 'Gisteren' };
-const NOW = new Date(2026, 10, 10, 0, 30).getTime();
+const TUESDAY_10_NOV_00_30_LOCAL = new Date(2026, 10, 10, 0, 30).getTime();
 
 describe('groupSessionsByDay', () => {
   it('splits today/yesterday exactly at local midnight', () => {
@@ -15,7 +14,7 @@ describe('groupSessionsByDay', () => {
         s('c', new Date(2026, 10, 9, 0, 0, 0)),
         s('d', new Date(2026, 10, 8, 23, 59)),
       ],
-      NOW,
+      TUESDAY_10_NOV_00_30_LOCAL,
       'nl',
       NL,
     );
@@ -29,7 +28,7 @@ describe('groupSessionsByDay', () => {
   it('uses weekday+date within a week and months beyond', () => {
     const g = groupSessionsByDay(
       [s('w', new Date(2026, 10, 4, 12)), s('o1', new Date(2026, 9, 20)), s('o2', new Date(2026, 9, 2)), s('y', new Date(2025, 9, 2))],
-      NOW,
+      TUESDAY_10_NOV_00_30_LOCAL,
       'nl',
     );
     expect(g.map((x) => x.key)).toEqual(['d:2026-10-4', 'm:2026-9', 'm:2025-9']);
@@ -39,20 +38,19 @@ describe('groupSessionsByDay', () => {
   });
 
   it('follows the process timezone, not UTC', () => {
-    // 23:30 local on the 9th may be the 10th in UTC; it must still be yesterday.
-    const g = groupSessionsByDay([s('x', new Date(2026, 10, 9, 23, 30))], NOW, 'nl', NL);
+    const g = groupSessionsByDay([s('x', new Date(2026, 10, 9, 23, 30))], TUESDAY_10_NOV_00_30_LOCAL, 'nl', NL);
     expect(g[0].label).toBe('Gisteren');
   });
 
   it('labels today/yesterday in English by default', () => {
-    const g = groupSessionsByDay([s('a', new Date(2026, 10, 10, 0, 5)), s('b', new Date(2026, 10, 9, 12))], NOW);
+    const g = groupSessionsByDay([s('a', new Date(2026, 10, 10, 0, 5)), s('b', new Date(2026, 10, 9, 12))], TUESDAY_10_NOV_00_30_LOCAL);
     expect(g.map((x) => x.label)).toEqual(['Today', 'Yesterday']);
   });
 
   it('sorts newest first and returns nothing for no sessions', () => {
-    const g = groupSessionsByDay([s('old', new Date(2026, 10, 9, 8)), s('new', new Date(2026, 10, 9, 20))], NOW);
+    const g = groupSessionsByDay([s('old', new Date(2026, 10, 9, 8)), s('new', new Date(2026, 10, 9, 20))], TUESDAY_10_NOV_00_30_LOCAL);
     expect(g[0].sessions.map((x) => x.sessionId)).toEqual(['new', 'old']);
-    expect(groupSessionsByDay([], NOW)).toEqual([]);
+    expect(groupSessionsByDay([], TUESDAY_10_NOV_00_30_LOCAL)).toEqual([]);
   });
 });
 
@@ -72,6 +70,6 @@ describe('filterSessions', () => {
     expect(filterSessions(list, '  ', t)).toHaveLength(3);
     expect(t).not.toHaveBeenCalled();
     filterSessions(list, 'standup', t);
-    expect(t).toHaveBeenCalledTimes(2); // not for the matching title
+    expect(t).toHaveBeenCalledTimes(2);
   });
 });

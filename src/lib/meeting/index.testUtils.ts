@@ -1,10 +1,5 @@
 import { vi } from 'vitest';
-
-interface FakeTrack {
-  kind: 'audio' | 'video';
-  stop: () => void;
-  onended: (() => void) | null;
-}
+import type { FakeTrack } from './types/fake-track';
 
 function fakeTrack(kind: 'audio' | 'video'): FakeTrack {
   return { kind, stop: vi.fn(), onended: null };

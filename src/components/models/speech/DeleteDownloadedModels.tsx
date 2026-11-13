@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { Alert, Button, ConfirmDialog, HStack, Text, VStack } from '@jensbouma123/acciva-ui';
 import { deleteDownloadedModels, type DeleteModelCacheResult } from '@/lib/asr/browser';
-import { resetBrowserASR } from '@/lib/meeting/browser-asr';
+import { resetBrowserASR } from '@/lib/meeting/asr/reset';
 import { useT } from '@/lib/i18n/useT';
 import { isPreparing } from '../preparation/describePreparation';
 import type { DeleteDownloadedModelsProps } from './types';

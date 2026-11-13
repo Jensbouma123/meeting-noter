@@ -1,11 +1,9 @@
 'use client';
 
+import '@/lib/meeting/asr/init';
 import { useMemo, useSyncExternalStore } from 'react';
-import {
-  getServerBrowserASRProgress,
-  getBrowserASRProgress,
-  subscribeBrowserASR,
-} from '@/lib/meeting/browser-asr';
+import { getServerBrowserASRProgress, getBrowserASRProgress } from '@/lib/meeting/asr/progress-build';
+import { subscribeBrowserASR } from '@/lib/meeting/asr/listeners';
 import {
   getState as getModelRegistryState,
   getServerSnapshot as getModelRegistryServerSnapshot,

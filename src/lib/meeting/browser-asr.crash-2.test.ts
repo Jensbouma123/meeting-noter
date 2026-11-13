@@ -2,6 +2,7 @@ import 'fake-indexeddb/auto';
 import { describe, expect, it, vi } from 'vitest';
 import { PARAKEET_TDT_V3_WEBGPU } from '@/lib/asr/browser/model-manifest-parakeet';
 import { consentAndCache } from './asr-test-cache';
+import { importAsrModules } from './asr-test-modules';
 import { installAsrTestLifecycle, loadWebgpuAsr } from './asr-test-setup';
 
 const engineState = await vi.hoisted(async () => (await import('./asr-test-engine-state')).createEngineState());
@@ -34,7 +35,7 @@ describe('a model load that killed the tab', () => {
 
   it('a marker too old to be the crash loop does not block', async () => {
     const store = stubSessionStorage({ [MARKER]: String(Date.now() - 60 * 60 * 1000) });
-    const asr = await import('./browser-asr');
+    const asr = await importAsrModules();
 
     expect(asr.didPreviousModelLoadCrash()).toBe(false);
     expect(store.has(MARKER)).toBe(false);

@@ -1,11 +1,4 @@
-import type { AsrEngineTestState, TimedTestWord } from './types/asr-test';
-
-interface FakeEngineEvents {
-  onSegment: (seg: unknown) => void;
-  onStatusChange: (status: string) => void;
-  onError: (message: string) => void;
-  onLoadProgress?: (progress: { stage: string; done: number; total: number }) => void;
-}
+import type { AsrEngineTestState, FakeEngineEvents, TimedTestWord } from './types/asr-test';
 
 export function createFakeEngine(state: AsrEngineTestState) {
   return class FakeBrowserASREngine {

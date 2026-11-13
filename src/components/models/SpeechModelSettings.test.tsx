@@ -48,8 +48,12 @@ vi.mock('@/lib/asr/browser', () => ({
   formatSeconds: (n: number) => `${n}s`,
 }));
 
-vi.mock('@/lib/meeting/browser-asr', () => ({
+vi.mock('@/lib/meeting/asr/reset', () => ({
   resetBrowserASR: mocks.resetBrowserASR,
+}));
+
+vi.mock('@/lib/meeting/asr/crash-recovery', () => ({
+  selectSpeechModel: vi.fn(),
 }));
 
 vi.mock('./preparation/ModelPreparationBar', () => ({ ModelPreparationBar: () => null }));

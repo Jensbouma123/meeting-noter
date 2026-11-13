@@ -1,4 +1,4 @@
-import { isPostStopTranscriptionRunning } from './browser-asr';
+import { isPostStopTranscriptionRunning } from './post-stop-progress';
 import { session } from './session-state';
 import { getState, setState } from './store-core';
 

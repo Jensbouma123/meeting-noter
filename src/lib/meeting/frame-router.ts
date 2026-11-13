@@ -1,4 +1,4 @@
-import { getBrowserASREnabled } from './browser-asr';
+import { getBrowserASREnabled } from './asr/controls';
 import { pushDiarizationAudio } from './diarization-bridge';
 import { captureClock, frameFeed } from './diagnostics';
 import { pushLangIdAudio } from './langid-bridge';
