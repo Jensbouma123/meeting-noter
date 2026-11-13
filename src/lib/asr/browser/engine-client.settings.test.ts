@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { FakeWorker, WASM, WEBGPU, recorder, started, tick } from './engine-client.test-support';
+import { FakeWorker, WASM, WEBGPU, recorder, started } from './engine-client.test-support';
 
 const local = vi.hoisted(() => ({ instances: [] as Array<{ config: unknown }> }));
 

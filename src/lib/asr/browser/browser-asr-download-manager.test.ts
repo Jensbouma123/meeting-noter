@@ -1,11 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  deferred,
-  flush,
-  installLocalStorage,
-  load,
-  registerTestModel,
-} from './browser-asr-download-manager.test-support';
+import { deferred, flush, installLocalStorage, load, registerTestModel } from './browser-asr-download-manager.test-support';
 import type { DownloadProgressEvent } from './types';
 
 vi.mock('./resumable-download', () => ({
