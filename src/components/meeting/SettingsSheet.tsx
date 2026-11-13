@@ -15,6 +15,7 @@ import { AdvancedSection } from '@/components/settings/AdvancedSection';
 import { VocabularySection } from '@/components/settings/VocabularySection';
 import { StorageSection } from '@/components/settings/StorageSection';
 import { AssistantSection } from '@/components/settings/AssistantSection';
+import { AppearanceSection } from '@/components/settings/AppearanceSection';
 import { AboutSection } from '@/components/settings/AboutSection';
 
 export function SettingsSheet({
@@ -57,6 +58,7 @@ export function SettingsSheet({
       {activeSection === 'general' && (
         <GeneralSection settings={settings} onSettingsChange={onSettingsChange} />
       )}
+      {activeSection === 'theme' && <AppearanceSection />}
       {activeSection === 'vocabulary' && <VocabularySection />}
       {activeSection === 'advanced' && <AdvancedSection />}
       {activeSection === 'storage' && <StorageSection settings={settings} onSettingsChange={onSettingsChange} />}

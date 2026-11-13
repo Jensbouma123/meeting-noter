@@ -3,6 +3,7 @@ export const settingsNl = {
   sectionsLabel: 'Instellingenonderdelen',
   needsAttention: 'Je aandacht nodig',
   'section.general': 'Algemeen',
+  'section.theme': 'Thema',
   'section.vocabulary': 'Woordenlijst',
   'section.storage': 'Opslag & privacy',
   'section.about': 'Over & updates',

@@ -3,6 +3,7 @@ export const settingsEn = {
   sectionsLabel: 'Settings sections',
   needsAttention: 'Needs attention',
   'section.general': 'General',
+  'section.theme': 'Theme',
   'section.vocabulary': 'Vocabulary',
   'section.storage': 'Storage & privacy',
   'section.about': 'About & updates',

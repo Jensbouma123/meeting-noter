@@ -1,8 +1,9 @@
-import { Bot, Database, Info, SpellCheck, SlidersHorizontal } from 'lucide-react';
+import { Bot, Palette, Database, Info, SpellCheck, SlidersHorizontal } from 'lucide-react';
 import type { SettingsSectionId, SettingsSectionMeta } from './types';
 
 export const SETTINGS_SECTIONS: SettingsSectionMeta[] = [
   { id: 'general', label: 'section.general', icon: SlidersHorizontal },
+  { id: 'theme', label: 'section.theme', icon: Palette },
   { id: 'vocabulary', label: 'section.vocabulary', icon: SpellCheck },
   { id: 'storage', label: 'section.storage', icon: Database },
   { id: 'about', label: 'section.about', icon: Info },
