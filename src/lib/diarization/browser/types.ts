@@ -29,6 +29,10 @@ export interface SpeakerTurn {
    *  known before they stop talking; its `end` is not a speaker change.
    *  Absent means final. */
   final?: boolean;
+  /** True on a turn split off a long run (`turns.ts` `maxOpenSec`): the same
+   *  speaker's next turn starts at `end`, which is therefore no speaker
+   *  change or pause. */
+  continues?: boolean;
 }
 
 export interface DiarizerOptions {

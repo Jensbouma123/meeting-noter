@@ -109,7 +109,11 @@ describe('TurnTracker', () => {
     const t = tracker(1, { maxOpenSec: 0.1 });
     const first = t.push(frames('#'.repeat(12)));
     expect(rounded(first)).toEqual([{ speaker: 0, start: 0, end: 0.1 }]);
-    expect(rounded(t.flush())).toEqual([{ speaker: 0, start: 0.1, end: 0.12 }]);
+    const rest = t.flush();
+    expect(rounded(rest)).toEqual([{ speaker: 0, start: 0.1, end: 0.12 }]);
+    // Only the split end says the speaker goes on talking.
+    expect(first[0].continues).toBe(true);
+    expect(rest[0].continues).toBeUndefined();
   });
 
   it('reports open runs as they grow when provisional, then closes them under the same run', () => {

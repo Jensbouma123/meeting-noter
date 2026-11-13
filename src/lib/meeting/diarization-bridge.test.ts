@@ -7,7 +7,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
  * speaker detection was not running.
  */
 
-type Turn = { speaker: string; source: 'mic' | 'system'; start: number; end: number; id?: string; final?: boolean };
+type Turn = {
+  speaker: string;
+  source: 'mic' | 'system';
+  start: number;
+  end: number;
+  id?: string;
+  final?: boolean;
+  continues?: boolean;
+};
 
 const fakes = vi.hoisted(() => ({
   created: [] as string[],
@@ -207,6 +215,22 @@ describe('diarization bridge — open turns', () => {
     expect(label('mic', new Float32Array(0))).toBe('mic:1');
     timeline.mockRestore();
     labeler.mockRestore();
+  });
+
+  it('does not cut at the end of a turn split only for running long', async () => {
+    const { bridge } = await consentedAndCached();
+    const asr = await import('./browser-asr');
+    const timeline = vi.spyOn(asr, 'setSpeakerTimeline');
+    bridge.startDiarization(['mic']);
+    const emit = fakes.turn.get('mic')!;
+    const tl = timeline.mock.calls.at(-1)![0]!;
+
+    // One 12 s monologue, reported as an 8 s turn the speaker talks on past.
+    emit({ speaker: 'mic:0', source: 'mic', start: 0, end: 8, id: 'mic#0', final: true, continues: true });
+    expect(tl.turnEnds('mic', 0, 12)).toEqual([]);
+    emit({ speaker: 'mic:0', source: 'mic', start: 8, end: 12, id: 'mic#1', final: true });
+    expect(tl.turnEnds('mic', 0, 14)).toEqual([12]);
+    timeline.mockRestore();
   });
 });
 

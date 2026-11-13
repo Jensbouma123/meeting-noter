@@ -286,6 +286,7 @@ export class DiarizerCore {
         end: originSec + span.end,
         id: `${this.source}#${span.run}`,
         final: span.final,
+        ...(span.continues ? { continues: true } : {}),
       };
       for (const cb of this.listeners) cb(turn);
     }

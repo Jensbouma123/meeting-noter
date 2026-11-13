@@ -267,10 +267,12 @@ function changePoints(source: Source, start: number, end: number): number[] {
 }
 
 /** Where turns closed. A still-open turn's end is only where the diarizer's
- *  last step stopped, not where anyone stopped talking. */
+ *  last step stopped, and a turn split off a long run (`continues`) ends
+ *  where it ran long: neither is where anyone stopped talking, and cutting
+ *  the live segment there cut a monologue every 8 s. */
 function turnEnds(source: Source, start: number, end: number): number[] {
   return turnsOf(source)
-    .filter((turn) => turn.final !== false)
+    .filter((turn) => turn.final !== false && !turn.continues)
     .map((turn) => turn.end)
     .filter((t) => t > start && t < end);
 }

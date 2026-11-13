@@ -140,6 +140,18 @@ describe('DiarizerCore turns', () => {
     expect(turns).toHaveLength(1);
   });
 
+  it('marks a turn split for running long as one the speaker continues past', async () => {
+    const core = new DiarizerCore({ source: 'mic', model: new FakeModel(), mode: SMALL_MODE, turns: { maxOpenSec: 1 } });
+    const turns: SpeakerTurn[] = [];
+    core.onSpeakerTurn((t) => turns.push(t));
+    await stream(core, tone(200, 2.5));
+    await core.flush();
+
+    expect(turns.length).toBeGreaterThan(1);
+    expect(turns.slice(0, -1).every((t) => t.continues === true)).toBe(true);
+    expect(turns[turns.length - 1].continues).toBeUndefined();
+  });
+
   it('gives the live feeding the same model inputs and final turns as the offline script', async () => {
     // Offline (`diarization-der.mjs`): 50 ms pushes from sample 0, each step
     // finished before the next push. Live (`worker.ts`): the worklet's 100 ms

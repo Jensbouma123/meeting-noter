@@ -29,6 +29,9 @@ export interface TurnSpan {
   run: number;
   /** False while the run is still open and may grow. */
   final: boolean;
+  /** Set on a span cut off at `maxOpenSec`: the speaker goes on talking, so
+   *  its end is no turn end. */
+  continues?: true;
 }
 
 export interface TurnTrackerOptions {
@@ -114,7 +117,7 @@ export class TurnTracker {
           } else {
             run.lastActive = frame;
             if (frame + 1 - run.startFrame >= this.maxOpenFrames) {
-              closed.push(this.span(k, run, frame + 1, true));
+              closed.push({ ...this.span(k, run, frame + 1, true), continues: true });
               this.open[k] = this.openRun(frame + 1, frame, true);
             }
           }
