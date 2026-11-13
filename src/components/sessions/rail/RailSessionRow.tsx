@@ -1,6 +1,6 @@
 import { useState, useSyncExternalStore, type MouseEvent } from 'react';
 import { Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, ListItem, Text } from '@jensbouma123/acciva-ui';
-import { ArrowRight, Eraser, FolderInput, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { ArrowRight, Eraser, FolderInput, Loader2, MoreHorizontal, Pencil, Sparkles, Trash2 } from 'lucide-react';
 import { isSessionRecording } from '@/lib/meeting/session-delete';
 import { subscribe as subscribeMeetingStore } from '@/lib/meeting/store-core';
 import { openCount } from '@/lib/meeting/notes';
@@ -11,7 +11,7 @@ import { formatDuration, formatTime } from './formatters';
 import { getRailBadgeState } from './getRailBadgeState';
 import type { RailSessionRowProps } from './types';
 
-export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete, onMove, pathLabel, suggestion }: RailSessionRowProps) {
+export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete, onMove, onSuggest, suggesting, pathLabel, suggestion }: RailSessionRowProps) {
   const t = useT('sidebar');
   const tf = useFoldersT();
   useSyncExternalStore(subscribeMeetingStore, () => isSessionRecording(session.sessionId), () => false);
@@ -80,6 +80,16 @@ export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete, o
             {onMove && (
               <DropdownMenuItem icon={<FolderInput className="size-4" />} onClick={onMove}>
                 {tf('moveTo')}
+              </DropdownMenuItem>
+            )}
+            {onSuggest && (
+              <DropdownMenuItem
+                icon={suggesting ? <Loader2 className="size-4 animate-spin motion-reduce:animate-none" /> : <Sparkles className="size-4" />}
+                disabled={suggesting}
+                aria-busy={suggesting || undefined}
+                onClick={onSuggest}
+              >
+                {tf('suggestFolder')}
               </DropdownMenuItem>
             )}
             <DropdownMenuItem variant="danger" icon={<Eraser className="size-4" />} disabled={locked} onClick={onClear}>

@@ -25,6 +25,8 @@ export interface RailSessionRowProps {
   onClear: () => void;
   onDelete: () => void;
   onMove?: () => void;
+  onSuggest?: () => void;
+  suggesting?: boolean;
   pathLabel?: string;
   suggestion?: FolderSuggestionView;
 }

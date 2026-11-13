@@ -13,6 +13,7 @@ export const folders = {
     nameRequired: 'Enter a folder name.', nameDuplicate: 'A folder with this name already exists here.', moveIntoItself: 'You can’t move a folder into itself.',
     errorGeneric: 'Couldn’t update folders. Try again.',
     suggestIn: 'Suggested folder: {folder}', accept: 'Move', decline: 'No thanks',
+    suggestFolder: 'Suggest folder', suggestNoMatch: 'No matching folder found', suggestNoFolders: 'No folders yet. Create a folder first to get suggestions.',
     suggestAria: 'Move “{title}” to suggested folder “{folder}”', declineAria: 'Dismiss folder suggestion for “{title}”',
   },
   nl: {
@@ -29,6 +30,7 @@ export const folders = {
     nameRequired: 'Vul een naam in voor de map.', nameDuplicate: 'Er bestaat hier al een map met deze naam.', moveIntoItself: 'Je kunt een map niet in zichzelf verplaatsen.',
     errorGeneric: 'Mappen bijwerken is niet gelukt. Probeer het opnieuw.',
     suggestIn: 'Voorgestelde map: {folder}', accept: 'Verplaatsen', decline: 'Nee, bedankt',
+    suggestFolder: 'Map voorstellen', suggestNoMatch: 'Geen passende map gevonden', suggestNoFolders: 'Nog geen mappen. Maak eerst een map aan om voorstellen te krijgen.',
     suggestAria: '“{title}” verplaatsen naar voorgestelde map “{folder}”', declineAria: 'Mapvoorstel voor “{title}” negeren',
   },
 } as const;
