@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { afterEach } from 'vitest';
 import type { Segment } from '@/lib/meeting';
 import { LiveTranscript } from './LiveTranscript';
 import { SCROLL_HEIGHT, resize, rowAt, scroller, useVirtualListEnvironment } from './LiveTranscript.virtualList.testUtils';

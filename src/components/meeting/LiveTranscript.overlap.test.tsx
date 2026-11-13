@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
 import { rowOf, seg, speakerShown, timeline, view } from './LiveTranscript.testUtils';
+import type { Segment } from '@/lib/meeting';
 import { LiveTranscript } from './LiveTranscript';
 import { speakers } from './LiveTranscript.testUtils';
 
