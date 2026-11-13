@@ -7,7 +7,9 @@ import {
   LANGID_MODEL_FALLBACK_SIZE_BYTES,
 } from '@/lib/langid/manifest';
 
-export const LANGID_REGISTRY_KEY = 'langid-whisper-tiny';
+import { LANGID_REGISTRY_KEY } from '@/lib/asr/browser/model-registry-known-keys';
+
+export { LANGID_REGISTRY_KEY };
 
 let downloadHandlerRegistered = false;
 

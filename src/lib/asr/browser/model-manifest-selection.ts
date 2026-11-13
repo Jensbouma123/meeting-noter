@@ -58,7 +58,7 @@ export function manifestForFamily(family: AsrModelFamily, backend: AsrBackend): 
   return manifestForBackend(backend);
 }
 
-function allManifests(): readonly AsrModelManifest[] {
+export function allManifests(): readonly AsrModelManifest[] {
   return [
     PARAKEET_TDT_V3_WEBGPU,
     PARAKEET_TDT_V3_WEBGPU_FP16,

@@ -10,7 +10,9 @@ import {
   DIARIZATION_TOTAL_SIZE_BYTES,
 } from '@/lib/diarization/browser/manifest';
 
-export const DIARIZATION_REGISTRY_KEY = 'diarization-turns';
+import { DIARIZATION_REGISTRY_KEY } from '@/lib/asr/browser/model-registry-known-keys';
+
+export { DIARIZATION_REGISTRY_KEY };
 
 export const DIARIZATION_REGISTRY_IDENTITY = `${DIARIZATION_MODEL_REPO}:${DIARIZATION_MODELS.map((f) => f.filename).join('+')}`;
 

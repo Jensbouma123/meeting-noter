@@ -1,4 +1,5 @@
 import { activeAsrManifest } from './backend-detect';
+import { knownModelKeys } from './model-registry-known-keys';
 import { hubOptionsFor, manifestForVariant, webgpuEncoderOf, WEBGPU_ENCODER_FALLBACKS } from './model-manifest-selection';
 import type { AsrBackend, AsrModelManifest } from './types/model-manifest';
 import { setActiveBackend } from './model-registry-dialog';
@@ -75,12 +76,19 @@ function repointUnavailableWebgpuEntries(): void {
   }
 }
 
+function pruneUnknownEntries(entries: Record<string, ModelEntry>): Record<string, ModelEntry> {
+  const known = knownModelKeys();
+  return Object.fromEntries(Object.entries(entries).filter(([key]) => known.has(key)));
+}
+
 export function initRegistry(): void {
   if (typeof window === 'undefined') return;
   registryState.persistedConsent = readPersistedConsent();
-  registryState.entries = readPersistedEntries();
+  const persisted = readPersistedEntries();
+  registryState.entries = pruneUnknownEntries(persisted);
   for (const entry of Object.values(registryState.entries)) {
     entry.isReady = entry.status === 'cached';
   }
+  if (Object.keys(registryState.entries).length !== Object.keys(persisted).length) persistEntries();
   repointUnavailableWebgpuEntries();
 }
