@@ -49,7 +49,7 @@ export function ParticipantsList({ people, selected, onToggle, onCreate }: Parti
         )}
         {visible.map((name) => (
           <li key={name} className="flex min-h-11 items-center gap-2">
-            <Checkbox aria-label={name} checked={picked.has(name.toLowerCase())} onCheckedChange={() => onToggle(name)} />
+            <Checkbox aria-label={name} checked={picked.has(name.toLowerCase())} onChange={() => onToggle(name)} />
             <span className="truncate">{name}</span>
           </li>
         ))}
