@@ -136,9 +136,10 @@ describe('RailSessionRow folder suggestion', () => {
     const onDecline = vi.fn();
     render(<RailSessionRow session={draft()} isActive={false} onOpen={noop} onClear={noop} onDelete={noop} suggestion={{ folderLabel: 'Clients / Acme', onAccept, onDecline }} />);
     expect(screen.getByText('Standup')).toBeInTheDocument();
-    const label = screen.getByText('Suggested folder: Clients / Acme', { exact: true });
-    expect(label).toBeInTheDocument();
-    expect(label).not.toHaveClass('truncate');
+    const chip = screen.getByTestId('folder-suggestion');
+    expect(chip).toHaveTextContent('Suggested folder: Clients / Acme');
+    const folderName = screen.getByText('Clients / Acme');
+    expect(folderName.parentElement).toHaveClass('whitespace-normal', 'break-words');
     const accept = screen.getByRole('button', { name: 'Move' });
     const decline = screen.getByRole('button', { name: 'No thanks' });
     expect(accept).toHaveTextContent('');
