@@ -21,5 +21,5 @@ export const Accordion = forwardRef(function Accordion({ type = "single", value:
                     ref(node);
                 else if (ref)
                     ref.current = node;
-            }, onKeyDown: handleKeyDown, className: cn(ROOT_CHROME[variant], className), ...props, children: children }) }));
+            }, onKeyDown: handleKeyDown, className: cn(ROOT_CHROME[variant], className), ...props, "data-accordion-root": "true", children: children }) }));
 });

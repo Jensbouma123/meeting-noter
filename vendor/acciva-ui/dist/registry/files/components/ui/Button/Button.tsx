@@ -46,7 +46,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   const leadingSlot = loading && !spinnerTrailing ? spinner : leadingIcon;
   const trailingSlot = spinnerTrailing ? spinner : loading ? null : trailingIcon;
 
+  // `inert` blocks activation (disabled or loading); only `disabled` leaves the tab order,
+  // so a loading button stays focusable with its name and `aria-busy` (Button/accessibility.md).
   const inert = Boolean(disabled) || loading;
+  const unfocusable = Boolean(disabled);
   const innerRef = useRef<HTMLElement | null>(null);
   const setRef = useCallback(
     (node: HTMLElement | null) => {
@@ -80,8 +83,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
         className: cn(rootClassName, child.props.className as string | undefined),
         "aria-label": label ?? (child.props["aria-label"] as string | undefined),
         "aria-busy": loading || undefined,
-        "aria-disabled": inert || undefined,
-        tabIndex: inert ? -1 : (child.props.tabIndex as number | undefined),
+        "aria-disabled": unfocusable || undefined,
+        tabIndex: unfocusable ? -1 : (child.props.tabIndex as number | undefined),
         ...(inert && { onClick: inertClick }),
         children: (
           <>
@@ -125,10 +128,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   return withTooltip(
     <button
       ref={setRef}
-      disabled={inert}
+      disabled={unfocusable}
       aria-busy={loading || undefined}
       aria-label={label}
-      onClick={handleClick as MouseEventHandler<HTMLButtonElement> | undefined}
+      onClick={(inert ? inertClick : handleClick) as MouseEventHandler<HTMLButtonElement> | undefined}
       className={rootClassName}
       {...props}
       {...pressProps}

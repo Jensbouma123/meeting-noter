@@ -27,7 +27,9 @@ export function resolveRoles(palette, decisions) {
             return d && d.resolution.kind !== "unresolved";
         });
         if (decision) {
-            if (decision.resolution.kind === "split" && hasOverriddenDep) {
+            // Any decision whose upstream moved is re-solved, converged ones included:
+            // their stored hexes were solved against the old dependency.
+            if (hasOverriddenDep) {
                 const solved = solveRoleIntent(palette, studioRole, decision.intent, getContextHex);
                 roles[studioRole.role] = splitIntent(solved);
             }

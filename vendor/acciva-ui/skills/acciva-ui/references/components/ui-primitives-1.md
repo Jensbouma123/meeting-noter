@@ -48,6 +48,14 @@
 - **Apple:** `AccivaBreadcrumbs` (`apple/Sources/AccivaUI/Components/Breadcrumbs.swift`) — takes an `AccivaBreadcrumbItem` trail (`title`, `isCurrent`, `action`).
 - **Spec:** `.agents/components/Breadcrumbs.md`
 
+### NavBar
+- **Import:** `import { NavBar } from "@jensbouma123/acciva-ui"`
+- **Category:** Primitive
+- **Purpose:** Horizontal bar of real navigation links `{ href, label, icon?, current? }`; `current` sets `aria-current="page"`; `linkComponent={Link}` renders a router link; overflow scrolls inside the bar.
+- **Gotcha:** links, not tabs — in-page view switching is `Tabs`. Give each nav on a page a distinct `aria-label`.
+- **Apple:** `AccivaNavBar` + `AccivaNavBarItem` (`apple/Sources/AccivaUI/Components/NavBar/NavBar.swift`).
+- **Spec:** `.agents/components/NavBar.md`
+
 ### 7. Button
 - **Import:** `import { Button } from "@jensbouma123/acciva-ui"`
 - **Category:** Primitive
@@ -117,7 +125,7 @@
 - **Category:** Composite
 - **Purpose:** Key-value metadata summary list for entity detail views.
 - **Table columns:** `tableColumns` (`key`, `header`, `cell`, `align`, `numeric`) renders rows as a table; `showColumnHeaders` (default `true`) toggles the header row. Apple: `AccivaDataListColumn` columns on `AccivaDataListRow(item:columns:)`.
-- **Row actions & reorder (web):** `rowActions` (`DataListRowAction<T>[]`, trailing overflow menu per row, labelled by `rowActionsLabel`) and `onReorder` (`{from, to}` single-item move; Alt+ArrowUp/Down and the row menu's Move up/Move down, no pointer drag; consumer applies the move to `items`).
+- **Row actions & reorder (web):** `rowActions` (`DataListRowAction<T>[]`, trailing overflow menu per row, labelled by `rowActionsLabel`) and `onReorder` (`{from, to}` single-item move; Alt+ArrowUp/Down in `paginated`/`infinite` (virtual mode: the row menu's Move up/Move down only), no pointer drag; consumer applies the move to `items`).
 - **Apple:** `AccivaDataList` + `AccivaDataListRow` (`apple/Sources/AccivaUI/Components/DataList/DataList.swift`) — a native `List` (`plain`/`inset`) with optional `.searchable`, `.single`/`.multiple` selection the consumer binds, and a sentinel row calling `onLoadMore`; no paginated or grid mode. OS 27 adds `rowActions` as `AccivaRowAction` swipe actions (mirrored as context menu and named accessibility actions), `onReorder` as `AccivaReorderMove` (native reorder on 27, `onMove` below), `dragItem` (Apple-only drag-out), and `copyItem` (⌘C / Edit menu).
 - **Hint:** `arrowHint` (string | `false`): first-keyboard-focus arrow-key caption, once per page load.
 - **Spec:** `.agents/components/DataList.md`

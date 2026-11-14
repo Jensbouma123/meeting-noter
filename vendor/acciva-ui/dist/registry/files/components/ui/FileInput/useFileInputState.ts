@@ -22,7 +22,8 @@ export function useFileInputState(
 
   const originals = useRef(new WeakMap<File, File>());
   const abortRef = useRef<AbortController | null>(null);
-  const focusAfterRemove = useRef<number | null>(null);
+  // Armed by a removal with the list it expects; it only fires if `files` is that exact list.
+  const focusAfterRemove = useRef<{ index: number; expected: readonly File[] } | null>(null);
   const lastStatus = useRef(new WeakMap<File, FileItemStatus | undefined>());
 
   const commit = useCallback(
@@ -43,6 +44,12 @@ export function useFileInputState(
     return () => next.forEach((url) => URL.revokeObjectURL(url));
   }, [files]);
   useEffect(() => () => abortRef.current?.abort(), []);
+  // A user action that supersedes pending compression aborts it; an aborted run never clears `processing`.
+  const cancelPending = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setProcessing(false);
+  }, []);
 
   // Processed files are written back so native forms (`FormData`, `required`) see them.
   const syncNative = useCallback((list: readonly File[]) => {
@@ -59,9 +66,12 @@ export function useFileInputState(
   useEffect(() => syncNative(files), [files, syncNative]);
 
   useEffect(() => {
-    const index = focusAfterRemove.current;
-    if (index === null) return;
+    const armed = focusAfterRemove.current;
+    if (armed === null) return;
     focusAfterRemove.current = null;
+    // A parent that deferred or ignored the removal leaves a different list: drop the stale focus move.
+    if (armed.expected !== files) return;
+    const index = armed.index;
     const buttons = rootRef.current?.querySelectorAll<HTMLElement>("[data-file-remove]");
     (buttons?.[index] ?? buttons?.[index - 1] ?? inputRef.current)?.focus();
   }, [files]);
@@ -104,6 +114,7 @@ export function useFileInputState(
     states,
     originals,
     abortRef,
+    cancelPending,
     focusAfterRemove,
     syncNative,
   };

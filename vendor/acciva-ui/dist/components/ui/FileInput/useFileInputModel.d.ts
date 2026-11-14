@@ -392,6 +392,10 @@ export declare function useFileInputModel(props: FileInputProps, forwardedRef: F
     states: (import("./types.js").FileItemState | undefined)[];
     originals: import("react").RefObject<WeakMap<File, File>>;
     abortRef: import("react").RefObject<AbortController | null>;
-    focusAfterRemove: import("react").RefObject<number | null>;
+    cancelPending: () => void;
+    focusAfterRemove: import("react").RefObject<{
+        index: number;
+        expected: readonly File[];
+    } | null>;
     syncNative: (list: readonly File[]) => void;
 };

@@ -13,6 +13,7 @@ import type { IconPickerProps } from "@/components/ui/IconPicker/types";
 import { useIconGridKeyDown } from "@/components/ui/IconPicker/useIconGridKeyDown";
 import { useIconInputKeyDown } from "@/components/ui/IconPicker/useIconInputKeyDown";
 import { useIconPickerDismiss } from "@/components/ui/IconPicker/useIconPickerDismiss";
+import { useIconPopoverKeyDown } from "@/components/ui/IconPicker/useIconPopoverKeyDown";
 
 export function IconPicker({ value, onChange, variant = "grid", label = "Icon", className }: IconPickerProps) {
   if (variant === "dropdown") {
@@ -69,11 +70,13 @@ function IconPickerGrid({ value, onChange, className }: Omit<IconPickerProps, "v
 
   const handleInputKeyDown = useIconInputKeyDown(open, setOpen, gridRef, rovingIndex);
   const handleGridKeyDown = useIconGridKeyDown(gridRef, filtered, setActiveIndex, commit, closeAndFocusTrigger);
+  const handlePopoverKeyDown = useIconPopoverKeyDown(closeAndFocusTrigger);
 
   return (
     <VStack ref={containerRef} spacing="none" className={cn("relative w-full", className)}>
       <Input
         ref={inputRef}
+        type="search"
         role="combobox"
         aria-controls={open ? listId : undefined}
         aria-expanded={open}
@@ -102,7 +105,8 @@ function IconPickerGrid({ value, onChange, className }: Omit<IconPickerProps, "v
         <VStack
           spacing="md"
           inset="md"
-          className="absolute top-full z-50 mt-1.5 w-full rounded-xl border border-border bg-surface shadow-lg"
+          className="absolute top-full z-50 mt-1 w-full rounded-xl border border-border bg-surface shadow-lg"
+          onKeyDown={handlePopoverKeyDown}
         >
           <IconCategoryChips
             category={category}

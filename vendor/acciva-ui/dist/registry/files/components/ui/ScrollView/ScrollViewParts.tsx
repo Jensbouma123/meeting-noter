@@ -68,7 +68,7 @@ export function ScrollViewStartArrow({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "focus-ring absolute z-20 flex size-8 items-center justify-center rounded-full border border-border bg-surface/90 text-foreground shadow-xs backdrop-blur-xs transition-all hover:bg-surface hover:scale-105 active:scale-95 disabled:pointer-events-none disabled:opacity-0",
+        "focus-ring touch-target-44 absolute z-20 flex size-8 items-center justify-center rounded-full border border-border bg-surface/90 text-foreground shadow-xs backdrop-blur-xs transition-all hover:bg-surface hover:scale-105 active:scale-95 disabled:pointer-events-none disabled:opacity-0",
         isHorizontal
           ? "left-2 top-1/2 -translate-y-1/2"
           : "top-2 left-1/2 -translate-x-1/2",
@@ -77,7 +77,7 @@ export function ScrollViewStartArrow({
         hideControlsOnWrap,
       )}
     >
-      {isHorizontal ? <ChevronLeft className="size-4" /> : <ChevronUp className="size-4" />}
+      {isHorizontal ? <ChevronLeft className="size-4" aria-hidden="true" /> : <ChevronUp className="size-4" aria-hidden="true" />}
     </button>
   );
 }
@@ -100,7 +100,7 @@ export function ScrollViewEndArrow({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "focus-ring absolute z-20 flex size-8 items-center justify-center rounded-full border border-border bg-surface/90 text-foreground shadow-xs backdrop-blur-xs transition-all hover:bg-surface hover:scale-105 active:scale-95 disabled:pointer-events-none disabled:opacity-0",
+        "focus-ring touch-target-44 absolute z-20 flex size-8 items-center justify-center rounded-full border border-border bg-surface/90 text-foreground shadow-xs backdrop-blur-xs transition-all hover:bg-surface hover:scale-105 active:scale-95 disabled:pointer-events-none disabled:opacity-0",
         isHorizontal
           ? "right-2 top-1/2 -translate-y-1/2"
           : "bottom-2 left-1/2 -translate-x-1/2",
@@ -109,7 +109,7 @@ export function ScrollViewEndArrow({
         hideControlsOnWrap,
       )}
     >
-      {isHorizontal ? <ChevronRight className="size-4" /> : <ChevronDown className="size-4" />}
+      {isHorizontal ? <ChevronRight className="size-4" aria-hidden="true" /> : <ChevronDown className="size-4" aria-hidden="true" />}
     </button>
   );
 }

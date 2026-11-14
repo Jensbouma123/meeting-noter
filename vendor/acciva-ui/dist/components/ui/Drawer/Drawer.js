@@ -22,7 +22,10 @@ export function Drawer(props) {
         return null;
     const readout = drawerReadout(model.dragSize, model.restSize, detentSizes, detent, model.docked, isVertical, draggable, model.sizeResolved, connectToBottomNav, model.bottomNavHeight);
     const insetBottom = readout.insetBottom;
-    return (_jsxs(_Fragment, { children: [_jsx("div", { ref: wrapperRef, "aria-hidden": "true", className: "pointer-events-none invisible fixed inset-x-0 top-0", style: { bottom: insetBottom } }), _jsxs("dialog", { ref: sheetRef, popover: isPersistent ? "manual" : undefined, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, tabIndex: -1, "aria-hidden": !open || undefined, "data-side": resolvedSide, "data-persistent": isPersistent || undefined, onCancel: (event) => {
+    return (_jsxs(_Fragment, { children: [_jsx("div", { ref: wrapperRef, "aria-hidden": "true", className: "pointer-events-none invisible fixed inset-x-0 top-0", style: { bottom: insetBottom } }), _jsxs("dialog", { ref: sheetRef, popover: isPersistent ? "manual" : undefined, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, tabIndex: -1, 
+                // Closed in state, only still on screen for its exit slide: inert keeps focus and the
+                // accessibility tree out of it without hiding a still-focused subtree (SC 4.1.2, 2.4.3).
+                inert: !open || undefined, "data-side": resolvedSide, "data-persistent": isPersistent || undefined, onCancel: (event) => {
                     if (event.target !== event.currentTarget)
                         return;
                     event.preventDefault();

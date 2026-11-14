@@ -2,6 +2,7 @@
 
 import { ChevronDown } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from "react";
+import { focusOnOpen } from "@/lib/quiet-focus";
 import { CONTROL_HEIGHT, CONTROL_RADIUS, INPUT_PADDING_X, TEXT_SIZE, resolveResponsive } from "@/lib/sizing-tokens/index";
 import { cn } from "@/lib/utils";
 import { VStack } from "@/components/ui/VStack";
@@ -50,8 +51,17 @@ export function Select({
 
   const openList = () => {
     const start = firstEnabledIndex(options, selectedIndex === -1 ? 0 : selectedIndex, 1);
-    setActiveIndex(start === -1 ? 0 : start);
+    // -1 when nothing is enabled: no active option, so aria-activedescendant stays unset.
+    setActiveIndex(start);
     setOpen(true);
+  };
+
+  // macOS/iOS WebKit does not focus a button on click; take focus so Escape, arrows and
+  // typeahead reach the trigger's key handler while open (SC 2.1.1, 2.1.2). Quiet off the keyboard.
+  const toggle = () => {
+    if (buttonRef.current && document.activeElement !== buttonRef.current) focusOnOpen(buttonRef.current);
+    if (open) setOpen(false);
+    else openList();
   };
 
   const commit = (index: number) => {
@@ -90,10 +100,10 @@ export function Select({
           aria-haspopup="listbox"
           aria-expanded={open}
           aria-controls={open ? listId : undefined}
-          aria-activedescendant={open && activeIndex >= 0 ? `${baseId}-option-${activeIndex}` : undefined}
+          aria-activedescendant={open && options[activeIndex] ? `${baseId}-option-${activeIndex}` : undefined}
           aria-label={ariaLabel}
           aria-labelledby={ariaLabelledBy ?? (label ? `${labelId} ${buttonId}` : undefined)}
-          onClick={() => (open ? setOpen(false) : openList())}
+          onClick={toggle}
           onKeyDown={handleKeyDown}
           onBlur={() => setOpen(false)}
           style={{ anchorName } as CSSProperties}

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { pickInitialFocus } from "@/lib/initial-focus";
+import { resolveOpener } from "@/lib/opener";
 import { focusOnOpen, isKeyboardModality, keptFocus } from "@/lib/quiet-focus";
 
 const FOCUSABLE_SELECTOR =
@@ -29,7 +30,8 @@ export function useModalLifecycle(open: boolean, dialogRef: RefObject<HTMLDialog
       // Focus already inside (React `autoFocus` committed first) stays put: `showModal()` may move it.
       const kept = keptFocus(dialog);
       if (!dialog.open) {
-        if (!kept) opener.current = document.activeElement as HTMLElement | null;
+        // WebKit leaves `<body>` focused after a click: resolveOpener uses the pressed control.
+        if (!kept) opener.current = resolveOpener(null, dialog);
         dialog.showModal();
       }
       // `preventScroll` on every programmatic focus: WebKit otherwise scrolls the
@@ -45,6 +47,8 @@ export function useModalLifecycle(open: boolean, dialogRef: RefObject<HTMLDialog
       if (cancelled) return;
       dialog.close();
       opener.current?.focus({ preventScroll: true });
+      // Consumed: an unmount after this close must not pull focus back to the old opener.
+      opener.current = null;
       setMounted(false);
     });
     return () => {

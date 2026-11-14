@@ -17,8 +17,8 @@ export function NavHeaderDrawerFooter({ themeToggle }: { themeToggle: boolean })
           onClick={toggleMode}
           className="touch-target-44 min-h-11 w-full"
         >
-          <Moon className="theme-icon-light" />
-          <Sun className="theme-icon-dark" />
+          <Moon aria-hidden="true" className="theme-icon-light" />
+          <Sun aria-hidden="true" className="theme-icon-dark" />
           <span>Toggle theme</span>
         </Button>
         ) : null}

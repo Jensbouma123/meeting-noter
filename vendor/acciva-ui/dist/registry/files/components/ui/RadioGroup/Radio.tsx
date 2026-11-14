@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useCallback, useId, type HTMLAttributes, type ReactNode } from "react";
+import { forwardRef, useCallback, useId } from "react";
 import {
   CONTROL_GAP,
   CONTROL_RADIUS,
@@ -14,26 +14,10 @@ import { cn } from "@/lib/utils";
 import { VStack } from "@/components/ui/VStack";
 import { useRadioGroupContext } from "@/components/ui/RadioGroup/context";
 import { RadioCircle } from "@/components/ui/RadioGroup/RadioGroupParts";
+import { SegmentedRadio } from "@/components/ui/RadioGroup/SegmentedRadio";
+import type { RadioProps, RadioVariant } from "@/components/ui/RadioGroup/radioTypes";
 
-export type RadioVariant = "default" | "card";
-
-export interface RadioProps extends Omit<HTMLAttributes<HTMLButtonElement>, "onChange"> {
-  value: string;
-  label?: ReactNode;
-  description?: ReactNode;
-  disabled?: boolean;
-  /**
-   * `"card"` swaps the bare circle-and-label row for a full-width bordered tile.
-   * That changes the DOM shape and the hit area, which is a variant, not a flag.
-   */
-  variant?: RadioVariant;
-  /**
-   * @deprecated Use `variant="card"`. Kept working so no caller breaks; it loses
-   * to `variant` when both are set and will be removed in a future major.
-   */
-  card?: boolean;
-  id?: string;
-}
+export type { RadioProps, RadioVariant };
 
 export const Radio = forwardRef<HTMLButtonElement, RadioProps>(function Radio(
   { value, label, description, disabled = false, variant, card = false, id, className, ...props },
@@ -45,7 +29,7 @@ export const Radio = forwardRef<HTMLButtonElement, RadioProps>(function Radio(
   const labelId = `${radioId}-label`;
   const descriptionId = description ? `${radioId}-desc` : undefined;
 
-  const { value: groupValue, onChange, size, disabled: groupDisabled } = useRadioGroupContext("Radio");
+  const { value: groupValue, onChange, size, disabled: groupDisabled, variant: groupVariant } = useRadioGroupContext("Radio");
   const isChecked = groupValue === value;
   const isEffectiveDisabled = groupDisabled || disabled;
   const baseSize = typeof size === "string" ? size : size.base;
@@ -54,6 +38,10 @@ export const Radio = forwardRef<HTMLButtonElement, RadioProps>(function Radio(
     if (isEffectiveDisabled) return;
     onChange(value);
   }, [isEffectiveDisabled, onChange, value]);
+
+  if (groupVariant === "segmented") {
+    return <SegmentedRadio ref={ref} id={radioId} label={label} checked={isChecked} disabled={isEffectiveDisabled} onClick={handleClick} className={className} {...props} />;
+  }
 
   if (resolvedVariant === "card") {
     return (

@@ -12,6 +12,7 @@ export function useFileInputState(value, defaultValue, onChange, fileState, m) {
     const [previews, setPreviews] = useState(new Map());
     const originals = useRef(new WeakMap());
     const abortRef = useRef(null);
+    // Armed by a removal with the list it expects; it only fires if `files` is that exact list.
     const focusAfterRemove = useRef(null);
     const lastStatus = useRef(new WeakMap());
     const commit = useCallback((next, details) => {
@@ -31,6 +32,12 @@ export function useFileInputState(value, defaultValue, onChange, fileState, m) {
         return () => next.forEach((url) => URL.revokeObjectURL(url));
     }, [files]);
     useEffect(() => () => abortRef.current?.abort(), []);
+    // A user action that supersedes pending compression aborts it; an aborted run never clears `processing`.
+    const cancelPending = useCallback(() => {
+        abortRef.current?.abort();
+        abortRef.current = null;
+        setProcessing(false);
+    }, []);
     // Processed files are written back so native forms (`FormData`, `required`) see them.
     const syncNative = useCallback((list) => {
         const input = inputRef.current;
@@ -48,10 +55,14 @@ export function useFileInputState(value, defaultValue, onChange, fileState, m) {
     }, []);
     useEffect(() => syncNative(files), [files, syncNative]);
     useEffect(() => {
-        const index = focusAfterRemove.current;
-        if (index === null)
+        const armed = focusAfterRemove.current;
+        if (armed === null)
             return;
         focusAfterRemove.current = null;
+        // A parent that deferred or ignored the removal leaves a different list: drop the stale focus move.
+        if (armed.expected !== files)
+            return;
+        const index = armed.index;
         const buttons = rootRef.current?.querySelectorAll("[data-file-remove]");
         (buttons?.[index] ?? buttons?.[index - 1] ?? inputRef.current)?.focus();
     }, [files]);
@@ -95,6 +106,7 @@ export function useFileInputState(value, defaultValue, onChange, fileState, m) {
         states,
         originals,
         abortRef,
+        cancelPending,
         focusAfterRemove,
         syncNative,
     };

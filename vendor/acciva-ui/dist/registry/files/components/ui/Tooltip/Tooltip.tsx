@@ -50,13 +50,19 @@ export function Tooltip({ content, children, side = "top", delay = 0, maxWidth =
   let trigger: ReactNode;
 
   if (isDisabled) {
+    // The wrapper is the only focus stop, so it carries the child's accessible name (SC 4.1.2) and focus ring (SC 2.4.7).
+    // Falls back to a plain-text child ("Save") so a labelled-by-content button keeps its name; the group role makes the name valid on the span.
+    const props = child.props as Record<string, unknown>;
+    const childLabel = (props["aria-label"] ?? (typeof props.children === "string" ? props.children : undefined)) as string | undefined;
     trigger = (
       <span
         ref={setWrapper}
         tabIndex={0}
+        role="group"
+        aria-label={childLabel}
         aria-describedby={open ? tooltipId : undefined}
         style={anchorStyle}
-        className="inline-flex cursor-not-allowed"
+        className="focus-ring inline-flex cursor-not-allowed"
         {...eventHandlers}
       >
         <TriggerComponent
@@ -64,7 +70,7 @@ export function Tooltip({ content, children, side = "top", delay = 0, maxWidth =
           key={child.key}
           ref={setChild}
           tabIndex={-1}
-          style={{ pointerEvents: "none" }}
+          style={{ ...(childProps.style as CSSProperties | undefined), pointerEvents: "none" }}
         />
       </span>
     );

@@ -1,7 +1,7 @@
 import { ImageProcessError, compressImage, formatBytes, isCroppable, matchesAccept } from "../../../lib/image/index.js";
 import { plural } from "./constants.js";
 export function useFileInputPipeline(state, c) {
-    const { files, cropSession, commit, setRejections, setAnnouncement, setProcessing, setCropSession, abortRef, originals, focusAfterRemove, syncNative, } = state;
+    const { files, cropSession, commit, setRejections, setAnnouncement, setProcessing, setCropSession, abortRef, cancelPending, originals, focusAfterRemove, syncNative, } = state;
     const { m, maxSize, minSize, maxFiles, accept, multiple, disabled, cropConfig, cropAspect, compressOptions, onReject } = c;
     const reject = (file, reason) => {
         const text = reason === "type"
@@ -81,28 +81,33 @@ export function useFileInputPipeline(state, c) {
                 accepted.push(f);
         }
         if (cropConfig && cropConfig.auto !== false && accepted.length === 1 && isCroppable(accepted[0])) {
+            cancelPending();
             setCropSession({ original: accepted[0], base: [...base], rejected, aspect: cropAspect });
             return;
         }
         if (accepted.length === 0) {
+            cancelPending();
             finish(base, [], rejected, []);
             return;
         }
         void runCompress(base, accepted, rejected, removed);
     };
     const removeAt = (index) => {
+        cancelPending();
         const file = files[index];
         const next = files.filter((_, i) => i !== index);
         originals.current.delete(file);
-        focusAfterRemove.current = index;
+        focusAfterRemove.current = { index, expected: next };
         setRejections([]);
         commit(next, { added: [], removed: [file], rejected: [] });
         setAnnouncement(m.removed(file.name));
     };
     const clearAll = () => {
-        focusAfterRemove.current = -1;
+        cancelPending();
+        const next = [];
+        focusAfterRemove.current = { index: -1, expected: next };
         setRejections([]);
-        commit([], { added: [], removed: [...files], rejected: [] });
+        commit(next, { added: [], removed: [...files], rejected: [] });
         setAnnouncement(m.removed(plural(files.length)));
     };
     const onInputChange = (event) => {

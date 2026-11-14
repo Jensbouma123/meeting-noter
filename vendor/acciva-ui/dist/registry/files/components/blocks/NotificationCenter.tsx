@@ -6,6 +6,8 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Heading } from "@/components/ui/Heading/index";
 import { HStack } from "@/components/ui/HStack";
 import { RowList } from "@/components/ui/RowList/index";
+
+import { ActionRow } from "@/components/blocks/NotificationCenter/ActionRow";
 import { StatusDot, type StatusDotTone } from "@/components/ui/StatusDot";
 import { Text } from "@/components/ui/Text";
 import { VStack } from "@/components/ui/VStack";
@@ -72,13 +74,16 @@ export function NotificationCenter({
         ) : (
           <RowList aria-label={title} divided className="w-full">
             {notifications.map((item) => (
-              <RowList.Item
+              <ActionRow
                 key={item.id}
                 leading={
-                  <StatusDot
-                    tone={item.read ? "neutral" : UNREAD_DOT_TONE[item.tone ?? "primary"]}
-                    label={item.read ? "Read" : "Unread"}
-                  />
+                  // The dot is decorative: unread state is also carried by the title's accessible name.
+                  <span aria-hidden="true" className="inline-flex">
+                    <StatusDot
+                      tone={item.read ? "neutral" : UNREAD_DOT_TONE[item.tone ?? "primary"]}
+                      label={item.read ? "Read" : "Unread"}
+                    />
+                  </span>
                 }
                 title={
                   onSelect ? (
@@ -94,31 +99,27 @@ export function NotificationCenter({
                     item.title
                   )
                 }
-                meta={
-                  item.body || onDismiss ? (
-                    <>
-                      {item.body}
-                      {onDismiss ? (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          data-dismiss=""
-                          onClick={(event) => {
-                            focusNeighbour(event.currentTarget, "[data-dismiss]");
-                            onDismiss(item.id);
-                          }}
-                          aria-label={`Dismiss notification: ${item.title}`}
-                        >
-                          Dismiss
-                        </Button>
-                      ) : null}
-                    </>
-                  ) : undefined
-                }
+                meta={item.body}
                 trailing={
                   <Text as="span" size="xs" variant="muted">
                     {item.time}
                   </Text>
+                }
+                actions={
+                  onDismiss ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      data-dismiss=""
+                      onClick={(event) => {
+                        focusNeighbour(event.currentTarget, "[data-dismiss]");
+                        onDismiss(item.id);
+                      }}
+                      aria-label={`Dismiss notification: ${item.title}`}
+                    >
+                      Dismiss
+                    </Button>
+                  ) : undefined
                 }
               />
             ))}

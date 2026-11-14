@@ -1,3 +1,4 @@
+import type { KeyboardEvent } from "react";
 import type { VirtualListItemRole, VirtualListRole } from "@/components/ui/VirtualList/index";
 import { cn } from "@/lib/utils";
 import type {
@@ -12,6 +13,15 @@ export const DEFAULT_PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 export const DEFAULT_VIRTUAL_HEIGHT = 480;
 export const DEFAULT_ITEM_HEIGHT_LIST = 72;
 export const DEFAULT_ITEM_HEIGHT_GRID = 200;
+
+const NESTED_CONTROL_SELECTOR =
+  "button, a[href], input, select, textarea, [role='button'], [role='checkbox'], [role='switch'], [role='menuitem']";
+
+/** True when a keydown came from a control nested inside the container; that control keeps the key. */
+export function isFromNestedControl(event: KeyboardEvent<HTMLElement>): boolean {
+  const control = (event.target as Element).closest(NESTED_CONTROL_SELECTOR);
+  return control !== null && control !== event.currentTarget && event.currentTarget.contains(control);
+}
 
 export function defaultKeyExtractor<T>(item: T, index: number): string | number {
   if (item && typeof item === "object") {

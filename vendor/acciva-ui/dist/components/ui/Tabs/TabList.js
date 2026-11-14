@@ -3,10 +3,10 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useEffect, useRef } from "react";
 import { TAB_LIST_GAP, resolveResponsive } from "../../../lib/sizing-tokens/index.js";
 import { cn } from "../../../lib/utils.js";
+import { useRovingFocus } from "../_internal/useRovingFocus.js";
 import { INDICATOR, TAB_LIST_FLOW, TAB_LIST_INSET, TAB_LIST_SHELL, TAB_SHAPE } from "./tabsClasses.js";
 import { useTabListDrag } from "./useTabListDrag.js";
 import { useTabListEffects } from "./useTabListEffects.js";
-import { useTabListKeys } from "./useTabListKeys.js";
 import { useTabsContext } from "./useTabsContext.js";
 export function TabList({ children, className, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, }) {
     const listRef = useRef(null);
@@ -25,7 +25,18 @@ export function TabList({ children, className, "aria-label": ariaLabel, "aria-la
         canDrag,
     });
     useTabListEffects({ listRef, indicatorRef, drag, value, variant, horizontal, canIndicate });
-    const handleKeyDown = useTabListKeys({ listRef, horizontal, drag, stopDrag });
+    // APG: Up/Down belong to a vertical tablist; on a horizontal one they stay with page scroll.
+    const roveKeys = useRovingFocus({
+        containerRef: listRef,
+        itemSelector: '[role="tab"]:not([disabled])',
+        orientation,
+        activate: true,
+    });
+    const handleKeyDown = (event) => {
+        if (event.key === "Escape" && drag.current?.active)
+            return stopDrag(false);
+        roveKeys(event);
+    };
     useEffect(() => {
         if (process.env.NODE_ENV === "production")
             return;

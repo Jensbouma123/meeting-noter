@@ -41,7 +41,7 @@ export function useCropPointers({ image, rect, aspect, minSize, inert, scale, zo
     };
     const handlePointerMove = (event) => {
         const current = drag.current;
-        if (!pointers.current.has(event.pointerId) || !current || !image)
+        if (inert || !pointers.current.has(event.pointerId) || !current || !image)
             return;
         pointers.current.set(event.pointerId, {
             x: event.clientX,

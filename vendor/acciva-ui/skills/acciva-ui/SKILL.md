@@ -50,6 +50,7 @@ The package ships an `acciva` bin with three commands: `theme` (see [references/
 |---|---|---|---|
 | Text, number, email, password input with label/errors | `Input` or `FormField` | Input.md / FormField.md | Raw `<input>` |
 | Standard dropdown selection (< 15 static options) | `Select` | Select.md | `SearchableSelect` |
+| Search-and-go / command palette (links or actions, no stored value) | `SearchCombobox` | SearchCombobox.md | `SearchableSelect` |
 | Searchable / filterable combobox (> 15 options or async) | `SearchableSelect` | SearchableSelect.md | `Select` |
 | Single boolean toggle with immediate setting effect | `Switch` | Switch.md | `Checkbox` |
 | Form checkbox (or multi-selection list) | `Checkbox` | Checkbox.md | `Switch` |
@@ -88,6 +89,7 @@ The package ships an `acciva` bin with three commands: `theme` (see [references/
 | Multi-level (group > item > variant) collapsible nav tree | `NavTree` | NavTree.md | Custom `<div>` nesting |
 | Mobile bottom navigation bar (< 5 main destinations) | `BottomNav` | BottomNav.md | `Sidebar` on mobile |
 | Hierarchical location breadcrumbs | `Breadcrumbs` | Breadcrumbs.md | Custom span list |
+| Horizontal header nav links | `NavBar` | NavBar.md | Hand-styled `<nav>` of links |
 | Switch between parallel views in the same context | `Tabs` | Tabs.md | `BottomNav` |
 | Multi-page table/list navigation | `Pagination` | Pagination.md | Custom next/prev |
 | Contextual dropdown action menu / kebab menu | `DropdownMenu` | DropdownMenu.md | `Select` |

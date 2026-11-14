@@ -39,9 +39,9 @@ export const Skeleton = forwardRef<HTMLDivElement, SkeletonProps>(function Skele
 ) {
   const animationClass =
     animation === "pulse"
-      ? "animate-pulse"
+      ? "animate-pulse motion-reduce:animate-none"
       : animation === "shimmer"
-        ? "relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_1.5s_infinite] before:bg-gradient-to-r before:from-transparent before:via-neutral-50/25 before:to-transparent"
+        ? "relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-shimmer motion-reduce:before:animate-none before:bg-gradient-to-r before:from-transparent before:via-neutral-50/25 before:to-transparent"
         : "";
 
   const customStyle = {
@@ -57,7 +57,7 @@ export const Skeleton = forwardRef<HTMLDivElement, SkeletonProps>(function Skele
           <div
             key={i}
             aria-hidden="true"
-            style={i === lines - 1 && !width ? { ...customStyle, width: "70%" } : customStyle}
+            style={i === lines - 1 && !width && !style?.width ? { ...customStyle, width: "70%" } : customStyle}
             className={cn(
               SKELETON_FILL,
               variantClasses[variant],

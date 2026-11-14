@@ -5,9 +5,11 @@ import {
   forwardRef,
   isValidElement,
   type ButtonHTMLAttributes,
+  type Ref,
   type ReactElement,
   type ReactNode,
 } from "react";
+import { mergeRefs } from "@/lib/mergeRefs";
 import { composeSlotProps } from "@/lib/slot-props";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +33,11 @@ export interface ListItemProps extends Omit<ButtonHTMLAttributes<HTMLButtonEleme
    * instead of rendering a `<button>`. The row content replaces the child's children.
    */
   asChild?: boolean;
+  /**
+   * `rail` is an icon-only square row: only `leading` shows, `title` becomes the accessible
+   * name (and the visually-hidden text), `subtitle`/`trailing`/`depth` are not rendered.
+   */
+  density?: "default" | "rail";
 }
 
 const rowClass = cn(
@@ -39,6 +46,8 @@ const rowClass = cn(
   "active:bg-primary-500/15",
   "disabled:cursor-not-allowed disabled:opacity-60",
 );
+// Square 44px target (SC 2.5.8), icon centred; no padding so the square stays square.
+const railClass = "size-11 min-h-11 w-11 justify-center gap-0 px-0 py-0";
 const activeClass = "bg-primary-500/10 dark:bg-primary-500/15";
 
 export const ListItem = forwardRef<HTMLButtonElement, ListItemProps>(function ListItem(
@@ -50,6 +59,7 @@ export const ListItem = forwardRef<HTMLButtonElement, ListItemProps>(function Li
     selected,
     checked,
     depth = 0,
+    density = "default",
     asChild = false,
     type = "button",
     className,
@@ -59,12 +69,18 @@ export const ListItem = forwardRef<HTMLButtonElement, ListItemProps>(function Li
   },
   ref,
 ) {
+  const rail = density === "rail";
   const rowStyle = {
     // Token-derived indent: one xl spacing step (6 units) per outline level.
-    paddingInlineStart: depth > 0 ? `calc(var(--spacing) * 6 * ${depth} + var(--spacing) * 3)` : undefined,
+    paddingInlineStart: !rail && depth > 0 ? `calc(var(--spacing) * 6 * ${depth} + var(--spacing) * 3)` : undefined,
     ...style,
   };
-  const content = (
+  const content = rail ? (
+    <>
+      {leading ? <span aria-hidden="true" className="flex shrink-0 items-center">{leading}</span> : null}
+      <span className="sr-only">{title}</span>
+    </>
+  ) : (
     <>
       {leading ? <span className="flex shrink-0 items-center">{leading}</span> : null}
       <span className="min-w-0 flex-1">
@@ -89,10 +105,10 @@ export const ListItem = forwardRef<HTMLButtonElement, ListItemProps>(function Li
     const { disabled: _disabled, ...linkRest } = rest;
     return cloneElement(child, {
       ...composeSlotProps(child.props, linkRest),
-      ref,
+      ref: mergeRefs<HTMLElement>(ref as Ref<HTMLElement>, child.props.ref as Ref<HTMLElement> | undefined),
       "aria-current": selected ? "page" : (child.props["aria-current"] as string | undefined),
       "data-selected": selected || undefined,
-      className: cn(rowClass, selected && activeClass, className, child.props.className as string | undefined),
+      className: cn(rowClass, rail && railClass, selected && activeClass, className, child.props.className as string | undefined),
       style: { ...rowStyle, ...(child.props.style as object | undefined) },
       children: content,
     });
@@ -109,7 +125,7 @@ export const ListItem = forwardRef<HTMLButtonElement, ListItemProps>(function Li
       aria-checked={checkable ? checked : undefined}
       aria-current={!checkable && selected ? "true" : undefined}
       data-selected={isActive || undefined}
-      className={cn(rowClass, isActive && activeClass, className)}
+      className={cn(rowClass, rail && railClass, isActive && activeClass, className)}
       style={rowStyle}
       {...rest}
     >

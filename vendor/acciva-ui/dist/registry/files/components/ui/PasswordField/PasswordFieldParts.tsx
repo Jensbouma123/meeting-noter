@@ -11,15 +11,20 @@ const STRENGTH_COLORS: Record<number, string> = {
   4: "bg-success",
 };
 
-export function CapsLockNotice() {
+/** Always mounted so screen readers catch the text when it appears; collapsed while inactive. */
+export function CapsLockNotice({ active }: { active: boolean }) {
   return (
     <div
       role="status"
       aria-live="polite"
-      className="flex items-center gap-1.5 text-xs font-medium text-warning animate-fade-in"
+      className={active ? "flex items-center gap-1.5 text-xs font-medium text-warning animate-fade-in" : "sr-only"}
     >
-      <ArrowBigUp className="size-3.5 shrink-0" aria-hidden="true" />
-      <span>Caps Lock is on</span>
+      {active ? (
+        <>
+          <ArrowBigUp className="size-3.5 shrink-0" aria-hidden="true" />
+          <span>Caps Lock is on</span>
+        </>
+      ) : null}
     </div>
   );
 }

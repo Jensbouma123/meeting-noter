@@ -23,12 +23,13 @@ export function isRetryableError(error) {
     return false;
 }
 export function parseRetryAfterMs(headerValue) {
-    if (!headerValue)
+    const value = headerValue?.trim();
+    if (!value)
         return undefined;
-    const seconds = Number(headerValue);
-    if (!Number.isNaN(seconds))
+    const seconds = Number(value);
+    if (Number.isFinite(seconds))
         return Math.max(0, seconds * 1000);
-    const dateMs = Date.parse(headerValue);
+    const dateMs = Date.parse(value);
     if (!Number.isNaN(dateMs))
         return Math.max(0, dateMs - Date.now());
     return undefined;

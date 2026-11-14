@@ -1,5 +1,5 @@
-import { type RefObject } from "react";
-import { type VirtualListHandle } from "../VirtualList/index.js";
+import type { RefObject } from "react";
+import type { VirtualListHandle } from "../VirtualList/index.js";
 import type { SearchableSelectOption } from "./types.js";
 interface SearchableSelectPanelProps {
     items: readonly SearchableSelectOption[];
@@ -16,5 +16,5 @@ interface SearchableSelectPanelProps {
     onCommit: (index: number) => void;
     onHover: (index: number) => void;
 }
-export declare function SearchableSelectPanel({ items, value, query, activeIndex, optionHeight, maxListHeight, listRef, listboxId, labelId, optionId, emptyMessage, onCommit, onHover, }: SearchableSelectPanelProps): import("react").JSX.Element;
+export declare function SearchableSelectPanel({ value, query, activeIndex, onHover, ...panel }: SearchableSelectPanelProps): import("react").JSX.Element;
 export {};

@@ -6,9 +6,9 @@ import { VStack } from "../VStack.js";
 import { DEFAULT_MAX_LIST_HEIGHT, DEFAULT_OPTION_HEIGHT, defaultFilter } from "./defaults.js";
 import { SearchableSelectPanel } from "./SearchableSelectPanel.js";
 import { SearchableSelectTrigger } from "./SearchableSelectParts.js";
-import { useActiveIndex } from "./useActiveIndex.js";
-import { useDismissOnPointerDown } from "./useDismissOnPointerDown.js";
-import { useSearchableKeyDown } from "./useSearchableKeyDown.js";
+import { useActiveIndex } from "../_combobox/useActiveIndex.js";
+import { useComboboxKeyDown } from "../_combobox/useComboboxKeyDown.js";
+import { useDismissOnPointerDown } from "../_combobox/useDismissOnPointerDown.js";
 export function SearchableSelect({ id, options, value, onChange, label, placeholder = "Search options…", emptyMessage = "No options match", disabled = false, clearable = false, optionHeight = DEFAULT_OPTION_HEIGHT, maxListHeight = DEFAULT_MAX_LIST_HEIGHT, filter = defaultFilter, className, }) {
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState("");
@@ -47,7 +47,7 @@ export function SearchableSelect({ id, options, value, onChange, label, placehol
         close();
         inputRef.current?.focus({ preventScroll: true });
     }, [filteredOptions, onChange, close]);
-    const handleKeyDown = useSearchableKeyDown(disabled, open, setOpen, filteredOptions, activeIndex, setActiveIndex, moveActive, commit, close);
+    const handleKeyDown = useComboboxKeyDown(disabled, open, setOpen, filteredOptions, activeIndex, setActiveIndex, moveActive, commit, close);
     return (_jsxs(VStack, { spacing: "sm", className: cn("w-full", className), children: [label ? (_jsx("label", { id: labelId, htmlFor: inputId, className: "text-sm font-medium text-foreground", children: label })) : null, _jsxs("div", { ref: containerRef, className: "relative", children: [_jsx(SearchableSelectTrigger, { inputId: inputId, inputRef: inputRef, labelId: label ? labelId : undefined, listboxId: listboxId, statusId: statusId, activeId: open && filteredOptions.length > 0 ? optionId(activeIndex) : undefined, disabled: disabled, open: open, query: query, placeholder: placeholder, selected: selectedOption, clearable: clearable, onInputChange: (next) => {
                             setQuery(next);
                             if (!open)

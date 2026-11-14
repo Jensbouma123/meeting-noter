@@ -14,6 +14,6 @@ export interface DatePickerDialogProps {
     showPresets: boolean;
     clearable: boolean;
     closeOnSelect: boolean;
-    setIsOpen: (open: boolean) => void;
+    close: () => void;
 }
-export declare function DatePickerDialog({ dialogId, gridRef, gridHint, view, selection, keys, presets, showPresets, clearable, closeOnSelect, setIsOpen, }: DatePickerDialogProps): import("react").JSX.Element;
+export declare function DatePickerDialog({ dialogId, gridRef, gridHint, view, selection, keys, presets, showPresets, clearable, closeOnSelect, close, }: DatePickerDialogProps): import("react").JSX.Element;

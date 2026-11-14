@@ -1,5 +1,6 @@
 import { useEffect, useRef, type RefObject } from "react";
 import { pickInitialFocus } from "@/lib/initial-focus";
+import { resolveOpener } from "@/lib/opener";
 import { focusOnOpen } from "@/lib/quiet-focus";
 import { FOCUSABLE_SELECTOR } from "@/components/ui/Popover/constants";
 
@@ -12,29 +13,34 @@ export function usePopoverFocus(
 ) {
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
-  const prevOpenRef = useRef(open);
+  // Initial focus is keyed on `open` alone (no "was closed" ref): StrictMode re-runs mount
+  // effects and an initially-open popover never sees a closed→open edge, so a ref gate drops it.
+  // The cleanup cancels a frame that a close pre-empts.
   useEffect(() => {
-    if (open && !prevOpenRef.current) {
-      previouslyFocusedRef.current = (document.activeElement as HTMLElement | null) ?? triggerRef.current;
-      // Marked synchronously: a close before the frame fires cancels it, and the close
-      // branch must still run to hand focus back to the trigger.
-      prevOpenRef.current = true;
-      const frameId = requestAnimationFrame(() => {
-        const popoverEl = popoverRef.current;
-        if (!popoverEl) return;
-        // Quiet off the keyboard (focusVisible: false + global data-quiet-focus, SC 2.4.7).
-        focusOnOpen(pickInitialFocus(popoverEl, FOCUSABLE_SELECTOR) ?? popoverEl);
-      });
-      return () => cancelAnimationFrame(frameId);
-    } else if (!open && prevOpenRef.current) {
+    if (!open) return;
+    // WebKit leaves `<body>` focused after a click; resolveOpener falls back to the trigger (SC 2.4.3).
+    previouslyFocusedRef.current = resolveOpener(triggerRef.current, popoverRef.current);
+    const frameId = requestAnimationFrame(() => {
+      const popoverEl = popoverRef.current;
+      if (!popoverEl) return;
+      // Quiet off the keyboard (focusVisible: false + global data-quiet-focus, SC 2.4.7).
+      focusOnOpen(pickInitialFocus(popoverEl, FOCUSABLE_SELECTOR) ?? popoverEl);
+    });
+    return () => cancelAnimationFrame(frameId);
+  }, [open, triggerRef, popoverRef]);
+
+  // Restore focus on the open→closed edge only, so a mount that starts closed does not steal focus.
+  const wasOpenRef = useRef(false);
+  useEffect(() => {
+    if (!open && wasOpenRef.current) {
       if (previouslyFocusedRef.current && typeof previouslyFocusedRef.current.focus === "function") {
         previouslyFocusedRef.current.focus({ preventScroll: true });
       } else if (triggerRef.current && typeof triggerRef.current.focus === "function") {
         triggerRef.current.focus({ preventScroll: true });
       }
     }
-    prevOpenRef.current = open;
-  }, [open, triggerRef, popoverRef]);
+    wasOpenRef.current = open;
+  }, [open, triggerRef]);
 
   return (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Tab") {

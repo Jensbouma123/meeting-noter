@@ -35,17 +35,17 @@ export function redactHeadersForLog(headers) {
 export function redactUrlForLog(rawUrl) {
     try {
         const url = new URL(rawUrl);
-        const params = Object.fromEntries(url.searchParams.entries());
-        const redactedParams = redactContext(params);
         const nextSearch = new URLSearchParams();
-        for (const [key, value] of Object.entries(redactedParams)) {
-            nextSearch.set(key, value);
+        // Per entry, so duplicate keys (`?a=1&a=2`) survive and each value is redacted.
+        for (const [key, value] of url.searchParams.entries()) {
+            nextSearch.append(key, String(redactContext({ [key]: value })[key]));
         }
         url.search = nextSearch.toString();
         return url.toString();
     }
     catch {
-        return rawUrl;
+        // Never echo an unparseable URL: it may still carry live credentials.
+        return "[invalid-url]";
     }
 }
 export function redactBodyForLog(body) {
@@ -55,6 +55,8 @@ export function redactBodyForLog(body) {
         return "[FormData]";
     if (typeof Blob !== "undefined" && body instanceof Blob)
         return "[Blob]";
+    if (body instanceof ArrayBuffer || ArrayBuffer.isView(body))
+        return "[Binary]";
     if (body instanceof URLSearchParams)
         return redactContext(Object.fromEntries(body.entries()));
     return redactUnknown(body);

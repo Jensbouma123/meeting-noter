@@ -30,6 +30,7 @@ export function OptimizedImage({
   onError,
 }: OptimizedImageProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
   const shouldLoad = useIntersectionLoad(wrapperRef, priority, rootMargin);
   const [prevSrc, setPrevSrc] = useState(src);
   const [loaded, setLoaded] = useState(false);
@@ -40,6 +41,15 @@ export function OptimizedImage({
     setLoaded(false);
     setFailed(false);
   }
+
+  // A cached or priority image can finish (or fail) before React attaches onLoad/onError,
+  // so those events never fire. Check the element's settled state once it is mounted.
+  useEffect(() => {
+    const img = imgRef.current;
+    if (!shouldLoad || !img || !img.complete || !img.getAttribute("src")) return;
+    if (img.naturalWidth > 0) setLoaded(true);
+    else setFailed(true);
+  }, [shouldLoad, src]);
 
   const handleLoad = useCallback(() => {
     setLoaded(true);
@@ -73,6 +83,7 @@ export function OptimizedImage({
       ) : (
         // eslint-disable-next-line @next/next/no-img-element
         <img
+          ref={imgRef}
           src={shouldLoad ? loader(src, width) : undefined}
           srcSet={shouldLoad ? (srcSet ?? buildSrcSet(src, widths, loader)) : undefined}
           sizes={sizes}

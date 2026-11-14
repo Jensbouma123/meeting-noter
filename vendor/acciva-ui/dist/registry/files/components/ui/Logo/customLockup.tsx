@@ -27,7 +27,7 @@ export function renderCustomLockup(
       aria-hidden="true"
       width={height}
       height={height}
-      className="h-full w-auto object-contain shrink-0"
+      className="object-contain shrink-0"
     />
   );
 

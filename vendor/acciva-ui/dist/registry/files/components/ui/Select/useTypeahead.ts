@@ -8,6 +8,7 @@ export function useTypeahead(
   open: boolean,
   onChange: (value: string) => void,
   setActiveIndex: Dispatch<SetStateAction<number>>,
+  openList: () => void,
 ) {
   const typeaheadRef = useRef("");
   const typeaheadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -29,7 +30,11 @@ export function useTypeahead(
     const query = typeaheadRef.current;
     const match = options.findIndex((option) => !option.disabled && option.label.toLowerCase().startsWith(query));
     if (match === -1) return;
+    // Closed: open the list and select the match (Select.md accessibility contract). Open: only move the active option.
+    if (!open) {
+      openList();
+      onChange(options[match].value);
+    }
     setActiveIndex(match);
-    if (!open) onChange(options[match].value);
   };
 }

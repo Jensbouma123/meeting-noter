@@ -4,7 +4,7 @@ import { cn } from "../../../lib/utils.js";
 import { HStack } from "../HStack.js";
 import { ADDON_RADIUS_LEADING, ADDON_RADIUS_TRAILING } from "./constants.js";
 export function InputLabel({ id, label, required, size }) {
-    return (_jsxs("label", { htmlFor: id, className: cn("font-medium text-foreground", resolveResponsive(size, TEXT_SIZE)), children: [label, required ? _jsx("span", { className: "ml-0.5 text-danger", children: "*" }) : null] }));
+    return (_jsxs("label", { htmlFor: id, className: cn("font-medium text-foreground", resolveResponsive(size, TEXT_SIZE)), children: [label, required ? _jsx("span", { "aria-hidden": "true", className: "ml-0.5 text-danger", children: "*" }) : null] }));
 }
 export function InputAddon({ id, side, size, disabled, children }) {
     const radius = side === "leading" ? ADDON_RADIUS_LEADING : ADDON_RADIUS_TRAILING;

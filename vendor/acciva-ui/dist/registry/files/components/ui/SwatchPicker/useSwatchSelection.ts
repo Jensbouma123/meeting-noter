@@ -19,7 +19,8 @@ export function useSwatchSelection(
   const [focusIndex, setFocusIndex] = useState<number>(() =>
     selectedIndex >= 0 ? selectedIndex : 0,
   );
-  const activeIndex = selectedIndex >= 0 ? selectedIndex : focusIndex;
+  // Clamp: options can shrink while nothing is selected, and a stale focusIndex must still resolve to a real option.
+  const activeIndex = selectedIndex >= 0 ? selectedIndex : Math.min(focusIndex, Math.max(0, resolved.length - 1));
 
   const select = (index: number) => {
     if (disabled) return;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState, type FocusEvent, type KeyboardEvent } from "react";
+import { useId, useState, type FocusEvent, type KeyboardEvent } from "react";
 
 // One hint per widget kind per page load; module state resets on a full reload only.
 const shown = new Set<string>();
@@ -17,12 +17,24 @@ const ARROWS = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
 let lastInput: "keyboard" | "pointer" = "keyboard";
 let tracking = false;
 
+// Modifier presses are not an input choice: Shift+click must stay a pointer.
+const MODIFIER_KEYS = new Set(["Shift", "Control", "Alt", "Meta", "AltGraph", "CapsLock"]);
+
+// Attached at module load, not in an effect: a pointer press that opens a lazily
+// mounted popover happens before any hook effect could run.
 function trackModality() {
   if (tracking || typeof document === "undefined") return;
   tracking = true;
-  document.addEventListener("keydown", () => (lastInput = "keyboard"), true);
+  document.addEventListener(
+    "keydown",
+    (event) => {
+      if (!MODIFIER_KEYS.has(event.key)) lastInput = "keyboard";
+    },
+    true,
+  );
   document.addEventListener("pointerdown", () => (lastInput = "pointer"), true);
 }
+trackModality();
 
 /**
  * First-keyboard-focus arrow-key hint (SC 3.3.2). Spread `groupProps` on the
@@ -32,7 +44,6 @@ function trackModality() {
 export function useArrowHint(kind: string, hint: string | false | undefined, fallback: string) {
   const id = `${useId()}-arrow-hint`;
   const [visible, setVisible] = useState(false);
-  useEffect(trackModality, []);
   const text = hint === false ? null : (hint ?? fallback);
 
   const hide = () => setVisible(false);

@@ -46,10 +46,10 @@ export const WRAP_AT_HIDE_CONTROLS_CLASSES: Record<ScrollViewWrapAt, string> = {
 export function getSnapClasses(snap: ScrollViewSnap, isHorizontal: boolean): string {
   return {
     none: "",
-    start: isHorizontal ? "snap-x snap-mandatory [&>*]:snap-start" : "snap-y snap-mandatory [&>*]:snap-start",
-    center: isHorizontal ? "snap-x snap-mandatory [&>*]:snap-center" : "snap-y snap-mandatory [&>*]:snap-center",
-    mandatory: isHorizontal ? "snap-x snap-mandatory [&>*]:snap-start" : "snap-y snap-mandatory [&>*]:snap-start",
-    proximity: isHorizontal ? "snap-x snap-proximity [&>*]:snap-start" : "snap-y snap-proximity [&>*]:snap-start",
+    start: isHorizontal ? "snap-x snap-mandatory *:snap-start" : "snap-y snap-mandatory *:snap-start",
+    center: isHorizontal ? "snap-x snap-mandatory *:snap-center" : "snap-y snap-mandatory *:snap-center",
+    mandatory: isHorizontal ? "snap-x snap-mandatory *:snap-start" : "snap-y snap-mandatory *:snap-start",
+    proximity: isHorizontal ? "snap-x snap-proximity *:snap-start" : "snap-y snap-proximity *:snap-start",
   }[snap];
 }
 
@@ -58,7 +58,7 @@ export function getScrollbarClasses(scrollbar: ScrollViewScrollbar, isHorizontal
     auto: isHorizontal ? "overflow-x-auto overflow-y-hidden" : "overflow-y-auto overflow-x-hidden",
     always: isHorizontal ? "overflow-x-scroll overflow-y-hidden" : "overflow-y-scroll overflow-x-hidden",
     hidden: isHorizontal
-      ? "overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-      : "overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
+      ? "overflow-x-auto overflow-y-hidden scrollbar-hidden"
+      : "overflow-y-auto overflow-x-hidden scrollbar-hidden",
   }[scrollbar];
 }

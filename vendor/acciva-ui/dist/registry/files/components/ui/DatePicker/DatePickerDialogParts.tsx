@@ -77,13 +77,13 @@ export function DatePickerFooter({
   selection,
   clearable,
   closeOnSelect,
-  setIsOpen,
+  close,
 }: {
   view: DatePickerViewModel;
   selection: DatePickerSelectionModel;
   clearable: boolean;
   closeOnSelect: boolean;
-  setIsOpen: (open: boolean) => void;
+  close: () => void;
 }) {
   return (
     <HStack justify="between" spacing="none" className="mt-3 border-t border-border/80 pt-2">
@@ -104,7 +104,7 @@ export function DatePickerFooter({
           type="button"
           onClick={() => {
             selection.handleClear();
-            if (closeOnSelect) setIsOpen(false);
+            if (closeOnSelect) close();
           }}
           className="focus-ring rounded px-2 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-elevation-2 hover:text-foreground dark:hover:bg-elevation-3"
         >

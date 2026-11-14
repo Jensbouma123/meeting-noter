@@ -8,6 +8,8 @@ export interface RadioGroupProps extends Omit<HTMLAttributes<HTMLDivElement>, "o
     hint?: string;
     error?: string;
     orientation?: "vertical" | "horizontal";
+    /** `"segmented"` renders the options as one toggle-group of buttons (single-select, still a radiogroup). */
+    variant?: "default" | "segmented";
     size?: ResponsiveSize<SizeTier>;
     disabled?: boolean;
     required?: boolean;

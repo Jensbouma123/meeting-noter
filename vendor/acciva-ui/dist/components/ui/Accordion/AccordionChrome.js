@@ -13,6 +13,6 @@ export const TRIGGER_CHROME = {
     plain: "min-h-11 gap-2 py-3 hover:underline",
 };
 export const CONTENT_CHROME = {
-    default: "px-4 pb-4 pt-1",
-    plain: "pb-3 pl-6 pt-1",
+    default: "px-4 py-3",
+    plain: "py-3 pl-6",
 };

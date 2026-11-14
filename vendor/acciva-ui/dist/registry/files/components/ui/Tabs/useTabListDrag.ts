@@ -49,6 +49,11 @@ export function useTabListDrag({ listRef, indicatorRef, value, setValue, variant
     if (!canDrag || (event.pointerType === "mouse" && event.button !== 0)) return;
     const tab = (event.target as HTMLElement).closest<HTMLButtonElement>('[role="tab"]');
     if (!tab || tab.disabled) return;
+    // A second pointer must not orphan the previous hold timer or frame (they would leave data-dragging set).
+    if (drag.current) {
+      cancelAnimationFrame(drag.current.raf);
+      clearTimeout(drag.current.timer);
+    }
     const unselected = tab.getAttribute("aria-selected") !== "true";
     // Touch implicitly captures to the tab; release it so moves keep reaching the list.
     if (event.pointerType !== "mouse" && tab.hasPointerCapture?.(event.pointerId)) tab.releasePointerCapture(event.pointerId);

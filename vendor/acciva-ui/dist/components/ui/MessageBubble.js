@@ -12,5 +12,5 @@ const SURFACE = {
     assistant: "border-border bg-surface text-foreground",
 };
 export const MessageBubble = forwardRef(function MessageBubble({ role, author, className, children, ...rest }, ref) {
-    return (_jsx("div", { ref: ref, role: "group", "aria-label": author, className: cn("flex w-full", ALIGNMENT[role]), ...rest, children: _jsx("div", { className: cn("w-fit max-w-md border px-4 py-2.5 text-sm break-words", SURFACE_RADIUS.surface, SURFACE[role], className), children: children }) }));
+    return (_jsx("div", { ref: ref, role: "group", "aria-label": author, className: cn("flex w-full", ALIGNMENT[role]), ...rest, children: _jsx("div", { className: cn("w-fit max-w-md border px-4 py-2 text-sm break-words", SURFACE_RADIUS.surface, SURFACE[role], className), children: children }) }));
 });

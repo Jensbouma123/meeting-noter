@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 const TYPEAHEAD_RESET_MS = 500;
-export function useTypeahead(options, open, onChange, setActiveIndex) {
+export function useTypeahead(options, open, onChange, setActiveIndex, openList) {
     const typeaheadRef = useRef("");
     const typeaheadTimer = useRef(null);
     useEffect(() => () => {
@@ -18,8 +18,11 @@ export function useTypeahead(options, open, onChange, setActiveIndex) {
         const match = options.findIndex((option) => !option.disabled && option.label.toLowerCase().startsWith(query));
         if (match === -1)
             return;
-        setActiveIndex(match);
-        if (!open)
+        // Closed: open the list and select the match (Select.md accessibility contract). Open: only move the active option.
+        if (!open) {
+            openList();
             onChange(options[match].value);
+        }
+        setActiveIndex(match);
     };
 }

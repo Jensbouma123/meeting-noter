@@ -19,7 +19,10 @@ export const Button = forwardRef(function Button({ className, variant = "primary
     const spinner = _jsx(Loader2, { className: "animate-spin", "aria-hidden": "true" });
     const leadingSlot = loading && !spinnerTrailing ? spinner : leadingIcon;
     const trailingSlot = spinnerTrailing ? spinner : loading ? null : trailingIcon;
+    // `inert` blocks activation (disabled or loading); only `disabled` leaves the tab order,
+    // so a loading button stays focusable with its name and `aria-busy` (Button/accessibility.md).
     const inert = Boolean(disabled) || loading;
+    const unfocusable = Boolean(disabled);
     const innerRef = useRef(null);
     const setRef = useCallback((node) => {
         innerRef.current = node;
@@ -49,8 +52,8 @@ export const Button = forwardRef(function Button({ className, variant = "primary
             className: cn(rootClassName, child.props.className),
             "aria-label": label ?? child.props["aria-label"],
             "aria-busy": loading || undefined,
-            "aria-disabled": inert || undefined,
-            tabIndex: inert ? -1 : child.props.tabIndex,
+            "aria-disabled": unfocusable || undefined,
+            tabIndex: unfocusable ? -1 : child.props.tabIndex,
             ...(inert && { onClick: inertClick }),
             children: (_jsxs(_Fragment, { children: [leadingSlot, child.props.children, trailingSlot] })),
         }), shownTooltip, !!onLongPress);
@@ -59,5 +62,5 @@ export const Button = forwardRef(function Button({ className, variant = "primary
         // An external target without `rel` leaks window.opener to the destination.
         return withTooltip(_jsxs("a", { ref: setRef, href: inert ? undefined : href, target: target, rel: rel ?? (target === "_blank" ? "noopener noreferrer" : undefined), download: download, role: inert ? "link" : undefined, tabIndex: inert ? -1 : undefined, "aria-busy": loading || undefined, "aria-disabled": inert || undefined, "aria-label": label, onClick: inert ? inertClick : handleClick, className: rootClassName, ...props, ...pressProps, children: [leadingSlot, children, trailingSlot] }), shownTooltip, !!onLongPress);
     }
-    return withTooltip(_jsxs("button", { ref: setRef, disabled: inert, "aria-busy": loading || undefined, "aria-label": label, onClick: handleClick, className: rootClassName, ...props, ...pressProps, children: [leadingSlot, children, trailingSlot] }), shownTooltip, !!onLongPress);
+    return withTooltip(_jsxs("button", { ref: setRef, disabled: unfocusable, "aria-busy": loading || undefined, "aria-label": label, onClick: (inert ? inertClick : handleClick), className: rootClassName, ...props, ...pressProps, children: [leadingSlot, children, trailingSlot] }), shownTooltip, !!onLongPress);
 });

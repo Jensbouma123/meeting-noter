@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 /** Returns `[isControlled, currentValue, setUncontrolledValue, internalError, runValidation]`. */
 export function useInputValue(value, defaultValue, validate, minLength, type, min, max, step) {
     const [uncontrolledValue, setUncontrolledValue] = useState(defaultValue !== undefined ? String(defaultValue) : "");
@@ -44,12 +44,14 @@ export function useInputValue(value, defaultValue, validate, minLength, type, mi
         setInternalError(undefined);
         return undefined;
     }, [validate, minLength, type, min, max, step]);
+    // Last value validated; mount and `validate` identity churn must not validate an untouched field.
+    const validatedValue = useRef(currentValue);
     useEffect(() => {
-        if (isControlled && validate) {
-            // A controlled value arrives from the parent, so its validation message has to follow it here.
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            runValidation(currentValue);
-        }
+        if (!isControlled || !validate || validatedValue.current === currentValue)
+            return;
+        validatedValue.current = currentValue;
+        // A controlled value arrives from the parent, so its validation message has to follow it here.
+        runValidation(currentValue);
     }, [isControlled, currentValue, validate, runValidation]);
     return [isControlled, currentValue, setUncontrolledValue, internalError, runValidation];
 }

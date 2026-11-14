@@ -1,4 +1,4 @@
-import { useState, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 
 export function useOtpInputCaret(
   inputRef: RefObject<HTMLInputElement | null>,
@@ -21,8 +21,14 @@ export function useOtpInputCaret(
     setCaretIndex(null);
   };
 
+  // The caret moves after the keystroke applies, so read it on the next tick; the timer is
+  // tracked so unmount (or another keystroke) cancels a pending read.
+  const keyTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(keyTimer.current), []);
+
   const handleKeyDown = () => {
-    setTimeout(() => {
+    clearTimeout(keyTimer.current);
+    keyTimer.current = setTimeout(() => {
       if (inputRef.current) {
         setCaretIndex(inputRef.current.selectionStart);
       }

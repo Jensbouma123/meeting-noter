@@ -1,15 +1,27 @@
 import { useEffect } from "react";
-/** Closes the grid while open when a mousedown lands outside `containerRef`. */
+/**
+ * Closes the grid while open when a pointerdown lands outside `containerRef`, or when focus
+ * moves from inside it to an element outside it (Tab past the last control).
+ */
 export function useIconPickerDismiss(containerRef, open, setOpen) {
     useEffect(() => {
-        if (!open)
+        const container = containerRef.current;
+        if (!open || !container)
             return;
         const onPointerDown = (event) => {
-            if (!containerRef.current?.contains(event.target)) {
+            if (!container.contains(event.target))
                 setOpen(false);
-            }
         };
-        document.addEventListener("mousedown", onPointerDown);
-        return () => document.removeEventListener("mousedown", onPointerDown);
+        const onFocusOut = (event) => {
+            const next = event.relatedTarget;
+            if (next && !container.contains(next))
+                setOpen(false);
+        };
+        document.addEventListener("pointerdown", onPointerDown);
+        container.addEventListener("focusout", onFocusOut);
+        return () => {
+            document.removeEventListener("pointerdown", onPointerDown);
+            container.removeEventListener("focusout", onFocusOut);
+        };
     }, [open, containerRef, setOpen]);
 }

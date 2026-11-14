@@ -16,22 +16,32 @@ const SENSITIVE_KEYS = new Set([
 function isSensitiveKey(key) {
     return SENSITIVE_KEYS.has(key.toLowerCase());
 }
-function redactValue(value, seen) {
-    if (Array.isArray(value)) {
-        return value.map((item) => redactValue(item, seen));
+const CIRCULAR = "[Circular]";
+// `ancestors` holds only the objects on the current path, so a cycle is cut
+// while a shared (non-cyclic) reference is copied in full at every site.
+function redactValue(value, ancestors) {
+    if (value === null || typeof value !== "object")
+        return value;
+    if (value instanceof Date || value instanceof URL)
+        return value;
+    if (ancestors.has(value))
+        return CIRCULAR;
+    ancestors.add(value);
+    try {
+        if (Array.isArray(value))
+            return value.map((item) => redactValue(item, ancestors));
+        // Error's name/message are non-enumerable; copy them explicitly after the spread.
+        const source = value instanceof Error ? { ...value, name: value.name, message: value.message } : value;
+        return redactObject(source, ancestors);
     }
-    if (value !== null && typeof value === "object") {
-        if (seen.has(value))
-            return REDACTED;
-        seen.add(value);
-        return redactObject(value, seen);
+    finally {
+        ancestors.delete(value);
     }
-    return value;
 }
-function redactObject(input, seen) {
+function redactObject(input, ancestors) {
     const output = {};
     for (const [key, value] of Object.entries(input)) {
-        output[key] = isSensitiveKey(key) ? REDACTED : redactValue(value, seen);
+        output[key] = isSensitiveKey(key) ? REDACTED : redactValue(value, ancestors);
     }
     return output;
 }

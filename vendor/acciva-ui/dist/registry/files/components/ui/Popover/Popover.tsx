@@ -112,11 +112,11 @@ export function Popover({
       data-placed={placed}
       style={{ positionAnchor: anchorName, maxWidth: resolvedMaxWidth } as CSSProperties}
       className={cn(
-        "popover-card rounded-lg border p-3.5 text-foreground leading-relaxed outline-hidden",
+        "popover-card rounded-lg border border-solid p-3.5 text-foreground leading-relaxed outline-hidden",
         TOOLTIP_FILL,
         SURFACE_SHADOW.overlay,
         animated
-          ? "transition-[opacity,scale] motion-spatial ease-emphasized motion-reduce:transition-none"
+          ? "transition-fade-scale motion-spatial ease-emphasized motion-reduce:transition-none"
           : "transition-none",
         !open && "pointer-events-none",
         className,

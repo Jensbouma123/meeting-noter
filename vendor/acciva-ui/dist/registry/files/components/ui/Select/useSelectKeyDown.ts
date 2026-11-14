@@ -14,7 +14,7 @@ export function useSelectKeyDown(
   commit: (index: number) => void,
   onChange: (value: string) => void,
 ) {
-  const handleTypeahead = useTypeahead(options, open, onChange, setActiveIndex);
+  const handleTypeahead = useTypeahead(options, open, onChange, setActiveIndex, openList);
 
   const moveActive = (delta: number) => {
     setActiveIndex((prev) => {

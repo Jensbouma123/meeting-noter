@@ -15,7 +15,7 @@ export function useVirtualListModel(props, scrollRef) {
     const [viewportHeight, setViewportHeight] = useState(() => resolveViewportHeight(height));
     const [internalActiveIndex, setInternalActiveIndex] = useState(defaultActiveIndex);
     const count = items.length;
-    const resolvedActiveIndex = activeIndex ?? internalActiveIndex;
+    const resolvedActiveIndex = Math.min(activeIndex ?? internalActiveIndex, Math.max(0, count - 1));
     const scrollToTopEnabled = Boolean(scrollToTop);
     const scrollToTopOptions = typeof scrollToTop === "object" ? scrollToTop : undefined;
     const scrollToTopThreshold = scrollToTopOptions?.threshold ?? DEFAULT_SCROLL_TO_TOP_THRESHOLD;

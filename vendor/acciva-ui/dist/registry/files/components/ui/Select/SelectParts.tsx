@@ -3,6 +3,7 @@ import { useEffect, type CSSProperties, type Dispatch, type MouseEvent as ReactM
 import { cn } from "@/lib/utils";
 import { HStack } from "@/components/ui/HStack";
 import type { SelectOption } from "@/components/ui/Select/types";
+import { useOpenSide } from "@/components/ui/Select/useOpenSide";
 
 interface SelectListboxProps {
   listRef: RefObject<HTMLUListElement | null>;
@@ -38,6 +39,7 @@ export function SelectListbox({
   onCommit,
   onActivate,
 }: SelectListboxProps) {
+  useOpenSide(listRef);
   // Top layer escapes any `overflow: hidden` ancestor; `manual` leaves outside-press and Escape to
   // Select (it keeps focus on the trigger), and anchor positioning tracks the trigger without measuring.
   useEffect(() => {
@@ -73,7 +75,7 @@ export function SelectListbox({
           aria-selected={option.value === value}
           aria-disabled={option.disabled}
           aria-level={option.depth === undefined ? undefined : option.depth + 1}
-          onMouseEnter={() => onActivate(index)}
+          onMouseEnter={() => !option.disabled && onActivate(index)}
           onClick={() => onCommit(index)}
           className={cn(
             "cursor-pointer rounded-md py-2 text-sm transition-colors",

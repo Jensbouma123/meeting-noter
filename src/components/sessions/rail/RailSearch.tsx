@@ -15,8 +15,6 @@ export function RailSearch({ query, onChange }: RailSearchProps) {
         placeholder={t('search')}
         aria-label={t('search')}
         leadingIcon={<Search className="size-4" />}
-        clearable
-        onClear={() => onChange('')}
       />
     </div>
   );

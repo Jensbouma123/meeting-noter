@@ -1,4 +1,5 @@
 import type { KeyboardEvent, KeyboardEventHandler, RefObject } from "react";
+import { rovingIndex } from "@/components/ui/_internal/rovingIndex";
 
 // Roving-tabindex keyboard model: arrows and Home/End move focus and selection.
 export function useSwatchKeyboard(
@@ -9,41 +10,20 @@ export function useSwatchKeyboard(
   select: (index: number) => void,
   onKeyDown: KeyboardEventHandler<HTMLDivElement> | undefined,
 ) {
-  const focusOption = (index: number) => {
-    if (count === 0) return;
-    const next = (index + count) % count;
-    optionRefs.current[next]?.focus();
-    select(next);
-  };
-
   return (event: KeyboardEvent<HTMLDivElement>) => {
     onKeyDown?.(event);
     if (event.defaultPrevented || disabled) return;
-    const currentFocused = optionRefs.current.findIndex(
-      (node) => node === document.activeElement,
-    );
-    const from = currentFocused === -1 ? activeIndex : currentFocused;
-    switch (event.key) {
-      case "ArrowRight":
-      case "ArrowDown":
-        event.preventDefault();
-        focusOption(from + 1);
-        break;
-      case "ArrowLeft":
-      case "ArrowUp":
-        event.preventDefault();
-        focusOption(from - 1);
-        break;
-      case "Home":
-        event.preventDefault();
-        focusOption(0);
-        break;
-      case "End":
-        event.preventDefault();
-        focusOption(count - 1);
-        break;
-      default:
-        break;
-    }
+    const focused = optionRefs.current.findIndex((node) => node === document.activeElement);
+    const next = rovingIndex({
+      key: event.key,
+      current: focused === -1 ? activeIndex : focused,
+      count,
+      orientation: "both",
+      wrap: true,
+    });
+    if (next === null) return;
+    event.preventDefault();
+    optionRefs.current[next]?.focus();
+    select(next);
   };
 }

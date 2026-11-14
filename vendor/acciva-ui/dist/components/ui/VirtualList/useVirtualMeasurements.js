@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { MEASUREMENT_EPSILON } from "./constants.js";
+import { recordMeasurement } from "./recordMeasurement.js";
 export function useVirtualMeasurements({ items, getItemKey, dynamic, scrollRef, firstVisibleRef, baseHeightRef, setScrollTop, }) {
     const observerRef = useRef(null);
     const measuredRef = useRef(new Map());
@@ -8,9 +8,19 @@ export function useVirtualMeasurements({ items, getItemKey, dynamic, scrollRef, 
     const itemsRef = useRef(items);
     const getItemKeyRef = useRef(getItemKey);
     const [measuredSnapshot, setMeasuredSnapshot] = useState(() => new Map());
-    useEffect(() => {
+    // Render-time reset (no setState in an effect): when `items` changes identity the
+    // cached heights are stale, because keys can survive reordering.
+    const [snapshotItems, setSnapshotItems] = useState(items);
+    if (dynamic && snapshotItems !== items) {
+        setSnapshotItems(items);
+        if (measuredSnapshot.size > 0)
+            setMeasuredSnapshot(new Map());
+    }
+    // Layout effect: runs in the commit, before ResizeObserver callbacks for newly mounted rows.
+    useLayoutEffect(() => {
         itemsRef.current = items;
         getItemKeyRef.current = getItemKey;
+        measuredRef.current = measuredSnapshot;
     });
     const keyAt = useCallback((index) => {
         const currentItems = itemsRef.current;
@@ -25,7 +35,7 @@ export function useVirtualMeasurements({ items, getItemKey, dynamic, scrollRef, 
         for (const entry of entries) {
             const element = entry.target;
             const index = Number(element.dataset.index);
-            if (!Number.isInteger(index))
+            if (!Number.isInteger(index) || index >= itemsRef.current.length)
                 continue;
             const box = entry.borderBoxSize?.[0];
             const measured = box ? box.blockSize : element.getBoundingClientRect().height;
@@ -33,10 +43,9 @@ export function useVirtualMeasurements({ items, getItemKey, dynamic, scrollRef, 
                 continue;
             const key = keyAt(index);
             const previous = nextMeasured.get(key);
-            if (previous !== undefined && Math.abs(previous - measured) < MEASUREMENT_EPSILON)
+            if (!recordMeasurement(nextMeasured, key, measured))
                 continue;
             const before = previous ?? baseHeightRef.current(index);
-            nextMeasured.set(key, measured);
             changed = true;
             if (index < firstVisible)
                 compensation += measured - before;
@@ -66,16 +75,14 @@ export function useVirtualMeasurements({ items, getItemKey, dynamic, scrollRef, 
         const nextMeasured = new Map(measuredRef.current);
         for (const node of nodesRef.current) {
             const index = Number(node.dataset.index);
-            if (!Number.isInteger(index))
+            if (!Number.isInteger(index) || index >= itemsRef.current.length)
                 continue;
             const measured = node.getBoundingClientRect().height;
             if (measured <= 0)
                 continue;
             const key = keyAt(index);
-            const previous = nextMeasured.get(key);
-            if (previous !== undefined && Math.abs(previous - measured) < MEASUREMENT_EPSILON)
+            if (!recordMeasurement(nextMeasured, key, measured))
                 continue;
-            nextMeasured.set(key, measured);
             changed = true;
         }
         if (!changed)
@@ -83,6 +90,11 @@ export function useVirtualMeasurements({ items, getItemKey, dynamic, scrollRef, 
         measuredRef.current = nextMeasured;
         setMeasuredSnapshot(nextMeasured);
     }, [keyAt]);
+    // After the reset commits, re-read mounted nodes: reused nodes get no ResizeObserver callback.
+    useLayoutEffect(() => {
+        if (dynamic)
+            remeasureMountedItems();
+    }, [items, dynamic, remeasureMountedItems]);
     const measureAll = useCallback(() => {
         measuredRef.current = new Map();
         setMeasuredSnapshot(new Map());

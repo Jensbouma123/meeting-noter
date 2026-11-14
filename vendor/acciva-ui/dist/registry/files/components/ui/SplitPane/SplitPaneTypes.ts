@@ -3,7 +3,8 @@ import type { HTMLAttributes, ReactNode } from "react";
 /** Sidebar width tier at the side-by-side breakpoint. */
 export type SplitPaneSidebarWidth = "sm" | "md" | "lg";
 
-export interface SplitPaneProps extends HTMLAttributes<HTMLDivElement> {
+/** `style` is not passed through (see SplitPane spec: no style passthrough). */
+export interface SplitPaneProps extends Omit<HTMLAttributes<HTMLDivElement>, "style"> {
   /** Full-width row above the panes; a divider is rendered below it automatically. */
   header?: ReactNode;
   /** Narrow pane: nav, filters, list. */

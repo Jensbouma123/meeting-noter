@@ -16,7 +16,7 @@ export function useOtpInputValue(length, type, value, defaultValue, onChange, on
             setUncontrolledValue(sanitized);
         }
         onChange?.(sanitized);
-        if (sanitized.length === length) {
+        if (sanitized.length === length && sanitized !== currentValue) {
             onComplete?.(sanitized);
         }
     };

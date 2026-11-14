@@ -119,7 +119,7 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(
           {...props}
         />
 
-        {showCapsLockWarning && capsLockActive && <CapsLockNotice />}
+        <CapsLockNotice active={showCapsLockWarning && capsLockActive} />
 
         {showStrengthMeter && currentPassword.length > 0 && (
           <StrengthMeter score={strength.score} label={strength.label} />
@@ -137,6 +137,9 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(
             defaultValue={defaultConfirmValue}
             autoComplete={resolvedAutoComplete}
             onChange={handleConfirmChange}
+            onKeyDown={handleKeyDown}
+            onKeyUp={handleKeyUp}
+            onBlur={handleBlur}
             disabled={props.disabled}
             readOnly={props.readOnly}
           />

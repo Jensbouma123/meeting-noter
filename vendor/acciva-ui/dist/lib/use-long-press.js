@@ -32,6 +32,11 @@ export function useLongPress(enabled, onLongPress, onRelease) {
         if (guard.current)
             clearTimeout(guard.current);
     }, []);
+    // Turning the feature off mid-hold must cancel the armed timer, not just stop new presses.
+    useEffect(() => {
+        if (!enabled)
+            disarm();
+    }, [enabled, disarm]);
     const end = useCallback(() => {
         disarm();
         if (!fired.current)

@@ -1,12 +1,15 @@
 "use client";
 
-import { forwardRef, useImperativeHandle, useRef } from "react";
+import { forwardRef } from "react";
 import { HStack } from "@/components/ui/HStack";
 import { InputActions } from "@/components/ui/Input/InputActions";
-import { InputAddon, InputLabel, InputLeadingIcon, InputMessages } from "@/components/ui/Input/InputParts";
+import { InputAddon, InputLabel, InputLeadingIcon } from "@/components/ui/Input/InputParts";
+import { InputFooter } from "@/components/ui/Input/InputFooter";
 import { DEFAULT_AUTOCOMPLETE, defaultInputMode } from "@/components/ui/Input/constants";
+import { createInputKeyDown } from "@/components/ui/Input/inputKeyDown";
 import { inputClassName } from "@/components/ui/Input/inputClasses";
 import type { InputProps } from "@/components/ui/Input/types";
+import { useForwardedInputRef } from "@/components/ui/Input/useForwardedInputRef";
 import { useInputHandlers } from "@/components/ui/Input/useInputHandlers";
 import { useInputIds } from "@/components/ui/Input/useInputIds";
 import { useInputReveal } from "@/components/ui/Input/useInputReveal";
@@ -27,7 +30,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
     required,
     disabled,
     readOnly,
-    clearable = false,
+    clearable: clearableProp,
     onClear,
     showCharCount = false,
     validate,
@@ -35,6 +38,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
     defaultValue,
     onChange,
     onBlur,
+    onKeyDown,
     maxLength,
     minLength,
     min,
@@ -47,11 +51,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
     "aria-describedby": describedBy,
     ...rest
   } = props;
-  const inputRef = useRef<HTMLInputElement>(null);
-  useImperativeHandle(forwardedRef, () => inputRef.current as HTMLInputElement);
+  const inputRef = useForwardedInputRef(forwardedRef);
 
-  const isPassword = type === "password";
-  const showPasswordToggle = isPassword && revealToggle;
+  // Search fields get the token-styled clear button by default (the native one is hidden); `clearable={false}` opts out.
+  const clearable = clearableProp ?? type === "search";
+  const showPasswordToggle = type === "password" && revealToggle;
   const [revealed, handleToggleReveal] = useInputReveal(inputRef);
   const [isControlled, currentValue, setUncontrolledValue, internalError, runValidation] = useInputValue(
     value, defaultValue, validate, minLength, type, min, max, step,
@@ -59,6 +63,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
   const [handleChange, handleBlur, handleClear] = useInputHandlers(
     inputRef, isControlled, setUncontrolledValue, runValidation, disabled, readOnly, onChange, onBlur, onClear,
   );
+  const handleKeyDown = createInputKeyDown(onKeyDown, clearable && type === "search", currentValue.length > 0, handleClear);
   const activeError = error ?? internalError;
   const showClear = clearable && !disabled && !readOnly && currentValue.length > 0;
   const [inputId, hintId, errorId, charCountId, leadingAddonId, trailingAddonId, describedByIds] = useInputIds(
@@ -83,7 +88,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
           <input
             ref={inputRef}
             id={inputId}
-            type={isPassword && revealed ? "text" : type}
+            type={type === "password" && revealed ? "text" : type}
             inputMode={inputMode ?? defaultInputMode(type, step)}
             autoComplete={autoComplete ?? DEFAULT_AUTOCOMPLETE[type]}
             required={required}
@@ -93,6 +98,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
             defaultValue={defaultValue}
             onChange={handleChange}
             onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
             maxLength={maxLength}
             minLength={minLength}
             min={min}
@@ -114,7 +120,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
             size={size}
             label={label}
             showClear={showClear}
+            searchType={type === "search"}
             showPasswordToggle={showPasswordToggle}
+            disabled={disabled}
             trailingIcon={trailingIcon}
             revealed={revealed}
             onClear={handleClear}
@@ -129,17 +137,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
         ) : null}
       </HStack>
 
-      {hint || activeError || showCharCount ? (
-        <InputMessages
-          hint={hint}
-          error={activeError}
-          hintId={hintId}
-          errorId={errorId}
-          charCountId={showCharCount ? charCountId : undefined}
-          count={currentValue.length}
-          maxLength={maxLength}
-        />
-      ) : null}
+      <InputFooter
+        hint={hint} error={activeError} hintId={hintId} errorId={errorId}
+        showCharCount={showCharCount} charCountId={charCountId} count={currentValue.length} maxLength={maxLength}
+      />
     </div>
   );
 });

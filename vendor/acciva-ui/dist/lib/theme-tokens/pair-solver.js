@@ -1,4 +1,4 @@
-import { apcaLc, contrastRatio, hexToOklch, oklchToHex } from "../color/index.js";
+import { apcaLc, contrastRatio, gamutMap, hexToOklch, oklchToHex } from "../color/index.js";
 import { ROLE_VARIABLES } from "./roles.js";
 import { SAMPLES, clampL, consider, createReport } from "./pair-solver-helpers.js";
 /**
@@ -52,7 +52,7 @@ export function solvePairForRole(pair, targetLevel = "AA", mode = pair.mode) {
     const preferDarkerOnTie = mode === "light";
     const originL = clampL(originColor.l);
     const at = (l) => {
-        const hex = oklchToHex({ l: clampL(l), c: originColor.c, h: originColor.h });
+        const hex = oklchToHex(gamutMap({ l: clampL(l), c: originColor.c, h: originColor.h }, "srgb"));
         const fg = isAdjustingForeground ? hex : fixedHex;
         const bg = isAdjustingForeground ? fixedHex : hex;
         const ratio = contrastRatio(fg, bg);
@@ -91,7 +91,7 @@ export function solvePairForRole(pair, targetLevel = "AA", mode = pair.mode) {
     // honest answer.
     const gatedL = nearestGated.l;
     if (gatedL === null) {
-        return finish(oklchToHex({ l: clampL(bestEffortL), c: originColor.c, h: originColor.h }));
+        return finish(oklchToHex(gamutMap({ l: clampL(bestEffortL), c: originColor.c, h: originColor.h }, "srgb")));
     }
     const preferredL = nearestPreferred.l;
     const preferAdvisory = preferredL !== null;
@@ -119,5 +119,5 @@ export function solvePairForRole(pair, targetLevel = "AA", mode = pair.mode) {
     else {
         passing = failing;
     }
-    return finish(oklchToHex({ l: clampL(passing), c: originColor.c, h: originColor.h }));
+    return finish(oklchToHex(gamutMap({ l: clampL(passing), c: originColor.c, h: originColor.h }, "srgb")));
 }

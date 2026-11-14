@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
-import { MEASUREMENT_EPSILON } from "@/components/ui/VirtualList/constants";
+import { recordMeasurement } from "@/components/ui/VirtualList/recordMeasurement";
 import type { VirtualListProps } from "@/components/ui/VirtualList/types";
 
 interface VirtualMeasurementsOptions<T> {
@@ -22,7 +22,7 @@ export function useVirtualMeasurements<T>({
   setScrollTop,
 }: VirtualMeasurementsOptions<T>) {
   const observerRef = useRef<ResizeObserver | null>(null);
-  const measuredRef = useRef(new Map<string | number, number>());
+  const measuredRef = useRef<ReadonlyMap<string | number, number>>(new Map());
   const nodesRef = useRef(new Set<HTMLElement>());
   const scrollCompensationRef = useRef(0);
   const itemsRef = useRef(items);
@@ -31,9 +31,19 @@ export function useVirtualMeasurements<T>({
     () => new Map(),
   );
 
-  useEffect(() => {
+  // Render-time reset (no setState in an effect): when `items` changes identity the
+  // cached heights are stale, because keys can survive reordering.
+  const [snapshotItems, setSnapshotItems] = useState(items);
+  if (dynamic && snapshotItems !== items) {
+    setSnapshotItems(items);
+    if (measuredSnapshot.size > 0) setMeasuredSnapshot(new Map());
+  }
+
+  // Layout effect: runs in the commit, before ResizeObserver callbacks for newly mounted rows.
+  useLayoutEffect(() => {
     itemsRef.current = items;
     getItemKeyRef.current = getItemKey;
+    measuredRef.current = measuredSnapshot;
   });
 
   const keyAt = useCallback(
@@ -54,15 +64,14 @@ export function useVirtualMeasurements<T>({
     for (const entry of entries) {
       const element = entry.target as HTMLElement;
       const index = Number(element.dataset.index);
-      if (!Number.isInteger(index)) continue;
+      if (!Number.isInteger(index) || index >= itemsRef.current.length) continue;
       const box = entry.borderBoxSize?.[0];
       const measured = box ? box.blockSize : element.getBoundingClientRect().height;
       if (measured <= 0) continue;
       const key = keyAt(index);
       const previous = nextMeasured.get(key);
-      if (previous !== undefined && Math.abs(previous - measured) < MEASUREMENT_EPSILON) continue;
+      if (!recordMeasurement(nextMeasured, key, measured)) continue;
       const before = previous ?? baseHeightRef.current(index);
-      nextMeasured.set(key, measured);
       changed = true;
       if (index < firstVisible) compensation += measured - before;
     }
@@ -94,19 +103,22 @@ export function useVirtualMeasurements<T>({
     const nextMeasured = new Map(measuredRef.current);
     for (const node of nodesRef.current) {
       const index = Number(node.dataset.index);
-      if (!Number.isInteger(index)) continue;
+      if (!Number.isInteger(index) || index >= itemsRef.current.length) continue;
       const measured = node.getBoundingClientRect().height;
       if (measured <= 0) continue;
       const key = keyAt(index);
-      const previous = nextMeasured.get(key);
-      if (previous !== undefined && Math.abs(previous - measured) < MEASUREMENT_EPSILON) continue;
-      nextMeasured.set(key, measured);
+      if (!recordMeasurement(nextMeasured, key, measured)) continue;
       changed = true;
     }
     if (!changed) return;
     measuredRef.current = nextMeasured;
     setMeasuredSnapshot(nextMeasured);
   }, [keyAt]);
+
+  // After the reset commits, re-read mounted nodes: reused nodes get no ResizeObserver callback.
+  useLayoutEffect(() => {
+    if (dynamic) remeasureMountedItems();
+  }, [items, dynamic, remeasureMountedItems]);
 
   const measureAll = useCallback(() => {
     measuredRef.current = new Map();

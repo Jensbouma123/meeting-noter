@@ -44,7 +44,8 @@ export function useDrawerGestures(
     uncontrolledDetent,
     setUncontrolledDetent,
     detentSizes,
-    resolvedSide,
+    // A docked persistent drawer sits on the right edge, so its keys follow that layout.
+    docked ? "right" : resolvedSide,
     dragEnabled,
     onSnapChange,
     setSettled,

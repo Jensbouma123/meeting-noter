@@ -60,8 +60,9 @@ export function Drawer(props: DrawerProps) {
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledBy}
         tabIndex={-1}
-        // Closed in state, only still on screen for its exit slide.
-        aria-hidden={!open || undefined}
+        // Closed in state, only still on screen for its exit slide: inert keeps focus and the
+        // accessibility tree out of it without hiding a still-focused subtree (SC 4.1.2, 2.4.3).
+        inert={!open || undefined}
         data-side={resolvedSide}
         data-persistent={isPersistent || undefined}
         onCancel={(event) => {

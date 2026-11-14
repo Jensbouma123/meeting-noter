@@ -64,7 +64,7 @@ export interface AccordionTriggerProps extends ButtonHTMLAttributes<HTMLButtonEl
 }
 
 export const AccordionTrigger = forwardRef<HTMLButtonElement, AccordionTriggerProps>(function AccordionTrigger(
-  { className, children, trailing, ...props },
+  { className, children, trailing, onClick, ...props },
   ref,
 ) {
   const { toggleValue, variant } = useAccordionContext("AccordionTrigger");
@@ -88,7 +88,10 @@ export const AccordionTrigger = forwardRef<HTMLButtonElement, AccordionTriggerPr
         aria-expanded={isExpanded}
         aria-controls={contentId}
         disabled={disabled}
-        onClick={() => toggleValue(value)}
+        onClick={(event) => {
+          onClick?.(event);
+          toggleValue(value);
+        }}
         className={cn(
           "focus-ring flex w-full items-center text-left text-sm font-semibold text-foreground transition-colors",
           TRIGGER_CHROME[variant],
@@ -123,15 +126,14 @@ export const AccordionContent = forwardRef<HTMLDivElement, AccordionContentProps
       id={contentId}
       role="region"
       aria-labelledby={triggerId}
-      hidden={!isExpanded}
-      className={cn(
-        "overflow-hidden transition-all motion-spatial",
-        isExpanded ? "animate-fade-in block" : "hidden",
-        className,
-      )}
+      inert={!isExpanded}
+      aria-hidden={isExpanded ? undefined : true}
+      className={cn("disclosure-panel", isExpanded && "disclosure-panel-open", className)}
       {...props}
     >
-      <div className={cn(CONTENT_CHROME[variant], "text-sm text-foreground")}>{children}</div>
+      <div className="min-h-0 overflow-hidden">
+        <div className={cn(CONTENT_CHROME[variant], "text-sm text-foreground")}>{children}</div>
+      </div>
     </div>
   );
 });

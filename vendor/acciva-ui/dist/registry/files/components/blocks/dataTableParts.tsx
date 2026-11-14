@@ -48,29 +48,34 @@ export function DataTableHeaderRow<T>({ columns, gridTemplate, sort, toggleSort 
       {columns.map((column, columnIndex) => {
         const sortable = column.sortable !== false && Boolean(column.sortValue);
         const active = sort?.columnId === column.id;
+        // Alignment goes on the full-width child: the header cell is only a flex wrapper.
+        const alignClass = alignClasses[column.align ?? "left"];
         return (
           <div
             key={column.id}
             role="columnheader"
             aria-colindex={columnIndex + 1}
             aria-sort={active ? (sort?.direction === "asc" ? "ascending" : "descending") : sortable ? "none" : undefined}
-            className={cn("flex items-center", alignClasses[column.align ?? "left"])}
+            className="flex items-center"
           >
             {sortable ? (
               <button
                 type="button"
                 onClick={() => toggleSort(column.id)}
-                 className="focus-ring flex h-11 w-full items-center gap-2 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground transition-colors motion-feedback hover:text-foreground active:text-foreground"
+                className={cn(
+                  "focus-ring flex h-11 w-full items-center gap-2 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground transition-colors motion-feedback hover:text-foreground active:text-foreground",
+                  alignClass,
+                )}
               >
                 {column.header}
                 {active ? (
                   sort?.direction === "asc" ? (
-                    <ArrowUp className="size-3.5 text-primary-800 dark:text-primary-300" />
+                    <ArrowUp aria-hidden="true" className="size-3.5 text-primary-800 dark:text-primary-300" />
                   ) : (
-                    <ArrowDown className="size-3.5 text-primary-800 dark:text-primary-300" />
+                    <ArrowDown aria-hidden="true" className="size-3.5 text-primary-800 dark:text-primary-300" />
                   )
                 ) : (
-                  <ChevronsUpDown className="size-3.5 opacity-50" />
+                  <ChevronsUpDown aria-hidden="true" className="size-3.5 opacity-50" />
                 )}
               </button>
             ) : (
@@ -79,7 +84,7 @@ export function DataTableHeaderRow<T>({ columns, gridTemplate, sort, toggleSort 
                 size="xs"
                 weight="semibold"
                 variant="muted"
-                className="flex h-11 w-full items-center px-4 uppercase tracking-wide"
+                className={cn("flex h-11 w-full items-center px-4 uppercase tracking-wide", alignClass)}
               >
                 {column.header}
               </Text>

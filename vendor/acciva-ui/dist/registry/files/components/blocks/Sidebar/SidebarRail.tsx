@@ -1,11 +1,13 @@
 import Link from "next/link";
-import type { KeyboardEvent, RefObject } from "react";
+import { useRef, type RefObject } from "react";
 import { Tooltip } from "@/components/ui/Tooltip/index";
 import { VStack } from "@/components/ui/VStack";
 import { SIDEBAR_RAIL_HEIGHT, STICKY_PANEL_TOP } from "@/lib/layout-tokens";
+import { ListItem } from "@/components/ui/ListItem";
 import { ICON_SIZE_CLASS } from "@/lib/sizing-tokens/index";
 import { cn } from "@/lib/utils";
 import { SidebarGlyph, SidebarReorderMenu } from "@/components/blocks/Sidebar/SidebarParts";
+import { useSidebarListKeys } from "@/components/blocks/Sidebar/useSidebarListKeys";
 import { resolveActive } from "@/components/blocks/Sidebar/sidebarHelpers";
 import type { SidebarItem, SidebarReorderMove } from "@/components/blocks/Sidebar/SidebarTypes";
 
@@ -16,7 +18,7 @@ export function SidebarRail({
   railRefs,
   onReorder,
   onMove,
-  onListKeyDown,
+  queueFocus,
 }: {
   items: SidebarItem[];
   pathname: string | null;
@@ -24,8 +26,10 @@ export function SidebarRail({
   railRefs: RefObject<(HTMLAnchorElement | null)[]>;
   onReorder?: (move: SidebarReorderMove) => void;
   onMove: (from: number, to: number) => void;
-  onListKeyDown: (event: KeyboardEvent<HTMLUListElement>) => void;
+  queueFocus: (list: "rail" | "drawer", index: number) => void;
 }) {
+  const listRef = useRef<HTMLUListElement | null>(null);
+  const onListKeyDown = useSidebarListKeys({ containerRef: listRef, list: "rail", refs: railRefs, count: items.length, canReorder: !!onReorder, queueFocus, move: onMove });
   return (
     <aside
       className={cn(
@@ -48,6 +52,7 @@ export function SidebarRail({
           spacing="sm"
           align="center"
           className="w-full"
+          ref={listRef}
           onKeyDown={onListKeyDown}
         >
           {items.map((item, index) => {
@@ -56,22 +61,19 @@ export function SidebarRail({
             return (
               <li key={item.href} className="w-full">
                 <Tooltip content={item.label} side="right">
-                  <Link
+                  <ListItem
+                    asChild
+                    density="rail"
+                    title={item.label}
+                    selected={active}
+                    leading={<SidebarGlyph icon={item.icon} className={cn(ICON_SIZE_CLASS.lg, "shrink-0")} />}
                     ref={(node) => {
-                      railRefs.current[index] = node;
+                      railRefs.current[index] = node as HTMLAnchorElement | null;
                     }}
-                    href={item.href}
-                    aria-label={item.label}
-                    aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "focus-ring mx-auto flex h-11 w-11 items-center justify-center rounded-lg transition-colors motion-feedback",
-                      active
-                        ? "bg-primary-500/15 text-primary-800 dark:text-primary-300"
-                        : "text-foreground hover:bg-elevation-3 hover:text-foreground active:bg-elevation-4 active:text-foreground"
-                    )}
+                    className="mx-auto"
                   >
-                    <SidebarGlyph icon={item.icon} className={cn(ICON_SIZE_CLASS.lg, "shrink-0")} />
-                  </Link>
+                    <Link href={item.href} />
+                  </ListItem>
                 </Tooltip>
                 {onReorder && items.length > 1 && (
                   <div className="mt-2 flex justify-center">

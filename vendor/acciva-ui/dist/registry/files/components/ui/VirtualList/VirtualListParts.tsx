@@ -99,13 +99,12 @@ export function VirtualListScrollToTop({ options, visible, fullWidth, onClick }:
     <div
       role="presentation"
       className={cn(
-        "sticky bottom-0 left-0 right-0 z-10 pointer-events-none flex w-full items-center px-3 pb-3",
+        "absolute bottom-0 left-0 right-0 z-10 pointer-events-none flex w-full items-center px-3 pb-3",
         placement === "bottom-left" && "justify-start",
         placement === "bottom-center" && "justify-center",
         placement === "bottom-right" && "justify-end",
       )}
       style={{
-        marginTop: -SCROLL_TO_TOP_EXTRA_SPACE,
         height: SCROLL_TO_TOP_EXTRA_SPACE,
       }}
     >

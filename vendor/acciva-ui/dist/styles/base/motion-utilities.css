@@ -26,6 +26,11 @@
 
 /* Easing-only utilities, for a surface that keeps its duration token but needs a
    different curve than the standard one. */
+/* Opacity and scale transition together (overlays that fade and zoom in). */
+@utility transition-fade-scale {
+  transition-property: opacity, scale;
+}
+
 @utility ease-emphasized {
   transition-timing-function: var(--motion-ease-emphasized);
 }
@@ -62,4 +67,22 @@
   transition-property: opacity;
   transition-duration: var(--motion-spatial);
   transition-timing-function: linear;
+}
+
+/* Height-auto disclosure that animates in every engine (no interpolate-size, no JS
+   measuring): a one-row grid whose track runs 0fr -> 1fr. The child must be
+   `min-h-0 overflow-hidden`. `visibility` flips discretely at the end of the close, so
+   collapsed content leaves the a11y tree and tab order only once it is out of sight. */
+@utility disclosure-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition-property: grid-template-rows, visibility;
+  transition-duration: var(--motion-spatial);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+@utility disclosure-panel-open {
+  grid-template-rows: 1fr;
+  visibility: visible;
 }

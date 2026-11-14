@@ -49,8 +49,8 @@ export function Popover({ content, title, open: controlledOpen, defaultOpen = fa
         onToggle: (e) => {
             if (e.newState === "closed" && open)
                 handleClose();
-        }, "data-state": open ? "open" : "closed", "data-side": targetPlacement, "data-placed": placed, style: { positionAnchor: anchorName, maxWidth: resolvedMaxWidth }, className: cn("popover-card rounded-lg border p-3.5 text-foreground leading-relaxed outline-hidden", TOOLTIP_FILL, SURFACE_SHADOW.overlay, animated
-            ? "transition-[opacity,scale] motion-spatial ease-emphasized motion-reduce:transition-none"
+        }, "data-state": open ? "open" : "closed", "data-side": targetPlacement, "data-placed": placed, style: { positionAnchor: anchorName, maxWidth: resolvedMaxWidth }, className: cn("popover-card rounded-lg border border-solid p-3.5 text-foreground leading-relaxed outline-hidden", TOOLTIP_FILL, SURFACE_SHADOW.overlay, animated
+            ? "transition-fade-scale motion-spatial ease-emphasized motion-reduce:transition-none"
             : "transition-none", !open && "pointer-events-none", className), children: [_jsx(PopoverHeader, { title: title, titleId: titleId, onClose: handleClose }), _jsx(PopoverBody, { id: contentId, hasTitle: !!title, children: content }), actionLabel && _jsx(PopoverAction, { label: actionLabel, onAction: () => {
                     onAction?.();
                     handleClose();

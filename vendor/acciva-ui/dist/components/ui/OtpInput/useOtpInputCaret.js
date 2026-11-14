@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 export function useOtpInputCaret(inputRef, currentValue, length, locked) {
     const [isFocused, setIsFocused] = useState(false);
     const [caretIndex, setCaretIndex] = useState(null);
@@ -12,8 +12,13 @@ export function useOtpInputCaret(inputRef, currentValue, length, locked) {
         setIsFocused(false);
         setCaretIndex(null);
     };
+    // The caret moves after the keystroke applies, so read it on the next tick; the timer is
+    // tracked so unmount (or another keystroke) cancels a pending read.
+    const keyTimer = useRef(undefined);
+    useEffect(() => () => clearTimeout(keyTimer.current), []);
     const handleKeyDown = () => {
-        setTimeout(() => {
+        clearTimeout(keyTimer.current);
+        keyTimer.current = setTimeout(() => {
             if (inputRef.current) {
                 setCaretIndex(inputRef.current.selectionStart);
             }

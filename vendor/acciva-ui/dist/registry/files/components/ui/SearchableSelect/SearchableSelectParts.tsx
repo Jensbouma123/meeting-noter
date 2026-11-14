@@ -1,19 +1,8 @@
 import { ChevronDown, X } from "lucide-react";
-import type { CSSProperties, KeyboardEvent, ReactNode, RefObject } from "react";
+import type { CSSProperties, KeyboardEvent, RefObject } from "react";
 import { cn } from "@/lib/utils";
+import { OptionAdornment, anchorNameFor } from "@/components/ui/_combobox/parts";
 import type { SearchableSelectOption } from "@/components/ui/SearchableSelect/types";
-
-/** The trigger's `anchor-name`, which the top-layer panel positions against. */
-export const anchorNameFor = (listboxId: string) => `--ss-${listboxId.replace(/[^\w-]/g, "")}`;
-
-export function OptionAdornment({ icon }: { icon: ReactNode }) {
-  if (!icon) return null;
-  return (
-    <span aria-hidden="true" className="flex size-4 shrink-0 items-center justify-center text-muted-foreground">
-      {icon}
-    </span>
-  );
-}
 
 interface SearchableSelectTriggerProps {
   inputId: string;
@@ -103,6 +92,8 @@ export function SearchableSelectTrigger({
         tabIndex={-1}
         aria-hidden
         disabled={disabled}
+        // Keep focus in the input: a focus move here re-runs onFocus and reopens the list.
+        onMouseDown={(event) => event.preventDefault()}
         onClick={onToggle}
         className="touch-target-44 flex size-7 items-center justify-center rounded-md text-muted-foreground"
       >

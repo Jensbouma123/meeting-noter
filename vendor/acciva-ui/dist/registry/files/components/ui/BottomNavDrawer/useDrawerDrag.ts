@@ -112,11 +112,17 @@ export function useDrawerDrag({ panelRef, headerRef, order, snap, commit, enable
     if (drag?.moved) settle(drag);
   };
 
+  // A cancelled touch (system gesture, interruption) aborts the drag without snapping, like onPointerCancel.
+  const onTouchCancel = () => {
+    touchRef.current = null;
+    setOffset(null);
+  };
+
   if (!enabled) return { offset: null, header: {}, body: {} };
 
   return {
     offset,
     header: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel },
-    body: { onTouchStart, onTouchMove, onTouchEnd, onTouchCancel: onTouchEnd },
+    body: { onTouchStart, onTouchMove, onTouchEnd, onTouchCancel },
   };
 }

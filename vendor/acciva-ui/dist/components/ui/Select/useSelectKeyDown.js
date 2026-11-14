@@ -1,7 +1,7 @@
 import { firstEnabledIndex } from "./navigation.js";
 import { useTypeahead } from "./useTypeahead.js";
 export function useSelectKeyDown(options, disabled, open, activeIndex, setActiveIndex, setOpen, openList, commit, onChange) {
-    const handleTypeahead = useTypeahead(options, open, onChange, setActiveIndex);
+    const handleTypeahead = useTypeahead(options, open, onChange, setActiveIndex, openList);
     const moveActive = (delta) => {
         setActiveIndex((prev) => {
             const wrapped = ((prev + delta) % options.length + options.length) % options.length;

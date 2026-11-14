@@ -53,7 +53,7 @@ export function PopoverBody({
     <div
       id={id}
       className={cn(
-        "popover-body text-muted-foreground break-words whitespace-normal overflow-y-auto",
+        "popover-body -mx-3 px-3 text-muted-foreground break-words whitespace-normal overflow-y-auto",
         TEXT_SIZE.xs,
         hasTitle ? "mt-1.5" : "mt-0",
       )}

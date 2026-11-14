@@ -77,11 +77,6 @@ export function TranscriptSearch({
           placeholder={t('searchPlaceholder')}
           aria-label={t('searchLabel')}
           leadingIcon={<Search className="size-3.5" aria-hidden="true" />}
-          clearable={query.length > 0}
-          onClear={() => {
-            setQuery('');
-            setActive(0);
-          }}
           className="min-w-32 flex-1"
         />
 

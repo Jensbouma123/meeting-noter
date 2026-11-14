@@ -29,6 +29,7 @@ export const ScrollView = forwardRef<HTMLDivElement, ScrollViewProps>(function S
     viewportClassName,
     onScroll,
     onScrollChange,
+    onKeyDown,
     label,
     "aria-label": ariaLabel,
     "aria-labelledby": ariaLabelledBy,
@@ -77,7 +78,7 @@ export const ScrollView = forwardRef<HTMLDivElement, ScrollViewProps>(function S
   const handleKeyDown = useScrollKeyboard({
     isHorizontal,
     viewportRef,
-    onKeyDown: props.onKeyDown,
+    onKeyDown,
     getScrollDelta,
     scrollByDelta,
     scrollToStart,
@@ -105,7 +106,7 @@ export const ScrollView = forwardRef<HTMLDivElement, ScrollViewProps>(function S
         onScroll={handleScroll}
         onKeyDown={handleKeyDown}
         className={cn(
-          "focus-ring relative w-full scroll-smooth overscroll-contain touch-pan-x",
+          "focus-ring relative w-full scroll-smooth overscroll-contain",
           isHorizontal ? "flex-row touch-pan-x" : "flex-col touch-pan-y",
           getScrollbarClasses(scrollbar, isHorizontal),
           getSnapClasses(snap, isHorizontal),

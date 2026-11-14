@@ -1,9 +1,12 @@
+import type { KeyboardEvent } from "react";
 import type { VirtualListItemRole, VirtualListRole } from "../VirtualList/index.js";
 import type { DataListItemRole, DataListMode, DataListRole, DataListSelectionMode, DataListTableColumn } from "./types.js";
 export declare const DEFAULT_PAGE_SIZE_OPTIONS: number[];
 export declare const DEFAULT_VIRTUAL_HEIGHT = 480;
 export declare const DEFAULT_ITEM_HEIGHT_LIST = 72;
 export declare const DEFAULT_ITEM_HEIGHT_GRID = 200;
+/** True when a keydown came from a control nested inside the container; that control keeps the key. */
+export declare function isFromNestedControl(event: KeyboardEvent<HTMLElement>): boolean;
 export declare function defaultKeyExtractor<T>(item: T, index: number): string | number;
 export declare function extractItemSearchString<T>(item: T, keys?: (keyof T | ((item: T) => string))[]): string;
 export declare function chunkArray<T>(array: readonly T[], size: number): T[][];

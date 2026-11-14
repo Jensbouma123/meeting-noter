@@ -12,6 +12,7 @@ import { IconCategoryChips, IconOptionButton, SelectedIconPreview } from "./Icon
 import { useIconGridKeyDown } from "./useIconGridKeyDown.js";
 import { useIconInputKeyDown } from "./useIconInputKeyDown.js";
 import { useIconPickerDismiss } from "./useIconPickerDismiss.js";
+import { useIconPopoverKeyDown } from "./useIconPopoverKeyDown.js";
 export function IconPicker({ value, onChange, variant = "grid", label = "Icon", className }) {
     if (variant === "dropdown") {
         return (_jsx(SearchableSelect, { label: label, options: getIconOptions(), value: value || null, onChange: onChange, placeholder: "Search icons\u2026", emptyMessage: "No icons match", className: className }));
@@ -50,7 +51,8 @@ function IconPickerGrid({ value, onChange, className }) {
     };
     const handleInputKeyDown = useIconInputKeyDown(open, setOpen, gridRef, rovingIndex);
     const handleGridKeyDown = useIconGridKeyDown(gridRef, filtered, setActiveIndex, commit, closeAndFocusTrigger);
-    return (_jsxs(VStack, { ref: containerRef, spacing: "none", className: cn("relative w-full", className), children: [_jsx(Input, { ref: inputRef, role: "combobox", "aria-controls": open ? listId : undefined, "aria-expanded": open, "aria-haspopup": "listbox", "aria-label": "Search icons", placeholder: "Search icons\u2026", value: query, onFocus: () => {
+    const handlePopoverKeyDown = useIconPopoverKeyDown(closeAndFocusTrigger);
+    return (_jsxs(VStack, { ref: containerRef, spacing: "none", className: cn("relative w-full", className), children: [_jsx(Input, { ref: inputRef, type: "search", role: "combobox", "aria-controls": open ? listId : undefined, "aria-expanded": open, "aria-haspopup": "listbox", "aria-label": "Search icons", placeholder: "Search icons\u2026", value: query, onFocus: () => {
                     if (suppressOpenOnFocusRef.current) {
                         suppressOpenOnFocusRef.current = false;
                         return;
@@ -61,7 +63,7 @@ function IconPickerGrid({ value, onChange, className }) {
                     setActiveIndex(0);
                     if (!open)
                         setOpen(true);
-                }, onKeyDown: handleInputKeyDown, leadingIcon: _jsx(SelectedIconPreview, { name: value }), size: "sm" }), open && (_jsxs(VStack, { spacing: "md", inset: "md", className: "absolute top-full z-50 mt-1.5 w-full rounded-xl border border-border bg-surface shadow-lg", children: [_jsx(IconCategoryChips, { category: category, onSelect: (option) => {
+                }, onKeyDown: handleInputKeyDown, leadingIcon: _jsx(SelectedIconPreview, { name: value }), size: "sm" }), open && (_jsxs(VStack, { spacing: "md", inset: "md", className: "absolute top-full z-50 mt-1 w-full rounded-xl border border-border bg-surface shadow-lg", onKeyDown: handlePopoverKeyDown, children: [_jsx(IconCategoryChips, { category: category, onSelect: (option) => {
                             setCategory(option);
                             setActiveIndex(0);
                         } }), _jsxs(Grid, { ref: gridRef, id: listId, role: "listbox", "aria-label": "Icon picker", onKeyDown: handleGridKeyDown, columns: { base: 6, sm: 8 }, spacing: "xs", inset: "sm", className: "max-h-64 overflow-y-auto rounded-lg border border-border bg-background", children: [filtered.map((entry, index) => (_jsx(IconOptionButton, { name: entry.name, selected: value === entry.name, tabIndex: index === rovingIndex ? 0 : -1, onFocus: () => setActiveIndex(index), onClick: () => {

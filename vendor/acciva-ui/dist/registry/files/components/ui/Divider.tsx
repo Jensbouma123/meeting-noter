@@ -39,8 +39,14 @@ const INSET_MARGIN: Record<DividerOrientation, Record<Spacing, string>> = {
  * so the rule is exactly one `bg-border` pixel and never a doubled edge.
  */
 const ORIENTATION_CLASS: Record<DividerOrientation, string> = {
-  horizontal: "h-px w-full border-0",
-  vertical: "w-px h-full self-stretch border-0",
+  horizontal: "h-px border-0",
+  vertical: "w-px self-stretch border-0",
+};
+
+/** Full extent when flush; `auto` when inset, so the margins subtract from the parent instead of overflowing it. */
+const EXTENT_CLASS: Record<DividerOrientation, { flush: string; inset: string }> = {
+  horizontal: { flush: "w-full", inset: "w-auto" },
+  vertical: { flush: "h-full", inset: "h-auto" },
 };
 
 const ARIA_ORIENTATION: Record<DividerOrientation, "horizontal" | "vertical"> = {
@@ -76,6 +82,7 @@ export const Divider = forwardRef<HTMLHRElement, DividerProps>(function Divider(
       className={cn(
         "bg-border",
         ORIENTATION_CLASS[orientation],
+        EXTENT_CLASS[orientation][inset === "none" ? "flush" : "inset"],
         INSET_MARGIN[orientation][inset],
         className,
       )}

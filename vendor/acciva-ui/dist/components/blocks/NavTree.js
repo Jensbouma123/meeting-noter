@@ -1,28 +1,24 @@
 "use client";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import Link from "next/link";
 import { forwardRef, useEffect, useRef, useState } from "react";
 import { ArrowHint } from "../../lib/ArrowHint.js";
-import { ListItem } from "../ui/ListItem.js";
+import { useRovingFocus } from "../ui/_internal/useRovingFocus.js";
 import { VStack } from "../ui/VStack.js";
 import { useArrowHint } from "../../lib/use-arrow-hint.js";
+import { NavTreeFlatList, NavTreeSectionBlock } from "./NavTree/NavTreeFlat.js";
 import { NavTreeGroupBlock } from "./NavTree/NavTreeParts.js";
 import { groupContainsHref } from "./NavTree/navTreeHelpers.js";
-export const NavTree = forwardRef(function NavTree({ groups, items, activeHref, forceExpandAll, ariaLabel, "aria-label": ariaLabelAttr, "aria-describedby": ariaDescribedByAttr, arrowHint }, ref) {
+export const NavTree = forwardRef(function NavTree({ groups, items, sections, activeHref, forceExpandAll, ariaLabel, "aria-label": ariaLabelAttr, "aria-describedby": ariaDescribedByAttr, arrowHint }, ref) {
     const hint = useArrowHint("nav-tree", arrowHint, "Use arrow keys to move between links");
     const ariaDescribedBy = hint.describedBy(ariaDescribedByAttr);
     const navRef = useRef(null);
     // Up/Down hop between visible links and group toggles; Tab order is untouched (no roving tabindex).
-    const handleArrows = (event) => {
-        if (event.key !== "ArrowDown" && event.key !== "ArrowUp")
-            return;
-        const stops = Array.from(navRef.current?.querySelectorAll("a[href], button") ?? []).filter((el) => !el.closest("[hidden]"));
-        const at = stops.indexOf(document.activeElement);
-        if (at === -1)
-            return;
-        event.preventDefault();
-        stops[at + (event.key === "ArrowDown" ? 1 : -1)]?.focus();
-    };
+    const handleArrows = useRovingFocus({
+        containerRef: navRef,
+        itemSelector: "a[href]:not([hidden] *), button:not([hidden] *)",
+        orientation: "vertical",
+        wrap: false,
+    });
     const navProps = {
         ref: (node) => {
             navRef.current = node;
@@ -36,16 +32,13 @@ export const NavTree = forwardRef(function NavTree({ groups, items, activeHref, 
     };
     const accessibleName = ariaLabelAttr ?? ariaLabel;
     const groupList = groups ?? [];
-    const [expandedGroups, setExpandedGroups] = useState(() => {
-        const active = groupList.find((group) => groupContainsHref(group, activeHref));
-        return active ? new Set([active.label]) : new Set();
-    });
+    // Keyed by the label string, so a group that loads after mount still re-syncs, while
+    // an unchanged active group does not re-run on every groups re-render.
+    const activeGroupLabel = groupList.find((group) => groupContainsHref(group, activeHref))?.label;
+    const [expandedGroups, setExpandedGroups] = useState(() => new Set(activeGroupLabel ? [activeGroupLabel] : []));
     useEffect(() => {
-        const active = groupList.find((group) => groupContainsHref(group, activeHref));
-        setExpandedGroups(active ? new Set([active.label]) : new Set());
-        // Re-sync only when the active target changes, not on every groups re-render.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [activeHref]);
+        setExpandedGroups(new Set(activeGroupLabel ? [activeGroupLabel] : []));
+    }, [activeHref, activeGroupLabel]);
     const toggleGroup = (label) => {
         setExpandedGroups((prev) => {
             const next = new Set(prev);
@@ -57,10 +50,10 @@ export const NavTree = forwardRef(function NavTree({ groups, items, activeHref, 
         });
     };
     if (items) {
-        return (_jsxs(VStack, { as: "nav", ...navProps, "aria-label": accessibleName, "aria-describedby": ariaDescribedBy, spacing: "md", className: "relative", children: [_jsx(VStack, { as: "ul", spacing: "xs", children: items.map((item) => {
-                        const active = item.href === activeHref;
-                        return (_jsx("li", { children: _jsx(ListItem, { asChild: true, title: item.label, selected: active, children: _jsx(Link, { href: item.href, children: item.label }) }) }, item.href));
-                    }) }), _jsx(ArrowHint, { id: hint.id, text: hint.text, visible: hint.visible })] }));
+        return (_jsxs(VStack, { as: "nav", ...navProps, "aria-label": accessibleName, "aria-describedby": ariaDescribedBy, spacing: "md", className: "relative", children: [_jsx(NavTreeFlatList, { items: items, activeHref: activeHref }), _jsx(ArrowHint, { id: hint.id, text: hint.text, visible: hint.visible })] }));
+    }
+    if (sections) {
+        return (_jsxs(VStack, { as: "nav", ...navProps, "aria-label": accessibleName, "aria-describedby": ariaDescribedBy, spacing: "md", className: "relative", children: [sections.map((section) => (_jsx(NavTreeSectionBlock, { section: section, activeHref: activeHref }, section.heading))), _jsx(ArrowHint, { id: hint.id, text: hint.text, visible: hint.visible })] }));
     }
     return (
     // Separation grows outward, never inward: rows within a list clear each other by

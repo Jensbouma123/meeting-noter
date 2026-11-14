@@ -1,4 +1,4 @@
-import type { RefObject } from "react";
+import { type RefObject } from "react";
 import { type VirtualListHandle } from "../VirtualList/index.js";
 import type { DataListProps } from "./DataListProps.js";
 import type { DataListView } from "./useDataListView.js";

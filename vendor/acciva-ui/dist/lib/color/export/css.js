@@ -1,4 +1,5 @@
-import { applyOverrides, flattenDocument } from "./resolve/index.js";
+import { flattenDocument } from "./resolve/index.js";
+import { pinOverrideHex, withTokenOverrides } from "./doc-overrides.js";
 const DARK_SELECTOR = 'html[data-theme="dark"]';
 const SYSTEM_DARK_SELECTOR = 'html:not([data-theme="light"])';
 /**
@@ -12,8 +13,11 @@ function declarations(tokens, indent) {
         .join("\n");
 }
 export function exportCssVariables(doc, overrides) {
-    const flattened = flattenDocument(doc);
-    const { primitive, light, dark } = applyOverrides(flattened, overrides ?? { light: {}, dark: {} });
+    const applied = overrides ?? { light: {}, dark: {} };
+    const flat = flattenDocument(withTokenOverrides(doc, applied));
+    const primitive = flat.primitive;
+    const light = pinOverrideHex(flat.light, applied.light);
+    const dark = pinOverrideHex(flat.dark, applied.dark);
     return [
         ":root {",
         declarations(primitive, "  "),

@@ -1,4 +1,4 @@
-import { FileText, GitBranch } from "lucide-react";
+import { AlignLeft, GitBranch } from "lucide-react";
 import { Badge } from "@/components/ui/Badge/index";
 import { HStack } from "@/components/ui/HStack";
 import { StatusRail } from "@/components/ui/StatusRail";
@@ -100,7 +100,7 @@ export function KanbanCardBody({
           )}
           {hasDescription && (
             <span className="inline-flex shrink-0">
-              <FileText aria-hidden="true" className="size-3.5" />
+              <AlignLeft aria-hidden="true" className="size-3.5" />
               <span className="sr-only">Has description</span>
             </span>
           )}

@@ -61,18 +61,21 @@ export function DataTable<T>({
         <Heading level={2} size="md" weight="semibold" id={listLabelId}>
           {caption}
         </Heading>
-        <HStack spacing="sm" className="w-full sm:w-72">
+        <HStack spacing="sm" className="w-full sm:w-auto">
           {toolbar}
           {searchable ? (
-            <Input
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={searchPlaceholder}
-              leadingIcon={<Search />}
-              aria-label={`Search ${caption}`}
-              aria-describedby={statusId}
-            />
+            // The 288px cap belongs to the search box alone, not to the toolbar beside it.
+            <div className="w-full sm:w-72">
+              <Input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={searchPlaceholder}
+                leadingIcon={<Search />}
+                aria-label={`Search ${caption}`}
+                aria-describedby={statusId}
+              />
+            </div>
           ) : null}
         </HStack>
       </Stack>

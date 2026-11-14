@@ -6,13 +6,14 @@ import { cn } from "../../../lib/utils.js";
 import { VStack } from "../VStack.js";
 import { useRadioGroupContext } from "./context.js";
 import { RadioCircle } from "./RadioGroupParts.js";
+import { SegmentedRadio } from "./SegmentedRadio.js";
 export const Radio = forwardRef(function Radio({ value, label, description, disabled = false, variant, card = false, id, className, ...props }, ref) {
     const resolvedVariant = variant ?? (card ? "card" : "default");
     const generatedId = useId();
     const radioId = id ?? generatedId;
     const labelId = `${radioId}-label`;
     const descriptionId = description ? `${radioId}-desc` : undefined;
-    const { value: groupValue, onChange, size, disabled: groupDisabled } = useRadioGroupContext("Radio");
+    const { value: groupValue, onChange, size, disabled: groupDisabled, variant: groupVariant } = useRadioGroupContext("Radio");
     const isChecked = groupValue === value;
     const isEffectiveDisabled = groupDisabled || disabled;
     const baseSize = typeof size === "string" ? size : size.base;
@@ -21,6 +22,9 @@ export const Radio = forwardRef(function Radio({ value, label, description, disa
             return;
         onChange(value);
     }, [isEffectiveDisabled, onChange, value]);
+    if (groupVariant === "segmented") {
+        return _jsx(SegmentedRadio, { ref: ref, id: radioId, label: label, checked: isChecked, disabled: isEffectiveDisabled, onClick: handleClick, className: className, ...props });
+    }
     if (resolvedVariant === "card") {
         return (_jsxs("button", { ref: ref, id: radioId, type: "button", role: "radio", "aria-checked": isChecked, "aria-disabled": isEffectiveDisabled || undefined, "aria-labelledby": label ? labelId : undefined, "aria-describedby": descriptionId, tabIndex: isChecked ? 0 : -1, disabled: isEffectiveDisabled, onClick: handleClick, className: cn("focus-ring relative flex w-full items-start text-left border bg-surface transition-all motion-feedback active:scale-99", resolveResponsive(size, CONTROL_RADIUS), resolveResponsive(size, CONTROL_GAP), isChecked
                 ? "border-primary-500 bg-primary-500/5 ring-1 ring-primary-500/20 dark:bg-primary-500/10"

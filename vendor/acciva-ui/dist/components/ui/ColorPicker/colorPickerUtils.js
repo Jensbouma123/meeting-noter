@@ -49,9 +49,10 @@ export function resolveSwatches(swatches) {
         return [{ rgba, label: entry.label ?? serialized }];
     });
 }
+/** Tracks a pointer drag over `window`; returns the stop function so the owner can end it on unmount. */
 export function trackDrag(event, element, onPoint) {
     if (!element || event.button !== 0)
-        return;
+        return undefined;
     event.preventDefault();
     const update = (clientX, clientY) => {
         const rect = element.getBoundingClientRect();
@@ -67,6 +68,7 @@ export function trackDrag(event, element, onPoint) {
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", stop);
     window.addEventListener("pointercancel", stop);
+    return stop;
 }
 export function stepFor(event) {
     return event.shiftKey ? LARGE_STEP : 1;

@@ -41,6 +41,7 @@ export function FilterBar({
         <Stack direction={{ base: "vertical", sm: "horizontal" }} spacing="sm">
           <div className="flex-1">
             <Input
+              type="search"
               placeholder="Search…"
               value={searchValue}
               onChange={(event) => onSearchChange(event.target.value)}
@@ -56,7 +57,7 @@ export function FilterBar({
               aria-expanded={expanded}
               aria-controls={mobileFilterId}
             >
-              <SlidersHorizontal className="size-4" />
+              <SlidersHorizontal aria-hidden="true" className="size-4" />
               Filters
             </Button>
             <div className="hidden w-48 sm:block">
@@ -64,7 +65,7 @@ export function FilterBar({
             </div>
             {onOpenFilters ? (
               <Button variant="outline" size="md" className="hidden sm:inline-flex" onClick={onOpenFilters}>
-                <SlidersHorizontal className="size-4" />
+                <SlidersHorizontal aria-hidden="true" className="size-4" />
                 More filters
               </Button>
             ) : null}

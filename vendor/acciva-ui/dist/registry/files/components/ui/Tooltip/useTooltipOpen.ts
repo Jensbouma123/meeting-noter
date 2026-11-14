@@ -45,6 +45,8 @@ export function useTooltipOpen(
 
   const show = () => {
     if (leaveRef.current) clearTimeout(leaveRef.current);
+    // Replace any pending reveal: an orphaned timer would still open the tooltip after hide().
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     const reveal = () => {
       // A trigger whose menu/popup is open (or just closing and returning focus) keeps the tooltip hidden
       // until hover/focus is renewed, so it never sits over the popup (SC 1.4.13).

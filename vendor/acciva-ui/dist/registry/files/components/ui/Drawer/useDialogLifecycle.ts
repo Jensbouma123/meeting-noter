@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, type RefObject } from "react";
 import { pickInitialFocus } from "@/lib/initial-focus";
+import { resolveOpener } from "@/lib/opener";
 import { focusOnOpen, isKeyboardModality, keptFocus } from "@/lib/quiet-focus";
 import { FOCUSABLE_SELECTOR } from "@/components/ui/Drawer/constants";
 
@@ -36,7 +37,8 @@ export function useDialogLifecycle(
     }
     // Focus already inside (React `autoFocus` committed first) stays put: `showModal()` may move it.
     const kept = keptFocus(dialog);
-    if (!dialog.contains(document.activeElement)) previouslyFocused.current = document.activeElement as HTMLElement | null;
+    // WebKit leaves `<body>` focused after a click: resolveOpener uses the pressed control (SC 2.4.3).
+    if (!dialog.contains(document.activeElement)) previouslyFocused.current = resolveOpener(null, dialog);
     if (!dialog.open) dialog.showModal();
     // Off the keyboard the container itself takes focus unless an explicit autofocus target exists.
     const pointer = !isKeyboardModality();

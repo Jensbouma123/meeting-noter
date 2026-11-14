@@ -1,3 +1,6 @@
 import type { PasswordStrength } from "./types.js";
-export declare function CapsLockNotice(): import("react").JSX.Element;
+/** Always mounted so screen readers catch the text when it appears; collapsed while inactive. */
+export declare function CapsLockNotice({ active }: {
+    active: boolean;
+}): import("react").JSX.Element;
 export declare function StrengthMeter({ score, label }: Pick<PasswordStrength, "score" | "label">): import("react").JSX.Element;

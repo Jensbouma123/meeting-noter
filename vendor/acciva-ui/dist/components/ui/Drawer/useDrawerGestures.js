@@ -19,7 +19,9 @@ export function useDrawerGestures(props, open, isPersistent, isVertical, resolve
     const showSwipeGrabber = swipeToDismiss && !draggable;
     const coarsePointer = useMediaMatch(COARSE_POINTER_QUERY, open && swipeToDismiss);
     const swipeGestureEnabled = showSwipeGrabber && coarsePointer;
-    const detentControl = useDetentControl(controlledDetent, uncontrolledDetent, setUncontrolledDetent, detentSizes, resolvedSide, dragEnabled, onSnapChange, setSettled);
+    const detentControl = useDetentControl(controlledDetent, uncontrolledDetent, setUncontrolledDetent, detentSizes, 
+    // A docked persistent drawer sits on the right edge, so its keys follow that layout.
+    docked ? "right" : resolvedSide, dragEnabled, onSnapChange, setSettled);
     const [detent, detentOrder, detentIndex, restSize, commitDetent] = detentControl;
     const drag = useDragResize(dragEnabled, isVertical, resolvedSide, restSize, detentSizes, detentOrder, detentIndex, commitDetent, setSettled, setDragSize, requestClose, dragStateRef);
     const swipe = useSwipeDismiss(swipeGestureEnabled, isVertical, resolvedSide, restSize, detentSizes, requestClose, dragStateRef);

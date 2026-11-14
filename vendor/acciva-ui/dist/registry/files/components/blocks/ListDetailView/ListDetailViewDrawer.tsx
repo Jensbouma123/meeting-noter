@@ -49,9 +49,9 @@ export function ListDetailDrawer<T>({ currentItem, detailTitle, renderDetail, on
             </Button>
           </HStack>
           <div
-            className="flex-1 overflow-auto"
             tabIndex={0}
             role="region"
+            className="focus-ring flex-1 overflow-auto"
             aria-label="Detail content"
           >
             {renderDetail(currentItem, () => onClose())}

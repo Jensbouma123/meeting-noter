@@ -9,19 +9,23 @@ export function resolveOptions(options) {
             }
             return [];
         }
-        const rounded = {
-            r: Math.round(rgba.r),
-            g: Math.round(rgba.g),
-            b: Math.round(rgba.b),
-            a: Math.round(rgba.a * 100) / 100,
-        };
+        const rounded = roundRgba(rgba);
         const hex = rgbaToHex(rounded);
         return [{ key: `${hex}-${index}`, hex, rgba: rounded, label: entry.label ?? hex }];
     });
+}
+/** Same rounding as the option hex, so a translucent value matches its swatch. */
+function roundRgba(rgba) {
+    return {
+        r: Math.round(rgba.r),
+        g: Math.round(rgba.g),
+        b: Math.round(rgba.b),
+        a: Math.round(rgba.a * 100) / 100,
+    };
 }
 export function selectionHex(value) {
     if (value === undefined || value === null)
         return null;
     const rgba = parseColor(value);
-    return rgba ? rgbaToHex(rgba) : null;
+    return rgba ? rgbaToHex(roundRgba(rgba)) : null;
 }

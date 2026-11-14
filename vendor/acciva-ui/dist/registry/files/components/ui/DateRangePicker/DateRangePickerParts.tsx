@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import { Calendar as CalendarIcon, X } from "lucide-react";
 import {
   CONTROL_HEIGHT,
@@ -55,7 +55,13 @@ export function RangeTrigger({
   displayString,
   showClear,
 }: RangeTriggerProps) {
-  const { isOpen, hasSelection, handleClear, handleTriggerClick, handleTriggerKeyDown } = ui;
+  const { isOpen, hasSelection, handleClear, handleTriggerClick, handleTriggerKeyDown, triggerRef } = ui;
+
+  // The inline X unmounts once cleared; move focus to the trigger first so it isn't lost to <body>.
+  const handleInlineClear = (event: MouseEvent<HTMLButtonElement>) => {
+    handleClear(event);
+    triggerRef.current?.focus({ preventScroll: true });
+  };
 
   return (
     <>
@@ -107,19 +113,26 @@ export function RangeTrigger({
       </button>
 
       {showClear ? (
-        <button
-          type="button"
-          tabIndex={-1}
-          aria-label="Clear date range"
-          onClick={handleClear}
+        <span
           className={cn(
-            "focus-ring absolute top-1/2 -translate-y-1/2 flex items-center justify-center rounded text-muted-foreground transition-colors hover:bg-elevation-2 hover:text-foreground active:scale-95 dark:hover:bg-elevation-3",
+            "absolute top-1/2 -translate-y-1/2 flex items-center justify-center",
             resolveResponsive(size, INPUT_ICON_INSET_TRAILING),
-            resolveResponsive(size, ICON_SCALE_CLASS),
           )}
         >
-          <X className="size-3.5" />
-        </button>
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-label="Clear date range"
+            onClick={handleInlineClear}
+            className={cn(
+              "focus-ring size-6 flex items-center justify-center rounded text-muted-foreground transition-colors hover:bg-elevation-2 hover:text-foreground active:scale-95 dark:hover:bg-elevation-3",
+              resolveResponsive(size, ICON_SCALE_CLASS),
+              "touch-target-44",
+            )}
+          >
+            <X className="size-3.5" />
+          </button>
+        </span>
       ) : null}
     </>
   );

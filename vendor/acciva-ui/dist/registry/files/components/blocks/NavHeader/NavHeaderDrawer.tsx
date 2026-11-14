@@ -5,10 +5,11 @@ import type { ReactNode } from "react";
 import { Drawer } from "@/components/ui/Drawer/index";
 import { HStack } from "@/components/ui/HStack";
 import { Logo } from "@/components/ui/Logo/index";
+import { NavTree } from "@/components/blocks/NavTree";
 import { VStack } from "@/components/ui/VStack";
 import { SURFACE_RADIUS } from "@/lib/surface-tokens";
 import { cn } from "@/lib/utils";
-import { DRAWER_WIDTH_PX, navRowClass, resolveNavLinkActive, type NavSearchItem, type PrimaryNavLink } from "@/components/blocks/NavHeader/NavHeaderData";
+import { DRAWER_WIDTH_PX, resolveNavLinkActive, type NavSearchItem, type PrimaryNavLink } from "@/components/blocks/NavHeader/NavHeaderData";
 import { NavHeaderDrawerDocs } from "@/components/blocks/NavHeader/NavHeaderDrawerDocs";
 import { NavHeaderDrawerFooter } from "@/components/blocks/NavHeader/NavHeaderDrawerFooter";
 
@@ -71,44 +72,29 @@ export function NavHeaderDrawer({
               SURFACE_RADIUS.control,
             )}
           >
-            <X className="size-5" />
+            <X aria-hidden="true" className="size-5" />
           </button>
         </HStack>
 
-        <VStack as="nav" aria-label="Mobile Navigation" spacing="xl">
-          {navLinks.length > 0 ? (
-          <VStack as="ul" spacing="xs">
-            {navLinks.map((link) => {
-              const active = resolveNavLinkActive(link, pathname);
-              const Icon = link.icon;
-              return (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    onClick={closeMenu}
-                    aria-current={active ? "page" : undefined}
-                    className={navRowClass(active, "gap-3 text-base font-medium")}
-                  >
-                    {Icon ? (
-                    <Icon
-                      className={cn(
-                        "size-5 shrink-0",
-                        active ? "text-primary-600 dark:text-primary-400" : "text-muted-foreground",
-                      )}
-                    />
-                    ) : null}
-                    <span className="truncate">{link.label}</span>
-                  </Link>
-                </li>
-              );
-            })}
-          </VStack>
-          ) : null}
+        {/* Closes on any link activation (SC 3.2.2: navigating is the expected result). */}
+        <div onClickCapture={(event) => { if ((event.target as Element).closest("a")) closeMenu(); }}>
+          <VStack spacing="xl">
+            {navLinks.length > 0 ? (
+              <NavTree
+                aria-label="Mobile Navigation"
+                arrowHint={false}
+                activeHref={navLinks.find((link) => resolveNavLinkActive(link, pathname))?.href}
+                items={navLinks.map(({ href, label, icon: Icon }) => ({
+                  href,
+                  label,
+                  icon: Icon ? <Icon className="size-5" /> : undefined,
+                }))}
+              />
+            ) : null}
 
-          {searchItems.length > 0 ? (
-            <NavHeaderDrawerDocs items={searchItems} closeMenu={closeMenu} />
-          ) : null}
-        </VStack>
+            {searchItems.length > 0 ? <NavHeaderDrawerDocs items={searchItems} closeMenu={closeMenu} /> : null}
+          </VStack>
+        </div>
 
         <NavHeaderDrawerFooter themeToggle={themeToggle} />
       </VStack>

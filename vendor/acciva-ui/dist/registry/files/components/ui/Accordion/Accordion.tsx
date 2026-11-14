@@ -59,6 +59,7 @@ export const Accordion = forwardRef<HTMLDivElement, AccordionProps>(function Acc
         onKeyDown={handleKeyDown}
         className={cn(ROOT_CHROME[variant], className)}
         {...props}
+        data-accordion-root="true"
       >
         {children}
       </div>

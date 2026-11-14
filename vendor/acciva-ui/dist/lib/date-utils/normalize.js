@@ -1,5 +1,5 @@
 export function normalizeDate(input) {
-    if (!input)
+    if (input === null || input === undefined || input === "")
         return null;
     if (input instanceof Date)
         return Number.isNaN(input.getTime()) ? null : input;

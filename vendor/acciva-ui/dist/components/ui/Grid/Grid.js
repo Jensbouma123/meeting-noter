@@ -1,6 +1,7 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 import { forwardRef } from "react";
 import { cn } from "../../../lib/utils.js";
+import { autoFitTemplate } from "./gridAutoFit.js";
 import { INSET_PADDING, SPACING_GAP, } from "../Stack/index.js";
 /**
  * Widest column count `columns` accepts. Seven is the floor a calendar needs — a
@@ -60,17 +61,7 @@ const SIZE_TO_COL_XL = {
     7: "xl:grid-cols-7",
     8: "xl:grid-cols-8",
 };
-const clampColumns = (count) => Math.min(Math.max(count, 1), MAX_COLUMNS);
-const SIZE_TO_MIN_WIDTH = {
-    xxs: "min-w-12",
-    xs: "min-w-16",
-    sm: "min-w-20",
-    md: "min-w-24",
-    lg: "min-w-32",
-    xl: "min-w-40",
-    "2xl": "min-w-48",
-    "3xl": "min-w-56",
-};
+const clampColumns = (count) => Math.min(Math.max(Math.trunc(count) || 1, 1), MAX_COLUMNS);
 const ALIGN_MAP = {
     leading: "items-start",
     center: "items-center",
@@ -78,16 +69,19 @@ const ALIGN_MAP = {
     stretch: "items-stretch",
     baseline: "items-baseline",
 };
-export const Grid = forwardRef(function Grid({ columns = 1, spacing = "md", align = "stretch", minItemWidth, inset = "none", className, children, ...props }, ref) {
+export const Grid = forwardRef(function Grid({ columns = 1, spacing = "md", align = "stretch", minItemWidth, inset = "none", className, style, children, ...props }, ref) {
     const isResponsive = typeof columns === "object";
     const baseCols = isResponsive ? (columns.base ?? 1) : columns;
-    const columnClasses = [
-        SIZE_TO_COL[clampColumns(baseCols)],
-        isResponsive && columns.sm ? SIZE_TO_COL_SM[clampColumns(columns.sm)] : undefined,
-        isResponsive && columns.md ? SIZE_TO_COL_MD[clampColumns(columns.md)] : undefined,
-        isResponsive && columns.lg ? SIZE_TO_COL_LG[clampColumns(columns.lg)] : undefined,
-        isResponsive && columns.xl ? SIZE_TO_COL_XL[clampColumns(columns.xl)] : undefined,
-    ].filter((c) => c !== undefined);
-    const autoFitClass = minItemWidth ? SIZE_TO_MIN_WIDTH[minItemWidth] : undefined;
-    return (_jsx("div", { ref: ref, className: cn("grid", SPACING_GAP[spacing], ALIGN_MAP[align], INSET_PADDING[inset], ...columnClasses, autoFitClass, className), ...props, children: children }));
+    // `minItemWidth` owns the track list: auto-fit replaces the fixed column counts.
+    const columnClasses = minItemWidth
+        ? []
+        : [
+            SIZE_TO_COL[clampColumns(baseCols)],
+            isResponsive && columns.sm !== undefined ? SIZE_TO_COL_SM[clampColumns(columns.sm)] : undefined,
+            isResponsive && columns.md !== undefined ? SIZE_TO_COL_MD[clampColumns(columns.md)] : undefined,
+            isResponsive && columns.lg !== undefined ? SIZE_TO_COL_LG[clampColumns(columns.lg)] : undefined,
+            isResponsive && columns.xl !== undefined ? SIZE_TO_COL_XL[clampColumns(columns.xl)] : undefined,
+        ].filter((c) => c !== undefined);
+    const autoFitStyle = minItemWidth ? { gridTemplateColumns: autoFitTemplate(minItemWidth) } : undefined;
+    return (_jsx("div", { ref: ref, className: cn("grid", SPACING_GAP[spacing], ALIGN_MAP[align], INSET_PADDING[inset], ...columnClasses, className), style: autoFitStyle || style ? { ...autoFitStyle, ...style } : undefined, ...props, children: children }));
 });

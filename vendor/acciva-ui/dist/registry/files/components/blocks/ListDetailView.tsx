@@ -25,7 +25,7 @@ export function ListDetailView<T>({
   onSelectItem,
   renderDetail,
   detailTitle,
-  searchable,
+  searchable = false,
   searchPlaceholder,
   height,
   rowHeight = 60,
@@ -47,8 +47,9 @@ export function ListDetailView<T>({
     }
   };
 
-  const isSelectedItem = (item: T, index: number) =>
-    currentItem !== null && currentItem !== undefined && getItemKey(currentItem, -1) === getItemKey(item, index);
+  // Key the selected item at its own position: index-aware keys would otherwise compare `-1` against `0..n`.
+  const selectedKey = currentItem == null ? null : getItemKey(currentItem, items.indexOf(currentItem));
+  const isSelectedItem = (item: T, index: number) => selectedKey !== null && selectedKey === getItemKey(item, index);
 
   const isTableMode = mode === "table" && columns.length > 0;
 

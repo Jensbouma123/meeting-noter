@@ -5,6 +5,10 @@ interface DataListKeyboardNav<T> {
     activeColumns: number;
     activeIndex: number;
     setActiveIndex: Dispatch<SetStateAction<number>>;
+    /** First index the keyboard may reach: the current page in `paginated`, else 0. */
+    windowStart: number;
+    /** Exclusive end of that window. */
+    windowEnd: number;
     handleToggleItemSelection: (item: T, index: number) => void;
     handleReorderMove: (from: number, to: number) => void;
 }
