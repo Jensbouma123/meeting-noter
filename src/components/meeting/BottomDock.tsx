@@ -28,7 +28,7 @@ export function BottomDock({
   onMicDeviceChange = () => {},
 }: BottomDockProps) {
   const t = useT('dock');
-  const dockRef = useRef<HTMLElement>(null);
+  const dockRef = useRef<HTMLDivElement>(null);
   useReleaseOnUnmount();
 
   const isLive = status === 'live';
@@ -62,9 +62,10 @@ export function BottomDock({
   const elapsedSeconds = useElapsedSeconds(isLive, isRecordingActive);
 
   return (
-    <nav
+    <div
       ref={dockRef}
       className="absolute bottom-[calc(1.25rem+env(safe-area-inset-bottom))] left-1/2 z-40 w-max max-w-[calc(100%-32px)] -translate-x-1/2 select-none sm:bottom-6"
+      role="group"
       aria-label={t('recordingControls')}
     >
       <span role="status" className="sr-only">
@@ -104,6 +105,6 @@ export function BottomDock({
           />
         </div>
       </TooltipGroup>
-    </nav>
+    </div>
   );
 }

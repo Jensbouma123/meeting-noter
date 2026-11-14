@@ -20,7 +20,7 @@ describe('dock states', () => {
     expect(screen.queryByRole('button', { name: /^Opname stoppen/ })).toBeNull();
     fireEvent.click(record);
     expect(h.onStart).toHaveBeenCalledOnce();
-    expect(screen.getAllByRole('tab').every((tab) => !(tab as HTMLButtonElement).disabled)).toBe(true);
+    expect(screen.getAllByRole('radio').every((radio) => !(radio as HTMLButtonElement).disabled)).toBe(true);
   });
 
   it('without a model: the primary action offers the download', () => {
@@ -41,7 +41,7 @@ describe('dock states', () => {
     expect(h.onStop).toHaveBeenCalledOnce();
     fireEvent.click(screen.getByRole('button', { name: 'Pauzeren' }));
     expect(h.onPause).toHaveBeenCalledOnce();
-    expect(screen.getAllByRole('tab').every((tab) => (tab as HTMLButtonElement).disabled)).toBe(true);
+    expect(screen.getAllByRole('radio').every((radio) => (radio as HTMLButtonElement).disabled)).toBe(true);
     expect(screen.getByRole('button', { name: 'Microfoon kiezen' })).toBeDisabled();
   });
 
@@ -65,7 +65,7 @@ describe('dock states', () => {
       fireEvent.click(finishing);
       expect(h.onStart).not.toHaveBeenCalled();
       expect(h.onStop).not.toHaveBeenCalled();
-      expect(screen.getAllByRole('tab').every((tab) => (tab as HTMLButtonElement).disabled)).toBe(true);
+      expect(screen.getAllByRole('radio').every((radio) => (radio as HTMLButtonElement).disabled)).toBe(true);
     } finally {
       flush.endLiveFlush();
     }

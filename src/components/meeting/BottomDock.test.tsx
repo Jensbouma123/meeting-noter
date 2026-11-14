@@ -31,16 +31,16 @@ describe('recording clock', () => {
 });
 
 describe('capture mode toggle', () => {
-  it('offers exactly Mic and Mic + gesprek', () => {
+  it('offers exactly Mic and Mic + gesprek as radio options', () => {
     renderDock('both');
-    const tabs = screen.getAllByRole('tab');
-    expect(tabs.map((t) => t.textContent)).toEqual(['Mic', 'Mic + gesprek']);
-    expect(tabs.map((t) => t.getAttribute('aria-selected'))).toEqual(['false', 'true']);
+    const options = screen.getAllByRole('radio');
+    expect(options.map((option) => option.textContent)).toEqual(['Mic', 'Mic + gesprek']);
+    expect(options.map((option) => option.getAttribute('aria-checked'))).toEqual(['false', 'true']);
   });
 
   it('shows a tooltip on hover and on keyboard focus', async () => {
     renderDock('both');
-    const [mic, both] = screen.getAllByRole('tab');
+    const [mic, both] = screen.getAllByRole('radio');
     fireEvent.mouseEnter(mic);
     expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent('Neemt alleen je microfoon op.');
     fireEvent.mouseLeave(mic);
@@ -51,13 +51,13 @@ describe('capture mode toggle', () => {
 
   it('shows exactly one tooltip per option on hover, also while recording', () => {
     const { rerender } = renderDockWithStatus('idle', 'both');
-    const [mic] = screen.getAllByRole('tab');
+    const [mic] = screen.getAllByRole('radio');
     fireEvent.mouseEnter(mic);
     expect(screen.getAllByRole('tooltip', { hidden: true })).toHaveLength(1);
     fireEvent.mouseLeave(mic);
 
     rerender(dockElement('live', 'both'));
-    const [liveMic] = screen.getAllByRole('tab');
+    const [liveMic] = screen.getAllByRole('radio');
     fireEvent.mouseEnter(liveMic);
     const tooltips = screen.getAllByRole('tooltip', { hidden: true });
     expect(tooltips).toHaveLength(1);
@@ -67,7 +67,16 @@ describe('capture mode toggle', () => {
   it('still reports the selection', () => {
     const onModeChange = vi.fn();
     renderDock('both', onModeChange);
-    fireEvent.click(screen.getAllByRole('tab')[0]);
+    fireEvent.click(screen.getAllByRole('radio')[0]);
     expect(onModeChange).toHaveBeenCalledWith('mic');
+  });
+});
+
+
+describe('recording controls semantics', () => {
+  it('groups action controls without creating a navigation landmark', () => {
+    renderDock('both');
+    expect(screen.queryByRole('navigation', { name: 'Recording controls' })).toBeNull();
+    expect(screen.getByRole('group', { name: /Recording controls|Opnamebediening/ })).toBeTruthy();
   });
 });

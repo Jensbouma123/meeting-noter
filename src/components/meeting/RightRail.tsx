@@ -87,8 +87,7 @@ export function RightRail({ sessionId, segments = [] }: RightRailProps) {
       aria-label={t('participants')}
     >
       <VStack spacing="sm" className="h-full min-h-0 p-4">
-        <RailTabs active={activeTab} onChange={setActiveTab} count={speakerStatRows.length} />
-        {panel('min-h-0 flex-1 overflow-y-auto px-1 pt-1 pb-4')}
+        <RailTabs active={activeTab} onChange={setActiveTab} count={speakerStatRows.length}>{panel('min-h-0 flex-1 overflow-y-auto px-1 pt-1 pb-4')}</RailTabs>
       </VStack>
     </Drawer>
   );
@@ -123,8 +122,7 @@ export function RightRail({ sessionId, segments = [] }: RightRailProps) {
                   leadingIcon={<PanelRightClose className="size-4" aria-hidden="true" />}
                 />
               }
-            />
-            {panel('min-h-0 flex-1 overflow-y-auto px-4 pt-1 pb-4')}
+            >{panel('min-h-0 flex-1 overflow-y-auto px-4 pt-1 pb-4')}</RailTabs>
           </div>
         )}
       </aside>
