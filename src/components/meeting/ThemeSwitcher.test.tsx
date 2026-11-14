@@ -34,7 +34,7 @@ describe('useThemePreference', () => {
   it('defaults to system when nothing is stored', () => {
     const { result } = renderHook(() => useThemePreference());
     expect(result.current.preference).toBe('system');
-    expect(setMode).toHaveBeenCalledWith('light');
+    expect(setMode).toHaveBeenCalledWith('system');
   });
 
   it('persists a choice and shares it with every consumer', () => {
@@ -47,5 +47,16 @@ describe('useThemePreference', () => {
     expect(first.result.current.preference).toBe('light');
     expect(second.result.current.preference).toBe('light');
     expect(setMode).toHaveBeenLastCalledWith('light');
+  });
+
+  it('treats System as the absence of an explicit stored preference', () => {
+    localStorage.setItem('mn-theme-preference', 'dark');
+    const { result } = renderHook(() => useThemePreference());
+
+    act(() => result.current.choose('system'));
+
+    expect(localStorage.getItem('mn-theme-preference')).toBeNull();
+    expect(result.current.preference).toBe('system');
+    expect(setMode).toHaveBeenLastCalledWith('system');
   });
 });
