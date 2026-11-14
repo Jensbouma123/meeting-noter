@@ -72,3 +72,11 @@ describe('capture mode toggle', () => {
   });
 });
 
+
+describe('recording controls semantics', () => {
+  it('groups action controls without creating a navigation landmark', () => {
+    renderDock('both');
+    expect(screen.queryByRole('navigation', { name: 'Recording controls' })).toBeNull();
+    expect(screen.getByRole('group', { name: /Recording controls|Opnamebediening/ })).toBeTruthy();
+  });
+});
