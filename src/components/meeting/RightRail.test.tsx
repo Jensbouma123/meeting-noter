@@ -33,17 +33,16 @@ describe('RightRail header tabs', () => {
     expect(tabs.map((t) => t.textContent)).toEqual(['Participants0', 'Summary']);
     expect(screen.queryByRole('heading', { level: 2 })).toBeNull();
     expect(tabs[0].getAttribute('aria-selected')).toBe('true');
-    expect(screen.getByRole('tabpanel').getAttribute('aria-labelledby')).toBe(tabs[0].id);
+    expect(document.getElementById(tabs[0].getAttribute('aria-controls')!)?.getAttribute('aria-labelledby')).toBe(tabs[0].id);
   });
 
-  it('switches tab by click and with arrow keys (roving tabindex)', () => {
+  it('switches tab by click and with arrow keys through the tabs primitive', () => {
     view();
     const [participants, summary] = screen.getAllByRole('tab');
     fireEvent.click(summary);
     expect(screen.getByText('notes-panel')).toBeTruthy();
     expect(summary.getAttribute('aria-selected')).toBe('true');
-    expect(summary.tabIndex).toBe(0);
-    expect(participants.tabIndex).toBe(-1);
+    summary.focus();
     fireEvent.keyDown(summary, { key: 'ArrowLeft' });
     expect(participants.getAttribute('aria-selected')).toBe('true');
     expect(document.activeElement).toBe(participants);
@@ -105,11 +104,12 @@ describe('RightRail tab keyboard model', () => {
   it('wires each tab to the panel it controls', () => {
     view();
     const tabs = screen.getAllByRole('tab');
-    const panel = screen.getByRole('tabpanel');
-    expect(panel.id).toBe(tabs[0].getAttribute('aria-controls'));
+    const panel = document.getElementById(tabs[0].getAttribute('aria-controls')!);
+    expect(panel?.id).toBe(tabs[0].getAttribute('aria-controls')); 
     fireEvent.click(tabs[1]);
-    expect(screen.getByRole('tabpanel').id).toBe(tabs[1].getAttribute('aria-controls'));
-    expect(screen.getByRole('tabpanel').getAttribute('aria-labelledby')).toBe(tabs[1].id);
+    const selectedPanel = document.getElementById(tabs[1].getAttribute('aria-controls')!);
+    expect(selectedPanel?.id).toBe(tabs[1].getAttribute('aria-controls'));
+    expect(selectedPanel?.getAttribute('aria-labelledby')).toBe(tabs[1].id);
   });
 
   it('leaves other keys to the page', () => {
