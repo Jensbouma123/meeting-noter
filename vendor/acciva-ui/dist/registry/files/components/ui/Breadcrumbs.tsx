@@ -1,6 +1,11 @@
+"use client";
+
 import { ChevronRight } from "lucide-react";
-import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
+import { createContext, forwardRef, useContext, type HTMLAttributes, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+
+const DEFAULT_SEPARATOR = <ChevronRight className="size-3.5 text-muted-foreground" />;
+const SeparatorContext = createContext<ReactNode>(DEFAULT_SEPARATOR);
 
 export interface BreadcrumbsProps extends HTMLAttributes<HTMLElement> {
   separator?: ReactNode;
@@ -8,13 +13,15 @@ export interface BreadcrumbsProps extends HTMLAttributes<HTMLElement> {
 }
 
 export const Breadcrumbs = forwardRef<HTMLElement, BreadcrumbsProps>(function Breadcrumbs(
-  { separator = <ChevronRight className="size-3.5 text-muted-foreground" />, className, children, ...props },
+  { separator = DEFAULT_SEPARATOR, className, children, ...props },
   ref,
 ) {
   return (
-    <nav ref={ref} aria-label="Breadcrumb" className={cn("flex items-center text-sm text-muted-foreground", className)} {...props}>
-      <ol className="flex flex-wrap items-center gap-2">{children}</ol>
-    </nav>
+    <SeparatorContext.Provider value={separator}>
+      <nav ref={ref} aria-label="Breadcrumb" className={cn("flex items-center text-sm text-muted-foreground", className)} {...props}>
+        <ol className="flex flex-wrap items-center gap-2">{children}</ol>
+      </nav>
+    </SeparatorContext.Provider>
   );
 });
 
@@ -49,10 +56,11 @@ export const BreadcrumbItem = forwardRef<HTMLLIElement, BreadcrumbItemProps>(fun
   );
 });
 
-export function BreadcrumbSeparator({ children = <ChevronRight className="size-3.5 text-muted-foreground" />, className }: { children?: ReactNode; className?: string }) {
+export function BreadcrumbSeparator({ children, className }: { children?: ReactNode; className?: string }) {
+  const separator = useContext(SeparatorContext);
   return (
     <li aria-hidden="true" className={cn("inline-flex items-center shrink-0 opacity-70", className)}>
-      {children}
+      {children ?? separator}
     </li>
   );
 }

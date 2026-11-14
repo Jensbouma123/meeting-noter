@@ -1,73 +1,64 @@
 import { useCallback } from "react";
+import { rovingIndex } from "../_internal/rovingIndex.js";
+import { isFromNestedControl } from "./utils.js";
 export function useDataListKeyboard(props, nav) {
-    const { interactive = true, layout = "list", selectionMode = "none", onItemClick, onReorder } = props;
-    const { processedItems, activeColumns, activeIndex, setActiveIndex, handleToggleItemSelection, handleReorderMove, } = nav;
+    const { interactive = true, layout = "list", mode = "virtual", selectionMode = "none", isItemDisabled, onItemClick, onReorder, } = props;
+    const { processedItems, activeColumns, activeIndex, setActiveIndex, windowStart, windowEnd, handleToggleItemSelection, handleReorderMove, } = nav;
     return useCallback((event) => {
-        if (!interactive || processedItems.length === 0)
+        if (!interactive || windowEnd <= windowStart)
             return;
-        const count = processedItems.length;
+        const inWindow = activeIndex >= windowStart && activeIndex < windowEnd;
+        const isDisabled = (index) => isItemDisabled?.(processedItems[index], index) ?? false;
         // Reorder keyboard path (SC 2.1.1): Alt+Arrow moves the active row itself.
-        if (onReorder && event.altKey && (event.key === "ArrowUp" || event.key === "ArrowDown")) {
+        // Virtual mode keeps reorder in the per-row menu (see accessibility spec).
+        if (onReorder && mode !== "virtual" && event.altKey && (event.key === "ArrowUp" || event.key === "ArrowDown")) {
             event.preventDefault();
-            const delta = event.key === "ArrowUp" ? -1 : 1;
-            const from = activeIndex;
-            const to = from + delta;
-            if (from >= 0 && from < count && to >= 0 && to < count) {
-                handleReorderMove(from, to);
+            const to = activeIndex + (event.key === "ArrowUp" ? -1 : 1);
+            if (inWindow && !isDisabled(activeIndex) && to >= windowStart && to < windowEnd) {
+                handleReorderMove(activeIndex, to);
             }
             return;
         }
-        let delta = 0;
-        switch (event.key) {
-            case "ArrowDown":
-                delta = layout === "grid" ? activeColumns : 1;
-                break;
-            case "ArrowUp":
-                delta = layout === "grid" ? -activeColumns : -1;
-                break;
-            case "ArrowRight":
-                delta = 1;
-                break;
-            case "ArrowLeft":
-                delta = -1;
-                break;
-            case "Home":
-                event.preventDefault();
-                setActiveIndex(0);
+        if (event.key === "Enter" || event.key === " ") {
+            // Keys from a nested control (row-action button, checkbox) belong to it.
+            if (isFromNestedControl(event))
                 return;
-            case "End":
+            if (inWindow && !isDisabled(activeIndex)) {
                 event.preventDefault();
-                setActiveIndex(count - 1);
-                return;
-            case "Enter":
-            case " ":
-                // Keys from a nested control (row-action button, checkbox) belong to it.
-                if (event.target !== event.currentTarget)
-                    return;
-                if (activeIndex >= 0 && activeIndex < count) {
-                    event.preventDefault();
-                    const currentItem = processedItems[activeIndex];
-                    if (selectionMode !== "none") {
-                        handleToggleItemSelection(currentItem, activeIndex);
-                    }
-                    onItemClick?.(currentItem, activeIndex);
+                const currentItem = processedItems[activeIndex];
+                if (selectionMode !== "none") {
+                    handleToggleItemSelection(currentItem, activeIndex);
                 }
-                return;
-            default:
-                return;
+                onItemClick?.(currentItem, activeIndex);
+            }
+            return;
         }
-        if (delta !== 0) {
-            event.preventDefault();
-            setActiveIndex((prev) => Math.max(0, Math.min(count - 1, prev + delta)));
-        }
+        // An index left outside the window (e.g. after a page change) re-enters at its start.
+        const next = rovingIndex({
+            key: event.key,
+            current: inWindow ? activeIndex - windowStart : 0,
+            count: windowEnd - windowStart,
+            // List rows step by one on every arrow; a grid moves a row of cells on Up/Down.
+            orientation: "both",
+            columns: layout === "grid" ? activeColumns : 1,
+        });
+        if (next === null)
+            return;
+        event.preventDefault();
+        const reenter = !inWindow && event.key.startsWith("Arrow");
+        setActiveIndex(windowStart + (reenter ? 0 : next));
     }, [
         interactive,
         processedItems,
         layout,
+        mode,
         activeColumns,
         activeIndex,
         setActiveIndex,
+        windowStart,
+        windowEnd,
         selectionMode,
+        isItemDisabled,
         handleToggleItemSelection,
         onItemClick,
         onReorder,

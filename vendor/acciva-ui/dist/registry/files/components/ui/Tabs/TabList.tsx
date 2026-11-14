@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, type KeyboardEvent, type ReactNode } from "react";
 import { TAB_LIST_GAP, resolveResponsive } from "@/lib/sizing-tokens/index";
 import { cn } from "@/lib/utils";
+import { useRovingFocus } from "@/components/ui/_internal/useRovingFocus";
 import { INDICATOR, TAB_LIST_FLOW, TAB_LIST_INSET, TAB_LIST_SHELL, TAB_SHAPE } from "@/components/ui/Tabs/tabsClasses";
 import { useTabListDrag } from "@/components/ui/Tabs/useTabListDrag";
 import { useTabListEffects } from "@/components/ui/Tabs/useTabListEffects";
-import { useTabListKeys } from "@/components/ui/Tabs/useTabListKeys";
 import { useTabsContext } from "@/components/ui/Tabs/useTabsContext";
 
 export interface TabListProps {
@@ -39,7 +39,17 @@ export function TabList({
     canDrag,
   });
   useTabListEffects({ listRef, indicatorRef, drag, value, variant, horizontal, canIndicate });
-  const handleKeyDown = useTabListKeys({ listRef, horizontal, drag, stopDrag });
+  // APG: Up/Down belong to a vertical tablist; on a horizontal one they stay with page scroll.
+  const roveKeys = useRovingFocus({
+    containerRef: listRef,
+    itemSelector: '[role="tab"]:not([disabled])',
+    orientation,
+    activate: true,
+  });
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape" && drag.current?.active) return stopDrag(false);
+    roveKeys(event);
+  };
 
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;

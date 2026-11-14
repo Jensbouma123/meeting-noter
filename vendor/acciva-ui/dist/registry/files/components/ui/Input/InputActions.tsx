@@ -18,9 +18,11 @@ interface InputActionsProps {
   size: ResponsiveSize<SizeTier>;
   label?: string;
   showClear: boolean;
+  searchType?: boolean;
   showPasswordToggle: boolean;
   trailingIcon?: ReactNode;
   revealed: boolean;
+  disabled?: boolean;
   onClear: () => void;
   onToggleReveal: () => void;
 }
@@ -29,9 +31,11 @@ export function InputActions({
   size,
   label,
   showClear,
+  searchType,
   showPasswordToggle,
   trailingIcon,
   revealed,
+  disabled,
   onClear,
   onToggleReveal,
 }: InputActionsProps) {
@@ -45,15 +49,15 @@ export function InputActions({
         <button
           type="button"
           tabIndex={-1}
-          aria-label={label ? `Clear ${label}` : "Clear input"}
+          aria-label={label ? `Clear ${label}` : searchType ? "Clear search" : "Clear input"}
           onClick={onClear}
           className={cn(
-            "focus-ring flex items-center justify-center rounded text-muted-foreground transition-colors hover:bg-elevation-2 hover:text-foreground active:scale-95 dark:hover:bg-elevation-3",
+            "focus-ring flex min-h-6 min-w-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-elevation-2 hover:text-foreground active:scale-95 dark:hover:bg-elevation-3",
             resolveResponsive(size, CLEAR_BUTTON_SIZE),
             resolveResponsive(size, ICON_SCALE_CLASS),
           )}
         >
-          <X className="shrink-0" />
+          <X className="shrink-0" aria-hidden="true" />
         </button>
       ) : null}
 
@@ -62,6 +66,7 @@ export function InputActions({
           type="button"
           aria-label={revealed ? "Hide password" : "Show password"}
           aria-pressed={revealed}
+          disabled={disabled}
           onClick={onToggleReveal}
           className={cn(
             "focus-ring flex items-center justify-center rounded text-muted-foreground transition-colors hover:bg-elevation-2 hover:text-foreground active:scale-95 dark:hover:bg-elevation-3",
@@ -74,7 +79,7 @@ export function InputActions({
                 : undefined,
           )}
         >
-          {revealed ? <EyeOff className="shrink-0" /> : <Eye className="shrink-0" />}
+          {revealed ? <EyeOff className="shrink-0" aria-hidden="true" /> : <Eye className="shrink-0" aria-hidden="true" />}
         </button>
       ) : null}
 

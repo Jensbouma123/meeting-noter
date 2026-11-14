@@ -14,6 +14,7 @@ export function useFileInputPipeline(state: FileInputState, c: FileInputConfig) 
     setProcessing,
     setCropSession,
     abortRef,
+    cancelPending,
     originals,
     focusAfterRemove,
     syncNative,
@@ -97,10 +98,12 @@ export function useFileInputPipeline(state: FileInputState, c: FileInputConfig) 
       else accepted.push(f);
     }
     if (cropConfig && cropConfig.auto !== false && accepted.length === 1 && isCroppable(accepted[0])) {
+      cancelPending();
       setCropSession({ original: accepted[0], base: [...base], rejected, aspect: cropAspect });
       return;
     }
     if (accepted.length === 0) {
+      cancelPending();
       finish(base, [], rejected, []);
       return;
     }
@@ -108,19 +111,22 @@ export function useFileInputPipeline(state: FileInputState, c: FileInputConfig) 
   };
 
   const removeAt = (index: number) => {
+    cancelPending();
     const file = files[index];
     const next = files.filter((_, i) => i !== index);
     originals.current.delete(file);
-    focusAfterRemove.current = index;
+    focusAfterRemove.current = { index, expected: next };
     setRejections([]);
     commit(next, { added: [], removed: [file], rejected: [] });
     setAnnouncement(m.removed(file.name));
   };
 
   const clearAll = () => {
-    focusAfterRemove.current = -1;
+    cancelPending();
+    const next: File[] = [];
+    focusAfterRemove.current = { index: -1, expected: next };
     setRejections([]);
-    commit([], { added: [], removed: [...files], rejected: [] });
+    commit(next, { added: [], removed: [...files], rejected: [] });
     setAnnouncement(m.removed(plural(files.length)));
   };
 

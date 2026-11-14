@@ -6,7 +6,7 @@ import type { FileInputState } from "@/components/ui/FileInput/useFileInputState
 type Pipeline = Pick<ReturnType<typeof useFileInputPipeline>, "reject" | "finish">;
 
 export function useFileInputCrop(state: FileInputState, c: FileInputConfig, { reject, finish }: Pipeline) {
-  const { files, cropSession, commit, setRejections, setAnnouncement, setProcessing, setCropSession, abortRef, originals } =
+  const { files, cropSession, commit, setRejections, setAnnouncement, setProcessing, setCropSession, abortRef, cancelPending, originals } =
     state;
   const { m, maxSize, multiple, compressOptions, cropAspect } = c;
 
@@ -57,8 +57,10 @@ export function useFileInputCrop(state: FileInputState, c: FileInputConfig, { re
     finish(base, [[session.original, result]], rejected, multiple ? [] : [...files], result);
   };
 
-  const openRecrop = (file: File) =>
+  const openRecrop = (file: File) => {
+    cancelPending();
     setCropSession({ original: originals.current.get(file) ?? file, target: file, aspect: cropAspect });
+  };
 
   // The cropper could not decode the source: close it and reject the original.
   const cropError = (session: CropSession) => {

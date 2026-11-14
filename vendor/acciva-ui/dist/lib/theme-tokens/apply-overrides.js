@@ -1,5 +1,9 @@
 import { BADGE_PALETTES } from "./constants.js";
 import { ROLE_VARIABLES, SOLVABLE_ROLES, badgeBackgroundVariable } from "./roles.js";
+// Strict `#rgb` / `#rrggbb`: the only form `hexToRgb` accepts, so a value that
+// passes here can never throw downstream.
+const HEX_VALUE_RE = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
+const isHexValue = (value) => HEX_VALUE_RE.test(value);
 /**
  * Applies CSS variable overrides to an AppTheme, updating its variables,
  * primitive shade scales (e.g. `--color-primary-800`), and semantic role fields.
@@ -14,20 +18,18 @@ export function applyThemeOverrides(baseTokens, overrides) {
         if (overrideVal !== undefined) {
             return {
                 name: entry.name,
-                hex: overrideVal.startsWith("#") ? overrideVal : entry.hex,
+                hex: isHexValue(overrideVal) ? overrideVal : entry.hex,
                 literal: overrideVal,
             };
         }
         return entry;
     });
+    // A new variable with no hex form has no `hex` to store; its literal still
+    // reaches the DOM through the override map, so it is skipped here.
     const existingVarNames = new Set(baseTokens.variables.map((v) => v.name));
     for (const [key, val] of overrideEntries) {
-        if (!existingVarNames.has(key)) {
-            variables.push({
-                name: key,
-                hex: val.startsWith("#") ? val : val,
-                literal: val,
-            });
+        if (!existingVarNames.has(key) && isHexValue(val)) {
+            variables.push({ name: key, hex: val, literal: val });
         }
     }
     const scales = {};
@@ -40,13 +42,14 @@ export function applyThemeOverrides(baseTokens, overrides) {
             const [, paletteName, stepStr] = match;
             const step = Number(stepStr);
             if (paletteName in scales && step in scales[paletteName]) {
-                scales[paletteName][step] = val.startsWith("#") ? val : val;
+                if (isHexValue(val))
+                    scales[paletteName][step] = val;
             }
         }
     }
     const read = (name, fallback) => {
         const val = overrides[name];
-        return val && val.startsWith("#") ? val : fallback;
+        return val !== undefined && isHexValue(val) ? val : fallback;
     };
     // The dedicated button property wins; the primitive step stays honoured so a
     // hand-authored `--color-primary-500` override still moves the action fill.

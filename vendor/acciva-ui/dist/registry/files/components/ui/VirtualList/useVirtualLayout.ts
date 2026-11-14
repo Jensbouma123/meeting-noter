@@ -31,7 +31,7 @@ export function useVirtualLayout<T>({
   measuredSnapshot,
   baseHeightAt,
   scrollToTopEnabled,
-  scrollTop,
+  scrollTop: rawScrollTop,
   viewportHeight,
   overscan,
   firstVisibleRef,
@@ -66,6 +66,9 @@ export function useVirtualLayout<T>({
 
   const range = useMemo<VirtualListRange>(() => {
     if (count === 0) return { start: 0, end: 0 };
+    // Clamp to the real scroll extent: after `items` shrink the browser clamps scrollTop
+    // too, but only reports it via a later scroll event.
+    const scrollTop = Math.min(rawScrollTop, Math.max(0, layout.total - viewportHeight));
     let start: number;
     let end: number;
     if (layout.offsets) {
@@ -79,7 +82,7 @@ export function useVirtualLayout<T>({
       start: Math.max(0, start - overscan),
       end: Math.min(count, Math.max(start, end) + overscan),
     };
-  }, [count, layout, scrollTop, viewportHeight, fixedHeight, overscan]);
+  }, [count, layout, rawScrollTop, viewportHeight, fixedHeight, overscan]);
 
   useLayoutEffect(() => {
     firstVisibleRef.current = range.start;

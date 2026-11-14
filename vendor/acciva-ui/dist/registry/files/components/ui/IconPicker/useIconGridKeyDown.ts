@@ -1,3 +1,4 @@
+import { rovingIndex } from "@/components/ui/_internal/rovingIndex";
 import type { Dispatch, KeyboardEvent, RefObject, SetStateAction } from "react";
 
 // Row width from layout: options on the first row share its `offsetTop`, the first option on the next row starts a new one.
@@ -8,7 +9,7 @@ function columnCount(options: HTMLButtonElement[]) {
   return nextRow === -1 ? options.length : nextRow;
 }
 
-/** Arrow/Home/End roving focus across the listbox; Enter/Space commit the focused option; Escape closes. */
+/** Grid roving focus via the shared `rovingIndex` core; Enter/Space commit the focused option; Escape closes. */
 export function useIconGridKeyDown(
   gridRef: RefObject<HTMLDivElement | null>,
   filtered: readonly { name: string }[],
@@ -31,39 +32,16 @@ export function useIconGridKeyDown(
     const current = options.findIndex((option) => option === document.activeElement);
     if (current === -1) return;
 
-    const columns = columnCount(options);
-    const last = options.length - 1;
-    let next: number | null = null;
-
-    switch (event.key) {
-      case "ArrowRight":
-        next = Math.min(current + 1, last);
-        break;
-      case "ArrowLeft":
-        next = Math.max(current - 1, 0);
-        break;
-      case "ArrowDown":
-        next = Math.min(current + columns, last);
-        break;
-      case "ArrowUp":
-        next = Math.max(current - columns, 0);
-        break;
-      case "Home":
-        next = 0;
-        break;
-      case "End":
-        next = last;
-        break;
-      case "Enter":
-      case " ":
-        if (filtered[current]) {
-          event.preventDefault();
-          commit(filtered[current].name);
-        }
-        return;
-      default:
-        return;
+    if (event.key === "Enter" || event.key === " ") {
+      if (filtered[current]) {
+        event.preventDefault();
+        commit(filtered[current].name);
+      }
+      return;
     }
+
+    const next = rovingIndex({ key: event.key, current, count: options.length, orientation: "both", columns: columnCount(options) });
+    if (next === null) return;
 
     event.preventDefault();
     setActiveIndex(next);

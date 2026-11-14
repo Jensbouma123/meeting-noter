@@ -14,6 +14,7 @@ import {
   type SizeTier,
 } from "@/lib/sizing-tokens/index";
 import { cn } from "@/lib/utils";
+import { valueToPercent } from "@/components/ui/Slider/sliderMath";
 import { SliderLabel } from "@/components/ui/Slider/SliderParts";
 import { useSliderKeys } from "@/components/ui/Slider/useSliderKeys";
 import { useSliderPointer } from "@/components/ui/Slider/useSliderPointer";
@@ -48,7 +49,7 @@ export function Slider({
   ...props
 }: SliderProps) {
   const sliderId = useId();
-  const percent = ((value - min) / (max - min)) * 100;
+  const percent = valueToPercent(value, min, max);
   const range = { min, max, step, disabled, onChange };
   const { trackRef, thumbRef, handlePointerDown } = useSliderPointer(range);
   const handleKeyDown = useSliderKeys({ ...range, value });

@@ -21,15 +21,18 @@ export const AccordionItem = forwardRef(function AccordionItem({ value, disabled
     const contentId = `${baseId}-content`;
     return (_jsx(AccordionItemContext.Provider, { value: { value, isExpanded, triggerId, contentId, disabled }, children: _jsx("div", { ref: ref, className: cn(ITEM_CHROME[variant], className), ...props, children: children }) }));
 });
-export const AccordionTrigger = forwardRef(function AccordionTrigger({ className, children, trailing, ...props }, ref) {
+export const AccordionTrigger = forwardRef(function AccordionTrigger({ className, children, trailing, onClick, ...props }, ref) {
     const { toggleValue, variant } = useAccordionContext("AccordionTrigger");
     const { value, isExpanded, triggerId, contentId, disabled } = useAccordionItemContext("AccordionTrigger");
     const plain = variant === "plain";
     const chevron = (_jsx(ChevronDown, { "aria-hidden": "true", className: cn("size-4 shrink-0 text-muted-foreground transition-transform motion-feedback", isExpanded && "rotate-180") }));
-    return (_jsx("h3", { className: "flex", children: _jsxs("button", { ref: ref, id: triggerId, type: "button", "data-accordion-trigger": "true", "aria-expanded": isExpanded, "aria-controls": contentId, disabled: disabled, onClick: () => toggleValue(value), className: cn("focus-ring flex w-full items-center text-left text-sm font-semibold text-foreground transition-colors", TRIGGER_CHROME[variant], disabled && "cursor-not-allowed opacity-60", className), ...props, children: [plain && chevron, _jsx("span", { className: cn(plain && "flex-1"), children: children }), trailing, !plain && chevron] }) }));
+    return (_jsx("h3", { className: "flex", children: _jsxs("button", { ref: ref, id: triggerId, type: "button", "data-accordion-trigger": "true", "aria-expanded": isExpanded, "aria-controls": contentId, disabled: disabled, onClick: (event) => {
+                onClick?.(event);
+                toggleValue(value);
+            }, className: cn("focus-ring flex w-full items-center text-left text-sm font-semibold text-foreground transition-colors", TRIGGER_CHROME[variant], disabled && "cursor-not-allowed opacity-60", className), ...props, children: [plain && chevron, _jsx("span", { className: cn(plain && "flex-1"), children: children }), trailing, !plain && chevron] }) }));
 });
 export const AccordionContent = forwardRef(function AccordionContent({ className, children, ...props }, ref) {
     const { isExpanded, triggerId, contentId } = useAccordionItemContext("AccordionContent");
     const { variant } = useAccordionContext("AccordionContent");
-    return (_jsx("div", { ref: ref, id: contentId, role: "region", "aria-labelledby": triggerId, hidden: !isExpanded, className: cn("overflow-hidden transition-all motion-spatial", isExpanded ? "animate-fade-in block" : "hidden", className), ...props, children: _jsx("div", { className: cn(CONTENT_CHROME[variant], "text-sm text-foreground"), children: children }) }));
+    return (_jsx("div", { ref: ref, id: contentId, role: "region", "aria-labelledby": triggerId, inert: !isExpanded, "aria-hidden": isExpanded ? undefined : true, className: cn("disclosure-panel", isExpanded && "disclosure-panel-open", className), ...props, children: _jsx("div", { className: "min-h-0 overflow-hidden", children: _jsx("div", { className: cn(CONTENT_CHROME[variant], "text-sm text-foreground"), children: children }) }) }));
 });

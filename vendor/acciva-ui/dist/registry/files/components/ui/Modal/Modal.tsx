@@ -131,7 +131,7 @@ export function Modal({
         </button>
       </div>
       {children ? <div className="text-sm text-foreground">{children}</div> : null}
-      {footer ? <div className="flex items-center justify-end gap-2 pt-2">{footer}</div> : null}
+      {footer ? <div className="flex flex-wrap items-center justify-end gap-2 pt-2">{footer}</div> : null}
       {discardPrompt}
     </dialog>
   );

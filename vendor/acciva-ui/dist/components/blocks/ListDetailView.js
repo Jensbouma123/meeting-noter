@@ -10,7 +10,7 @@ import { VirtualList } from "../ui/VirtualList/index.js";
 import { VStack } from "../ui/VStack.js";
 import { cn } from "../../lib/utils.js";
 import { ListDetailDrawer } from "./ListDetailView/ListDetailViewDrawer.js";
-export function ListDetailView({ items, mode = "table", columns = [], renderListItem, getItemKey, caption, selectedItem, onSelectItem, renderDetail, detailTitle, searchable, searchPlaceholder, height, rowHeight = 60, emptyMessage, toolbar, className, arrowHint, }) {
+export function ListDetailView({ items, mode = "table", columns = [], renderListItem, getItemKey, caption, selectedItem, onSelectItem, renderDetail, detailTitle, searchable = false, searchPlaceholder, height, rowHeight = 60, emptyMessage, toolbar, className, arrowHint, }) {
     const [internalSelected, setInternalSelected] = useState(null);
     const isControlled = selectedItem !== undefined;
     const currentItem = isControlled ? selectedItem : internalSelected;
@@ -22,7 +22,9 @@ export function ListDetailView({ items, mode = "table", columns = [], renderList
             setInternalSelected(item);
         }
     };
-    const isSelectedItem = (item, index) => currentItem !== null && currentItem !== undefined && getItemKey(currentItem, -1) === getItemKey(item, index);
+    // Key the selected item at its own position: index-aware keys would otherwise compare `-1` against `0..n`.
+    const selectedKey = currentItem == null ? null : getItemKey(currentItem, items.indexOf(currentItem));
+    const isSelectedItem = (item, index) => selectedKey !== null && selectedKey === getItemKey(item, index);
     const isTableMode = mode === "table" && columns.length > 0;
     return (_jsxs(VStack, { spacing: "md", className: cn("w-full", className), children: [isTableMode ? (_jsx(DataTable, { data: items, columns: columns, getRowId: getItemKey, caption: caption, height: height, searchable: searchable, searchPlaceholder: searchPlaceholder, onRowClick: (row) => handleSelect(row), emptyMessage: emptyMessage, toolbar: toolbar })) : (_jsxs(VStack, { spacing: "sm", className: "w-full", children: [toolbar, items.length === 0 ? (_jsx(Card, { padding: "lg", children: _jsx(EmptyState, { title: emptyMessage ?? "No items found", size: "sm" }) })) : (_jsx(Card, { padding: "none", children: _jsx(VirtualList, { items: items, height: height ?? DEFAULT_HEIGHT, itemHeight: rowHeight, getItemKey: getItemKey, "aria-label": caption, arrowHint: arrowHint, role: "listbox", itemRole: "option", itemClassName: "data-[active]:bg-elevation-2", isItemSelected: (item, index) => isSelectedItem(item, index), onItemSelect: (item) => handleSelect(item), renderItem: (item, state) => {
                                 const isSelected = state.selected;

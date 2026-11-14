@@ -10,6 +10,7 @@ export interface RadioGroupContextValue {
   size: ResponsiveSize<SizeTier>;
   disabled: boolean;
   orientation: "vertical" | "horizontal";
+  variant: "default" | "segmented";
 }
 
 export const RadioGroupContext = createContext<RadioGroupContextValue | null>(null);

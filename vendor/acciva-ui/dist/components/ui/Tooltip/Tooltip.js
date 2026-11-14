@@ -43,7 +43,11 @@ export function Tooltip({ content, children, side = "top", delay = 0, maxWidth =
     const isDisabled = Boolean(childProps.disabled);
     let trigger;
     if (isDisabled) {
-        trigger = (_jsx("span", { ref: setWrapper, tabIndex: 0, "aria-describedby": open ? tooltipId : undefined, style: anchorStyle, className: "inline-flex cursor-not-allowed", ...eventHandlers, children: _createElement(TriggerComponent, { ...childProps, key: child.key, ref: setChild, tabIndex: -1, style: { pointerEvents: "none" } }) }));
+        // The wrapper is the only focus stop, so it carries the child's accessible name (SC 4.1.2) and focus ring (SC 2.4.7).
+        // Falls back to a plain-text child ("Save") so a labelled-by-content button keeps its name; the group role makes the name valid on the span.
+        const props = child.props;
+        const childLabel = (props["aria-label"] ?? (typeof props.children === "string" ? props.children : undefined));
+        trigger = (_jsx("span", { ref: setWrapper, tabIndex: 0, role: "group", "aria-label": childLabel, "aria-describedby": open ? tooltipId : undefined, style: anchorStyle, className: "focus-ring inline-flex cursor-not-allowed", ...eventHandlers, children: _createElement(TriggerComponent, { ...childProps, key: child.key, ref: setChild, tabIndex: -1, style: { ...childProps.style, pointerEvents: "none" } }) }));
     }
     else {
         trigger = (_createElement(TriggerComponent, { ...childProps, key: child.key, ref: setTrigger, "aria-describedby": open ? tooltipId : undefined, style: { ...childProps.style, ...anchorStyle }, ...eventHandlers }));

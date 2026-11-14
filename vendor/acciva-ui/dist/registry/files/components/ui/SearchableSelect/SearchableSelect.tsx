@@ -8,9 +8,9 @@ import { DEFAULT_MAX_LIST_HEIGHT, DEFAULT_OPTION_HEIGHT, defaultFilter } from "@
 import { SearchableSelectPanel } from "@/components/ui/SearchableSelect/SearchableSelectPanel";
 import { SearchableSelectTrigger } from "@/components/ui/SearchableSelect/SearchableSelectParts";
 import type { SearchableSelectProps } from "@/components/ui/SearchableSelect/types";
-import { useActiveIndex } from "@/components/ui/SearchableSelect/useActiveIndex";
-import { useDismissOnPointerDown } from "@/components/ui/SearchableSelect/useDismissOnPointerDown";
-import { useSearchableKeyDown } from "@/components/ui/SearchableSelect/useSearchableKeyDown";
+import { useActiveIndex } from "@/components/ui/_combobox/useActiveIndex";
+import { useComboboxKeyDown } from "@/components/ui/_combobox/useComboboxKeyDown";
+import { useDismissOnPointerDown } from "@/components/ui/_combobox/useDismissOnPointerDown";
 
 export function SearchableSelect({
   id,
@@ -72,7 +72,7 @@ export function SearchableSelect({
     [filteredOptions, onChange, close],
   );
 
-  const handleKeyDown = useSearchableKeyDown(
+  const handleKeyDown = useComboboxKeyDown(
     disabled,
     open,
     setOpen,

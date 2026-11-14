@@ -74,12 +74,13 @@ export function resolveSwatches(swatches: readonly (string | ColorSwatch)[] | un
   });
 }
 
+/** Tracks a pointer drag over `window`; returns the stop function so the owner can end it on unmount. */
 export function trackDrag(
   event: ReactPointerEvent<HTMLElement>,
   element: HTMLElement | null,
   onPoint: (x: number, y: number) => void,
-) {
-  if (!element || event.button !== 0) return;
+): (() => void) | undefined {
+  if (!element || event.button !== 0) return undefined;
   event.preventDefault();
   const update = (clientX: number, clientY: number) => {
     const rect = element.getBoundingClientRect();
@@ -98,6 +99,7 @@ export function trackDrag(
   window.addEventListener("pointermove", move);
   window.addEventListener("pointerup", stop);
   window.addEventListener("pointercancel", stop);
+  return stop;
 }
 
 export function stepFor(event: KeyboardEvent) {

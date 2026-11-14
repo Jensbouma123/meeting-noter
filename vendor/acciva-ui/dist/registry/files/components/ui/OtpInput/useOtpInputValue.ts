@@ -33,7 +33,7 @@ export function useOtpInputValue(
     }
     onChange?.(sanitized);
 
-    if (sanitized.length === length) {
+    if (sanitized.length === length && sanitized !== currentValue) {
       onComplete?.(sanitized);
     }
   };

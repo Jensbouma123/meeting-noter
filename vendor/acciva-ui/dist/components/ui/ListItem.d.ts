@@ -19,5 +19,10 @@ export interface ListItemProps extends Omit<ButtonHTMLAttributes<HTMLButtonEleme
      * instead of rendering a `<button>`. The row content replaces the child's children.
      */
     asChild?: boolean;
+    /**
+     * `rail` is an icon-only square row: only `leading` shows, `title` becomes the accessible
+     * name (and the visually-hidden text), `subtitle`/`trailing`/`depth` are not rendered.
+     */
+    density?: "default" | "rail";
 }
 export declare const ListItem: import("react").ForwardRefExoticComponent<ListItemProps & import("react").RefAttributes<HTMLButtonElement>>;

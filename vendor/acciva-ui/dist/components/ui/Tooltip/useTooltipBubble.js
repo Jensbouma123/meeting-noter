@@ -44,16 +44,25 @@ export function useTooltipBubble(side, anchorName, triggerRef, tooltipRef, hide,
             if (touchOpenRef.current)
                 hide();
         };
+        // Scroll fires many times a frame; one read-then-write per frame avoids forced layouts.
+        let queued = 0;
+        const queueSync = () => {
+            queued || (queued = requestAnimationFrame(() => {
+                queued = 0;
+                sync();
+            }));
+        };
         window.addEventListener("scroll", handleScroll, true);
-        window.addEventListener("scroll", sync, { capture: true, passive: true });
-        window.addEventListener("resize", sync);
+        window.addEventListener("scroll", queueSync, { capture: true, passive: true });
+        window.addEventListener("resize", queueSync);
         window.addEventListener("pointerdown", handlePointerDown);
         window.addEventListener("keydown", handleKeyDown);
         return () => {
             cancelAnimationFrame(frame);
+            cancelAnimationFrame(queued);
             window.removeEventListener("scroll", handleScroll, true);
-            window.removeEventListener("scroll", sync, true);
-            window.removeEventListener("resize", sync);
+            window.removeEventListener("scroll", queueSync, true);
+            window.removeEventListener("resize", queueSync);
             window.removeEventListener("pointerdown", handlePointerDown);
             window.removeEventListener("keydown", handleKeyDown);
         };

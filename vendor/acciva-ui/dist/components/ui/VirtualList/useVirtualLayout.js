@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo } from "react";
 import { SCROLL_TO_TOP_EXTRA_SPACE } from "./constants.js";
 import { findOffsetIndex } from "./layoutMath.js";
-export function useVirtualLayout({ items, itemHeight, dynamic, getItemKey, measuredSnapshot, baseHeightAt, scrollToTopEnabled, scrollTop, viewportHeight, overscan, firstVisibleRef, onVisibleRangeChange, }) {
+export function useVirtualLayout({ items, itemHeight, dynamic, getItemKey, measuredSnapshot, baseHeightAt, scrollToTopEnabled, scrollTop: rawScrollTop, viewportHeight, overscan, firstVisibleRef, onVisibleRangeChange, }) {
     const count = items.length;
     const fixedHeight = typeof itemHeight === "number" ? itemHeight : 0;
     const uniform = typeof itemHeight === "number" && !dynamic;
@@ -22,6 +22,9 @@ export function useVirtualLayout({ items, itemHeight, dynamic, getItemKey, measu
     const range = useMemo(() => {
         if (count === 0)
             return { start: 0, end: 0 };
+        // Clamp to the real scroll extent: after `items` shrink the browser clamps scrollTop
+        // too, but only reports it via a later scroll event.
+        const scrollTop = Math.min(rawScrollTop, Math.max(0, layout.total - viewportHeight));
         let start;
         let end;
         if (layout.offsets) {
@@ -36,7 +39,7 @@ export function useVirtualLayout({ items, itemHeight, dynamic, getItemKey, measu
             start: Math.max(0, start - overscan),
             end: Math.min(count, Math.max(start, end) + overscan),
         };
-    }, [count, layout, scrollTop, viewportHeight, fixedHeight, overscan]);
+    }, [count, layout, rawScrollTop, viewportHeight, fixedHeight, overscan]);
     useLayoutEffect(() => {
         firstVisibleRef.current = range.start;
     }, [range.start, firstVisibleRef]);

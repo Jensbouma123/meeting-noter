@@ -1,8 +1,9 @@
 import { useMemo } from "react";
-import { formatAriaDate, formatMonthYear, getCalendarGrid, isBeforeDay, isDateInRange, isSameDay, isSameMonth } from "@/lib/date-utils/index";
+import { formatAriaDate, formatMonthYear, getCalendarGrid, isBeforeDay, isDateInRange, isSameDay } from "@/lib/date-utils/index";
 import { TEXT_SIZE } from "@/lib/sizing-tokens/index";
 import { cn } from "@/lib/utils";
 import { Grid } from "@/components/ui/Grid/index";
+import { resolveDayTabStop } from "@/components/ui/DatePicker/resolveDayTabStop";
 import type { DateRangeGridHint, DateRangeUi } from "@/components/ui/DateRangePicker/types";
 
 interface DateRangeDayGridProps {
@@ -26,6 +27,7 @@ export function DateRangeDayGrid({ ui, gridHint }: DateRangeDayGridProps) {
     () => getCalendarGrid(viewDate.getFullYear(), viewDate.getMonth()),
     [viewDate],
   );
+  const tabStop = resolveDayTabStop(focusedDate, viewDate, calendarGrid, isDateDisabled);
 
   return (
     <div role="grid" aria-describedby={gridHint.describedBy()} aria-label={formatMonthYear(viewDate)} className="flex flex-col gap-y-1">
@@ -60,10 +62,8 @@ export function DateRangeDayGrid({ ui, gridHint }: DateRangeDayGridProps) {
             const isBandLo = hasBand && isSameDay(day.date, lo);
             const isBandHi = hasBand && isSameDay(day.date, hi);
 
-            // One tab stop: the focused day, or the 1st when the viewed month does not hold it.
-            const isFocused = isSameMonth(focusedDate, viewDate)
-              ? isSameDay(focusedDate, day.date)
-              : day.isCurrentMonth && day.date.getDate() === 1;
+            // One tab stop: the nearest enabled day to the focused day (see resolveDayTabStop).
+            const isFocused = tabStop !== null && isSameDay(tabStop, day.date);
             const isDayDisabled = isDateDisabled(day.date);
 
             return (

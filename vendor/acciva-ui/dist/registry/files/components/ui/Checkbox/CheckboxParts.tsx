@@ -15,11 +15,21 @@ export function CheckboxIndicator({ checked, indeterminate }: { checked?: boolea
         (checked || indeterminate) && "border-primary-500 bg-primary-500",
       )}
     >
-      {indeterminate ? (
-        <Minus className="size-3.5 text-button-primary-foreground" strokeWidth={3} />
-      ) : checked ? (
-        <Check className="size-3.5 text-button-primary-foreground" strokeWidth={3} />
-      ) : null}
+      {indeterminate ? <Minus className="size-3.5 text-button-primary-foreground" strokeWidth={3} /> : null}
     </span>
+  );
+}
+
+/**
+ * Check glyph driven by the input's `:checked` state (`peer-checked`), so it shows for
+ * controlled and uncontrolled boxes alike. Must follow the input as a sibling.
+ */
+export function CheckboxCheck() {
+  return (
+    <Check
+      aria-hidden="true"
+      strokeWidth={3}
+      className="pointer-events-none absolute inset-0 m-auto hidden size-3.5 text-button-primary-foreground peer-checked:block"
+    />
   );
 }

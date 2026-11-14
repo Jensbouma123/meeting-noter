@@ -12,6 +12,8 @@ export type TextTruncate = boolean | 1 | 2 | 3;
 
 export interface TextProps extends HTMLAttributes<HTMLElement> {
   as?: TextTag;
+  /** Only meaningful with `as="label"`. */
+  htmlFor?: string;
   size?: TextSize;
   variant?: TextVariant;
   weight?: TextWeight;

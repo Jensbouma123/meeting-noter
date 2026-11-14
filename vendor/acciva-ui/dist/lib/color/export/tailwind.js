@@ -1,5 +1,6 @@
 import { TAILWIND_ALIASES } from "../ramp/index.js";
-import { applyOverrides, flattenDocument } from "./resolve/index.js";
+import { flattenDocument } from "./resolve/index.js";
+import { withTokenOverrides } from "./doc-overrides.js";
 const DARK_SELECTOR = 'html[data-theme="dark"]';
 const SYSTEM_DARK_SELECTOR = 'html:not([data-theme="light"])';
 function declarations(tokens, indent) {
@@ -33,8 +34,7 @@ function paletteScale(primitive, indent) {
     return lines.join("\n");
 }
 export function exportTailwindTheme(doc, overrides) {
-    const flattened = flattenDocument(doc);
-    const { primitive, light, dark } = applyOverrides(flattened, overrides ?? { light: {}, dark: {} });
+    const { primitive, light, dark } = flattenDocument(withTokenOverrides(doc, overrides ?? { light: {}, dark: {} }));
     return [
         "@theme {",
         paletteScale(primitive, "  "),

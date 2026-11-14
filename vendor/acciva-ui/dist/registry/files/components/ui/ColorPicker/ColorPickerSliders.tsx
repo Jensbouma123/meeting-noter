@@ -1,4 +1,4 @@
-import { useRef, type CSSProperties, type KeyboardEvent } from "react";
+import { useEffect, useRef, type CSSProperties, type KeyboardEvent } from "react";
 import { SLIDER_THUMB_SIZE, SLIDER_THUMB_TARGET } from "@/lib/sizing-tokens/index";
 import { clamp, cn } from "@/lib/utils";
 import { LARGE_STEP, THUMB_PAINT, stepFor, trackDrag } from "@/components/ui/ColorPicker/colorPickerUtils";
@@ -16,6 +16,8 @@ interface ChannelSliderProps {
 export function ChannelSlider({ label, value, max, valueText, trackStyle, thumbColor, onChange }: ChannelSliderProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const thumbRef = useRef<HTMLDivElement>(null);
+  const stopDrag = useRef<(() => void) | undefined>(undefined);
+  useEffect(() => () => stopDrag.current?.(), []);
   const rounded = Math.round(value);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -40,7 +42,8 @@ export function ChannelSlider({ label, value, max, valueText, trackStyle, thumbC
       ref={trackRef}
       onPointerDown={(event) => {
         thumbRef.current?.focus();
-        trackDrag(event, trackRef.current, (x) => onChange(x * max));
+        stopDrag.current?.();
+        stopDrag.current = trackDrag(event, trackRef.current, (x) => onChange(x * max));
       }}
       className="relative h-6 w-full cursor-pointer touch-none"
     >

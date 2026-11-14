@@ -54,7 +54,7 @@ export const DropdownMenuItem = forwardRef<HTMLButtonElement, DropdownMenuItemPr
       tabIndex={-1}
       onClick={handleClick}
       className={cn(
-        "group relative flex w-full cursor-pointer select-none items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors outline-none",
+        "touch-target-44 group relative flex w-full cursor-pointer select-none items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors outline-none",
         MENU_ITEM_TONE[resolvedVariant],
         disabled && "cursor-not-allowed opacity-60 hover:bg-transparent dark:hover:bg-transparent",
         className,
@@ -78,11 +78,15 @@ export interface DropdownMenuCheckboxItemProps extends ButtonHTMLAttributes<HTML
 }
 
 export const DropdownMenuCheckboxItem = forwardRef<HTMLButtonElement, DropdownMenuCheckboxItemProps>(
-  function DropdownMenuCheckboxItem({ checked, onCheckedChange, className, children, disabled, ...props }, ref) {
+  function DropdownMenuCheckboxItem(
+    { checked, onCheckedChange, className, children, disabled, onClick, ...props },
+    ref,
+  ) {
     const { setOpen, triggerRef } = useDropdownMenuContext("DropdownMenuCheckboxItem");
 
-    const handleClick = () => {
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
       if (disabled) return;
+      onClick?.(e);
       onCheckedChange(!checked);
       setOpen(false);
       triggerRef.current?.focus({ preventScroll: true });
@@ -99,7 +103,7 @@ export const DropdownMenuCheckboxItem = forwardRef<HTMLButtonElement, DropdownMe
         tabIndex={-1}
         onClick={handleClick}
         className={cn(
-          "group relative flex w-full cursor-pointer select-none items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors outline-none",
+          "touch-target-44 group relative flex w-full cursor-pointer select-none items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors outline-none",
           "text-foreground hover:bg-primary-500/10 focus-visible:bg-primary-500/10 active:bg-primary-500/15 dark:hover:bg-primary-400/20 dark:focus-visible:bg-primary-400/20",
           disabled && "cursor-not-allowed opacity-60 hover:bg-transparent dark:hover:bg-transparent",
           className,

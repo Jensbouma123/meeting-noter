@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { mergeStoredTheme } from "./mergeStoredTheme.js";
 import { EMPTY_TOKEN_OVERRIDES } from "./snapshot.js";
 import { readStoredTheme, STORAGE_KEY } from "./storage.js";
 export function useThemeState(persisted) {
@@ -10,9 +11,25 @@ export function useThemeState(persisted) {
     const [tokenOverridesOverride, setTokenOverridesOverride] = useState(null);
     const primaryHex = primaryHexOverride ?? persisted.primaryHex;
     const harmony = harmonyOverride ?? persisted.harmony;
-    const mode = modeOverride ?? persisted.mode;
+    const preference = modeOverride ?? persisted.preference;
+    const mode = preference === "system" ? persisted.systemMode : preference;
     const radius = radiusOverride ?? persisted.radius;
     const tokenOverrides = tokenOverridesOverride ?? persisted.tokenOverrides ?? EMPTY_TOKEN_OVERRIDES;
+    // Another tab's write is the newer choice: drop this tab's in-session values so
+    // the persisted snapshot (already re-read by the provider) takes over again.
+    useEffect(() => {
+        const onStorage = (event) => {
+            if (event.key !== null && event.key !== STORAGE_KEY)
+                return;
+            setPrimaryHexOverride(null);
+            setHarmonyOverride(null);
+            setModeOverride(null);
+            setRadiusOverride(null);
+            setTokenOverridesOverride(null);
+        };
+        window.addEventListener("storage", onStorage);
+        return () => window.removeEventListener("storage", onStorage);
+    }, []);
     // A caller that writes both modes does it with two calls in one event — and a
     // state setter's closure still holds the pre-event value when the second one
     // runs, so reading the base off `tokenOverrides` would drop the first mode.
@@ -24,20 +41,14 @@ export function useThemeState(persisted) {
     }, [tokenOverrides]);
     const persist = useCallback((patch) => {
         try {
-            const currentStored = readStoredTheme();
-            const next = {
-                primaryHex: patch.primaryHex ?? currentStored?.primaryHex ?? primaryHex,
-                harmony: patch.harmony ?? currentStored?.harmony ?? harmony,
-                mode: patch.mode ?? currentStored?.mode ?? mode,
-                radius: patch.radius ?? currentStored?.radius ?? radius,
-                tokenOverrides: patch.tokenOverrides ?? currentStored?.tokenOverrides ?? tokenOverrides,
-            };
+            const fallback = { primaryHex, harmony, radius, tokenOverrides };
+            const next = mergeStoredTheme(patch, readStoredTheme(), fallback);
             window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
         }
         catch {
             // storage unavailable (private mode, quota) — theme still works in-memory
         }
-    }, [primaryHex, harmony, mode, radius, tokenOverrides]);
+    }, [primaryHex, harmony, radius, tokenOverrides]);
     const setPrimaryHex = useCallback((hex) => {
         setPrimaryHexOverride(hex);
         persist({ primaryHex: hex });
@@ -85,6 +96,7 @@ export function useThemeState(persisted) {
         primaryHex,
         harmony,
         mode,
+        preference,
         modeOverride,
         radius,
         tokenOverrides,

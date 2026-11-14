@@ -108,6 +108,10 @@
   @media (width >= 48rem) {
     .drawer-panel[data-persistent] {
       top: 0;
+    }
+
+    /* Only non-left panels anchor to the inline end; a left panel keeps `left: 0`. */
+    .drawer-panel[data-persistent]:not([data-side="left"]) {
       left: auto;
     }
   }

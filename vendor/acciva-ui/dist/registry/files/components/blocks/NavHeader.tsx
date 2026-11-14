@@ -3,17 +3,22 @@
 import { Moon, Sun } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useId, useState } from "react";
+import { lazy, Suspense, useId, useState } from "react";
 import { Button } from "@/components/ui/Button/index";
 import { HStack } from "@/components/ui/HStack";
 import { Logo } from "@/components/ui/Logo/index";
-import { cn } from "@/lib/utils";
+import { NavBar } from "@/components/ui/NavBar/index";
 import { useThemeMode } from "@jensbouma123/acciva-ui/theme";
-import { NAV_IDLE, NO_SEARCH_ITEMS, PRIMARY_NAV_LINKS, resolveNavLinkActive } from "@/components/blocks/NavHeader/NavHeaderData";
-import { NavHeaderDrawer } from "@/components/blocks/NavHeader/NavHeaderDrawer";
+import { NO_SEARCH_ITEMS, PRIMARY_NAV_LINKS, resolveNavLinkActive } from "@/components/blocks/NavHeader/NavHeaderData";
 import { NavHeaderMenuToggle } from "@/components/blocks/NavHeader/NavHeaderParts";
 import { NavHeaderSearch } from "@/components/blocks/NavHeader/NavHeaderSearch";
 import type { NavHeaderProps } from "@/components/blocks/NavHeader/NavHeaderProps";
+
+// The drawer (Drawer, NavTree, docs index) loads on the first open: it is an overlay
+// that renders nothing while closed, so deferring it shifts no layout.
+const NavHeaderDrawer = lazy(() =>
+  import("@/components/blocks/NavHeader/NavHeaderDrawer").then((m) => ({ default: m.NavHeaderDrawer })),
+);
 
 export type { NavHeaderProps };
 export type { NavSearchItem, PrimaryNavIcon, PrimaryNavLink } from "@/components/blocks/NavHeader/NavHeaderData";
@@ -34,6 +39,8 @@ export function NavHeader({
   const pathname = usePathname();
   const navLinks = primaryLinks ?? PRIMARY_NAV_LINKS;
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuLoaded, setMenuLoaded] = useState(false);
+  if (menuOpen && !menuLoaded) setMenuLoaded(true);
   const drawerId = useId();
 
   // A route change dismisses the drawer. It is a transition derived from a changed
@@ -68,30 +75,19 @@ export function NavHeader({
           {logo ?? <Logo variant="responsive" size="md" aria-label={brandLabel} />}
         </Link>
 
-        {/* Raw flex: the row only exists from `lg` up, and `hidden`/`lg:flex` is a
-            display toggle no `Stack` prop can express. Omitted entirely when the
-            host passes an empty link list, so no empty landmark ships. */}
+        {/* Omitted entirely when the host passes an empty link list, so no empty landmark ships.
+            `hidden lg:block`: the row only exists from `lg` up; the drawer carries the links below. */}
         {navLinks.length > 0 ? (
-          <nav aria-label="Primary" className="hidden lg:flex lg:items-center lg:gap-1">
-            {navLinks.map((link) => {
-              const active = resolveNavLinkActive(link, pathname);
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  aria-current={active ? "page" : undefined}
-                  className={cn(
-                    "focus-ring rounded-md px-3 py-2 text-sm font-medium transition-colors motion-feedback",
-                    active
-                      ? "bg-primary-500/15 text-primary-800 dark:text-primary-300"
-                      : NAV_IDLE,
-                  )}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
-          </nav>
+          <NavBar
+            aria-label="Primary"
+            linkComponent={Link}
+            className="hidden lg:block"
+            items={navLinks.map((link) => ({
+              href: link.href,
+              label: link.label,
+              current: resolveNavLinkActive(link, pathname),
+            }))}
+          />
         ) : null}
 
         <HStack spacing="sm" className="ml-auto min-w-0">
@@ -115,26 +111,28 @@ export function NavHeader({
             onClick={toggleMode}
             className="touch-target-44"
           >
-            <Moon className="theme-icon-light" />
-            <Sun className="theme-icon-dark" />
+            <Moon aria-hidden="true" className="theme-icon-light" />
+            <Sun aria-hidden="true" className="theme-icon-dark" />
           </Button>
           ) : null}
           {actions}
         </HStack>
       </HStack>
 
-      {menu ? (
-        <NavHeaderDrawer
-          open={menuOpen}
-          onOpenChange={setMenuOpen}
-          id={drawerId}
-          searchItems={searchItems}
-          navLinks={navLinks}
-          logo={logo}
-          homeHref={homeHref}
-          brandLabel={brandLabel}
-          themeToggle={themeToggle}
-        />
+      {menu && menuLoaded ? (
+        <Suspense fallback={null}>
+          <NavHeaderDrawer
+            open={menuOpen}
+            onOpenChange={setMenuOpen}
+            id={drawerId}
+            searchItems={searchItems}
+            navLinks={navLinks}
+            logo={logo}
+            homeHref={homeHref}
+            brandLabel={brandLabel}
+            themeToggle={themeToggle}
+          />
+        </Suspense>
       ) : null}
     </header>
   );

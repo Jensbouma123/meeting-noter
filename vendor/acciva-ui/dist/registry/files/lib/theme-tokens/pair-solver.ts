@@ -1,4 +1,4 @@
-import { apcaLc, contrastRatio, hexToOklch, oklchToHex, type Hex, type ThemeMode } from "@/lib/color/index";
+import { apcaLc, contrastRatio, gamutMap, hexToOklch, oklchToHex, type Hex, type ThemeMode } from "@/lib/color/index";
 import type { ThemeContrastPair } from "@/lib/theme-tokens/contrast-pairs";
 import { ROLE_VARIABLES } from "@/lib/theme-tokens/roles";
 import { SAMPLES, clampL, consider, createReport, type Nearest, type Sample, type SolvedPairRoleResult } from "@/lib/theme-tokens/pair-solver-helpers";
@@ -64,7 +64,7 @@ export function solvePairForRole(
   const originL = clampL(originColor.l);
 
   const at = (l: number): Sample => {
-    const hex = oklchToHex({ l: clampL(l), c: originColor.c, h: originColor.h });
+    const hex = oklchToHex(gamutMap({ l: clampL(l), c: originColor.c, h: originColor.h }, "srgb"));
     const fg = isAdjustingForeground ? hex : fixedHex;
     const bg = isAdjustingForeground ? fixedHex : hex;
     const ratio = contrastRatio(fg, bg);
@@ -113,7 +113,7 @@ export function solvePairForRole(
   // honest answer.
   const gatedL = nearestGated.l;
   if (gatedL === null) {
-    return finish(oklchToHex({ l: clampL(bestEffortL), c: originColor.c, h: originColor.h }));
+    return finish(oklchToHex(gamutMap({ l: clampL(bestEffortL), c: originColor.c, h: originColor.h }, "srgb")));
   }
 
   const preferredL = nearestPreferred.l;
@@ -144,5 +144,5 @@ export function solvePairForRole(
     passing = failing;
   }
 
-  return finish(oklchToHex({ l: clampL(passing), c: originColor.c, h: originColor.h }));
+  return finish(oklchToHex(gamutMap({ l: clampL(passing), c: originColor.c, h: originColor.h }, "srgb")));
 }

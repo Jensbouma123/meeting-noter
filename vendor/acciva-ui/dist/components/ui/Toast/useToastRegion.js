@@ -24,7 +24,9 @@ export function useToastRegion(hotkey) {
             if (!focusable)
                 return;
             event.preventDefault();
-            previouslyFocusedRef.current = document.activeElement;
+            // Keep the page's focus origin when the hotkey is pressed from inside the region already.
+            if (!root.contains(document.activeElement))
+                previouslyFocusedRef.current = document.activeElement;
             focusable.focus({ preventScroll: true });
         }
         document.addEventListener("keydown", handleHotkey);

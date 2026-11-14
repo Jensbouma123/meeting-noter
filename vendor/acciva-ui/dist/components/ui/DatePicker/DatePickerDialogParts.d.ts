@@ -9,10 +9,10 @@ export declare function DatePickerPresets({ presets, selectedDate, onSelect, }: 
 export declare function DatePickerViewHeader({ view }: {
     view: DatePickerViewModel;
 }): import("react").JSX.Element;
-export declare function DatePickerFooter({ view, selection, clearable, closeOnSelect, setIsOpen, }: {
+export declare function DatePickerFooter({ view, selection, clearable, closeOnSelect, close, }: {
     view: DatePickerViewModel;
     selection: DatePickerSelectionModel;
     clearable: boolean;
     closeOnSelect: boolean;
-    setIsOpen: (open: boolean) => void;
+    close: () => void;
 }): import("react").JSX.Element;

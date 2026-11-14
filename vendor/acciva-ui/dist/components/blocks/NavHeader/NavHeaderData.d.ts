@@ -19,13 +19,10 @@ export interface NavSearchItem {
     group: string;
 }
 export declare const NO_SEARCH_ITEMS: NavSearchItem[];
+/** Docs filter cap in the drawer. */
 export declare const MAX_SEARCH_RESULTS = 8;
 /** Panel width. `maxSize` alone collapses all three detents onto it — a fixed-width panel. */
 export declare const DRAWER_WIDTH_PX = 320;
 export declare function isActive(pathname: string | null, href: string): boolean;
 export declare function resolveNavLinkActive(link: PrimaryNavLink, pathname: string | null): boolean;
 export declare function docHref(slug: string): string;
-/** Resting + hover treatment shared by every idle nav link and option. */
-export declare const NAV_IDLE = "text-foreground hover:bg-elevation-3 active:bg-elevation-4";
-/** Drawer row: the touch target, shape and active/idle fill shared by the nav and docs lists. */
-export declare const navRowClass: (active: boolean, extra: string) => string;

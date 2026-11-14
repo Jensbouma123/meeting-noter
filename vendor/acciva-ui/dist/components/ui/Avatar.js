@@ -34,7 +34,7 @@ export function Avatar({ src, name, size = "md", fallback, className, ...props }
     const trimmedName = name?.trim() ?? "";
     const initials = trimmedName ? getAvatarInitials(trimmedName) : "";
     const showImage = Boolean(src) && errorSrc !== src;
-    if (process.env.NODE_ENV !== "production" && src && !trimmedName) {
+    if (process.env.NODE_ENV !== "production" && src && !trimmedName && !decorative) {
         console.error('[a11y] <Avatar src> was given no `name`, so the image ships with an empty alt and no accessible name. Pass the person\'s name so the image is announced (WCAG 2.2 AA SC 1.1.1 Non-text Content). If the avatar is purely decorative inside an already-labelled control, pass `aria-hidden` instead.');
     }
     const labelProps = !decorative && !showImage && initials ? { role: "img", "aria-label": trimmedName } : {};

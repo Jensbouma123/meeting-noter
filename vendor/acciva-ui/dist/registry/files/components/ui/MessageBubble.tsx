@@ -30,7 +30,7 @@ export const MessageBubble = forwardRef<HTMLDivElement, MessageBubbleProps>(
       <div ref={ref} role="group" aria-label={author} className={cn("flex w-full", ALIGNMENT[role])} {...rest}>
         <div
           className={cn(
-            "w-fit max-w-md border px-4 py-2.5 text-sm break-words",
+            "w-fit max-w-md border px-4 py-2 text-sm break-words",
             SURFACE_RADIUS.surface,
             SURFACE[role],
             className,

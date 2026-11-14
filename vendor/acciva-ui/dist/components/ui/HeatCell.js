@@ -18,6 +18,6 @@ function stepFor(intensity) {
  */
 export function HeatCell({ intensity = 0, isEmpty = false, label, className, ...props }) {
     const fill = isEmpty ? "bg-border-subtle" : stepClasses[stepFor(intensity)];
-    const labelled = label !== undefined;
+    const labelled = Boolean(label);
     return (_jsx("span", { ...props, role: labelled ? "img" : undefined, "aria-label": label, "aria-hidden": labelled ? undefined : "true", className: cn("block aspect-square w-full rounded-sm", fill, className) }));
 }

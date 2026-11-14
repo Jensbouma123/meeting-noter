@@ -110,6 +110,7 @@ export function buildThemeStylesheet(palette, meta) {
         "  --font-custom: var(--font-acciva-custom, var(--font-sans));",
         "",
         "  --animate-fade-in: acciva-fade-in 0.15s ease-out;",
+        "  --animate-shimmer: acciva-shimmer 1.5s infinite;",
         "}",
     ].join("\n");
 }

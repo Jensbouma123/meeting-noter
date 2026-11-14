@@ -3,12 +3,13 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useId } from "react";
 import { SLIDER_ROW_HEIGHT, SLIDER_THUMB_SIZE, SLIDER_THUMB_TARGET, SLIDER_TRACK_HEIGHT, TOUCH_TARGET_CLASS, needsTouchTarget, resolveResponsive, touchTargetClass, } from "../../../lib/sizing-tokens/index.js";
 import { cn } from "../../../lib/utils.js";
+import { valueToPercent } from "./sliderMath.js";
 import { SliderLabel } from "./SliderParts.js";
 import { useSliderKeys } from "./useSliderKeys.js";
 import { useSliderPointer } from "./useSliderPointer.js";
 export function Slider({ value, min = 0, max = 100, step = 1, label, onChange, formatValue, disabled = false, size = "md", className, "aria-label": ariaLabel, ...props }) {
     const sliderId = useId();
-    const percent = ((value - min) / (max - min)) * 100;
+    const percent = valueToPercent(value, min, max);
     const range = { min, max, step, disabled, onChange };
     const { trackRef, thumbRef, handlePointerDown } = useSliderPointer(range);
     const handleKeyDown = useSliderKeys({ ...range, value });

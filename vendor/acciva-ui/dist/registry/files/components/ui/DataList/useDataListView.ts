@@ -69,11 +69,17 @@ export function useDataListView<T>(props: DataListProps<T>, refs: DataListRefs) 
     handleToggleItemSelection: selection.handleToggleItemSelection,
   });
 
+  const pageStart = (pagination.currentPage - 1) * pagination.activePageSize;
   const handleContainerKeyDown = useDataListKeyboard(props, {
     processedItems: sort.processedItems,
     activeColumns: columnState.activeColumns,
     activeIndex: reorder.activeIndex,
     setActiveIndex: reorder.setActiveIndex,
+    windowStart: mode === "paginated" ? pageStart : 0,
+    windowEnd:
+      mode === "paginated"
+        ? Math.min(sort.processedItems.length, pageStart + pagination.activePageSize)
+        : sort.processedItems.length,
     handleToggleItemSelection: selection.handleToggleItemSelection,
     handleReorderMove: reorder.handleReorderMove,
   });

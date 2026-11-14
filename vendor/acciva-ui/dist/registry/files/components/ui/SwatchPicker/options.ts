@@ -1,4 +1,4 @@
-import { parseColor, rgbaToHex } from "@/lib/color/formats/index";
+import { parseColor, rgbaToHex, type RGBA } from "@/lib/color/formats/index";
 import type { SwatchOption, ResolvedOption } from "@/components/ui/SwatchPicker/types";
 
 export function resolveOptions(options: readonly (string | SwatchOption)[]): ResolvedOption[] {
@@ -13,19 +13,24 @@ export function resolveOptions(options: readonly (string | SwatchOption)[]): Res
       }
       return [];
     }
-    const rounded = {
-      r: Math.round(rgba.r),
-      g: Math.round(rgba.g),
-      b: Math.round(rgba.b),
-      a: Math.round(rgba.a * 100) / 100,
-    };
+    const rounded = roundRgba(rgba);
     const hex = rgbaToHex(rounded);
     return [{ key: `${hex}-${index}`, hex, rgba: rounded, label: entry.label ?? hex }];
   });
 }
 
+/** Same rounding as the option hex, so a translucent value matches its swatch. */
+function roundRgba(rgba: RGBA): RGBA {
+  return {
+    r: Math.round(rgba.r),
+    g: Math.round(rgba.g),
+    b: Math.round(rgba.b),
+    a: Math.round(rgba.a * 100) / 100,
+  };
+}
+
 export function selectionHex(value: string | null | undefined): string | null {
   if (value === undefined || value === null) return null;
   const rgba = parseColor(value);
-  return rgba ? rgbaToHex(rgba) : null;
+  return rgba ? rgbaToHex(roundRgba(rgba)) : null;
 }

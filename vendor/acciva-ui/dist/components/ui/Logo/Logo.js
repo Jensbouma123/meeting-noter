@@ -6,7 +6,7 @@ export function Logo({ variant = "full", size = "md", mark, src, alt, className,
     const isAriaHidden = rest["aria-hidden"] === true || rest["aria-hidden"] === "true";
     // A custom mark never changes the wordmark-only lockup, so it shares the built-in render.
     if ((!mark && !src) || variant === "wordmark") {
-        return renderBuiltIn(variant, size, ariaLabel, className, rest);
+        return renderBuiltIn(variant, size, ariaLabel, className, rest, isAriaHidden);
     }
     if (variant === "mark") {
         return renderCustomMark(size, mark, src, alt, ariaLabel, isAriaHidden, className, rest);

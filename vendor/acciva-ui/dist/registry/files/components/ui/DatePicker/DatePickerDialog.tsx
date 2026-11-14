@@ -20,7 +20,7 @@ export interface DatePickerDialogProps {
   showPresets: boolean;
   clearable: boolean;
   closeOnSelect: boolean;
-  setIsOpen: (open: boolean) => void;
+  close: () => void;
 }
 
 export function DatePickerDialog({
@@ -34,7 +34,7 @@ export function DatePickerDialog({
   showPresets,
   clearable,
   closeOnSelect,
-  setIsOpen,
+  close,
 }: DatePickerDialogProps) {
   return (
     <div
@@ -63,7 +63,7 @@ export function DatePickerDialog({
         selection={selection}
         clearable={clearable}
         closeOnSelect={closeOnSelect}
-        setIsOpen={setIsOpen}
+        close={close}
       />
     </div>
   );

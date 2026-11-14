@@ -25,12 +25,21 @@ export function usePopoverPlacement(open, mounted, targetPlacement, triggerRef, 
             syncPlaced();
             frame = requestAnimationFrame(syncPlaced);
         });
-        window.addEventListener("scroll", syncPlaced, { capture: true, passive: true });
-        window.addEventListener("resize", syncPlaced);
+        // Scroll fires many times a frame; one read-then-write per frame avoids forced layouts.
+        let queued = 0;
+        const queueSync = () => {
+            queued || (queued = requestAnimationFrame(() => {
+                queued = 0;
+                syncPlaced();
+            }));
+        };
+        window.addEventListener("scroll", queueSync, { capture: true, passive: true });
+        window.addEventListener("resize", queueSync);
         return () => {
             cancelAnimationFrame(frame);
-            window.removeEventListener("scroll", syncPlaced, true);
-            window.removeEventListener("resize", syncPlaced);
+            cancelAnimationFrame(queued);
+            window.removeEventListener("scroll", queueSync, true);
+            window.removeEventListener("resize", queueSync);
         };
     }, [open, targetPlacement, triggerRef, popoverRef]);
     useEffect(() => {

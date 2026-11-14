@@ -21,12 +21,16 @@ export function readRawStoredTheme() {
         return null;
     }
 }
+// Only custom properties may be overridden, and a value cannot close the
+// declaration or pull in a URL/expression: stored text is untrusted input.
+const CUSTOM_PROPERTY_RE = /^--[A-Za-z0-9_-]+$/;
+const UNSAFE_VALUE_RE = /[;{}<>]|url\(|image(-set)?\(|expression\(/i;
 function sanitizeOverridesRecord(obj) {
     if (!isPlainObject(obj))
         return {};
     const clean = {};
     for (const [key, value] of Object.entries(obj)) {
-        if (typeof key === "string" && typeof value === "string") {
+        if (CUSTOM_PROPERTY_RE.test(key) && typeof value === "string" && !UNSAFE_VALUE_RE.test(value)) {
             clean[key] = value;
         }
     }

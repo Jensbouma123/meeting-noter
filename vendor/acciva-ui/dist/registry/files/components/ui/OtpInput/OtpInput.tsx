@@ -28,14 +28,15 @@ export const OtpInput = forwardRef<HTMLInputElement, OtpInputProps>(
       size = "md",
       mask = false,
       className,
+      id,
+      "aria-label": ariaLabel,
       "aria-describedby": describedBy,
       ...props
     },
     ref,
   ) {
     const generatedId = useId();
-    const inputId = props.id ?? generatedId;
-    const labelId = `${inputId}-label`;
+    const inputId = id ?? generatedId;
     const hiddenInputRef = useRef<HTMLInputElement>(null);
     const locked = disabled || readOnly;
 
@@ -77,7 +78,7 @@ export const OtpInput = forwardRef<HTMLInputElement, OtpInputProps>(
     return (
       <div
         role="group"
-        aria-label={props["aria-label"] ?? (label ? `${label} group` : "Verification code")}
+        aria-label={ariaLabel ?? (label ? `${label} group` : "Verification code")}
         className={cn("flex flex-col gap-1.5", className)}
         {...props}
       >
@@ -90,7 +91,7 @@ export const OtpInput = forwardRef<HTMLInputElement, OtpInputProps>(
           </label>
         ) : null}
 
-        <HStack spacing="sm" className="relative">
+        <HStack spacing="sm" wrap className="relative">
           <input
             ref={hiddenInputRef}
             id={inputId}
@@ -104,10 +105,10 @@ export const OtpInput = forwardRef<HTMLInputElement, OtpInputProps>(
             autoFocus={autoFocus}
             // Mark for Modal/Drawer initial focus: React's commit-time focus misses a closed dialog.
             data-autofocus={autoFocus || undefined}
-            aria-label={label ? undefined : "Verification code"}
+            aria-label={label ? undefined : (ariaLabel ?? "Verification code")}
             aria-invalid={isInvalid ? true : undefined}
             aria-describedby={describedByIds}
-            className="absolute inset-0 size-full opacity-0 cursor-pointer z-10"
+            className="absolute inset-0 size-full opacity-0 cursor-pointer pointer-events-none z-10"
             tabIndex={0}
             onChange={handleHiddenInputChange}
             onKeyDown={handleKeyDown}

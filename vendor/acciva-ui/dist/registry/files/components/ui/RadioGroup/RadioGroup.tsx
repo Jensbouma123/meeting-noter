@@ -1,13 +1,13 @@
 "use client";
 
 import { forwardRef, useId, useRef, type HTMLAttributes, type ReactNode } from "react";
-import { TEXT_SIZE, resolveResponsive, type ResponsiveSize, type SizeTier } from "@/lib/sizing-tokens/index";
+import { TAB_LIST_PADDING, TAB_RADIUS, TEXT_SIZE, resolveResponsive, type ResponsiveSize, type SizeTier } from "@/lib/sizing-tokens/index";
 import { useArrowHint } from "@/lib/use-arrow-hint";
 import { cn } from "@/lib/utils";
 import { ArrowHint } from "@/lib/ArrowHint";
 import { VStack } from "@/components/ui/VStack";
 import { RadioGroupContext } from "@/components/ui/RadioGroup/context";
-import { useRovingFocus } from "@/components/ui/RadioGroup/useRovingFocus";
+import { useRovingFocus } from "@/components/ui/_internal/useRovingFocus";
 
 export interface RadioGroupProps extends Omit<HTMLAttributes<HTMLDivElement>, "onChange"> {
   value: string | null;
@@ -17,6 +17,8 @@ export interface RadioGroupProps extends Omit<HTMLAttributes<HTMLDivElement>, "o
   hint?: string;
   error?: string;
   orientation?: "vertical" | "horizontal";
+  /** `"segmented"` renders the options as one toggle-group of buttons (single-select, still a radiogroup). */
+  variant?: "default" | "segmented";
   size?: ResponsiveSize<SizeTier>;
   disabled?: boolean;
   required?: boolean;
@@ -37,6 +39,7 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(function R
     hint,
     error,
     orientation = "vertical",
+    variant = "default",
     size = "md",
     disabled = false,
     required = false,
@@ -59,7 +62,14 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(function R
 
   const arrowHintState = useArrowHint("radio-group", arrowHint, "Use arrow keys to move between options");
   const describedByIds = arrowHintState.describedBy([ariaDescribedBy, hintId, errorId].filter(Boolean).join(" ") || undefined);
-  const handleKeyDown = useRovingFocus(groupRef);
+  const handleKeyDown = useRovingFocus({
+    containerRef: groupRef,
+    itemSelector: '[role="radio"]:not([aria-disabled="true"])',
+    orientation: "both",
+    activate: true,
+    // A checked-but-disabled radio is not in the selector, so it can never strand focus.
+    tabStop: (radio) => radio.getAttribute("aria-checked") === "true",
+  });
 
   return (
     <RadioGroupContext.Provider
@@ -70,6 +80,7 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(function R
         size,
         disabled,
         orientation,
+        variant,
       }}
     >
       <VStack
@@ -101,9 +112,13 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(function R
         <div
           className={cn(
             "flex",
-            orientation === "horizontal" ? "flex-row flex-wrap gap-4" : "flex-col gap-2.5",
+            variant === "segmented"
+              ? ["bg-elevation-2", resolveResponsive(size, TAB_RADIUS), resolveResponsive(size, TAB_LIST_PADDING), orientation === "horizontal" ? "flex-row gap-0.5" : "flex-col gap-0.5"]
+              : orientation === "horizontal" ? "flex-row flex-wrap gap-4" : "flex-col gap-2.5",
           )}
         >
+          {/* Native submission: the group's `name` must reach FormData, so mirror the selected value. */}
+          {name && value !== null ? <input type="hidden" name={name} value={value} /> : null}
           {children}
         </div>
 

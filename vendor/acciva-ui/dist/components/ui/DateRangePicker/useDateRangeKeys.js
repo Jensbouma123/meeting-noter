@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 import { isBeforeDay, startOfDay } from "../../../lib/date-utils/index.js";
-import { handleDayGridKey } from "./dayGridKeys.js";
-import { handleViewGridKey } from "./viewGridKeys.js";
+import { handleCalendarDayKey, handleCalendarViewKey } from "../_internal/calendarGridKeys.js";
 export function useDateRangeKeys(state, { disabled, readOnly, closeOnSelect }) {
     const { startDate, endDate, isDateDisabled, commitRange, isOpen, setIsOpen, triggerRef, viewMode } = state;
     const handleSelectDate = useCallback((targetDate) => {
@@ -34,15 +33,24 @@ export function useDateRangeKeys(state, { disabled, readOnly, closeOnSelect }) {
             return;
         commitRange([null, null]);
     }, [disabled, readOnly, commitRange]);
+    // Footer and preset actions close the dialog, so focus returns to the trigger instead of <body> (SC 2.4.3).
+    const closeAndFocusTrigger = () => {
+        setIsOpen(false);
+        triggerRef.current?.focus({ preventScroll: true });
+    };
     const handleFooterClear = () => {
         handleClear();
         if (closeOnSelect)
-            setIsOpen(false);
+            closeAndFocusTrigger();
     };
     const handlePresetSelect = (preset) => {
-        commitRange([preset.value[0], preset.value[1]]);
+        const [presetStart, presetEnd] = preset.value;
+        const blocked = (date) => date !== null && isDateDisabled(date);
+        if (disabled || readOnly || blocked(presetStart) || blocked(presetEnd))
+            return;
+        commitRange([presetStart, presetEnd]);
         if (closeOnSelect)
-            setIsOpen(false);
+            closeAndFocusTrigger();
     };
     // Escape anywhere in the dialog (presets, header, grid) closes it and returns focus to the trigger.
     const handleDialogKeyDown = (event) => {
@@ -92,10 +100,16 @@ export function useDateRangeKeys(state, { disabled, readOnly, closeOnSelect }) {
     const handleGridKeyDown = (event) => {
         if (!isOpen)
             return;
-        if (viewMode === "day")
-            handleDayGridKey(event, state, handleSelectDate);
-        else
-            handleViewGridKey(event, viewMode, state);
+        if (viewMode !== "day") {
+            handleCalendarViewKey(event, viewMode, state.viewDate, state.setViewDate, state.setViewMode);
+            return;
+        }
+        // While picking the end, the same keys move the previewed range end.
+        const onFocusMove = (date) => {
+            if (startDate && !endDate)
+                state.setHoveredDate(date);
+        };
+        handleCalendarDayKey(event, { ...state, handleSelectDate, close: closeAndFocusTrigger, onFocusMove });
     };
     return {
         handleSelectDate,

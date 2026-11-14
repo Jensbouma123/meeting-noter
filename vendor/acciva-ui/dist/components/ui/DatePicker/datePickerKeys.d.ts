@@ -1,7 +1,7 @@
 import type { FocusEvent, KeyboardEvent } from "react";
 import type { CalendarViewMode } from "./types.js";
-import { type DayGridKeyContext } from "./dayGridKeys.js";
-export interface DatePickerKeysContext extends DayGridKeyContext {
+import { type CalendarDayKeyContext } from "../_internal/calendarGridKeys.js";
+export interface DatePickerKeysContext extends CalendarDayKeyContext {
     disabled: boolean;
     readOnly: boolean;
     isOpen: boolean;

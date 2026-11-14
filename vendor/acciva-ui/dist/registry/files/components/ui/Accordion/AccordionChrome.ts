@@ -19,6 +19,6 @@ export const TRIGGER_CHROME: Record<AccordionVariant, string> = {
 };
 
 export const CONTENT_CHROME: Record<AccordionVariant, string> = {
-  default: "px-4 pb-4 pt-1",
-  plain: "pb-3 pl-6 pt-1",
+  default: "px-4 py-3",
+  plain: "py-3 pl-6",
 };

@@ -24,7 +24,7 @@ export function InputLabel({ id, label, required, size }: InputLabelProps) {
   return (
     <label htmlFor={id} className={cn("font-medium text-foreground", resolveResponsive(size, TEXT_SIZE))}>
       {label}
-      {required ? <span className="ml-0.5 text-danger">*</span> : null}
+      {required ? <span aria-hidden="true" className="ml-0.5 text-danger">*</span> : null}
     </label>
   );
 }

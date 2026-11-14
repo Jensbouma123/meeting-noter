@@ -53,7 +53,7 @@ export function DataTableWide<T>({
         aria-label={caption}
         aria-rowcount={rows.length + 1}
         aria-colcount={columns.length}
-        style={{ minWidth: `${tableMinWidth}px` }}
+        style={{ minWidth: `${tableMinWidth / 16}rem` }}
       >
         <div role="rowgroup">
           {/* Raw grid: the template is computed per column set, so `Grid`'s

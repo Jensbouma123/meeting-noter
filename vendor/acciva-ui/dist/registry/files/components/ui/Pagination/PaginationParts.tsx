@@ -20,7 +20,7 @@ export function PaginationSummary({
         <span className="font-medium text-foreground">{Math.min(totalItems, (page - 1) * pageSize + 1)}</span>{" "}
         to{" "}
         <span className="font-medium text-foreground">{Math.min(totalItems, page * pageSize)}</span> of{" "}
-        <span className="font-medium text-foreground">{totalItems.toLocaleString()}</span> results
+        <span className="font-medium text-foreground">{totalItems.toLocaleString("en-US")}</span> results
       </div>
     );
   }
@@ -50,7 +50,8 @@ export function PaginationSizePicker({
         onChange={(e) => onChange(Number(e.target.value))}
         className="focus-ring h-8 pointer-coarse:min-h-11 rounded-md border border-border bg-surface px-2 text-xs font-medium text-foreground transition-colors hover:border-muted-foreground/60 active:border-muted-foreground"
       >
-        {options.map((opt) => (
+        {/* A current size missing from the options would leave the native select with no matching option. */}
+        {(options.includes(pageSize) ? options : [...options, pageSize].sort((a, b) => a - b)).map((opt) => (
           <option key={opt} value={opt}>
             {opt}
           </option>

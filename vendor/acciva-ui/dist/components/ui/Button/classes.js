@@ -33,10 +33,10 @@ const variantGeometry = {
 export function buttonRootClass(variant, size, iconOnly, className) {
     const geometry = variantGeometry[variant] === "text"
         ? cn("h-auto min-h-6 p-0", TOUCH_TARGET_CLASS)
-        : cn(resolveResponsive(size, CONTROL_HEIGHT), iconOnly ? cn(resolveResponsive(size, CONTROL_WIDTH), "justify-center p-0") : resolveResponsive(size, CONTROL_PADDING_X), typeof size === "string"
+        : cn(resolveResponsive(size, CONTROL_HEIGHT), iconOnly ? cn(resolveResponsive(size, CONTROL_WIDTH), "p-0") : resolveResponsive(size, CONTROL_PADDING_X), typeof size === "string"
             ? touchTargetClass(size)
             : [size.base, size.sm, size.md, size.lg].some((tier) => tier !== undefined && needsTouchTarget(tier))
                 ? TOUCH_TARGET_CLASS
                 : undefined);
-    return cn("focus-ring inline-flex items-center rounded-lg font-medium transition-colors motion-feedback", "disabled:cursor-not-allowed disabled:opacity-60", "aria-disabled:cursor-not-allowed aria-disabled:opacity-60", variantClasses[variant], resolveResponsive(size, CONTROL_RADIUS), resolveResponsive(size, CONTROL_GAP), resolveResponsive(size, TEXT_SIZE), resolveResponsive(size, BUTTON_ICON_SCALE), geometry, className);
+    return cn("focus-ring inline-flex items-center justify-center rounded-lg font-medium transition-colors motion-feedback", "disabled:cursor-not-allowed disabled:opacity-60", "aria-disabled:cursor-not-allowed aria-disabled:opacity-60", variantClasses[variant], resolveResponsive(size, CONTROL_RADIUS), resolveResponsive(size, CONTROL_GAP), resolveResponsive(size, TEXT_SIZE), resolveResponsive(size, BUTTON_ICON_SCALE), geometry, className);
 }

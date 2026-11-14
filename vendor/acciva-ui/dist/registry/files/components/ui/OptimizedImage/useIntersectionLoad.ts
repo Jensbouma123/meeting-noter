@@ -43,5 +43,5 @@ export function useIntersectionLoad(
     return () => observer.disconnect();
   }, [priority, visible, rootMargin, supportsIntersectionObserver, wrapperRef]);
 
-  return visible || !supportsIntersectionObserver;
+  return priority || visible || !supportsIntersectionObserver;
 }

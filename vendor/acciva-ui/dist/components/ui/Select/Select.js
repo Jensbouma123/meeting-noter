@@ -2,6 +2,7 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { focusOnOpen } from "../../../lib/quiet-focus.js";
 import { CONTROL_HEIGHT, CONTROL_RADIUS, INPUT_PADDING_X, TEXT_SIZE, resolveResponsive } from "../../../lib/sizing-tokens/index.js";
 import { cn } from "../../../lib/utils.js";
 import { VStack } from "../VStack.js";
@@ -31,8 +32,19 @@ export function Select({ id, options, value, onChange, label, placeholder = "Sel
     useSelectListEffects(open, activeIndex, buttonRef, listRef, setOpen);
     const openList = () => {
         const start = firstEnabledIndex(options, selectedIndex === -1 ? 0 : selectedIndex, 1);
-        setActiveIndex(start === -1 ? 0 : start);
+        // -1 when nothing is enabled: no active option, so aria-activedescendant stays unset.
+        setActiveIndex(start);
         setOpen(true);
+    };
+    // macOS/iOS WebKit does not focus a button on click; take focus so Escape, arrows and
+    // typeahead reach the trigger's key handler while open (SC 2.1.1, 2.1.2). Quiet off the keyboard.
+    const toggle = () => {
+        if (buttonRef.current && document.activeElement !== buttonRef.current)
+            focusOnOpen(buttonRef.current);
+        if (open)
+            setOpen(false);
+        else
+            openList();
     };
     const commit = (index) => {
         const option = options[index];
@@ -42,5 +54,5 @@ export function Select({ id, options, value, onChange, label, placeholder = "Sel
         onChange(option.value);
     };
     const handleKeyDown = useSelectKeyDown(options, disabled, open, activeIndex, setActiveIndex, setOpen, openList, commit, onChange);
-    return (_jsxs(VStack, { spacing: "sm", className: "w-full", children: [label ? (_jsx("span", { id: labelId, className: "text-sm font-medium text-foreground", children: label })) : null, _jsxs("div", { className: "relative", children: [_jsxs("button", { ref: buttonRef, id: buttonId, type: "button", role: "combobox", disabled: disabled, "aria-haspopup": "listbox", "aria-expanded": open, "aria-controls": open ? listId : undefined, "aria-activedescendant": open && activeIndex >= 0 ? `${baseId}-option-${activeIndex}` : undefined, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy ?? (label ? `${labelId} ${buttonId}` : undefined), onClick: () => (open ? setOpen(false) : openList()), onKeyDown: handleKeyDown, onBlur: () => setOpen(false), style: { anchorName }, className: cn("touch-target-44 focus-ring flex w-full items-center justify-between border border-border bg-background text-foreground", resolveResponsive(size, CONTROL_HEIGHT), resolveResponsive(size, CONTROL_RADIUS), resolveResponsive(size, TEXT_SIZE), resolveResponsive(size, INPUT_PADDING_X), "transition-colors hover:border-muted-foreground/60 active:border-muted-foreground active:bg-elevation-2 dark:active:bg-elevation-3 disabled:cursor-not-allowed disabled:opacity-60", className), children: [_jsx("span", { className: cn(!selectedOption && "text-muted-foreground"), children: selectedOption?.label ?? placeholder }), _jsx(ChevronDown, { className: cn("size-4 text-muted-foreground transition-transform", open && "rotate-180") })] }), open ? (_jsx(SelectListbox, { listRef: listRef, listId: listId, baseId: baseId, anchorName: anchorName, options: options, value: value, activeIndex: activeIndex, ariaLabel: ariaLabel, labelledBy: ariaLabelledBy ?? (label ? labelId : undefined), onCommit: commit, onActivate: setActiveIndex })) : null] })] }));
+    return (_jsxs(VStack, { spacing: "sm", className: "w-full", children: [label ? (_jsx("span", { id: labelId, className: "text-sm font-medium text-foreground", children: label })) : null, _jsxs("div", { className: "relative", children: [_jsxs("button", { ref: buttonRef, id: buttonId, type: "button", role: "combobox", disabled: disabled, "aria-haspopup": "listbox", "aria-expanded": open, "aria-controls": open ? listId : undefined, "aria-activedescendant": open && options[activeIndex] ? `${baseId}-option-${activeIndex}` : undefined, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy ?? (label ? `${labelId} ${buttonId}` : undefined), onClick: toggle, onKeyDown: handleKeyDown, onBlur: () => setOpen(false), style: { anchorName }, className: cn("touch-target-44 focus-ring flex w-full items-center justify-between border border-border bg-background text-foreground", resolveResponsive(size, CONTROL_HEIGHT), resolveResponsive(size, CONTROL_RADIUS), resolveResponsive(size, TEXT_SIZE), resolveResponsive(size, INPUT_PADDING_X), "transition-colors hover:border-muted-foreground/60 active:border-muted-foreground active:bg-elevation-2 dark:active:bg-elevation-3 disabled:cursor-not-allowed disabled:opacity-60", className), children: [_jsx("span", { className: cn(!selectedOption && "text-muted-foreground"), children: selectedOption?.label ?? placeholder }), _jsx(ChevronDown, { className: cn("size-4 text-muted-foreground transition-transform", open && "rotate-180") })] }), open ? (_jsx(SelectListbox, { listRef: listRef, listId: listId, baseId: baseId, anchorName: anchorName, options: options, value: value, activeIndex: activeIndex, ariaLabel: ariaLabel, labelledBy: ariaLabelledBy ?? (label ? labelId : undefined), onCommit: commit, onActivate: setActiveIndex })) : null] })] }));
 }

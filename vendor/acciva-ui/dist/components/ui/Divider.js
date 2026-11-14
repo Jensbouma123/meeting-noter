@@ -34,13 +34,18 @@ const INSET_MARGIN = {
  * so the rule is exactly one `bg-border` pixel and never a doubled edge.
  */
 const ORIENTATION_CLASS = {
-    horizontal: "h-px w-full border-0",
-    vertical: "w-px h-full self-stretch border-0",
+    horizontal: "h-px border-0",
+    vertical: "w-px self-stretch border-0",
+};
+/** Full extent when flush; `auto` when inset, so the margins subtract from the parent instead of overflowing it. */
+const EXTENT_CLASS = {
+    horizontal: { flush: "w-full", inset: "w-auto" },
+    vertical: { flush: "h-full", inset: "h-auto" },
 };
 const ARIA_ORIENTATION = {
     horizontal: "horizontal",
     vertical: "vertical",
 };
 export const Divider = forwardRef(function Divider({ orientation = "horizontal", inset = "none", decorative = true, className, ...props }, ref) {
-    return (_jsx("hr", { ref: ref, "aria-hidden": decorative || undefined, role: decorative ? undefined : "separator", "aria-orientation": decorative ? undefined : ARIA_ORIENTATION[orientation], className: cn("bg-border", ORIENTATION_CLASS[orientation], INSET_MARGIN[orientation][inset], className), ...props }));
+    return (_jsx("hr", { ref: ref, "aria-hidden": decorative || undefined, role: decorative ? undefined : "separator", "aria-orientation": decorative ? undefined : ARIA_ORIENTATION[orientation], className: cn("bg-border", ORIENTATION_CLASS[orientation], EXTENT_CLASS[orientation][inset === "none" ? "flush" : "inset"], INSET_MARGIN[orientation][inset], className), ...props }));
 });

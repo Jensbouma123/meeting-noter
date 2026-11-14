@@ -59,6 +59,7 @@
 - **Category:** Primitive
 - **Purpose:** Accessible text, password, number, and search field. `leadingAddon` / `trailingAddon` attach a bordered segment *outside* the field (`https://`, `$`, `.com`, `USD`).
 - **Gotcha:** an addon is not a `leadingIcon` — it sits outside the field so the caret stays clear, and it is announced with the field via `aria-describedby` (SC 1.3.1, SC 3.3.2). Use `leadingIcon` only for a decorative mark inside the box.
+- **Search:** `type="search"` is `clearable` by default (token-styled "Clear search" button, Escape also clears; `clearable={false}` opts out) — never hand-roll a clear button or a raw `<input type="search">`.
 - **Apple:** `AccivaTextFieldStyle` (`.textFieldStyle(.acciva(size:isInvalid:))`) styles any native `TextField`/`SecureField`; `.accivaTextEditorStyle()` does the same for `TextEditor` (multi-line); `AccivaTextArea` (`Components/TextArea/TextArea.swift`) auto-grows between `minLines`/`maxLines` and takes `surface: .solid`/`.glass` (system material)/`.none` (chromeless: no fill, border or focus ring, for a field inside a glass container such as a chat composer; the container must show the focus indicator, and pass `error` so an invalid state stays visible), optional `isFocused` (caller-owned focus), an iOS 18+ `selection` init, and `onKeySubmit` (`(shift:) -> KeyPress.Result`) for Return/Shift-Return — `onSubmit` routes through that hook (plain Return) since `TextEditor` `.onSubmit` never fires; `font: AccivaTextFont` (`.mono` for code), `fillsHeight: true` to fill its container instead of growing to `maxLines`, and `isInvalid: true` for the red border without a message. `AccivaInput` (`apple/Sources/AccivaUI/Components/Input.swift`) adds label/hint/error (`showsLabel: false` hides the label but keeps it as the accessible name), `onSubmit`/`onCommit` (commit on submit or focus loss), `type: .search` (magnifier, clear, web-search keyboard), `leadingSystemImage`, `type` → keyboard + `textContentType` (iOS/visionOS), `clearable`, password reveal (`.isSelected`); 44pt hit areas. Numeric: `AccivaInput("Amount", value: $amount, format: .number)` binds any `ParseableFormatStyle` value like `TextField(value:format:)` (`type: .number` for whole numbers, else decimal pad). `surface: .glass` gives a capsule with the system material (same enum as `AccivaTextArea`). `isFocused` takes a caller-owned `FocusState<Bool>.Binding`, also on the `search:` variant. No `validate`/char count/addons.
 - **Spec:** `.agents/components/Input.md`
 
@@ -94,6 +95,7 @@
 - **Category:** Composite
 - **Purpose:** Mutually exclusive choice among 2–6 visible options.
 - **Apple:** `AccivaRadioGroup` (`apple/Sources/AccivaUI/Components/RadioGroup/RadioGroup.swift`) — native `.radioGroup` `Picker` on macOS, native `Button` rows with `.isSelected` on iOS/visionOS; `variant: .card` tiles with descriptions; `variant` is per group; `AccivaRadioCustomGroup` renders arbitrary per-option content (each option needs an accessibility label). `AccivaRadioGroup.haloInset` (public, half a spacing unit) is the leading inset to apply to a container so the selected dot halo is not clipped.
+- **Variant:** `variant="segmented"` renders the options as one toggle-group of buttons (single-select, still a radiogroup, label only); Apple `variant: .segmented`. Use it for 2–4 short view/range switches that are not navigation (navigation is `Tabs`).
 - **Hint:** `arrowHint` (string | `false`): first-keyboard-focus arrow-key caption, once per page load.
 - **Spec:** `.agents/components/RadioGroup.md`
 
@@ -102,6 +104,13 @@
 - **Category:** Primitive
 - **Purpose:** Smooth scrolling container with touch momentum and indicators.
 - **Spec:** `.agents/components/ScrollView.md`
+
+### 25a. SearchCombobox
+- **Import:** `import { SearchCombobox } from "@jensbouma123/acciva-ui"`
+- **Category:** Composite
+- **Purpose:** Search-and-go combobox (command palette): type to filter, Enter/click follows an option's `href` (via `onNavigate`) or runs its `onSelect`; no committed value, Escape clears/closes. Shares its popup internals with `SearchableSelect`; use that instead when the choice is stored.
+- **Apple:** `AccivaSearchCombobox` (`apple/Sources/AccivaUI/Components/SearchCombobox/SearchCombobox.swift`) — field + inline results, `AccivaSearchComboboxOption` with `href`/`action`.
+- **Spec:** `.agents/components/SearchCombobox.md`
 
 ### 26. SearchableSelect
 - **Import:** `import { SearchableSelect } from "@jensbouma123/acciva-ui"`

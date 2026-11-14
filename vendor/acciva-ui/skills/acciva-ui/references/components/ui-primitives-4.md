@@ -8,10 +8,10 @@
 ### ListItem
 - **Import:** `import { ListItem } from "@jensbouma123/acciva-ui"`
 - **Category:** Primitive
-- **Purpose:** Interactive list row: `title` + optional `subtitle`, `leading`/`trailing` inert slots, `selected` (single-select), `checked` (multi-select, switches to `role="checkbox"`), `depth` for outline indent.
+- **Purpose:** Interactive list row: `title` + optional `subtitle`, `leading`/`trailing` inert slots, `selected` (single-select), `checked` (multi-select, switches to `role="checkbox"`), `depth` for outline indent; `density="rail"` is an icon-only square (title becomes the accessible name).
 - **Gotcha:** `checked` wins over `selected`. Slots must be inert (no nested controls).
 - **Variant:** `asChild` is link mode: the row merges onto one link (`<ListItem asChild selected={isCurrent}><Link href=… /></ListItem>`). The child's own `onClick` is kept (runs first). Web-only; on Swift use `AccivaListItemLink`.
-- **Apple:** `AccivaListItem` (`apple/Sources/AccivaUI/Components/ListItem/ListItem.swift`) — same title/subtitle/leading/trailing/selected/checked/depth. No swipe slot: swipe actions on rows go through `AccivaDataList` `rowActions`, since `swipeActionsContainer()` outside `List` is unverified (host spike pending).
+- **Apple:** `AccivaListItem` (`apple/Sources/AccivaUI/Components/ListItem/ListItem.swift`) — same title/subtitle/leading/trailing/selected/checked/depth/density. No swipe slot: swipe actions on rows go through `AccivaDataList` `rowActions`, since `swipeActionsContainer()` outside `List` is unverified (host spike pending).
 - **Spec:** `.agents/components/ListItem.md`
 
 ### SplitPane
@@ -57,9 +57,9 @@
 ### Stepper
 - **Import:** `import { Stepper } from "@jensbouma123/acciva-ui"`
 - **Category:** Composite
-- **Purpose:** Progress through an ordered list of steps: `steps` (string[]) + zero-based `current`; `variant="dots" | "chips"`.
+- **Purpose:** Progress through an ordered list of steps: `steps` (string[]) + zero-based `current`; `variant="dots" | "chips"`; `onStepRequest(index)` makes completed (and `isStepAllowed`) steps buttons — `chips` collapse to "Step n of m" on phones.
 - **Gotcha:** `current` is clamped to the step range. The current step is marked by size and fill, not colour alone (SC 1.4.1).
-- **Apple:** `AccivaStepper` (`apple/Sources/AccivaUI/Components/Stepper/Stepper.swift`) — same steps/current/variant.
+- **Apple:** `AccivaStepper` (`apple/Sources/AccivaUI/Components/Stepper/Stepper.swift`) — same steps/current/variant + `onStepRequest`/`isStepAllowed`.
 - **Spec:** `.agents/components/Stepper.md`
 
 ### Swatch

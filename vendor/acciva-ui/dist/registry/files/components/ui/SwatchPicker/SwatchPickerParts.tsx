@@ -50,7 +50,7 @@ export function SwatchOptionButton({
       onClick={onSelect}
       onFocus={onFocus}
       className={cn(
-        "focus-ring relative flex items-center justify-center rounded-full",
+        "focus-ring relative flex items-center justify-center rounded-full min-h-6 min-w-6",
         TOUCH_TARGET_CLASS,
         disabled && "cursor-not-allowed opacity-60",
         selected &&

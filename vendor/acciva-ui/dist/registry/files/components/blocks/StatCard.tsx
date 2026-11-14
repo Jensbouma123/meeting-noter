@@ -71,7 +71,11 @@ export function StatCard({
                 className={cn("mb-1 text-xs font-medium", trendingUp ? "text-success" : "text-danger")}
               >
                 {trendingUp ? <TrendingUp className="size-3.5" /> : <TrendingDown className="size-3.5" />}
-                {Math.abs(delta)}%{deltaLabel ? ` ${deltaLabel}` : ""}
+                <span className="sr-only">{trendingUp ? "Increase" : "Decrease"}</span>
+                <span>
+                  {trendingUp ? "+" : "-"}
+                  {Math.abs(delta)}%{deltaLabel ? ` ${deltaLabel}` : ""}
+                </span>
               </HStack>
             ) : null}
           </HStack>

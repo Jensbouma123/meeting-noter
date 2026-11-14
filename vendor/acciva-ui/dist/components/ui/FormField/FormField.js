@@ -7,11 +7,13 @@ import { FormDescription, FormLabel, FormMessage } from "./FormFieldParts.js";
 import { FormFieldContext } from "./useFormField.js";
 export const FormField = forwardRef(function FormField({ id: customId, label, hint, error, required = false, disabled = false, size = "md", className, children, ...props }, ref) {
     const generatedId = useId();
-    const fieldId = customId ?? generatedId;
+    // A child's own id is the field id, so the label's htmlFor targets the control it labels.
+    const childId = isValidElement(children) ? children.props.id : undefined;
+    const fieldId = customId ?? childId ?? generatedId;
     const labelId = `${fieldId}-label`;
     const hintId = `${fieldId}-hint`;
     const errorId = `${fieldId}-error`;
-    const describedBy = [hint ? hintId : undefined, error ? errorId : undefined]
+    const describedBy = [hint && !error ? hintId : undefined, error ? errorId : undefined]
         .filter(Boolean)
         .join(" ") || undefined;
     let renderedChild = children;
@@ -20,7 +22,7 @@ export const FormField = forwardRef(function FormField({ id: customId, label, hi
         const existingDescribedBy = child.props["aria-describedby"];
         const mergedDescribedBy = [describedBy, existingDescribedBy].filter(Boolean).join(" ") || undefined;
         renderedChild = cloneElement(child, {
-            id: child.props.id ?? fieldId,
+            id: fieldId,
             "aria-describedby": mergedDescribedBy,
             disabled: disabled || Boolean(child.props.disabled),
             required: required || Boolean(child.props.required),

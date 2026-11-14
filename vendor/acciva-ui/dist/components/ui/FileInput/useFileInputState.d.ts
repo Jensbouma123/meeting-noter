@@ -18,7 +18,11 @@ export declare function useFileInputState(value: readonly File[] | undefined, de
     states: (import("./types.js").FileItemState | undefined)[];
     originals: import("react").RefObject<WeakMap<File, File>>;
     abortRef: import("react").RefObject<AbortController | null>;
-    focusAfterRemove: import("react").RefObject<number | null>;
+    cancelPending: () => void;
+    focusAfterRemove: import("react").RefObject<{
+        index: number;
+        expected: readonly File[];
+    } | null>;
     syncNative: (list: readonly File[]) => void;
 };
 export type FileInputState = ReturnType<typeof useFileInputState>;

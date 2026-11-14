@@ -1,13 +1,18 @@
-import { useState } from "react";
+import { useSyncExternalStore } from "react";
 import { parseColor, type RGBA } from "@/lib/color/formats/index";
 
 type EyeDropperConstructor = new () => { open: () => Promise<{ sRGBHex: string }> };
 
+const noopSubscribe = () => () => undefined;
+const serverSnapshot = () => undefined;
+
 export function useEyeDropper(enabled: boolean, onPick: (rgba: RGBA) => void) {
-  const [EyeDropperApi] = useState(() =>
-    enabled && typeof window !== "undefined"
-      ? (window as unknown as { EyeDropper?: EyeDropperConstructor }).EyeDropper
-      : undefined,
+  // Read live on every render (honours `enabled` toggles) and report `undefined` during
+  // SSR and hydration so server and client markup match.
+  const EyeDropperApi = useSyncExternalStore(
+    noopSubscribe,
+    () => (enabled ? (window as unknown as { EyeDropper?: EyeDropperConstructor }).EyeDropper : undefined),
+    serverSnapshot,
   );
 
   const pickFromScreen = () => {

@@ -18,10 +18,10 @@ export function useDataListVirtualGridRow(props, nav) {
                 const isSelected = selectedKeySet.has(key);
                 const disabled = isItemDisabled ? isItemDisabled(item, itemIndex) : false;
                 const active = itemIndex === activeIndex;
-                return (_jsx("div", { id: getItemIdResolved(itemIndex), "data-index": itemIndex, role: resolvedItemRole, "aria-selected": selectionMode !== "none" ? isSelected : undefined, "aria-disabled": disabled || undefined, "aria-setsize": processedItems.length, "aria-posinset": itemIndex + 1, 
+                return (_jsx("div", { id: getItemIdResolved(itemIndex), "data-index": itemIndex, "data-active": active || undefined, role: resolvedItemRole, "aria-selected": selectionMode !== "none" ? isSelected : undefined, "aria-disabled": disabled || undefined, "aria-setsize": processedItems.length, "aria-posinset": itemIndex + 1, 
                     // Raw flex: `itemClassName` is consumer-supplied and lands in the same
                     // class string, so a `Stack`'s own alignment classes could collide with it.
-                    className: cn("relative h-full flex flex-col", itemClassName, (selectionMode !== "none" || onItemClick) && !disabled && "cursor-pointer"), onClick: () => {
+                    className: cn("relative h-full flex flex-col", itemClassName, active && "ring-2 ring-primary-500/50 rounded-xl", (selectionMode !== "none" || onItemClick) && !disabled && "cursor-pointer"), onClick: () => {
                         if (disabled)
                             return;
                         if (selectionMode !== "none")

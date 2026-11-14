@@ -6,6 +6,7 @@ export interface RadioGroupContextValue {
     size: ResponsiveSize<SizeTier>;
     disabled: boolean;
     orientation: "vertical" | "horizontal";
+    variant: "default" | "segmented";
 }
 export declare const RadioGroupContext: import("react").Context<RadioGroupContextValue | null>;
 export declare function useRadioGroupContext(component: string): RadioGroupContextValue;

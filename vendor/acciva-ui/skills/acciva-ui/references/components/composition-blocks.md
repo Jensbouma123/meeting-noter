@@ -28,7 +28,8 @@
 ### 40. NavTree
 - **Import:** `import { NavTree } from "@jensbouma123/acciva-ui"`
 - **Category:** Block
-- **Purpose:** Generic three-level collapsible navigation tree (group, item, variant) with one auto-expanding group and a search-mode expand-all override. Pass a flat `items: NavTreeItem[]` instead of `groups` for an ungrouped list.
+- **Purpose:** Generic three-level collapsible navigation tree (group, item, variant) with one auto-expanding group and a search-mode expand-all override. Pass a flat `items: NavTreeItem[]` instead of `groups` for an ungrouped list; `NavTreeItem.icon` renders a leading icon and `NavTreeSection` (`sections`) adds headed flat lists.
+- **Gotcha:** precedence `items` > `sections` > `groups`; `icon` is decorative (aria-hidden). Swift port deferred with NavTree.
 - **Hint:** `arrowHint` (string | `false`): first-keyboard-focus arrow-key caption, once per page load; Up/Down arrows hop between links and toggles.
 - **Spec:** `.agents/components/NavTree.md`
 
@@ -49,7 +50,7 @@
 ### 43. StatCard
 - **Import:** `import { StatCard } from "@jensbouma123/acciva-ui"`
 - **Category:** Block
-- **Purpose:** Metric KPI summary card showing primary values, trend indicators, and subtitles. `tone="primary" | "secondary" | "accent" | "success"` colours the icon chip — use it instead of hand-rolling a metric tile. Two distinct sublines: `delta` (numeric trend, coloured by sign, inline beside the value) and `footnote` (static muted qualifier below it, e.g. "34 gated pairs verified") — reach for `footnote` rather than dropping a bespoke tile's caption when migrating onto this component.
+- **Purpose:** Metric KPI summary card showing primary values, trend indicators, and subtitles. `tone="primary" | "secondary" | "accent" | "success"` colours the icon chip — use it instead of hand-rolling a metric tile. Two distinct sublines: `delta` (numeric trend, signed `+N%`/`-N%` with sr-only Increase/Decrease, coloured by sign, inline beside the value) and `footnote` (static muted qualifier below it, e.g. "34 gated pairs verified") — reach for `footnote` rather than dropping a bespoke tile's caption when migrating onto this component.
 - **Apple:** `AccivaStatCard` + `AccivaStatCardGrid` (`apple/Sources/AccivaUI/Components/StatCard/StatCard.swift`) — same `tone`/`delta`/`deltaLabel`/`footnote`; optional `systemImage` SF Symbol; one VoiceOver element that speaks the trend ("Down 4% vs last month"); not interactive — wrap in `AccivaCard(action:)` for a tappable tile. Grid is 1 column compact, 2 regular.
 - **Spec:** `.agents/components/StatCard.md`
 
@@ -62,7 +63,7 @@
 ### 45. NotificationCenter
 - **Import:** `import { NotificationCenter } from "@jensbouma123/acciva-ui"`
 - **Category:** Block
-- **Purpose:** Notification inbox card with unread-count badge, mark-all-read action, and per-item dismiss/select callbacks over caller-owned `NotificationItem[]`. Empty list renders an `EmptyState`.
+- **Purpose:** Notification inbox card with unread-count badge, mark-all-read action, and per-item dismiss/select callbacks over caller-owned `NotificationItem[]`. Dismiss sits beside each row, not in a `RowList.Item` slot. Empty list renders an `EmptyState`.
 - **Spec:** `.agents/components/NotificationCenter.md`
 
 ### 46. CheckoutSummary
@@ -74,7 +75,7 @@
 ### 47. TeamList
 - **Import:** `import { TeamList } from "@jensbouma123/acciva-ui"`
 - **Category:** Block
-- **Purpose:** Team roster card — avatar/name/role/email rows, member-count badge, invite action, and per-member remove buttons with member-specific accessible names. Empty roster renders an `EmptyState` with the invite action.
+- **Purpose:** Team roster card — avatar/name/role/email rows, member-count badge, invite action, and per-member remove buttons (beside each row, not in a `RowList.Item` slot) with member-specific accessible names. Empty roster renders an `EmptyState` with the invite action.
 - **Spec:** `.agents/components/TeamList.md`
 
 ### 48. ActivityFeed

@@ -57,9 +57,7 @@ export function useDetentSizes(
       const paddingBottom = contentStyle ? parseFloat(contentStyle.paddingBottom) || 0 : 0;
       const innerHeight = innerNode.getBoundingClientRect().height || innerNode.offsetHeight || innerNode.scrollHeight;
       const total = innerHeight + grabberHeight + paddingTop + paddingBottom;
-      if (total > 0) {
-        setAutoContentSize(total);
-      }
+      setAutoContentSize(total);
     };
 
     measure();

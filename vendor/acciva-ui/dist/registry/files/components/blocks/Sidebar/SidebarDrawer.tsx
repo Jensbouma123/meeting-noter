@@ -1,10 +1,13 @@
 import Link from "next/link";
-import type { KeyboardEvent, RefObject } from "react";
+import { useRef, type RefObject } from "react";
 import { Drawer } from "@/components/ui/Drawer/index";
+import { useCloseAtDesktop } from "@/components/blocks/Sidebar/useCloseAtDesktop";
+import { ListItem } from "@/components/ui/ListItem";
 import { VStack } from "@/components/ui/VStack";
 import { ICON_SIZE_CLASS } from "@/lib/sizing-tokens/index";
 import { cn } from "@/lib/utils";
 import { SidebarGlyph, SidebarReorderMenu } from "@/components/blocks/Sidebar/SidebarParts";
+import { useSidebarListKeys } from "@/components/blocks/Sidebar/useSidebarListKeys";
 import { resolveActive } from "@/components/blocks/Sidebar/sidebarHelpers";
 import type { SidebarItem, SidebarReorderMove } from "@/components/blocks/Sidebar/SidebarTypes";
 
@@ -14,7 +17,7 @@ export function SidebarDrawer({
   mobileOpen,
   onMobileClose,
   drawerRefs,
-  onListKeyDown,
+  queueFocus,
   onReorder,
   onMove,
 }: {
@@ -23,10 +26,13 @@ export function SidebarDrawer({
   mobileOpen: boolean;
   onMobileClose: () => void;
   drawerRefs: RefObject<(HTMLAnchorElement | null)[]>;
-  onListKeyDown: (event: KeyboardEvent<HTMLUListElement>) => void;
+  queueFocus: (list: "rail" | "drawer", index: number) => void;
   onReorder?: (move: SidebarReorderMove) => void;
   onMove: (from: number, to: number) => void;
 }) {
+  const listRef = useRef<HTMLUListElement | null>(null);
+  const onListKeyDown = useSidebarListKeys({ containerRef: listRef, list: "drawer", refs: drawerRefs, count: items.length, canReorder: !!onReorder, queueFocus, move: onMove });
+  useCloseAtDesktop(mobileOpen, onMobileClose);
   return (
     <Drawer
       open={mobileOpen}
@@ -43,6 +49,7 @@ export function SidebarDrawer({
           <VStack
             as="ul"
             spacing="sm"
+            ref={listRef}
             onKeyDown={onListKeyDown}
           >
             {items.map((item, index) => {
@@ -50,23 +57,19 @@ export function SidebarDrawer({
 
               return (
                 <li key={item.href} className="flex items-center gap-1">
-                  <Link
+                  <ListItem
+                    asChild
+                    title={item.label}
+                    selected={active}
+                    leading={<SidebarGlyph icon={item.icon} className={cn(ICON_SIZE_CLASS.lg, "shrink-0")} />}
                     ref={(node) => {
-                      drawerRefs.current[index] = node;
+                      drawerRefs.current[index] = node as HTMLAnchorElement | null;
                     }}
-                    href={item.href}
                     onClick={onMobileClose}
-                    aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "focus-ring flex min-w-0 flex-1 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors motion-feedback",
-                      active
-                        ? "bg-primary-500/15 text-primary-800 dark:text-primary-300 font-semibold"
-                        : "text-foreground hover:bg-elevation-3 hover:text-foreground active:bg-elevation-4 active:text-foreground"
-                    )}
+                    className="min-w-0 flex-1"
                   >
-                    <SidebarGlyph icon={item.icon} className={cn(ICON_SIZE_CLASS.lg, "shrink-0")} />
-                    <span className="truncate">{item.label}</span>
-                  </Link>
+                    <Link href={item.href} />
+                  </ListItem>
                   {onReorder && items.length > 1 && (
                     <SidebarReorderMenu
                       label={item.label}

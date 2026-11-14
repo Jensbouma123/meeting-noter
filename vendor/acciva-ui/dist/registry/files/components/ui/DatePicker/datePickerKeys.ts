@@ -1,9 +1,8 @@
 import type { FocusEvent, KeyboardEvent } from "react";
 import type { CalendarViewMode } from "@/components/ui/DatePicker/types";
-import { handleDayGridKey, type DayGridKeyContext } from "@/components/ui/DatePicker/dayGridKeys";
-import { handleViewGridKey } from "@/components/ui/DatePicker/viewGridKeys";
+import { handleCalendarDayKey, handleCalendarViewKey, type CalendarDayKeyContext } from "@/components/ui/_internal/calendarGridKeys";
 
-export interface DatePickerKeysContext extends DayGridKeyContext {
+export interface DatePickerKeysContext extends CalendarDayKeyContext {
   disabled: boolean;
   readOnly: boolean;
   isOpen: boolean;
@@ -58,9 +57,9 @@ export function createDatePickerKeys(ctx: DatePickerKeysContext) {
   const handleGridKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (!isOpen) return;
     if (viewMode === "day") {
-      handleDayGridKey(event, ctx);
+      handleCalendarDayKey(event, ctx);
     } else {
-      handleViewGridKey(event, viewMode, viewDate, setViewDate, setViewMode);
+      handleCalendarViewKey(event, viewMode, viewDate, setViewDate, setViewMode);
     }
   };
 

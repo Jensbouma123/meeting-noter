@@ -1,5 +1,6 @@
 import { TAILWIND_ALIASES } from "@/lib/color/ramp/index";
-import { applyOverrides, flattenDocument, type FlatToken } from "@/lib/color/export/resolve/index";
+import { flattenDocument, type FlatToken } from "@/lib/color/export/resolve/index";
+import { withTokenOverrides } from "@/lib/color/export/doc-overrides";
 import type { DtcgDocument } from "@/lib/color/tokens/index";
 import type { ModeTokenOverrides } from "@/lib/color/export/resolve/index";
 
@@ -41,10 +42,8 @@ export function exportTailwindTheme(
   doc: DtcgDocument,
   overrides?: ModeTokenOverrides,
 ): string {
-  const flattened = flattenDocument(doc);
-  const { primitive, light, dark } = applyOverrides(
-    flattened,
-    overrides ?? { light: {}, dark: {} },
+  const { primitive, light, dark } = flattenDocument(
+    withTokenOverrides(doc, overrides ?? { light: {}, dark: {} }),
   );
   return [
     "@theme {",

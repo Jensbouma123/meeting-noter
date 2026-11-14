@@ -11,13 +11,16 @@ export function useDateRangeCalendar(startDate) {
     const [viewDate, setViewDate] = useState(() => startDate ?? new Date());
     const [focusedDate, setFocusedDate] = useState(() => startDate ?? new Date());
     const [hoveredDate, setHoveredDate] = useState(null);
+    // Key on the timestamp: parents often pass fresh Date instances each render, which must not snap the view.
+    const startTime = startDate?.getTime();
     useEffect(() => {
-        if (startDate) {
+        if (startTime !== undefined) {
+            const next = new Date(startTime);
             // eslint-disable-next-line react-hooks/set-state-in-effect
-            setViewDate(startDate);
-            setFocusedDate(startDate);
+            setViewDate(next);
+            setFocusedDate(next);
         }
-    }, [startDate]);
+    }, [startTime]);
     useEffect(() => {
         if (!isOpen) {
             // eslint-disable-next-line react-hooks/set-state-in-effect

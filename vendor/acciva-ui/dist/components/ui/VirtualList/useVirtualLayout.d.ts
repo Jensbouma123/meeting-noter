@@ -18,7 +18,7 @@ interface VirtualLayoutOptions<T> {
     firstVisibleRef: RefObject<number>;
     onVisibleRangeChange?: VirtualListProps<T>["onVisibleRangeChange"];
 }
-export declare function useVirtualLayout<T>({ items, itemHeight, dynamic, getItemKey, measuredSnapshot, baseHeightAt, scrollToTopEnabled, scrollTop, viewportHeight, overscan, firstVisibleRef, onVisibleRangeChange, }: VirtualLayoutOptions<T>): {
+export declare function useVirtualLayout<T>({ items, itemHeight, dynamic, getItemKey, measuredSnapshot, baseHeightAt, scrollToTopEnabled, scrollTop: rawScrollTop, viewportHeight, overscan, firstVisibleRef, onVisibleRangeChange, }: VirtualLayoutOptions<T>): {
     layout: VirtualLayout;
     offsetAt: (index: number) => number;
     sizeAt: (index: number) => number;

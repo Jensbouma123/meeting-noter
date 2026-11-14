@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { forwardRef, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import { ArrowHint } from "@/lib/ArrowHint";
-import { ListItem } from "@/components/ui/ListItem";
+import { useRovingFocus } from "@/components/ui/_internal/useRovingFocus";
 import { VStack } from "@/components/ui/VStack";
 import { useArrowHint } from "@/lib/use-arrow-hint";
+import { NavTreeFlatList, NavTreeSectionBlock } from "@/components/blocks/NavTree/NavTreeFlat";
 import { NavTreeGroupBlock } from "@/components/blocks/NavTree/NavTreeParts";
 import { groupContainsHref } from "@/components/blocks/NavTree/navTreeHelpers";
 import type { NavTreeProps } from "@/components/blocks/NavTree/NavTreeTypes";
@@ -16,26 +16,23 @@ export type {
   NavTreeGroup,
   NavTreeItem,
   NavTreeProps,
+  NavTreeSection,
 } from "@/components/blocks/NavTree/NavTreeTypes";
 
 export const NavTree = forwardRef<HTMLElement, NavTreeProps>(function NavTree(
-  { groups, items, activeHref, forceExpandAll, ariaLabel, "aria-label": ariaLabelAttr, "aria-describedby": ariaDescribedByAttr, arrowHint },
+  { groups, items, sections, activeHref, forceExpandAll, ariaLabel, "aria-label": ariaLabelAttr, "aria-describedby": ariaDescribedByAttr, arrowHint },
   ref,
 ) {
   const hint = useArrowHint("nav-tree", arrowHint, "Use arrow keys to move between links");
   const ariaDescribedBy = hint.describedBy(ariaDescribedByAttr);
   const navRef = useRef<HTMLElement | null>(null);
   // Up/Down hop between visible links and group toggles; Tab order is untouched (no roving tabindex).
-  const handleArrows = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
-    const stops = Array.from(navRef.current?.querySelectorAll<HTMLElement>("a[href], button") ?? []).filter(
-      (el) => !el.closest("[hidden]"),
-    );
-    const at = stops.indexOf(document.activeElement as HTMLElement);
-    if (at === -1) return;
-    event.preventDefault();
-    stops[at + (event.key === "ArrowDown" ? 1 : -1)]?.focus();
-  };
+  const handleArrows = useRovingFocus({
+    containerRef: navRef,
+    itemSelector: "a[href]:not([hidden] *), button:not([hidden] *)",
+    orientation: "vertical",
+    wrap: false,
+  });
   const navProps = {
     ref: (node: HTMLElement | null) => {
       navRef.current = node;
@@ -47,17 +44,16 @@ export const NavTree = forwardRef<HTMLElement, NavTreeProps>(function NavTree(
   };
   const accessibleName = ariaLabelAttr ?? ariaLabel;
   const groupList = groups ?? [];
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
-    const active = groupList.find((group) => groupContainsHref(group, activeHref));
-    return active ? new Set([active.label]) : new Set();
-  });
+  // Keyed by the label string, so a group that loads after mount still re-syncs, while
+  // an unchanged active group does not re-run on every groups re-render.
+  const activeGroupLabel = groupList.find((group) => groupContainsHref(group, activeHref))?.label;
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
+    () => new Set(activeGroupLabel ? [activeGroupLabel] : []),
+  );
 
   useEffect(() => {
-    const active = groupList.find((group) => groupContainsHref(group, activeHref));
-    setExpandedGroups(active ? new Set([active.label]) : new Set());
-    // Re-sync only when the active target changes, not on every groups re-render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeHref]);
+    setExpandedGroups(new Set(activeGroupLabel ? [activeGroupLabel] : []));
+  }, [activeHref, activeGroupLabel]);
 
   const toggleGroup = (label: string) => {
     setExpandedGroups((prev) => {
@@ -71,18 +67,18 @@ export const NavTree = forwardRef<HTMLElement, NavTreeProps>(function NavTree(
   if (items) {
     return (
       <VStack as="nav" {...navProps} aria-label={accessibleName} aria-describedby={ariaDescribedBy} spacing="md" className="relative">
-        <VStack as="ul" spacing="xs">
-          {items.map((item) => {
-            const active = item.href === activeHref;
-            return (
-              <li key={item.href}>
-                <ListItem asChild title={item.label} selected={active}>
-                  <Link href={item.href}>{item.label}</Link>
-                </ListItem>
-              </li>
-            );
-          })}
-        </VStack>
+        <NavTreeFlatList items={items} activeHref={activeHref} />
+        <ArrowHint id={hint.id} text={hint.text} visible={hint.visible} />
+      </VStack>
+    );
+  }
+
+  if (sections) {
+    return (
+      <VStack as="nav" {...navProps} aria-label={accessibleName} aria-describedby={ariaDescribedBy} spacing="md" className="relative">
+        {sections.map((section) => (
+          <NavTreeSectionBlock key={section.heading} section={section} activeHref={activeHref} />
+        ))}
         <ArrowHint id={hint.id} text={hint.text} visible={hint.visible} />
       </VStack>
     );

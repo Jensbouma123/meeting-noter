@@ -114,18 +114,25 @@ export function DatePickerClearButton({
   onClear: (event?: MouseEvent<HTMLButtonElement>) => void;
 }) {
   return (
-    <button
-      type="button"
-      tabIndex={-1}
-      aria-label="Clear date selection"
-      onClick={onClear}
+    <span
       className={cn(
-        "focus-ring absolute top-1/2 -translate-y-1/2 flex items-center justify-center rounded text-muted-foreground transition-colors hover:bg-elevation-2 hover:text-foreground active:scale-95 dark:hover:bg-elevation-3",
+        "absolute top-1/2 -translate-y-1/2 flex items-center justify-center",
         resolveResponsive(size, INPUT_ICON_INSET_TRAILING),
-        resolveResponsive(size, ICON_SCALE_CLASS),
       )}
     >
-      <X className="size-3.5" />
-    </button>
+      <button
+        type="button"
+        tabIndex={-1}
+        aria-label="Clear date selection"
+        onClick={onClear}
+        className={cn(
+          "focus-ring size-6 flex items-center justify-center rounded text-muted-foreground transition-colors hover:bg-elevation-2 hover:text-foreground active:scale-95 dark:hover:bg-elevation-3",
+          resolveResponsive(size, ICON_SCALE_CLASS),
+          "touch-target-44",
+        )}
+      >
+        <X className="size-3.5" />
+      </button>
+    </span>
   );
 }

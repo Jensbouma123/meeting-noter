@@ -4,6 +4,7 @@ import { backoffDelayMs, isRetryableError, isRetryableMethod, parseRetryAfterMs,
 import { logRequestFailure, logRequestStart, logRequestSuccess, resolveLogger } from "../logging.js";
 import { encodeBody, mergeHeaders } from "./body.js";
 import { parseResponseBody, safeParseErrorBody } from "./response.js";
+import { toApiError } from "./to-api-error.js";
 const DEFAULT_TIMEOUT_MS = 30000;
 export function createApiClient(config) {
     const { baseUrl, headers: defaultHeaders, timeoutMs: defaultTimeoutMs = DEFAULT_TIMEOUT_MS, fetch: fetchImpl = globalThis.fetch, logger: providedLogger, onError, } = config;
@@ -29,7 +30,16 @@ export function createApiClient(config) {
                 const retryAfterMs = apiError.kind === "http" ? parseRetryAfterMs(apiError.retryAfter) : undefined;
                 const delayMs = retryAfterMs ?? backoffDelayMs(attempt, retryOptions.baseDelayMs, retryOptions.maxDelayMs);
                 attempt += 1;
-                await sleep(delayMs, options.signal);
+                try {
+                    await sleep(delayMs, options.signal);
+                }
+                catch (sleepError) {
+                    const abortError = options.signal?.aborted
+                        ? new AbortError("Request was aborted")
+                        : toApiError(sleepError);
+                    onError?.(abortError);
+                    throw abortError;
+                }
             }
         }
     }
@@ -48,19 +58,22 @@ export function createApiClient(config) {
             });
             const durationMs = Date.now() - startedAt;
             if (!response.ok) {
-                const errorBody = await safeParseErrorBody(response);
-                logRequestFailure(logger, ctx, durationMs, undefined, response.status);
-                throw new HttpError(`Request failed with status ${response.status}`, response.status, response.statusText, url, errorBody, response.headers.get("retry-after"));
+                const httpError = new HttpError(`Request failed with status ${response.status}`, response.status, response.statusText, url, await safeParseErrorBody(response), response.headers.get("retry-after"));
+                logRequestFailure(logger, ctx, durationMs, httpError, response.status);
+                throw httpError;
             }
             const parsed = await parseResponseBody(response, options.responseType);
             logRequestSuccess(logger, ctx, response.status, durationMs);
             return parsed;
         }
         catch (thrown) {
-            if (isApiError(thrown))
+            if (isApiError(thrown)) {
+                if (thrown.kind === "parse")
+                    logRequestFailure(logger, ctx, Date.now() - startedAt, thrown);
                 throw thrown;
+            }
             const durationMs = Date.now() - startedAt;
-            if (isAbortError(thrown)) {
+            if (composed.didTimeout() || isAbortError(thrown) || composed.signal.aborted) {
                 const timeoutMs = options.timeoutMs ?? defaultTimeoutMs;
                 const nextError = composed.didTimeout()
                     ? new TimeoutError(`Request timed out after ${timeoutMs}ms`, timeoutMs)
@@ -83,9 +96,4 @@ export function createApiClient(config) {
         patch: (path, body, options) => request("PATCH", path, body, options),
         delete: (path, options) => request("DELETE", path, undefined, options),
     };
-}
-function toApiError(error) {
-    if (isApiError(error))
-        return error;
-    return new NetworkError("Unexpected error", error);
 }

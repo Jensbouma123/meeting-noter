@@ -30,7 +30,7 @@ function stepFor(intensity: number): number {
  */
 export function HeatCell({ intensity = 0, isEmpty = false, label, className, ...props }: HeatCellProps) {
   const fill = isEmpty ? "bg-border-subtle" : stepClasses[stepFor(intensity)];
-  const labelled = label !== undefined;
+  const labelled = Boolean(label);
 
   return (
     <span

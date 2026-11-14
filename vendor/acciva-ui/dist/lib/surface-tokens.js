@@ -62,7 +62,7 @@ export const GLOW_SHADOW = {
  */
 export const SURFACE_FILL = {
     surface: "border border-border bg-surface",
-    raised: "border border-border bg-surface",
+    raised: "border border-border bg-elevation-2",
     inset: "border border-border bg-background",
     overlay: "border border-border bg-elevation-3",
     control: "border border-border bg-surface",

@@ -11,6 +11,8 @@ import { VStack } from "@/components/ui/VStack";
 import { focusNeighbour } from "@/lib/focus-neighbour";
 import { cn } from "@/lib/utils";
 
+import { ActionRow } from "@/components/blocks/NotificationCenter/ActionRow";
+
 export interface TeamMember {
   id: string;
   name: string;
@@ -78,12 +80,12 @@ export function TeamList({
         ) : (
           <RowList aria-label={title} divided className="w-full">
             {members.map((member) => (
-              <RowList.Item
+              <ActionRow
                 key={member.id}
                 leading={<Avatar src={member.src} name={member.name} size="md" />}
                 title={member.name}
                 meta={member.email ? `${member.role} · ${member.email}` : member.role}
-                trailing={
+                actions={
                   onRemove ? (
                     <Button
                       variant="ghost"

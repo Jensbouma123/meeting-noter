@@ -8,9 +8,10 @@ export function useAccordionKeyboard() {
     const container = containerRef.current;
     if (!container) return;
 
+    // Only this root's own triggers: a nested <Accordion>'s triggers belong to its own root.
     const triggers = Array.from(
       container.querySelectorAll<HTMLButtonElement>('button[data-accordion-trigger="true"]:not([disabled])'),
-    );
+    ).filter((t) => t.closest('[data-accordion-root="true"]') === container);
     if (triggers.length === 0) return;
 
     const currentIndex = triggers.findIndex((t) => t === document.activeElement);

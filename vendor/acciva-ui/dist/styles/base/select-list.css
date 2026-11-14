@@ -1,12 +1,13 @@
 /* Listbox panel of Select and SearchableSelect: a `popover="manual"` in the top layer, anchored
-   below its trigger (`position-anchor` inline). Without anchor positioning it docks to the bottom
+   to its trigger (`position-anchor` inline). Without anchor positioning it docks to the bottom
    edge like a sheet. `--select-list-cap` is the tallest it gets on a roomy screen (Select: 60
    spacing steps; SearchableSelect sets `100%` and caps its virtual list itself).
-   Block size: with anchor positioning the percentage resolves against the `position-area`
-   containing block, so the list never outgrows the side it opened, minus the trigger gap and
-   `--overlay-gutter`, even on a 400px-tall or keyboard-shortened viewport (SC 1.4.10); it scrolls
-   inside. `position-try-order: most-block-size` (as the UA `::picker(select)`) opens it on the
-   side with more room. The far margin is the gutter, the near one the gap; `flip-block` swaps them. */
+   Side: `data-side` from `useOpenSide` (JS), the side with more room as the UA `::picker(select)`.
+   Not `position-try-order: most-block-size`: WebKit ignores it and, since the clamp below always
+   fits, never flips, so engines opened on opposite sides. Block size: the percentage resolves
+   against the `position-area` containing block, so the list never outgrows the side it opened,
+   minus the trigger gap and `--overlay-gutter`, even on a 400px-tall or keyboard-shortened
+   viewport (SC 1.4.10); it scrolls inside. The near margin is the gap, the far one the gutter. */
 .select-list {
   position: fixed;
   margin: 0;
@@ -31,7 +32,9 @@
       calc(100% - var(--spacing) - var(--overlay-gutter))
     );
     position-area: block-end span-all;
-    position-try-order: most-block-size;
-    position-try-fallbacks: flip-block;
+  }
+  .select-list[data-side="top"] {
+    margin-block: var(--overlay-gutter) var(--spacing);
+    position-area: block-start span-all;
   }
 }

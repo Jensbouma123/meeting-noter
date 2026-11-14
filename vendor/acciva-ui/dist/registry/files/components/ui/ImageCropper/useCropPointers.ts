@@ -68,7 +68,7 @@ export function useCropPointers({
 
   const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
     const current = drag.current;
-    if (!pointers.current.has(event.pointerId) || !current || !image) return;
+    if (inert || !pointers.current.has(event.pointerId) || !current || !image) return;
     pointers.current.set(event.pointerId, {
       x: event.clientX,
       y: event.clientY,

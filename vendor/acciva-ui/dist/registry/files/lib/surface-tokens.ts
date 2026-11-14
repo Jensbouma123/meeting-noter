@@ -88,7 +88,7 @@ export const GLOW_SHADOW: Record<GlowTone, string> = {
  */
 export const SURFACE_FILL: Record<SurfaceRole, string> = {
   surface: "border border-border bg-surface",
-  raised: "border border-border bg-surface",
+  raised: "border border-border bg-elevation-2",
   inset: "border border-border bg-background",
   overlay: "border border-border bg-elevation-3",
   control: "border border-border bg-surface",

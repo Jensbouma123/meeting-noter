@@ -2,7 +2,7 @@
 
 import { forwardRef, useCallback, type InputHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
-import { CheckboxIndicator } from "@/components/ui/Checkbox/CheckboxParts";
+import { CheckboxCheck, CheckboxIndicator } from "@/components/ui/Checkbox/CheckboxParts";
 import { useCheckboxId } from "@/components/ui/Checkbox/useCheckbox";
 
 export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "size"> {
@@ -35,7 +35,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
         className,
       )}
     >
-      <span className="relative inline-flex size-5 shrink-0 items-center justify-center">
+      <span className="touch-target-44 relative inline-flex size-5 shrink-0 items-center justify-center">
         <input
           ref={attachRef}
           type="checkbox"
@@ -53,6 +53,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
           {...props}
         />
         <CheckboxIndicator checked={checked} indeterminate={indeterminate} />
+        {indeterminate ? null : <CheckboxCheck />}
       </span>
       {label ? <span className={cn("font-medium", labelClassName)}>{label}</span> : null}
     </label>

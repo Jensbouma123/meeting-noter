@@ -1,4 +1,4 @@
-import { useRef, type KeyboardEvent } from "react";
+import { useEffect, useRef, type KeyboardEvent } from "react";
 import { hsvToRgb, rgbaToHex, type HSVA } from "@/lib/color/formats/index";
 import { SLIDER_THUMB_SIZE, SLIDER_THUMB_TARGET } from "@/lib/sizing-tokens/index";
 import { clamp, cn } from "@/lib/utils";
@@ -12,6 +12,8 @@ interface SpectrumProps {
 export function Spectrum({ hsva, onChange }: SpectrumProps) {
   const areaRef = useRef<HTMLDivElement>(null);
   const thumbRef = useRef<HTMLDivElement>(null);
+  const stopDrag = useRef<(() => void) | undefined>(undefined);
+  useEffect(() => () => stopDrag.current?.(), []);
   const saturation = Math.round(hsva.s);
   const brightness = Math.round(hsva.v);
 
@@ -39,7 +41,8 @@ export function Spectrum({ hsva, onChange }: SpectrumProps) {
       ref={areaRef}
       onPointerDown={(event) => {
         thumbRef.current?.focus();
-        trackDrag(event, areaRef.current, (x, y) => onChange({ ...hsva, s: x * 100, v: (1 - y) * 100 }));
+        stopDrag.current?.();
+        stopDrag.current = trackDrag(event, areaRef.current, (x, y) => onChange({ ...hsva, s: x * 100, v: (1 - y) * 100 }));
       }}
       className="relative h-48 w-full cursor-crosshair touch-none rounded-md md:h-40"
       style={{ backgroundColor: rgbaToHex(hsvToRgb({ h: hsva.h, s: 100, v: 100, a: 1 })) }}

@@ -10,15 +10,18 @@ export function renderBuiltIn(
   ariaLabel: string,
   className: string | undefined,
   rest: LogoRest,
+  isAriaHidden: boolean,
 ) {
+  // Decorative logos drop the img role and name entirely (SC 1.1.1); they are hidden as a whole.
+  const a11y = isAriaHidden ? { "aria-hidden": "true" as const } : { role: "img" as const, "aria-label": ariaLabel };
+
   if (variant === "responsive") {
     const markDim = getDimensions("mark", size);
     const fullDim = getDimensions("full", size);
 
     return (
       <span
-        role="img"
-        aria-label={ariaLabel}
+        {...a11y}
         className={cn("inline-flex items-center shrink-0", className)}
         {...rest}
       >
@@ -58,8 +61,7 @@ export function renderBuiltIn(
       viewBox={viewBox}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      role="img"
-      aria-label={ariaLabel}
+      {...a11y}
       className={cn("shrink-0", className)}
       {...(rest as React.SVGAttributes<SVGSVGElement>)}
     >

@@ -17,7 +17,9 @@ export function pickInitialFocus(
   if (active instanceof HTMLElement && active !== container && container.contains(active) && !active.hasAttribute("data-dialog-close")) {
     return active;
   }
-  const preferred = container.querySelector<HTMLElement>("[data-autofocus], [autofocus]");
+  const preferred = Array.from(container.querySelectorAll<HTMLElement>("[data-autofocus], [autofocus]")).find(
+    (el) => el.getAttribute("data-autofocus") !== "false" && !el.matches(":disabled"),
+  );
   if (preferred) return preferred;
   if (opts.pointer) return null;
   const all = Array.from(container.querySelectorAll<HTMLElement>(focusableSelector)).filter((el) => !opts.exclude || !el.matches(opts.exclude));

@@ -1,11 +1,11 @@
 "use client";
 
-import { forwardRef, useCallback, useId, useRef, useState } from "react";
+import { forwardRef, useCallback, useId, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { formatDefaultDate } from "@/lib/date-utils/index";
 import { useArrowHint } from "@/lib/use-arrow-hint";
 import { cn } from "@/lib/utils";
 import { VStack } from "@/components/ui/VStack";
-import { DEFAULT_PRESETS } from "@/components/ui/DatePicker/datePresets";
+import { getDefaultDatePresets } from "@/components/ui/DatePicker/datePresets";
 import { DatePickerDialog } from "@/components/ui/DatePicker/DatePickerDialog";
 import { DatePickerLabel, DatePickerMessages } from "@/components/ui/DatePicker/DatePickerParts";
 import { DatePickerClearButton, DatePickerTrigger } from "@/components/ui/DatePicker/DatePickerTrigger";
@@ -30,7 +30,7 @@ export const DatePicker = forwardRef<HTMLButtonElement, DatePickerProps>(functio
     minDate,
     maxDate,
     disabledDates,
-    presets = DEFAULT_PRESETS,
+    presets,
     showPresets = false,
     formatDate = formatDefaultDate,
     size = "md",
@@ -56,6 +56,7 @@ export const DatePicker = forwardRef<HTMLButtonElement, DatePickerProps>(functio
   const triggerRef = useRef<HTMLButtonElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const gridHint = useArrowHint("date-grid", arrowHint, "Use arrow keys to move between days");
+  const resolvedPresets = useMemo(() => presets ?? getDefaultDatePresets(), [presets]);
 
   const [isOpen, setIsOpen] = useState(false);
   const closeAndFocusTrigger = useCallback(() => {
@@ -67,6 +68,11 @@ export const DatePicker = forwardRef<HTMLButtonElement, DatePickerProps>(functio
     { value, defaultValue, onChange, minDate, maxDate, disabledDates, disabled, readOnly, clearable, closeOnSelect },
     closeAndFocusTrigger,
   );
+  // The inline X unmounts once cleared; move focus to the trigger first so it isn't lost to <body>.
+  const handleInlineClear = (event?: ReactMouseEvent<HTMLButtonElement>) => {
+    selection.handleClear(event);
+    triggerRef.current?.focus({ preventScroll: true });
+  };
   const view = useDatePickerView({ selectedDate: selection.selectedDate, isOpen, setIsOpen, containerRef, gridRef });
   const keys = createDatePickerKeys({
     ...view,
@@ -111,7 +117,7 @@ export const DatePicker = forwardRef<HTMLButtonElement, DatePickerProps>(functio
           onKeyDown={keys.handleTriggerKeyDown}
         />
 
-        {selection.showClear ? <DatePickerClearButton size={size} onClear={selection.handleClear} /> : null}
+        {selection.showClear ? <DatePickerClearButton size={size} onClear={handleInlineClear} /> : null}
 
         {isOpen ? (
           <DatePickerDialog
@@ -121,11 +127,11 @@ export const DatePicker = forwardRef<HTMLButtonElement, DatePickerProps>(functio
             view={view}
             selection={selection}
             keys={keys}
-            presets={presets}
+            presets={resolvedPresets}
             showPresets={showPresets}
             clearable={clearable}
             closeOnSelect={closeOnSelect}
-            setIsOpen={setIsOpen}
+            close={closeAndFocusTrigger}
           />
         ) : null}
       </div>

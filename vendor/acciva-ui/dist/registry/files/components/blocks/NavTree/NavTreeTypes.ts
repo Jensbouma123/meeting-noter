@@ -1,7 +1,17 @@
+import type { ReactNode } from "react";
+
 export interface NavTreeItem {
   href: string;
   label: string;
+  /** Optional leading icon (decorative, hidden from assistive tech). Shown on top-level rows. */
+  icon?: ReactNode;
   children?: NavTreeItem[];
+}
+
+/** A headed, non-collapsible list of links: a labelled section of a flat nav. */
+export interface NavTreeSection {
+  heading: string;
+  items: NavTreeItem[];
 }
 
 export interface NavTreeGroup {
@@ -15,6 +25,8 @@ export interface NavTreeBaseProps {
   groups?: NavTreeGroup[];
   /** A flat list of links, rendered with no grouping or collapse behaviour. */
   items?: NavTreeItem[];
+  /** Headed flat lists (no collapse), e.g. "Main" / "Settings" link sections. Wins over `groups`, loses to `items`. */
+  sections?: NavTreeSection[];
   activeHref?: string;
   forceExpandAll?: boolean;
   "aria-describedby"?: string;

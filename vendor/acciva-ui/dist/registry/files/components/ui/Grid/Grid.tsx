@@ -1,6 +1,7 @@
 import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
 import type { SizeTier } from "@/lib/sizing-tokens/index";
 import { cn } from "@/lib/utils";
+import { autoFitTemplate } from "@/components/ui/Grid/gridAutoFit";
 import {
   INSET_PADDING,
   SPACING_GAP,
@@ -72,18 +73,7 @@ const SIZE_TO_COL_XL: Record<number, string> = {
   8: "xl:grid-cols-8",
 };
 
-const clampColumns = (count: number) => Math.min(Math.max(count, 1), MAX_COLUMNS);
-
-const SIZE_TO_MIN_WIDTH: Record<SizeTier, string> = {
-  xxs: "min-w-12",
-  xs: "min-w-16",
-  sm: "min-w-20",
-  md: "min-w-24",
-  lg: "min-w-32",
-  xl: "min-w-40",
-  "2xl": "min-w-48",
-  "3xl": "min-w-56",
-};
+const clampColumns = (count: number) => Math.min(Math.max(Math.trunc(count) || 1, 1), MAX_COLUMNS);
 
 const ALIGN_MAP: Record<StackAlign, string> = {
   leading: "items-start",
@@ -110,6 +100,7 @@ export const Grid = forwardRef<HTMLDivElement, GridProps>(function Grid(
     minItemWidth,
     inset = "none",
     className,
+    style,
     children,
     ...props
   },
@@ -118,15 +109,18 @@ export const Grid = forwardRef<HTMLDivElement, GridProps>(function Grid(
   const isResponsive = typeof columns === "object";
   const baseCols = isResponsive ? (columns.base ?? 1) : columns;
 
-  const columnClasses = [
-    SIZE_TO_COL[clampColumns(baseCols)],
-    isResponsive && columns.sm ? SIZE_TO_COL_SM[clampColumns(columns.sm)] : undefined,
-    isResponsive && columns.md ? SIZE_TO_COL_MD[clampColumns(columns.md)] : undefined,
-    isResponsive && columns.lg ? SIZE_TO_COL_LG[clampColumns(columns.lg)] : undefined,
-    isResponsive && columns.xl ? SIZE_TO_COL_XL[clampColumns(columns.xl)] : undefined,
-  ].filter((c): c is string => c !== undefined);
+  // `minItemWidth` owns the track list: auto-fit replaces the fixed column counts.
+  const columnClasses = minItemWidth
+    ? []
+    : [
+        SIZE_TO_COL[clampColumns(baseCols)],
+        isResponsive && columns.sm !== undefined ? SIZE_TO_COL_SM[clampColumns(columns.sm)] : undefined,
+        isResponsive && columns.md !== undefined ? SIZE_TO_COL_MD[clampColumns(columns.md)] : undefined,
+        isResponsive && columns.lg !== undefined ? SIZE_TO_COL_LG[clampColumns(columns.lg)] : undefined,
+        isResponsive && columns.xl !== undefined ? SIZE_TO_COL_XL[clampColumns(columns.xl)] : undefined,
+      ].filter((c): c is string => c !== undefined);
 
-  const autoFitClass = minItemWidth ? SIZE_TO_MIN_WIDTH[minItemWidth] : undefined;
+  const autoFitStyle = minItemWidth ? { gridTemplateColumns: autoFitTemplate(minItemWidth) } : undefined;
 
   return (
     <div
@@ -137,9 +131,9 @@ export const Grid = forwardRef<HTMLDivElement, GridProps>(function Grid(
         ALIGN_MAP[align],
         INSET_PADDING[inset],
         ...columnClasses,
-        autoFitClass,
         className,
       )}
+      style={autoFitStyle || style ? { ...autoFitStyle, ...style } : undefined}
       {...props}
     >
       {children}

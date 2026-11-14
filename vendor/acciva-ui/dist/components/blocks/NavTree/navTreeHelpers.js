@@ -1,6 +1,3 @@
-export function groupDomId(label) {
-    return `nav-tree-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`;
-}
 export function groupContainsHref(group, href) {
     if (!href)
         return false;

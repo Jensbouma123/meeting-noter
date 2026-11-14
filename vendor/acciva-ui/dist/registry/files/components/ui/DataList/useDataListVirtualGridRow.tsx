@@ -61,6 +61,7 @@ export function useDataListVirtualGridRow<T>(props: DataListProps<T>, nav: DataL
                 key={key}
                 id={getItemIdResolved(itemIndex)}
                 data-index={itemIndex}
+                data-active={active || undefined}
                 role={resolvedItemRole}
                 aria-selected={selectionMode !== "none" ? isSelected : undefined}
                 aria-disabled={disabled || undefined}
@@ -71,6 +72,7 @@ export function useDataListVirtualGridRow<T>(props: DataListProps<T>, nav: DataL
                 className={cn(
                   "relative h-full flex flex-col",
                   itemClassName,
+                  active && "ring-2 ring-primary-500/50 rounded-xl",
                   (selectionMode !== "none" || onItemClick) && !disabled && "cursor-pointer",
                 )}
                 onClick={() => {

@@ -21,5 +21,6 @@ export interface ResolvedSwatch {
     rgba: RGBA;
 }
 export declare function resolveSwatches(swatches: readonly (string | ColorSwatch)[] | undefined): ResolvedSwatch[];
-export declare function trackDrag(event: ReactPointerEvent<HTMLElement>, element: HTMLElement | null, onPoint: (x: number, y: number) => void): void;
+/** Tracks a pointer drag over `window`; returns the stop function so the owner can end it on unmount. */
+export declare function trackDrag(event: ReactPointerEvent<HTMLElement>, element: HTMLElement | null, onPoint: (x: number, y: number) => void): (() => void) | undefined;
 export declare function stepFor(event: KeyboardEvent): 10 | 1;

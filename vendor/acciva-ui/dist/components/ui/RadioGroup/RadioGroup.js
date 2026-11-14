@@ -1,14 +1,14 @@
 "use client";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { forwardRef, useId, useRef } from "react";
-import { TEXT_SIZE, resolveResponsive } from "../../../lib/sizing-tokens/index.js";
+import { TAB_LIST_PADDING, TAB_RADIUS, TEXT_SIZE, resolveResponsive } from "../../../lib/sizing-tokens/index.js";
 import { useArrowHint } from "../../../lib/use-arrow-hint.js";
 import { cn } from "../../../lib/utils.js";
 import { ArrowHint } from "../../../lib/ArrowHint.js";
 import { VStack } from "../VStack.js";
 import { RadioGroupContext } from "./context.js";
-import { useRovingFocus } from "./useRovingFocus.js";
-export const RadioGroup = forwardRef(function RadioGroup({ value, onChange, name, label, hint, error, orientation = "vertical", size = "md", disabled = false, required = false, className, children, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, "aria-describedby": ariaDescribedBy, arrowHint, ...props }, ref) {
+import { useRovingFocus } from "../_internal/useRovingFocus.js";
+export const RadioGroup = forwardRef(function RadioGroup({ value, onChange, name, label, hint, error, orientation = "vertical", variant = "default", size = "md", disabled = false, required = false, className, children, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, "aria-describedby": ariaDescribedBy, arrowHint, ...props }, ref) {
     const generatedId = useId();
     const groupName = name ?? `${generatedId}-radio-group`;
     const labelId = `${generatedId}-label`;
@@ -17,7 +17,14 @@ export const RadioGroup = forwardRef(function RadioGroup({ value, onChange, name
     const groupRef = useRef(null);
     const arrowHintState = useArrowHint("radio-group", arrowHint, "Use arrow keys to move between options");
     const describedByIds = arrowHintState.describedBy([ariaDescribedBy, hintId, errorId].filter(Boolean).join(" ") || undefined);
-    const handleKeyDown = useRovingFocus(groupRef);
+    const handleKeyDown = useRovingFocus({
+        containerRef: groupRef,
+        itemSelector: '[role="radio"]:not([aria-disabled="true"])',
+        orientation: "both",
+        activate: true,
+        // A checked-but-disabled radio is not in the selector, so it can never strand focus.
+        tabStop: (radio) => radio.getAttribute("aria-checked") === "true",
+    });
     return (_jsx(RadioGroupContext.Provider, { value: {
             name: groupName,
             value,
@@ -25,6 +32,7 @@ export const RadioGroup = forwardRef(function RadioGroup({ value, onChange, name
             size,
             disabled,
             orientation,
+            variant,
         }, children: _jsxs(VStack, { ref: (element) => {
                 const node = element;
                 groupRef.current = node;
@@ -32,5 +40,7 @@ export const RadioGroup = forwardRef(function RadioGroup({ value, onChange, name
                     ref(node);
                 else if (ref)
                     ref.current = node;
-            }, role: "radiogroup", "aria-label": label ? undefined : ariaLabel, "aria-labelledby": label ? labelId : ariaLabelledBy, "aria-describedby": describedByIds, "aria-required": required || undefined, "aria-orientation": orientation, onKeyDown: handleKeyDown, ...arrowHintState.groupProps, spacing: "sm", className: cn("relative", className), ...props, children: [label ? (_jsxs("span", { id: labelId, className: cn("font-medium text-foreground", resolveResponsive(size, TEXT_SIZE)), children: [label, required ? _jsx("span", { className: "ml-0.5 text-danger", children: "*" }) : null] })) : null, _jsx("div", { className: cn("flex", orientation === "horizontal" ? "flex-row flex-wrap gap-4" : "flex-col gap-2.5"), children: children }), _jsx(ArrowHint, { id: arrowHintState.id, text: arrowHintState.text, visible: arrowHintState.visible }), hint && !error ? (_jsx("p", { id: hintId, className: "text-xs text-muted-foreground", children: hint })) : null, error ? (_jsx("p", { id: errorId, role: "alert", className: "text-xs font-medium text-danger animate-fade-in", children: error })) : null] }) }));
+            }, role: "radiogroup", "aria-label": label ? undefined : ariaLabel, "aria-labelledby": label ? labelId : ariaLabelledBy, "aria-describedby": describedByIds, "aria-required": required || undefined, "aria-orientation": orientation, onKeyDown: handleKeyDown, ...arrowHintState.groupProps, spacing: "sm", className: cn("relative", className), ...props, children: [label ? (_jsxs("span", { id: labelId, className: cn("font-medium text-foreground", resolveResponsive(size, TEXT_SIZE)), children: [label, required ? _jsx("span", { className: "ml-0.5 text-danger", children: "*" }) : null] })) : null, _jsxs("div", { className: cn("flex", variant === "segmented"
+                        ? ["bg-elevation-2", resolveResponsive(size, TAB_RADIUS), resolveResponsive(size, TAB_LIST_PADDING), orientation === "horizontal" ? "flex-row gap-0.5" : "flex-col gap-0.5"]
+                        : orientation === "horizontal" ? "flex-row flex-wrap gap-4" : "flex-col gap-2.5"), children: [name && value !== null ? _jsx("input", { type: "hidden", name: name, value: value }) : null, children] }), _jsx(ArrowHint, { id: arrowHintState.id, text: arrowHintState.text, visible: arrowHintState.visible }), hint && !error ? (_jsx("p", { id: hintId, className: "text-xs text-muted-foreground", children: hint })) : null, error ? (_jsx("p", { id: errorId, role: "alert", className: "text-xs font-medium text-danger animate-fade-in", children: error })) : null] }) }));
 });

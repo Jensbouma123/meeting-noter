@@ -23,6 +23,11 @@ function setRootProperty(root, name, value) {
 }
 export function applyTokensToDom(theme, radius = DEFAULT_RADIUS, tokenOverrides = { light: {}, dark: {} }) {
     const root = document.documentElement;
+    // Drop what the previous mode or theme wrote, so an override no longer in
+    // effect cannot linger on <html>.
+    for (const name of writtenProperties)
+        root.style.removeProperty(name);
+    writtenProperties.clear();
     const activeOverrides = "light" in tokenOverrides || "dark" in tokenOverrides
         ? tokenOverrides[theme.mode] ?? {}
         : tokenOverrides;

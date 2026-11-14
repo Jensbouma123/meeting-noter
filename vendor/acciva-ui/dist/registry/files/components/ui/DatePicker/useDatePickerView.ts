@@ -18,13 +18,16 @@ export function useDatePickerView({ selectedDate, isOpen, setIsOpen, containerRe
   const [viewDate, setViewDate] = useState<Date>(() => selectedDate ?? new Date());
   const [focusedDate, setFocusedDate] = useState<Date>(() => selectedDate ?? new Date());
 
+  // Key on the timestamp: parents often pass a fresh Date instance each render, which must not snap the view.
+  const selectedTime = selectedDate?.getTime();
   useEffect(() => {
-    if (selectedDate) {
+    if (selectedTime !== undefined) {
+      const next = new Date(selectedTime);
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setViewDate(selectedDate);
-      setFocusedDate(selectedDate);
+      setViewDate(next);
+      setFocusedDate(next);
     }
-  }, [selectedDate]);
+  }, [selectedTime]);
 
   useEffect(() => {
     if (!isOpen) {

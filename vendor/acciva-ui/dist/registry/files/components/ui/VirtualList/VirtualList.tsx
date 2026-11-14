@@ -34,7 +34,17 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
   const model = useVirtualListModel(props, scrollRef);
   const { count, layout, range, hint } = model;
 
-  return (
+  const activeRendered = model.resolvedActiveIndex >= range.start && model.resolvedActiveIndex < range.end;
+  const scrollToTop = model.scrollToTopEnabled && count > 0 && (
+    <VirtualListScrollToTop
+      options={model.scrollToTopOptions}
+      visible={model.isScrollToTopVisible}
+      fullWidth={model.isScrollToTopFullWidth}
+      onClick={model.handleScrollToTop}
+    />
+  );
+
+  const list = (
     <div
       ref={scrollRef}
       onScroll={model.handleScroll}
@@ -50,7 +60,7 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
       aria-labelledby={ariaLabelledBy ?? labelledBy}
       aria-describedby={hint.describedBy(ariaDescribedBy ?? describedBy)}
       aria-activedescendant={
-        interactive && count > 0 && ACTIVEDESCENDANT_ROLES.has(role) ? model.itemId(model.resolvedActiveIndex) : undefined
+        interactive && count > 0 && ACTIVEDESCENDANT_ROLES.has(role) && activeRendered ? model.itemId(model.resolvedActiveIndex) : undefined
       }
       className={cn("focus-ring relative overflow-y-auto overflow-x-hidden", className)}
       style={model.containerStyle}
@@ -86,14 +96,17 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
           <ArrowHint id={hint.id} text={hint.text} visible className="top-auto bottom-1 left-2" />
         </div>
       )}
-      {model.scrollToTopEnabled && count > 0 && (
-        <VirtualListScrollToTop
-          options={model.scrollToTopOptions}
-          visible={model.isScrollToTopVisible}
-          fullWidth={model.isScrollToTopFullWidth}
-          onClick={model.handleScrollToTop}
-        />
-      )}
     </div>
+  );
+
+  // The button is a sibling of the role container (SC 1.3.1: list/listbox/rowgroup
+  // may only own listitem/option/row), pinned to the viewport bottom by absolute position.
+  return scrollToTop ? (
+    <div className="relative">
+      {list}
+      {scrollToTop}
+    </div>
+  ) : (
+    list
   );
 }

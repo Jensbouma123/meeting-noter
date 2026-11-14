@@ -93,6 +93,15 @@ body {
   }
 }
 
+@keyframes acciva-shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
 /* Type steps Tailwind's named scale lacks, so no component needs an arbitrary
    `text-[Npx]`. Keys mirror the sizing-token tiers (`3xs`, `xxs`); `xsm` is the
    13px step between `text-xs` (12) and `text-sm` (14). `tracking-label` is the

@@ -1,5 +1,4 @@
-import { handleDayGridKey } from "./dayGridKeys.js";
-import { handleViewGridKey } from "./viewGridKeys.js";
+import { handleCalendarDayKey, handleCalendarViewKey } from "../_internal/calendarGridKeys.js";
 export function createDatePickerKeys(ctx) {
     const { disabled, readOnly, isOpen, setIsOpen, viewMode, viewDate, setViewDate, setViewMode } = ctx;
     // Escape anywhere in the dialog (presets, header, grid) closes it and returns focus to the trigger.
@@ -46,10 +45,10 @@ export function createDatePickerKeys(ctx) {
         if (!isOpen)
             return;
         if (viewMode === "day") {
-            handleDayGridKey(event, ctx);
+            handleCalendarDayKey(event, ctx);
         }
         else {
-            handleViewGridKey(event, viewMode, viewDate, setViewDate, setViewMode);
+            handleCalendarViewKey(event, viewMode, viewDate, setViewDate, setViewMode);
         }
     };
     return { handleDialogKeyDown, handleContainerBlur, handleTriggerKeyDown, handleGridKeyDown };

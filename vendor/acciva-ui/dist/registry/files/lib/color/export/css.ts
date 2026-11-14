@@ -1,4 +1,5 @@
-import { applyOverrides, flattenDocument, type FlatToken } from "@/lib/color/export/resolve/index";
+import { flattenDocument, type FlatToken } from "@/lib/color/export/resolve/index";
+import { pinOverrideHex, withTokenOverrides } from "@/lib/color/export/doc-overrides";
 import type { DtcgDocument } from "@/lib/color/tokens/index";
 import type { ModeTokenOverrides } from "@/lib/color/export/resolve/index";
 
@@ -20,8 +21,11 @@ export function exportCssVariables(
   doc: DtcgDocument,
   overrides?: ModeTokenOverrides,
 ): string {
-  const flattened = flattenDocument(doc);
-  const { primitive, light, dark } = applyOverrides(flattened, overrides ?? { light: {}, dark: {} });
+  const applied = overrides ?? { light: {}, dark: {} };
+  const flat = flattenDocument(withTokenOverrides(doc, applied));
+  const primitive = flat.primitive;
+  const light = pinOverrideHex(flat.light, applied.light);
+  const dark = pinOverrideHex(flat.dark, applied.dark);
   return [
     ":root {",
     declarations(primitive, "  "),

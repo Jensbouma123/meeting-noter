@@ -13,7 +13,7 @@ export function resolveProviderClasses(provider: SocialProvider, variant?: Socia
 
     case "apple":
       if (variant === "white") {
-        return "bg-background text-foreground border border-transparent hover:bg-elevation-2 active:bg-elevation-3";
+        return "bg-white text-neutral-950 border border-transparent hover:bg-neutral-100 active:bg-neutral-200";
       }
       if (variant === "outline") {
         return "bg-transparent text-foreground border border-border hover:bg-elevation-2 active:bg-elevation-3";

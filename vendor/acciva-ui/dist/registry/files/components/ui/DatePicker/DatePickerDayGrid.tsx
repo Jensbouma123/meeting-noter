@@ -1,8 +1,9 @@
 import { TEXT_SIZE } from "@/lib/sizing-tokens/index";
-import { formatAriaDate, formatMonthYear, isSameDay, isSameMonth } from "@/lib/date-utils/index";
+import { formatAriaDate, formatMonthYear, isSameDay } from "@/lib/date-utils/index";
 import { cn } from "@/lib/utils";
 import { Grid } from "@/components/ui/Grid/index";
 import type { DatePickerGridHint } from "@/components/ui/DatePicker/types";
+import { resolveDayTabStop } from "@/components/ui/DatePicker/resolveDayTabStop";
 import type { DatePickerSelectionModel } from "@/components/ui/DatePicker/useDatePickerSelection";
 import type { DatePickerViewModel } from "@/components/ui/DatePicker/useDatePickerView";
 
@@ -17,6 +18,7 @@ export function DatePickerDayGrid({
 }) {
   const { viewDate, focusedDate, calendarGrid } = view;
   const { selectedDate, isDateDisabled, handleSelectDate } = selection;
+  const tabStop = resolveDayTabStop(focusedDate, viewDate, calendarGrid, isDateDisabled);
 
   return (
     <div role="grid" aria-describedby={gridHint.describedBy()} aria-label={formatMonthYear(viewDate)} className="flex flex-col gap-y-1">
@@ -37,10 +39,8 @@ export function DatePickerDayGrid({
         <Grid key={week} role="row" columns={7} spacing="none">
           {calendarGrid.slice(week * 7, week * 7 + 7).map((day) => {
             const isSelected = selectedDate ? isSameDay(selectedDate, day.date) : false;
-            // One tab stop: the focused day, or the 1st when the viewed month does not hold it.
-            const isFocused = isSameMonth(focusedDate, viewDate)
-              ? isSameDay(focusedDate, day.date)
-              : day.isCurrentMonth && day.date.getDate() === 1;
+            // One tab stop: the nearest enabled day to the focused day (see resolveDayTabStop).
+            const isFocused = tabStop !== null && isSameDay(tabStop, day.date);
             const isDayDisabled = isDateDisabled(day.date);
 
             return (

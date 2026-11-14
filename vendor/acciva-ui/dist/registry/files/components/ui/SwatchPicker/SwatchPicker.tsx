@@ -78,7 +78,7 @@ export const SwatchPicker = forwardRef<HTMLDivElement, SwatchPickerProps>(functi
         onKeyDown={handleKeyDown}
         className={cn(
           "flex",
-          orientation === "horizontal" ? "flex-row flex-wrap gap-3" : "flex-col gap-3",
+          orientation === "horizontal" ? "flex-row flex-wrap gap-3" : "flex-col items-start gap-3",
         )}
       >
         {resolved.map((option, index) => (

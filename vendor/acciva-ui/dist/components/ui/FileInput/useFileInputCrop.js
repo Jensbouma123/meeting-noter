@@ -1,6 +1,6 @@
 import { ImageProcessError, cropImage, initialCropRect } from "../../../lib/image/index.js";
 export function useFileInputCrop(state, c, { reject, finish }) {
-    const { files, cropSession, commit, setRejections, setAnnouncement, setProcessing, setCropSession, abortRef, originals } = state;
+    const { files, cropSession, commit, setRejections, setAnnouncement, setProcessing, setCropSession, abortRef, cancelPending, originals } = state;
     const { m, maxSize, multiple, compressOptions, cropAspect } = c;
     const cancelCrop = () => {
         setCropSession(null);
@@ -49,7 +49,10 @@ export function useFileInputCrop(state, c, { reject, finish }) {
         const base = session.base ?? [];
         finish(base, [[session.original, result]], rejected, multiple ? [] : [...files], result);
     };
-    const openRecrop = (file) => setCropSession({ original: originals.current.get(file) ?? file, target: file, aspect: cropAspect });
+    const openRecrop = (file) => {
+        cancelPending();
+        setCropSession({ original: originals.current.get(file) ?? file, target: file, aspect: cropAspect });
+    };
     // The cropper could not decode the source: close it and reject the original.
     const cropError = (session) => {
         setCropSession(null);

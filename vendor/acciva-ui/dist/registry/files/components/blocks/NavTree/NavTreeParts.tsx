@@ -1,11 +1,12 @@
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
+import { useId } from "react";
 import { HStack } from "@/components/ui/HStack";
 import { ListItem } from "@/components/ui/ListItem";
 import { Text } from "@/components/ui/Text";
 import { VStack } from "@/components/ui/VStack";
 import { cn } from "@/lib/utils";
-import { groupDomId } from "@/components/blocks/NavTree/navTreeHelpers";
+import { navIcon } from "@/components/blocks/NavTree/NavTreeFlat";
 import type { NavTreeGroup } from "@/components/blocks/NavTree/NavTreeTypes";
 
 export interface NavTreeGroupBlockProps {
@@ -16,7 +17,8 @@ export interface NavTreeGroupBlockProps {
 }
 
 export function NavTreeGroupBlock({ group, activeHref, isExpanded, onToggle }: NavTreeGroupBlockProps) {
-  const groupId = groupDomId(group.label);
+  // `useId` keeps the id unique across instances and label slugs (e.g. "C++" and "C#").
+  const groupId = useId();
 
   return (
     <VStack spacing="sm">
@@ -26,7 +28,7 @@ export function NavTreeGroupBlock({ group, activeHref, isExpanded, onToggle }: N
           aria-expanded={isExpanded}
           aria-controls={groupId}
           onClick={onToggle}
-          className="focus-ring text-foreground flex w-full items-center justify-between gap-2 rounded-lg px-2 py-2 text-left text-sm font-semibold transition-colors motion-feedback hover:bg-elevation-2 active:bg-elevation-3 dark:hover:bg-elevation-3 dark:active:bg-elevation-4"
+          className="focus-ring text-foreground flex min-h-11 w-full items-center justify-between gap-2 rounded-lg px-2 py-2 text-left sm:min-h-0 text-sm font-semibold transition-colors motion-feedback hover:bg-elevation-2 active:bg-elevation-3 dark:hover:bg-elevation-3 dark:active:bg-elevation-4"
         >
           <Text as="span" size="sm" weight="semibold" truncate>
             {group.label}
@@ -57,7 +59,7 @@ export function NavTreeGroupBlock({ group, activeHref, isExpanded, onToggle }: N
 
           return (
             <VStack key={item.href} spacing="xs">
-              <ListItem asChild title={item.label} selected={isActive}>
+              <ListItem asChild title={item.label} leading={navIcon(item)} selected={isActive}>
                 <Link href={item.href}>{item.label}</Link>
               </ListItem>
 
@@ -72,7 +74,7 @@ export function NavTreeGroupBlock({ group, activeHref, isExpanded, onToggle }: N
                         href={child.href}
                         aria-current={isChildActive ? "page" : undefined}
                         className={cn(
-                          "focus-ring block truncate rounded-lg px-3 py-2 text-xs font-normal transition-colors motion-feedback",
+                          "focus-ring block min-h-11 truncate rounded-lg px-3 py-2 text-xs font-normal sm:min-h-0 transition-colors motion-feedback",
                           isChildActive
                             ? "bg-primary-500/15 text-primary-800 dark:text-primary-300 font-semibold"
                             : "text-muted-foreground hover:bg-elevation-2 active:bg-elevation-3 dark:hover:bg-elevation-3 dark:active:bg-elevation-4 hover:text-foreground active:text-foreground",
