@@ -11,16 +11,19 @@ import {
 } from './diarization-session';
 import { diarizationTimeline } from './diarization-timeline';
 import { overlapsIn } from './diarization-overlaps';
+import { rescoreHandler } from './diarization-rescore';
 import { onTurn } from './diarization-turn-intake';
 import { setOverlapTimeline } from './speaker-overlap-timeline';
 import { getState, setState } from './store-core';
 import type { Source } from './types';
+import type { RescoringDiarizer } from './types/diarization-rescore';
 
 export function createDiarizers(sources: readonly Source[], stopSource: (source: Source) => void): void {
   for (const source of sources) {
     if (activeDiarizers.has(source)) continue;
-    const diarizer = createDiarizer({ source });
+    const diarizer: RescoringDiarizer = createDiarizer({ source });
     diarizer.onSpeakerTurn(onTurn);
+    diarizer.onRescored?.(rescoreHandler(source));
     diarizer.onReady(({ backend }) => {
       if (activeDiarizers.get(source) !== diarizer) return;
       setDiarizationStatus({ phase: 'active', reason: null, backend });

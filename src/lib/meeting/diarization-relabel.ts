@@ -8,7 +8,7 @@ import { mergeFamily, segmentFamilyRoot } from './speaker-family';
 import { captureSpanOf } from './append-mode';
 import { getState } from './store-core';
 import { inSegmentFamily, replaceSegmentFamily } from './segment-store';
-import type { Segment } from './types';
+import type { Segment, Source } from './types';
 
 const RELABEL_LOOKBACK_SEGMENTS = 200;
 
@@ -39,25 +39,36 @@ function familyRootsToRelabel(turn: SpeakerTurn, from: number): Set<string> {
   return roots;
 }
 
+export function relabelFamily(source: Source, root: string): void {
+  const family = getState().segments.filter((s) => inSegmentFamily(s.id, root));
+  const merged = mergeFamily(family);
+  const span = captureSpanOf(merged);
+  if (!span) return;
+  const offset = merged.start - span.start;
+  const parts = attributeSpeakers(
+    merged,
+    (a, b) => speakerNear(source, a - offset, b - offset),
+    (a, b) => speakerFor(source, a - offset, b - offset),
+    (a, b) =>
+      overlapsIn(source, a - offset, b - offset).map((o) => ({
+        ...o,
+        start: o.start + offset,
+        end: o.end + offset,
+      })),
+  );
+  if (!sameParts(parts, family)) replaceSegmentFamily(root, parts);
+}
+
 export function relabelSegments(turn: SpeakerTurn): void {
-  const roots = familyRootsToRelabel(turn, previousTurnEnd(turn));
-  for (const root of roots) {
-    const family = getState().segments.filter((s) => inSegmentFamily(s.id, root));
-    const merged = mergeFamily(family);
-    const span = captureSpanOf(merged);
-    if (!span) continue;
-    const offset = merged.start - span.start;
-    const parts = attributeSpeakers(
-      merged,
-      (a, b) => speakerNear(turn.source, a - offset, b - offset),
-      (a, b) => speakerFor(turn.source, a - offset, b - offset),
-      (a, b) =>
-        overlapsIn(turn.source, a - offset, b - offset).map((o) => ({
-          ...o,
-          start: o.start + offset,
-          end: o.end + offset,
-        })),
-    );
-    if (!sameParts(parts, family)) replaceSegmentFamily(root, parts);
+  for (const root of familyRootsToRelabel(turn, previousTurnEnd(turn))) relabelFamily(turn.source, root);
+}
+
+/** Relabels every segment family of the source, with no lookback limit. */
+export function relabelSource(source: Source): void {
+  const roots = new Set<string>();
+  for (const seg of getState().segments) {
+    if (seg.source !== source || isOverlapPassSegment(seg.id) || !captureSpanOf(seg)) continue;
+    roots.add(segmentFamilyRoot(seg.id));
   }
+  for (const root of roots) relabelFamily(source, root);
 }
