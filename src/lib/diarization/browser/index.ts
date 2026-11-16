@@ -1,4 +1,5 @@
 import { debugEnabled } from '../../asr/browser/quiet-console';
+import { acquireWorker, releaseWorker } from './shared-worker';
 import { reportSpeakerState, speakerSeedFor } from './speaker-handoff';
 import type {
   Diarizer,
@@ -10,24 +11,6 @@ import type {
   WorkerOutMessage,
 } from './types';
 
-let sharedWorker: Worker | null = null;
-let liveDiarizers = 0;
-
-function acquireWorker(): Worker {
-  liveDiarizers += 1;
-  if (!sharedWorker) {
-    sharedWorker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
-  }
-  return sharedWorker;
-}
-
-function releaseWorker(worker: Worker): void {
-  liveDiarizers -= 1;
-  if (liveDiarizers > 0 || sharedWorker !== worker) return;
-  worker.terminate();
-  sharedWorker = null;
-}
-
 let nextId = 0;
 
 export function createDiarizer(options: DiarizerOptions): Diarizer {
@@ -36,8 +19,10 @@ export function createDiarizer(options: DiarizerOptions): Diarizer {
   const listeners = new Set<(turn: SpeakerTurn) => void>();
   const errorListeners = new Set<(message: string, code: DiarizerErrorCode) => void>();
   const readyListeners = new Set<(info: DiarizerReady) => void>();
+  const rescoredListeners = new Set<(turns: SpeakerTurn[]) => void>();
   const flushWaiters = new Set<() => void>();
   let disposed = false;
+  let rescorePending = false;
 
   const settleFlushes = () => {
     for (const done of flushWaiters) done();
@@ -51,13 +36,23 @@ export function createDiarizer(options: DiarizerOptions): Diarizer {
       for (const cb of listeners) cb(msg.turn);
     } else if (msg.type === 'flushed') {
       if (msg.speakerState) reportSpeakerState(options.source, msg.speakerState);
+      if (msg.rescoring) rescorePending = true;
       settleFlushes();
+    } else if (msg.type === 'rescored') {
+      rescorePending = false;
+      if (msg.turns) for (const cb of rescoredListeners) cb(msg.turns);
+      if (disposed) detach();
     } else if (msg.type === 'ready') {
       for (const cb of readyListeners) cb({ backend: msg.backend });
     } else if (msg.type === 'error') {
       console.error(`[diarization:${options.source}] ${msg.message}`);
       for (const cb of errorListeners) cb(msg.message, msg.code ?? 'failed');
     }
+  };
+  const detach = () => {
+    worker.removeEventListener('message', onMessage);
+    rescoredListeners.clear();
+    releaseWorker(worker);
   };
   worker.addEventListener('message', onMessage);
 
@@ -104,17 +99,20 @@ export function createDiarizer(options: DiarizerOptions): Diarizer {
       readyListeners.add(cb);
       return () => readyListeners.delete(cb);
     },
+    onRescored(cb: (turns: SpeakerTurn[]) => void): () => void {
+      rescoredListeners.add(cb);
+      return () => rescoredListeners.delete(cb);
+    },
     dispose(): void {
       if (disposed) return;
       disposed = true;
       const msg: WorkerInMessage = { type: 'dispose', id };
       worker.postMessage(msg);
-      worker.removeEventListener('message', onMessage);
       listeners.clear();
       errorListeners.clear();
       readyListeners.clear();
       settleFlushes();
-      releaseWorker(worker);
+      if (!rescorePending) detach();
     },
   };
 }

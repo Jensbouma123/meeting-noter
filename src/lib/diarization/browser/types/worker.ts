@@ -11,7 +11,8 @@ export type WorkerInMessage =
 
 export type WorkerOutMessage =
   | { type: 'ready'; id: string; backend: DiarizerReady['backend'] }
-  | { type: 'flushed'; id: string; speakerState?: SerializedSpeakerState }
+  | { type: 'flushed'; id: string; speakerState?: SerializedSpeakerState; rescoring?: true }
+  | { type: 'rescored'; id: string; turns?: SpeakerTurn[] }
   | { type: 'turn'; id: string; turn: SpeakerTurn }
   | { type: 'error'; id: string; message: string; code: DiarizerErrorCode };
 

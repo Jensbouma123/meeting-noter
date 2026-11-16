@@ -19,5 +19,6 @@ export interface Diarizer {
   onSpeakerTurn(cb: (turn: SpeakerTurn) => void): () => void;
   onError(cb: (message: string, code: DiarizerErrorCode) => void): () => void;
   onReady(cb: (info: DiarizerReady) => void): () => void;
+  onRescored(cb: (turns: SpeakerTurn[]) => void): () => void;
   dispose(): void;
 }
