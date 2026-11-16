@@ -5,7 +5,7 @@ import {
   takeBlobUrlBytes,
   type DownloadProgress,
 } from '../../asr/browser/resumable-download';
-import { DIARIZATION_MODELS } from './manifest';
+import { DIARIZATION_DOWNLOADS, DIARIZATION_MODELS, SPEAKER_EMBEDDER } from './manifest';
 import type { DiarizationModelFile } from './types';
 
 export type { DownloadProgress } from '../../asr/browser/resumable-download';
@@ -38,7 +38,7 @@ export function modelSource(url: string): string | Uint8Array {
 export async function ensureDiarizationModelsCached(
   onProgress?: (file: DiarizationModelFile, progress: DownloadProgress) => void,
 ): Promise<void> {
-  for (const file of DIARIZATION_MODELS) {
+  for (const file of DIARIZATION_DOWNLOADS) {
     await ensureHfFileCached(file.repo, file.filename, 'main', {
       onProgress: (p) => onProgress?.(file, p),
     });
@@ -52,4 +52,12 @@ export async function assertDiarizationModelsCached(): Promise<void> {
       throw new Error(`Speaker detection model is not downloaded (${file.filename})`);
     }
   }
+}
+
+export async function isEmbedderCached(): Promise<boolean> {
+  const state = await areModelFilesCached({
+    modelRepo: SPEAKER_EMBEDDER.repo,
+    files: [SPEAKER_EMBEDDER.filename],
+  });
+  return state.complete;
 }

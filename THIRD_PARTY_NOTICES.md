@@ -1,10 +1,10 @@
 # Third-party notices / Vermeldingen van derden
 
 Meeting Noter's own code is MIT licensed (see [LICENSE](LICENSE)). The data
-below comes from other people's work and keeps its own license.
+and models below come from other people's work and keep their own license.
 
 De eigen code van Meeting Noter valt onder de MIT-licentie. Onderstaande data
-komt uit het werk van anderen en houdt de eigen licentie.
+en modellen komen uit het werk van anderen en houden de eigen licentie.
 
 ## FrequencyWords (Dutch and English word frequency lists)
 
@@ -27,3 +27,25 @@ CC BY-SA 4.0. Thank you to Hermit Dave for compiling and publishing these lists.
 Deze twee JSON-bestanden, en gewijzigde versies ervan, vallen onder
 CC BY-SA 4.0. Dank aan Hermit Dave voor het samenstellen en publiceren van
 deze lijsten.
+
+## WeSpeaker ResNet34 speaker embedding model (VoxCeleb)
+
+- **Used in / Gebruikt in:** speaker detection, downloaded by the browser after
+  consent (not shipped in this repo): `wespeaker_en_voxceleb_resnet34.onnx`
+  from <https://huggingface.co/csukuangfj/speaker-embedding-models>
+- **What / Wat:** a ResNet34 model that turns speech into a voice fingerprint.
+  Used to re-group speakers after a meeting.
+- **Authors / Auteurs:** the WeSpeaker project,
+  <https://github.com/wenet-e2e/wespeaker>; ONNX export by Fangjun Kuang
+  (sherpa-onnx)
+- **Underlying data / Brondata:** VoxCeleb (Nagrani, Chung, Zisserman et al.),
+  <https://mm.kaist.ac.kr/datasets/voxceleb/>
+- **License / Licentie:** Creative Commons Attribution 4.0 International
+  (CC BY 4.0), <https://creativecommons.org/licenses/by/4.0/>. The Hugging
+  Face repo has no model card; WeSpeaker's `docs/pretrained.md` states that its
+  VoxCeleb models follow the VoxCeleb dataset license, CC BY 4.0. The WeSpeaker
+  code is Apache 2.0.
+
+Thank you to the WeSpeaker team, the VoxCeleb authors and Fangjun Kuang.
+
+Dank aan het WeSpeaker-team, de makers van VoxCeleb en Fangjun Kuang.

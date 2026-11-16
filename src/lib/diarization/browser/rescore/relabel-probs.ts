@@ -1,5 +1,3 @@
-// Port of method_b.relabel: frame t of channel k takes the label of k's window
-// with the nearest centre; output [T, labels] is the per-label max over channels.
 import type { RescoreWindow } from '../types/rescore';
 
 function channelLabels(windows: RescoreWindow[], labels: Int32Array, k: number, frames: number, fallback: number): Int32Array {
@@ -17,7 +15,6 @@ function channelLabels(windows: RescoreWindow[], labels: Int32Array, k: number, 
   return col;
 }
 
-/** -> probs [T, K'] (row-major) and K', the number of labels active somewhere above 0.1. */
 export function relabelProbs(
   probs: ArrayLike<number>,
   numChannels: number,
