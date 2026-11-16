@@ -7,8 +7,8 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('../../asr/browser/resumable-download', () => ({
-  ensureHfFileCached: async (_repo: string, file: string) => {
-    mocks.ensured.push(file);
+  ensureHfFileCached: async (repo: string, file: string) => {
+    mocks.ensured.push(`${repo}:${file}`);
   },
   downloadHfFileResumable: async () => {
     mocks.bytesCalls += 1;
@@ -20,8 +20,12 @@ vi.mock('../../asr/browser/resumable-download', () => ({
   }),
 }));
 
-import { assertDiarizationModelsCached, ensureDiarizationModelsCached } from './downloader';
-import { DIARIZATION_MODELS } from './manifest';
+import {
+  assertDiarizationModelsCached,
+  ensureDiarizationModelsCached,
+  isEmbedderCached,
+} from './downloader';
+import { DIARIZATION_MODELS, SORTFORMER_WEIGHTS, SPEAKER_EMBEDDER } from './manifest';
 
 beforeEach(() => {
   mocks.ensured.length = 0;
@@ -32,8 +36,23 @@ beforeEach(() => {
 describe('diarization downloader', () => {
   it('warms the cache without building Blobs (F3)', async () => {
     await ensureDiarizationModelsCached();
-    expect(mocks.ensured).toEqual(DIARIZATION_MODELS.map((f) => f.filename));
+    expect(mocks.ensured).toEqual([
+      `${SORTFORMER_WEIGHTS.repo}:onnx/model_q4f16.onnx`,
+      `${SORTFORMER_WEIGHTS.repo}:onnx/model_q4f16.onnx_data`,
+      'csukuangfj/speaker-embedding-models:wespeaker_en_voxceleb_resnet34.onnx',
+    ]);
     expect(mocks.bytesCalls).toBe(0);
+  });
+
+  it('does not need the embedder to start Sortformer', async () => {
+    for (const f of DIARIZATION_MODELS) mocks.cached.add(f.filename);
+    await expect(assertDiarizationModelsCached()).resolves.toBeUndefined();
+  });
+
+  it('reports whether the speaker embedder is cached', async () => {
+    expect(await isEmbedderCached()).toBe(false);
+    mocks.cached.add(SPEAKER_EMBEDDER.filename);
+    expect(await isEmbedderCached()).toBe(true);
   });
 
   it('fails instead of downloading when a file is not cached (F1)', async () => {

@@ -19,7 +19,18 @@ export const DIARIZATION_MODELS: readonly DiarizationModelFile[] = Object.freeze
   SORTFORMER_WEIGHTS,
 ]);
 
-export const DIARIZATION_TOTAL_SIZE_BYTES = DIARIZATION_MODELS.reduce(
+export const SPEAKER_EMBEDDER: DiarizationModelFile = Object.freeze({
+  repo: 'csukuangfj/speaker-embedding-models',
+  filename: 'wespeaker_en_voxceleb_resnet34.onnx',
+  sizeBytes: 26_534_365,
+});
+
+export const DIARIZATION_DOWNLOADS: readonly DiarizationModelFile[] = Object.freeze([
+  ...DIARIZATION_MODELS,
+  SPEAKER_EMBEDDER,
+]);
+
+export const DIARIZATION_TOTAL_SIZE_BYTES = DIARIZATION_DOWNLOADS.reduce(
   (sum, f) => sum + f.sizeBytes,
   0,
 );

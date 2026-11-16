@@ -98,10 +98,11 @@ npm run app
 De repo bevat **geen modellen**. Bij eerste gebruik vraagt Instellingen > Spraakmodel om toestemming en downloadt de browser de modellen (daarna gecached in de browser):
 
 - Parakeet TDT 0.6B v3 (spraakherkenning) van Hugging Face, WASM/int8-variant: ca. 650 MB.
-- Diarization (pyannote-segmentation + WeSpeaker) en taaldetectie (Whisper-tiny) van Hugging Face: enkele tientallen tot honderden MB.
+- Sprekerherkenning (diarization) van Hugging Face, samen in één toestemming: Nemotron Sortformer (q4f16, ca. 73 MB) en het stemmodel WeSpeaker ResNet34 (fp32, 26,5 MB; CC BY 4.0, zie [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)), dat na de vergadering de sprekers opnieuw indeelt. Ontbreekt het stemmodel, dan blijft de eerste indeling staan; het wordt nooit stil of aan het eind van een vergadering gedownload.
+- Taaldetectie (Whisper-tiny) van Hugging Face: enkele tientallen MB.
 - WebGPU-encoders (q4f16 ≈ 516 MB, fp16 ≈ 1,2 GB) worden niet door Hugging Face geleverd. Host je ze zelf, zet dan `NEXT_PUBLIC_Q4F16_ENCODER_URL` / `NEXT_PUBLIC_FP16_ENCODER_URL` **vóór `npm run build`** (de standaard is `/models/parakeet-tdt-0.6b-v3-webgpu/...`, het conversiescript is niet meegeleverd). Zonder die bestanden mislukt het laden van de WebGPU-variant en valt de app terug op de WASM-variant (je moet de nieuwe download bevestigen).
 
-*English: no models are shipped. On first use the browser downloads them after consent (~650 MB for the default WASM Parakeet model plus small diarization/language-ID models) and caches them. WebGPU encoders must be self-hosted via `NEXT_PUBLIC_Q4F16_ENCODER_URL` / `NEXT_PUBLIC_FP16_ENCODER_URL` at build time; without them the app falls back to WASM.*
+*English: no models are shipped. On first use the browser downloads them after consent (~650 MB for the default WASM Parakeet model plus speaker detection — Nemotron Sortformer q4f16 ≈ 73 MB and the WeSpeaker ResNet34 fp32 voice model, 26.5 MB, CC BY 4.0 — and a small language-ID model) and caches them. The voice model is part of the speaker-detection consent and is never downloaded silently or at meeting end. WebGPU encoders must be self-hosted via `NEXT_PUBLIC_Q4F16_ENCODER_URL` / `NEXT_PUBLIC_FP16_ENCODER_URL` at build time; without them the app falls back to WASM.*
 
 ## macOS audio-helper
 
