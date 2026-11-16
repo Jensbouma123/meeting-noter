@@ -5,7 +5,6 @@ const turns = new Map<Source, SpeakerTurn[]>();
 const maxTurnLength = new Map<Source, number>();
 let generation = 0;
 
-/** Bumped by clearTurns, so a rescore that finishes after a reset can tell its turns are stale. */
 export function turnsGeneration(): number {
   return generation;
 }

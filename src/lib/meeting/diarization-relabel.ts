@@ -63,7 +63,6 @@ export function relabelSegments(turn: SpeakerTurn): void {
   for (const root of familyRootsToRelabel(turn, previousTurnEnd(turn))) relabelFamily(turn.source, root);
 }
 
-/** Relabels every segment family of the source, with no lookback limit. */
 export function relabelSource(source: Source): void {
   const roots = new Set<string>();
   for (const seg of getState().segments) {
