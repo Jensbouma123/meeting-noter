@@ -39,6 +39,7 @@ export function mockDiarizationBrowser() {
           fakes.error.set(source, cb);
           return () => {};
         },
+        onRescored: () => () => {},
         flush: async () => {},
         dispose() {
           fakes.disposed.push(source);

@@ -78,6 +78,7 @@ const unsubscribe = diarizer.onSpeakerTurn((turn) => {
 });
 diarizer.onReady(({ backend }) => {}); // model loaded: 'webgpu' | 'wasm'
 diarizer.onError((message, code) => {}); // code 'not-cached': files not on disk
+diarizer.onRescored((turns) => {}); // whole-meeting turns, after flush and dispose
 
 diarizer.push(float32Chunk, startSample); // 16 kHz mono in [-1, 1], capture-clock position
 await diarizer.flush(); // scores the tail and closes open turns
@@ -86,7 +87,9 @@ diarizer.dispose();
 
 Every diarizer shares one worker, so the model is loaded once no matter how
 many sources are diarized; the worker is terminated when the **last**
-diarizer is disposed, so the session is returned between recordings.
+diarizer is disposed, so the session is returned between recordings. A flush
+that starts a rescore keeps the worker alive past `dispose()` until its
+`rescored` message arrives.
 
 `push()` transfers the chunk's `ArrayBuffer` to the worker — don't reuse the
 `Float32Array` after calling it. Audio pushed while the model loads is held

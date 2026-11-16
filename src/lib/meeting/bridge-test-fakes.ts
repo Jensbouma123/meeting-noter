@@ -32,6 +32,7 @@ export function mockDiarizationBrowser() {
         return () => fakes.errorListeners.delete(source);
       },
       onReady: () => () => {},
+      onRescored: () => () => {},
       flush: async () => {},
       dispose() {
         fakes.disposed.push(source);
