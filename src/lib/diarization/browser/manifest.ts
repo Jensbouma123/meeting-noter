@@ -19,8 +19,6 @@ export const DIARIZATION_MODELS: readonly DiarizationModelFile[] = Object.freeze
   SORTFORMER_WEIGHTS,
 ]);
 
-// fp32 WeSpeaker ResNet34 (VoxCeleb, CC BY 4.0), used to re-score speakers after a meeting.
-// sha256 5ef208a9da1453335308a6b6f4e6dfbd7e183a38b604de0a57664f45d257fe94
 export const SPEAKER_EMBEDDER: DiarizationModelFile = Object.freeze({
   repo: 'csukuangfj/speaker-embedding-models',
   filename: 'wespeaker_en_voxceleb_resnet34.onnx',
