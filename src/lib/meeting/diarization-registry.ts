@@ -5,18 +5,20 @@ import {
 } from '@/lib/asr/browser';
 import { ensureDiarizationModelsCached } from '@/lib/diarization/browser/downloader';
 import {
-  DIARIZATION_DOWNLOADS,
+  DIARIZATION_MODELS,
   DIARIZATION_TOTAL_SIZE_BYTES,
 } from '@/lib/diarization/browser/manifest';
 
+import { fetchSpeakerEmbedderBestEffort } from './diarization-embedder-fetch';
 import { DIARIZATION_REGISTRY_KEY } from '@/lib/asr/browser/model-registry-known-keys';
 
 export { DIARIZATION_REGISTRY_KEY };
 
-export const DIARIZATION_REGISTRY_IDENTITY = DIARIZATION_DOWNLOADS.map((f) => `${f.repo}:${f.filename}`).join('+');
+export const DIARIZATION_REGISTRY_IDENTITY = DIARIZATION_MODELS.map((f) => `${f.repo}:${f.filename}`).join('+');
 
 registerDownloadHandler('diarization', async (onProgress) => {
   await ensureDiarizationModelsCached((_file, p) => onProgress(p));
+  void fetchSpeakerEmbedderBestEffort();
 });
 
 export function registerDiarizationModel(backend: AsrBackend): void {
@@ -27,8 +29,8 @@ export function registerDiarizationModel(backend: AsrBackend): void {
     estimatedSizeBytes: DIARIZATION_TOTAL_SIZE_BYTES,
     description:
       'Identifies who is speaking, run entirely on your device. Optional — transcripts work ' +
-      'without it, just without speaker labels. Includes a small voice model that tidies up ' +
-      'speakers after the meeting. Downloaded once and cached in your browser.',
+      'without it, just without speaker labels. A small voice model that tidies up ' +
+      'speakers after the meeting is fetched separately. Downloaded once and cached in your browser.',
     preCheckCache: true,
     backend,
     kind: 'diarization',

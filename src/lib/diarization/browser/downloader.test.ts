@@ -23,6 +23,7 @@ vi.mock('../../asr/browser/resumable-download', () => ({
 import {
   assertDiarizationModelsCached,
   ensureDiarizationModelsCached,
+  ensureSpeakerEmbedderCached,
   isEmbedderCached,
 } from './downloader';
 import { DIARIZATION_MODELS, SORTFORMER_WEIGHTS, SPEAKER_EMBEDDER } from './manifest';
@@ -39,9 +40,15 @@ describe('diarization downloader', () => {
     expect(mocks.ensured).toEqual([
       `${SORTFORMER_WEIGHTS.repo}:onnx/model_q4f16.onnx`,
       `${SORTFORMER_WEIGHTS.repo}:onnx/model_q4f16.onnx_data`,
-      'csukuangfj/speaker-embedding-models:wespeaker_en_voxceleb_resnet34.onnx',
     ]);
     expect(mocks.bytesCalls).toBe(0);
+  });
+
+  it('fetches the embedder separately', async () => {
+    await ensureSpeakerEmbedderCached();
+    expect(mocks.ensured).toEqual([
+      'csukuangfj/speaker-embedding-models:wespeaker_en_voxceleb_resnet34.onnx',
+    ]);
   });
 
   it('does not need the embedder to start Sortformer', async () => {
