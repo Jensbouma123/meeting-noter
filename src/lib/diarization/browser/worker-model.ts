@@ -4,7 +4,8 @@ import {
   modelSource,
   revokeModelUrls,
 } from './downloader';
-import { SORTFORMER_GRAPH, SORTFORMER_WEIGHTS, externalDataPath } from './manifest';
+import { downloadHfFileResumable } from '../../asr/browser/resumable-download';
+import { SORTFORMER_GRAPH, SORTFORMER_WEIGHTS, SPEAKER_EMBEDDER, externalDataPath } from './manifest';
 import { SortformerModel } from './sortformer-model';
 
 export class NotCachedError extends Error {}
@@ -46,4 +47,27 @@ async function loadModelFromCache(): Promise<SortformerModel> {
 export function loadModel(): Promise<SortformerModel> {
   if (!modelPromise) modelPromise = loadModelFromCache();
   return modelPromise;
+}
+
+export async function releaseModel(): Promise<void> {
+  const pending = modelPromise;
+  modelPromise = null;
+  const model = await pending?.catch(() => null);
+  model?.dispose();
+}
+
+async function fetchBytes(url: string): Promise<Uint8Array> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Speaker embedder fetch failed (${res.status})`);
+  return new Uint8Array(await res.arrayBuffer());
+}
+
+export async function loadEmbedderBytes(): Promise<Uint8Array> {
+  const url = await downloadHfFileResumable(SPEAKER_EMBEDDER.repo, SPEAKER_EMBEDDER.filename, 'main');
+  try {
+    const source = modelSource(url);
+    return typeof source === 'string' ? await fetchBytes(source) : source;
+  } finally {
+    revokeModelUrls({ [SPEAKER_EMBEDDER.filename]: url });
+  }
 }
