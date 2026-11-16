@@ -1,4 +1,5 @@
 import { editDistance } from './edit-distance';
+import { isFrequentWord } from './frequent-words';
 import { lettersOf } from './text-chunk';
 import { soundKey } from './sound-key';
 import type { Chunk, Match, Prepared } from './types';
@@ -36,7 +37,7 @@ function matchAt(chunks: readonly Chunk[], from: number, vocab: Prepared): Match
     const to = from + entry.size;
     if (to > chunks.length || !joinable(chunks, from, to)) continue;
     const heard = lettersOf(chunks.slice(from, to).map((c) => c.core).join(''));
-    if (heard.length < 4 || soundKey(heard) !== entry.key) continue;
+    if (heard.length < 4 || soundKey(heard) !== entry.key || isFrequentWord(heard)) continue;
     if (editDistance(heard, entry.letters, entry.maxEdits) <= entry.maxEdits) return { from, to, word: entry.word };
   }
   return null;
