@@ -5,6 +5,8 @@ export interface PostedMessage {
   code?: string;
   backend?: string;
   speakerState?: unknown;
+  rescoring?: true;
+  turns?: unknown[];
 }
 
 export interface FakeCoreRecord {

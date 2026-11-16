@@ -8,6 +8,8 @@ export const loadState = {
   failLoad: true,
   backend: 'wasm' as 'webgpu' | 'wasm',
   releaseLoad: () => {},
+  modelDisposed: 0,
+  embedderCached: true,
   coreSnapshot: {
     numFrames: 0,
     compressed: false,
@@ -23,6 +25,7 @@ export const downloaderMock = {
   downloadDiarizationModels: async () => ({}),
   modelSource: () => new Uint8Array(),
   revokeModelUrls: () => {},
+  isEmbedderCached: async () => loadState.embedderCached,
 };
 
 export const sortformerModelMock = {
@@ -34,7 +37,9 @@ export const sortformerModelMock = {
       });
       this.backend = loadState.backend;
     }
-    dispose() {}
+    dispose() {
+      loadState.modelDisposed += 1;
+    }
     run() {}
   },
 };

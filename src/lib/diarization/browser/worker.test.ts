@@ -1,10 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const support = await vi.hoisted(() => import('./worker-test-support'));
+const rescoreSupport = await vi.hoisted(() => import('./worker-rescore-test-support'));
 
 vi.mock('./downloader', () => support.downloaderMock);
 vi.mock('./sortformer-model', () => support.sortformerModelMock);
 vi.mock('./core', () => support.coreMock);
+vi.mock('./worker-rescore', () => rescoreSupport.workerRescoreMock);
+vi.mock('./rescore/embedder', () => rescoreSupport.embedderMock);
 
 const { posted, cores, loadState, flush, loadWorker } = support;
 
