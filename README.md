@@ -143,3 +143,5 @@ The local rules live in `scripts/eslint-rules/` with RuleTester tests.
 ## Licentie
 
 MIT, zie [LICENSE](LICENSE).
+
+De woordfrequentielijsten in `src/lib/vocabulary/frequent-words-*.json` vallen onder CC BY-SA 4.0; zie [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). / The word frequency lists are CC BY-SA 4.0; see the notices file.
