@@ -8,6 +8,7 @@ import {
   detectAsrBackend,
 } from '@/lib/asr/browser';
 import { registerDiarizationModel } from '@/lib/meeting/diarization-registry';
+import { fetchSpeakerEmbedderIfModelCached } from '@/lib/meeting/diarization-embedder-fetch';
 import { registerLangIdModel } from '@/lib/meeting/langid-registry';
 import { registerSearchModel } from '@/lib/semantic-search/model-registry';
 
@@ -21,6 +22,7 @@ export function useRegisterModelsOnMount() {
       registerLangIdModel(backend);
       registerSearchModel();
       autoResumeConsentedDownloads();
+      fetchSpeakerEmbedderIfModelCached();
     })();
   }, []);
 }

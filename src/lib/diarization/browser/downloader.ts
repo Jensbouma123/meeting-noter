@@ -5,7 +5,7 @@ import {
   takeBlobUrlBytes,
   type DownloadProgress,
 } from '../../asr/browser/resumable-download';
-import { DIARIZATION_DOWNLOADS, DIARIZATION_MODELS, SPEAKER_EMBEDDER } from './manifest';
+import { DIARIZATION_MODELS, SPEAKER_EMBEDDER } from './manifest';
 import type { DiarizationModelFile } from './types';
 
 export type { DownloadProgress } from '../../asr/browser/resumable-download';
@@ -38,11 +38,15 @@ export function modelSource(url: string): string | Uint8Array {
 export async function ensureDiarizationModelsCached(
   onProgress?: (file: DiarizationModelFile, progress: DownloadProgress) => void,
 ): Promise<void> {
-  for (const file of DIARIZATION_DOWNLOADS) {
+  for (const file of DIARIZATION_MODELS) {
     await ensureHfFileCached(file.repo, file.filename, 'main', {
       onProgress: (p) => onProgress?.(file, p),
     });
   }
+}
+
+export async function ensureSpeakerEmbedderCached(): Promise<void> {
+  await ensureHfFileCached(SPEAKER_EMBEDDER.repo, SPEAKER_EMBEDDER.filename, 'main');
 }
 
 export async function assertDiarizationModelsCached(): Promise<void> {

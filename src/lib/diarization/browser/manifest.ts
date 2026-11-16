@@ -25,12 +25,7 @@ export const SPEAKER_EMBEDDER: DiarizationModelFile = Object.freeze({
   sizeBytes: 26_534_365,
 });
 
-export const DIARIZATION_DOWNLOADS: readonly DiarizationModelFile[] = Object.freeze([
-  ...DIARIZATION_MODELS,
-  SPEAKER_EMBEDDER,
-]);
-
-export const DIARIZATION_TOTAL_SIZE_BYTES = DIARIZATION_DOWNLOADS.reduce(
+export const DIARIZATION_TOTAL_SIZE_BYTES = DIARIZATION_MODELS.reduce(
   (sum, f) => sum + f.sizeBytes,
   0,
 );

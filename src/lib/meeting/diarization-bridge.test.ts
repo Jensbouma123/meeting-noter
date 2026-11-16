@@ -39,18 +39,17 @@ describe('diarization bridge — registry identity', () => {
     expect(entry.modelRepo).toBe(bridge.DIARIZATION_REGISTRY_IDENTITY);
     expect(entry.modelRepo).toContain('onnx-community/Nemotron-3-Diarization-ONNX');
     expect(entry.modelRepo).toContain('onnx/model_q4f16.onnx_data');
-    expect(entry.modelRepo).toContain(
-      'csukuangfj/speaker-embedding-models:wespeaker_en_voxceleb_resnet34.onnx',
-    );
+    expect(entry.modelRepo).not.toContain('speaker-embedding-models');
     expect(entry.status).toBe('not-downloaded');
   });
 });
 
 const SORTFORMER_ONLY_REPO =
-  'onnx-community/Nemotron-3-Diarization-ONNX:onnx/model_q4f16.onnx+onnx/model_q4f16.onnx_data';
+  'onnx-community/Nemotron-3-Diarization-ONNX:onnx/model_q4f16.onnx+' +
+  'onnx-community/Nemotron-3-Diarization-ONNX:onnx/model_q4f16.onnx_data';
 
 describe('diarization bridge — embedder upgrade', () => {
-  it('asks for a fresh download when only Sortformer was cached, so the embedder gets fetched', async () => {
+  it('keeps a Sortformer-only cached install ready, so live labels never wait for the embedder', async () => {
     const { registry, bridge } = await modules();
     registry.registerModel({
       key: bridge.DIARIZATION_REGISTRY_KEY,
@@ -65,8 +64,8 @@ describe('diarization bridge — embedder upgrade', () => {
     bridge.registerDiarizationModel('webgpu');
 
     const entry = registry.getModelStatus(bridge.DIARIZATION_REGISTRY_KEY)!;
-    expect(entry.status).toBe('not-downloaded');
-    expect(entry.estimatedSizeBytes).toBe(73_484_728 + 26_534_365);
+    expect(entry.status).toBe('cached');
+    expect(entry.estimatedSizeBytes).toBe(73_484_728);
   });
 });
 
