@@ -1,5 +1,3 @@
-// Kaldi-compatible 80-bin log fbank as WeSpeaker uses it at inference: dither 0,
-// povey window, snip_edges, int16-scale input. Port of exchange/diar16 fbank.py.
 import { fftReal } from '../fft';
 
 const SR = 16_000;
@@ -39,7 +37,6 @@ function poveyWindow(): Float32Array {
 let banks: Float32Array[] | null = null;
 let window: Float32Array | null = null;
 
-/** int16-scale samples -> [frames * 80] log-mel energies, mean-normalised per bin (CMN). */
 export function fbankCmn(samples: ArrayLike<number>): { feats: Float32Array; frames: number } {
   banks ??= melBanks();
   window ??= poveyWindow();
