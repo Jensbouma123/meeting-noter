@@ -7,6 +7,7 @@ export class TurnTracker {
   private readonly offThreshold: number;
   private readonly overlapThreshold: number;
   private readonly maxGapFrames: number;
+  private readonly pauseFrames: number;
   private readonly minTurnFrames: number;
   private readonly maxOpenFrames: number;
   private readonly provisional: boolean;
@@ -21,6 +22,7 @@ export class TurnTracker {
     this.offThreshold = options.offThreshold ?? this.threshold;
     this.overlapThreshold = options.overlapThreshold ?? this.threshold;
     this.maxGapFrames = Math.round((options.maxGapSec ?? 1) / options.frameSec);
+    this.pauseFrames = Math.round((options.pauseSec ?? Infinity) / options.frameSec);
     this.minTurnFrames = Math.round((options.minTurnSec ?? 0.2) / options.frameSec);
     this.maxOpenFrames = Math.round((options.maxOpenSec ?? 8) / options.frameSec);
     this.provisional = options.provisional ?? false;
@@ -48,6 +50,7 @@ export class TurnTracker {
           if (!run) {
             this.open[k] = this.openRun(frame, frame, false);
           } else {
+            if (frame - run.lastActive - 1 > this.pauseFrames) run.pauses.push([run.lastActive + 1, frame]);
             run.lastActive = frame;
             if (frame + 1 - run.startFrame >= this.maxOpenFrames) {
               closed.push({ ...this.span(k, run, frame + 1, true), continues: true });
@@ -95,10 +98,12 @@ export class TurnTracker {
   }
 
   private openRun(startFrame: number, lastActive: number, continued: boolean): OpenRun {
-    return { id: this.nextRun++, startFrame, lastActive, continued, reportedEnd: startFrame };
+    return { id: this.nextRun++, startFrame, lastActive, continued, reportedEnd: startFrame, pauses: [] };
   }
 
   private span(speaker: number, run: OpenRun, endFrame: number, final: boolean): TurnSpan {
-    return { speaker, start: run.startFrame * this.frameSec, end: endFrame * this.frameSec, run: run.id, final };
+    const span: TurnSpan = { speaker, start: run.startFrame * this.frameSec, end: endFrame * this.frameSec, run: run.id, final };
+    if (run.pauses.length > 0) span.pauses = run.pauses.map(([a, b]) => [a * this.frameSec, b * this.frameSec]);
+    return span;
   }
 }

@@ -4,6 +4,7 @@ import {
   DEFAULT_OFF_THRESHOLD,
   DEFAULT_ON_THRESHOLD,
   DEFAULT_OVERLAP_THRESHOLD,
+  DEFAULT_PAUSE_SEC,
 } from './constants';
 import { chunkProbabilities, spanToSpeakerTurn } from './core-helpers';
 import { FRAME_SEC, HIDDEN_SIZE, NUM_SPEAKERS, SUBSAMPLING_FACTOR } from './manifest';
@@ -54,6 +55,7 @@ export class DiarizerCore {
       overlapThreshold: DEFAULT_OVERLAP_THRESHOLD,
       offThreshold: DEFAULT_OFF_THRESHOLD,
       maxGapSec: DEFAULT_MAX_GAP_SEC,
+      pauseSec: DEFAULT_PAUSE_SEC,
       ...options.turns,
     });
     this.onProbabilities = options.onProbabilities;
