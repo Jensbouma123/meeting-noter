@@ -3,6 +3,11 @@ import type { Source } from './types';
 
 const turns = new Map<Source, SpeakerTurn[]>();
 const maxTurnLength = new Map<Source, number>();
+let generation = 0;
+
+export function turnsGeneration(): number {
+  return generation;
+}
 
 export function turnsOf(source: Source): SpeakerTurn[] {
   return turns.get(source) ?? [];
@@ -42,7 +47,14 @@ export function insertTurn(turn: SpeakerTurn): void {
   turns.set(turn.source, list);
 }
 
+export function replaceTurns(source: Source, next: readonly SpeakerTurn[]): void {
+  const list = [...next].sort((a, b) => a.start - b.start);
+  turns.set(source, list);
+  maxTurnLength.set(source, list.reduce((max, t) => Math.max(max, t.end - t.start), 0));
+}
+
 export function clearTurns(): void {
   turns.clear();
   maxTurnLength.clear();
+  generation += 1;
 }
