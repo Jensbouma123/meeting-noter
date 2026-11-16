@@ -21,5 +21,6 @@ export function spanToSpeakerTurn(span: TurnSpan, source: Source, originSample: 
     id: `${source}#${span.run}`,
     final: span.final,
     ...(span.continues ? { continues: true } : {}),
+    ...(span.pauses ? { pauses: span.pauses.map(([a, b]): [number, number] => [originSec + a, originSec + b]) } : {}),
   };
 }

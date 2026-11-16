@@ -5,6 +5,7 @@ export interface TurnSpan {
   run: number;
   final: boolean;
   continues?: true;
+  pauses?: [number, number][];
 }
 
 export interface TurnTrackerOptions {
@@ -14,6 +15,7 @@ export interface TurnTrackerOptions {
   offThreshold?: number;
   overlapThreshold?: number;
   maxGapSec?: number;
+  pauseSec?: number;
   minTurnSec?: number;
   maxOpenSec?: number;
   provisional?: boolean;
@@ -25,4 +27,5 @@ export interface OpenRun {
   reportedEnd: number;
   lastActive: number;
   continued: boolean;
+  pauses: [number, number][];
 }

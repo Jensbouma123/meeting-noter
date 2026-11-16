@@ -40,5 +40,6 @@ export const DEFAULT_ON_THRESHOLD = 0.55;
 export const DEFAULT_OVERLAP_THRESHOLD = 0.4;
 export const DEFAULT_OFF_THRESHOLD = 0.1;
 export const DEFAULT_MAX_GAP_SEC = 1.1;
+export const DEFAULT_PAUSE_SEC = 0.2;
 
 export const MAX_PENDING_SAMPLES = 30 * 16_000;

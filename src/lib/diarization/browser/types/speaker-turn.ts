@@ -8,4 +8,5 @@ export interface SpeakerTurn {
   id?: string;
   final?: boolean;
   continues?: boolean;
+  pauses?: [number, number][];
 }
