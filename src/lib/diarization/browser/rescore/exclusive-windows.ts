@@ -1,7 +1,6 @@
 import type { RescoreWindow } from '../types/rescore';
 import { RESCORE_PARAMS } from './params';
 
-/** Cut one exclusive run [start, end) of channel k into embedding windows. */
 export function runWindows(channel: number, start: number, end: number, p = RESCORE_PARAMS): RescoreWindow[] {
   const len = end - start;
   if (len < p.minRunFrames) return [];
@@ -12,7 +11,6 @@ export function runWindows(channel: number, start: number, end: number, p = RESC
   return out;
 }
 
-/** Runs where exactly one channel is above 0.5, per channel in time order (method_b.exclusive_windows). */
 export function exclusiveWindows(probs: Float32Array, numChannels: number, p = RESCORE_PARAMS): RescoreWindow[] {
   const frames = Math.floor(probs.length / numChannels);
   const owner = new Int16Array(frames).fill(-1);

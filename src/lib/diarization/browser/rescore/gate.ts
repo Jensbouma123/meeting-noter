@@ -1,6 +1,5 @@
 import { RESCORE_PARAMS } from './params';
 
-/** Counts the distinct local channels among final turns; B runs only when they reach the gate. */
 export class RescoreGate {
   private readonly seen = new Set<number>();
 

@@ -1,4 +1,3 @@
-// Frozen Method B parameters, tuned on VoxConverse dev (exchange/diar16/results.md).
 export const RESCORE_PARAMS = Object.freeze({
   tau: 0.35,
   minWindows: 3,
