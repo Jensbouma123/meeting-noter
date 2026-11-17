@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DiarizerCore } from './core';
 import { FakeModel, SMALL_MODE, SR, concat, stream, tone } from './core-test-support';
 import type { SortformerRunner, SpeakerTurn } from './types';
+import { A, ArrivalOrderModel, B, quiet } from '@/lib/meeting/speaker-resume-model';
 
 function collectTurns(core: DiarizerCore): SpeakerTurn[] {
   const turns: SpeakerTurn[] = [];
@@ -93,5 +94,22 @@ describe('DiarizerCore turns', () => {
     const last = turns[turns.length - 1];
     expect(last).toMatchObject({ id: open[0].id, final: true });
     expect(last.end).toBeCloseTo(3, 1);
+  });
+
+  it('ends a speaker\'s turn where the next speaker cuts in without a pause', async () => {
+    const mode = { chunkLength: 9, rightContext: 4, fifoLength: 30, updatePeriod: 20 };
+    const core = new DiarizerCore({ source: 'system', model: new ArrivalOrderModel(), mode, turns: { provisional: true } });
+    const turns = collectTurns(core);
+    await stream(core, concat([A(8), B(6), quiet(2)]));
+    await core.flush();
+
+    const final = turns.filter((t) => t.final);
+    const first = final.filter((t) => t.speaker === 'system:0');
+    const second = final.filter((t) => t.speaker === 'system:1');
+    expect(first.length).toBeGreaterThan(0);
+    expect(second.length).toBeGreaterThan(0);
+    expect(Math.max(...first.map((t) => t.end))).toBeLessThan(8.2);
+    expect(Math.min(...second.map((t) => t.start))).toBeGreaterThan(7.8);
+    expect(Math.max(...second.map((t) => t.end))).toBeCloseTo(14, 0);
   });
 });
