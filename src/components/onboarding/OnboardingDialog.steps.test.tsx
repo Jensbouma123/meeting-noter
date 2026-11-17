@@ -25,7 +25,12 @@ registerOnboardingTestEnv();
 const skipAssistants = () => fireEvent.click(screen.getByRole('button', { name: /Skip, I'll do this later/ }));
 const clickContinue = () => fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
 const advance = (n: number) => Array.from({ length: n }).forEach(clickContinue);
-const renderWithI18n = () => render(<I18nProvider><OnboardingDialog /></I18nProvider>);
+const renderWithI18n = () =>
+  render(
+    <I18nProvider>
+      <OnboardingDialog />
+    </I18nProvider>,
+  );
 
 describe('OnboardingDialog steps', () => {
   it('renders language as the first step and matches STEPS length in the step counter', () => {

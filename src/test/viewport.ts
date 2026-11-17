@@ -10,9 +10,7 @@ const feature = /\((min|max)-width:\s*(\d+(?:\.\d+)?)px\)/g;
 function matchesQuery(query: string, viewportWidth: number): boolean {
   const features = [...query.matchAll(feature)];
   if (features.length === 0) return false;
-  return features.every(([, kind, px]) =>
-    kind === 'min' ? viewportWidth >= Number(px) : viewportWidth <= Number(px),
-  );
+  return features.every(([, kind, px]) => (kind === 'min' ? viewportWidth >= Number(px) : viewportWidth <= Number(px)));
 }
 
 function removeListener(listener: ViewportListener) {
