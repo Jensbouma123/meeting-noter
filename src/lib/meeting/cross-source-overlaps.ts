@@ -47,6 +47,22 @@ function groupColumns<T extends Segment>(members: T[]): Map<string, OverlapColum
   return columns;
 }
 
+function sharedWindow(members: readonly Segment[]): { start: number; end: number } {
+  let start = Infinity;
+  let end = -Infinity;
+  for (const a of members) {
+    for (const b of members) {
+      if (a.source === b.source) continue;
+      const lo = Math.max(a.start, b.start);
+      const hi = Math.min(a.end, b.end);
+      if (hi <= lo) continue;
+      start = Math.min(start, lo);
+      end = Math.max(end, hi);
+    }
+  }
+  return { start, end };
+}
+
 export function crossSourceOverlaps<T extends Segment>(segments: readonly T[]): Map<T, SegmentOverlap> {
   const ordered = segments.filter((seg) => !seg.overlap && seg.end > seg.start).sort((a, b) => a.start - b.start);
   const marks = new Map<T, SegmentOverlap>();
@@ -56,8 +72,7 @@ export function crossSourceOverlaps<T extends Segment>(segments: readonly T[]): 
     if (members.length < 2) continue;
     if (!columnsHold(groupColumns(members))) continue;
     const overlap: SegmentOverlap = {
-      start: members[0].start,
-      end: members.reduce((m, seg) => Math.max(m, seg.end), members[0].end),
+      ...sharedWindow(members),
       speakers: [...new Set(members.map((seg) => seg.speaker))],
     };
     crossMarks.add(overlap);
