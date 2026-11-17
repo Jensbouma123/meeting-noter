@@ -5,6 +5,7 @@ import { FOLDERS_CHANGED_EVENT, declineFolderSuggestion, fetchDeclinedSuggestion
 import { folderPath } from '@/lib/folders/folder-tree';
 import { computeFolderSuggestions } from '@/lib/semantic-search/folder-suggest/compute';
 import { loadIndex } from '@/lib/semantic-search/store';
+import { cachedCentroid } from '@/lib/semantic-search/folder-suggest/centroid-cache';
 import { useFolderContextVectors } from './useFolderContextVectors';
 import type { FolderSuggestionView } from './folder-suggestion.types';
 
@@ -28,16 +29,19 @@ export function useFolderSuggestions(
 
   const contextVectors = useFolderContextVectors(folders);
   const sessionKey = sessions.map((s) => s.sessionId).join('|');
+  const foldersKey = JSON.stringify(Object.entries(meetingFolders).sort(([a], [b]) => (a < b ? -1 : 1)));
+  const declinedKey = JSON.stringify(Object.entries(declined).sort(([a], [b]) => (a < b ? -1 : 1)));
   const suggestions = useMemo(
     () =>
       computeFolderSuggestions({
         sessionIds: sessionKey ? sessionKey.split('|') : [],
-        meetingFolders,
-        declined,
+        meetingFolders: Object.fromEntries(JSON.parse(foldersKey)),
+        declined: Object.fromEntries(JSON.parse(declinedKey)),
         contextVectors,
         loadVectors: (id) => loadIndex(id)?.vectors ?? null,
+        loadCentroid: (id) => cachedCentroid(id),
       }),
-    [sessionKey, meetingFolders, declined, contextVectors],
+    [sessionKey, foldersKey, declinedKey, contextVectors],
   );
 
   return useMemo(() => {
