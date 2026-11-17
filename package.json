@@ -3,8 +3,10 @@
   "version": "0.5.1",
   "private": true,
   "scripts": {
+    "predev": "node src/lib/ort-paths/copy-ort-wasm.mjs",
     "dev": "node scripts/dev.mjs",
     "dev:next": "next dev",
+    "prebuild": "node src/lib/ort-paths/copy-ort-wasm.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -14,6 +16,7 @@
     "test:mcp-e2e": "node scripts/installer/mcp-smoke-e2e.mjs",
     "helper:build": "sh helper/build.sh",
     "helper": "sh helper/build.sh && ./helper/build/meeting-noter-audio-helper",
+    "preapp": "node src/lib/ort-paths/copy-ort-wasm.mjs",
     "app": "node scripts/dev.mjs --prod",
     "helper:install": "sh helper/install-agent.sh",
     "helper:uninstall": "sh helper/install-agent.sh uninstall",

@@ -1,3 +1,4 @@
+import { applyOrtWasmPaths, TRANSFORMERS_ORT_WASM_BASE } from '@/lib/ort-paths';
 import type { LoadedState, ModelLoader, ModelLoaderConfig } from './types';
 
 export function createModelLoader(config: ModelLoaderConfig): ModelLoader {
@@ -10,6 +11,7 @@ export function createModelLoader(config: ModelLoaderConfig): ModelLoader {
     if (state && (state.hasAudio || !needAudio)) return state;
 
     const t = await importTransformers();
+    applyOrtWasmPaths(t.env?.backends?.onnx ?? {}, TRANSFORMERS_ORT_WASM_BASE);
     let processor: LoadedState['processor'] | null = state?.processor ?? null;
     if (state) {
       await state.model.dispose();
