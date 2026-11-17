@@ -3,7 +3,7 @@ import '@testing-library/jest-dom/vitest';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { restartOnboarding, shouldShowOnboarding } from '@/lib/onboarding/store';
-import { acceptAck, acceptAutoClose, entry, registerOnboardingTestEnv, setEntries } from './OnboardingDialog.testSupport';
+import { acceptAck, acceptAckPastModels, acceptAutoClose, entry, registerOnboardingTestEnv, setEntries } from './OnboardingDialog.testSupport';
 import { OnboardingDialog } from './OnboardingDialog';
 
 registerOnboardingTestEnv();
@@ -42,7 +42,7 @@ describe('mandatory first-run onboarding', () => {
     render(<OnboardingDialog />);
     next();
     next();
-    acceptAck();
+    acceptAckPastModels();
     fireEvent.click(screen.getByRole('button', { name: /Skip, I'll do this later/ }));
     next();
     acceptAutoClose();
@@ -51,21 +51,13 @@ describe('mandatory first-run onboarding', () => {
     expect(shouldShowOnboarding()).toBe(false);
   });
 
-  it('keeps a way forward after a failed download', () => {
+  it('shows the error and Retry after a failed download, with Continue disabled', () => {
     setEntries({ asr: entry('failed') });
     toModelsStep();
     expect(screen.getByRole('alert')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Continue anyway' }));
-    expect(screen.getByText('Step 5 of 8')).toBeInTheDocument();
-  });
-
-  it('lets an offline user continue without downloading', () => {
-    Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
-    toModelsStep();
-    fireEvent.click(screen.getByRole('button', { name: 'Continue anyway' }));
-    expect(screen.getByText('Step 5 of 8')).toBeInTheDocument();
-    Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Continue' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Continue anyway' })).not.toBeInTheDocument();
   });
 
   it('stays closable when reopened from settings', () => {

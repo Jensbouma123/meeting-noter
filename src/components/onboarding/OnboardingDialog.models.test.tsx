@@ -45,7 +45,7 @@ describe('OnboardingDialog models step', () => {
     allModels('not-downloaded', 'cached');
     openModelsStep();
     expect(await screen.findByRole('button', { name: 'Download 2 GB' })).toBeInTheDocument();
-    expect(screen.queryByText('Step 5 of 8')).not.toBeInTheDocument();
+    expect(cont()).toBeDisabled();
   });
 
   it('accepting in onboarding grants search consent, so no separate dialog is needed', async () => {
@@ -61,10 +61,42 @@ describe('OnboardingDialog models step', () => {
     real.resetConsent();
   });
 
-  it('moves on without downloading when every model, search included, is cached', () => {
+  const cont = () => screen.getByRole('button', { name: 'Continue' });
+
+  it('disables Continue before download, explains why, and keeps Back enabled', () => {
+    allModels('not-downloaded');
+    openModelsStep();
+    expect(cont()).toBeDisabled();
+    expect(cont()).toHaveAttribute('aria-disabled', 'true');
+    const hint = document.getElementById(cont().getAttribute('aria-describedby') ?? '');
+    expect(hint).toHaveTextContent('This download is required to continue.');
+    expect(screen.getByRole('button', { name: 'Back' })).toBeEnabled();
+    expect(screen.queryByRole('button', { name: 'Continue anyway' })).not.toBeInTheDocument();
+  });
+
+  it('disables Continue during download and shows the percent', () => {
+    allModels('downloading', 'downloading');
+    openModelsStep();
+    expect(cont()).toBeDisabled();
+    expect(screen.getByText(/50%/)).toBeInTheDocument();
+  });
+
+  it('keeps the download running when going back', () => {
+    allModels('downloading', 'downloading');
+    openModelsStep();
+    fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+    expect(screen.getByText('Step 3 of 8')).toBeInTheDocument();
+    expect(initiateDownloads).not.toHaveBeenCalled();
+  });
+
+  it('says the models are ready and enables Continue when all are cached', () => {
     allModels('cached', 'cached');
     openModelsStep();
-    expect(screen.getByText('Step 5 of 8')).toBeInTheDocument();
+    expect(screen.getByText('Step 4 of 8')).toBeInTheDocument();
+    expect(screen.getByText('The speech models are ready.')).toBeInTheDocument();
+    expect(cont()).toBeEnabled();
     expect(initiateDownloads).not.toHaveBeenCalled();
+    fireEvent.click(cont());
+    expect(screen.getByText('Step 5 of 8')).toBeInTheDocument();
   });
 });

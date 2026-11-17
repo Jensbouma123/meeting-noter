@@ -12,6 +12,7 @@ import {
   setEntries,
   registerOnboardingTestEnv,
   acceptAck,
+  acceptAckPastModels,
   acceptAutoClose,
 } from './OnboardingDialog.testSupport';
 import { OnboardingDialog } from './OnboardingDialog';
@@ -33,8 +34,7 @@ describe('OnboardingDialog steps', () => {
     expect(initiateDownloads).toHaveBeenCalled();
     act(() => setEntries({ asr: entry('downloading') }));
     expect(screen.getByRole('status')).toHaveTextContent('50%');
-    clickContinue();
-    expect(screen.getByText('Step 5 of 8')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Continue' })).toBeDisabled();
   });
 
   it('saves the owner name, and lets you leave it empty', () => {
@@ -47,12 +47,12 @@ describe('OnboardingDialog steps', () => {
     expect(screen.getByLabelText('Your name')).toHaveValue('Jens');
   });
 
-  it('skips the download step when the models are already there', () => {
+  it('does not download when the models are already there', () => {
     setEntries({ asr: entry('cached') });
     render(<OnboardingDialog />);
     clickContinue();
     clickContinue();
-    acceptAck();
+    acceptAckPastModels();
     expect(screen.getByText('Step 5 of 8')).toBeInTheDocument();
     expect(initiateDownloads).not.toHaveBeenCalled();
   });
@@ -70,7 +70,7 @@ describe('OnboardingDialog steps', () => {
     expect(screen.getByRole('button', { name: 'Continue' })).toBeEnabled();
     clickContinue();
     expect(localStorage.getItem(ACK_STORAGE_KEY)).toBe('1');
-    expect(screen.getByText('Step 5 of 8')).toBeInTheDocument();
+    expect(screen.getByText('Step 4 of 8')).toBeInTheDocument();
   });
 
   it('saves the words and ends on where to find them', () => {
@@ -78,7 +78,7 @@ describe('OnboardingDialog steps', () => {
     render(<OnboardingDialog />);
     clickContinue();
     clickContinue();
-    acceptAck();
+    acceptAckPastModels();
     skipAssistants();
     const field = screen.getByLabelText('Add a word');
     expect(field).toHaveAttribute('placeholder', 'Framna');
@@ -104,7 +104,7 @@ describe('OnboardingDialog steps', () => {
     render(<OnboardingDialog />);
     clickContinue();
     clickContinue();
-    acceptAck();
+    acceptAckPastModels();
     skipAssistants();
     clickContinue();
     const box = screen.getByLabelText(/I understand that Meeting Noter closes itself/);

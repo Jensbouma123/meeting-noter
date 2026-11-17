@@ -2,7 +2,7 @@
 import '@testing-library/jest-dom/vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { acceptAck, entry, registerOnboardingTestEnv, setEntries } from './OnboardingDialog.testSupport';
+import { acceptAckPastModels, entry, registerOnboardingTestEnv, setEntries } from './OnboardingDialog.testSupport';
 import { OnboardingDialog } from './OnboardingDialog';
 
 registerOnboardingTestEnv();
@@ -30,7 +30,7 @@ function openAssistantStep() {
   render(<OnboardingDialog />);
   fireEvent.click(next());
   fireEvent.click(next());
-  acceptAck();
+  acceptAckPastModels();
   expect(screen.getByText('Step 5 of 8')).toBeInTheDocument();
 }
 
@@ -63,16 +63,5 @@ describe('assistant onboarding step', () => {
     expect(next()).toBeEnabled();
     fireEvent.click(next());
     expect(screen.getByText('Step 6 of 8')).toBeInTheDocument();
-  });
-
-  it('mentions the search model when it is not downloaded', async () => {
-    stubFetch(Promise.resolve(LIST));
-    setEntries({ asr: entry('cached'), 'search-embeddinggemma2': { ...entry('not-downloaded'), key: 'search-embeddinggemma2' } });
-    render(<OnboardingDialog />);
-    fireEvent.click(next());
-    fireEvent.click(next());
-    acceptAck();
-    fireEvent.click(next());
-    expect(await screen.findByText(/Search & insights model/)).toBeInTheDocument();
   });
 });

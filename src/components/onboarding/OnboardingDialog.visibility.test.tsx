@@ -8,7 +8,7 @@ import {
   entry,
   setEntries,
   registerOnboardingTestEnv,
-  acceptAck,
+  acceptAckPastModels,
 } from './OnboardingDialog.testSupport';
 import { OnboardingDialog } from './OnboardingDialog';
 
@@ -51,7 +51,7 @@ describe('OnboardingDialog visibility', () => {
     expect(screen.getByText('Step 1 of 8')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
-    acceptAck();
+    acceptAckPastModels();
     fireEvent.click(screen.getByRole('button', { name: /Skip, I'll do this later/ }));
     expect(screen.getByText('On your list: Framna')).toBeInTheDocument();
     expect(getVocabulary().entries).toHaveLength(1);

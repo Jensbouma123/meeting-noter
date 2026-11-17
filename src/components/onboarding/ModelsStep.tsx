@@ -5,7 +5,9 @@ import { useT } from '@/lib/i18n/useT';
 import { fillTemplate } from './fillTemplate';
 import type { OnboardingModels } from './types';
 
-export function ModelsStep({ models, onContinue }: { models: OnboardingModels; onContinue: () => void }) {
+export const MODELS_REQUIRED_HINT_ID = 'models-required-hint';
+
+export function ModelsStep({ models }: { models: OnboardingModels }) {
   const t = useT('onboarding');
   const { list, modelsReady, downloading, failed, percent, sizeText, startDownload } = models;
   return (
@@ -18,6 +20,9 @@ export function ModelsStep({ models, onContinue }: { models: OnboardingModels; o
       ) : (
         <>
           <Text size="sm">{fillTemplate(t('models.body'), { size: sizeText })}</Text>
+          <Text id={MODELS_REQUIRED_HINT_ID} size="sm" weight="semibold">
+            {t('models.required')}
+          </Text>
           {downloading.length > 0 && (
             <VStack spacing="xs" className="w-full">
               <ProgressTrack value={percent} label={t('models.downloading')} />
@@ -41,9 +46,6 @@ export function ModelsStep({ models, onContinue }: { models: OnboardingModels; o
                 onClick={startDownload}
               >
                 {failed ? t('models.retry') : fillTemplate(t('models.download'), { size: sizeText })}
-              </Button>
-              <Button variant="ghost" size={{ base: 'md', md: 'sm' }} onClick={onContinue}>
-                {t('models.continue')}
               </Button>
             </div>
           )}

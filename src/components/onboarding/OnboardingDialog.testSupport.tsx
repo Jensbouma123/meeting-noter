@@ -85,3 +85,8 @@ export function acceptAutoClose() {
   fireEvent.click(screen.getByRole('checkbox', { name: /I understand that Meeting Noter closes itself/ }));
   fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
 }
+
+export function acceptAckPastModels() {
+  acceptAck();
+  fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+}

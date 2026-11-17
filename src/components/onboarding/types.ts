@@ -21,6 +21,7 @@ export interface OnboardingFooterProps {
   step: number;
   isLast: boolean;
   nextDisabled?: boolean;
+  nextDescribedBy?: string;
   onSkip?: () => void;
   onBack: () => void;
   onNext: () => void;
