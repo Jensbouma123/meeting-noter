@@ -20,7 +20,8 @@
     "app": "node scripts/dev.mjs --prod",
     "helper:install": "sh helper/install-agent.sh",
     "helper:uninstall": "sh helper/install-agent.sh uninstall",
-    "mcp:build": "rolldown -c scripts/mcp/rolldown.config.mjs"
+    "mcp:build": "rolldown -c scripts/mcp/rolldown.config.mjs",
+    "format": "biome format --write src scripts"
   },
   "dependencies": {
     "@huggingface/transformers": "4.3.1",
@@ -35,6 +36,7 @@
     "simple-icons": "^16.37.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.6.8",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
