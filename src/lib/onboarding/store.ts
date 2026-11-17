@@ -131,6 +131,10 @@ export function subscribe(fn: () => void): () => void {
   return () => listeners.delete(fn);
 }
 
+export function isOnboardingReopened(): boolean {
+  return reopened;
+}
+
 export function useOnboardingOpen(): boolean {
   return useSyncExternalStore(subscribe, shouldShowOnboarding, () => false);
 }

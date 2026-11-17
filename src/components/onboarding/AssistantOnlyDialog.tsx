@@ -1,5 +1,6 @@
-import { Button, Modal } from '@jensbouma123/acciva-ui';
+import { Button } from '@jensbouma123/acciva-ui';
 import { useAssistantState } from '@/components/settings/AssistantState';
+import { OnboardingModal } from './OnboardingModal';
 import { useT } from '@/lib/i18n/useT';
 import { finishAssistantOnboarding } from '@/lib/onboarding/store';
 import { AssistantStep } from './AssistantStep';
@@ -11,9 +12,8 @@ export function AssistantOnlyDialog() {
   const assistants = useAssistantState();
   const detecting = assistants.assistants === null && !assistants.loadFailed;
   return (
-    <Modal
-      open
-      onClose={finishAssistantOnboarding}
+    <OnboardingModal
+      closable={false}
       size="lg"
       title={t('assistant.title')}
       footer={
@@ -35,6 +35,6 @@ export function AssistantOnlyDialog() {
         searchMissing={models.searchMissing}
         onSkip={finishAssistantOnboarding}
       />
-    </Modal>
+    </OnboardingModal>
   );
 }

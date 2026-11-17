@@ -57,8 +57,9 @@ describe('OnboardingDialog visibility', () => {
     expect(getVocabulary().entries).toHaveLength(1);
   });
 
-  it('skip closes it in one click and remembers it', () => {
+  it('skip closes a reopened onboarding in one click and remembers it', () => {
     render(<OnboardingDialog />);
+    act(() => restartOnboarding());
     fireEvent.click(screen.getByRole('button', { name: 'Skip for now' }));
     expect(screen.queryByText('Step 1 of 8')).not.toBeInTheDocument();
     expect(localStorage.getItem(ONBOARDING_STORAGE_KEY)).toBe('1');

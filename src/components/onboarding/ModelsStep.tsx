@@ -5,7 +5,7 @@ import { useT } from '@/lib/i18n/useT';
 import { fillTemplate } from './fillTemplate';
 import type { OnboardingModels } from './types';
 
-export function ModelsStep({ models }: { models: OnboardingModels }) {
+export function ModelsStep({ models, onContinue }: { models: OnboardingModels; onContinue: () => void }) {
   const t = useT('onboarding');
   const { list, modelsReady, downloading, failed, percent, sizeText, startDownload } = models;
   return (
@@ -32,7 +32,7 @@ export function ModelsStep({ models }: { models: OnboardingModels }) {
             </Text>
           )}
           {downloading.length === 0 && (
-            <div>
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant="primary"
                 size={{ base: 'md', md: 'sm' }}
@@ -41,6 +41,9 @@ export function ModelsStep({ models }: { models: OnboardingModels }) {
                 onClick={startDownload}
               >
                 {failed ? t('models.retry') : fillTemplate(t('models.download'), { size: sizeText })}
+              </Button>
+              <Button variant="ghost" size={{ base: 'md', md: 'sm' }} onClick={onContinue}>
+                {t('models.continue')}
               </Button>
             </div>
           )}

@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { Modal, Text, VStack } from '@jensbouma123/acciva-ui';
+import { Text, VStack } from '@jensbouma123/acciva-ui';
 import { useAssistantState } from '@/components/settings/AssistantState';
 import { useT } from '@/lib/i18n/useT';
 import { finishOnboarding, isAckAccepted, isAutoCloseAccepted, setAckAccepted, setAutoCloseAccepted } from '@/lib/onboarding/store';
+import { useOnboardingReopened } from '@/lib/onboarding/useOnboardingReopened';
 import { STEPS } from './constants';
 import { fillTemplate } from './fillTemplate';
 import { AckStep } from './AckStep';
 import { AutoCloseStep } from './AutoCloseStep';
 import { AssistantStep } from './AssistantStep';
 import { ModelsStep } from './ModelsStep';
+import { OnboardingModal } from './OnboardingModal';
 import { OnboardingFooter } from './OnboardingFooter';
 import { WhoStep } from './WhoStep';
 import { WordsStep } from './WordsStep';
@@ -20,6 +22,7 @@ export function OnboardingSteps() {
   const [stepId, setStepId] = useState<StepId>('welcome');
   const [ackChecked, setAckChecked] = useState(isAckAccepted);
   const [autoCloseChecked, setAutoCloseChecked] = useState(isAutoCloseAccepted);
+  const closable = useOnboardingReopened();
   const models = useOnboardingModels();
   const assistants = useAssistantState();
   const detecting = assistants.assistants === null && !assistants.loadFailed;
@@ -35,8 +38,8 @@ export function OnboardingSteps() {
   };
 
   return (
-    <Modal
-      open
+    <OnboardingModal
+      closable={closable}
       onClose={finishOnboarding}
       size="lg"
       title={t(`${stepId}.title`)}
@@ -49,7 +52,7 @@ export function OnboardingSteps() {
             (stepId === 'assistant' && detecting) || (stepId === 'ack' && !ackChecked) ||
             (stepId === 'autoclose' && !autoCloseChecked)
           }
-          onSkip={finishOnboarding}
+          onSkip={closable || isLast ? finishOnboarding : undefined}
           onBack={() => move(-1)}
           onNext={() => move(1)}
         />
@@ -59,7 +62,7 @@ export function OnboardingSteps() {
         {stepId === 'welcome' && <Text size="sm">{t('welcome.body')}</Text>}
         {stepId === 'who' && <WhoStep />}
         {stepId === 'ack' && <AckStep checked={ackChecked} onChange={setAckChecked} />}
-        {stepId === 'models' && <ModelsStep models={models} />}
+        {stepId === 'models' && <ModelsStep models={models} onContinue={() => move(1)} />}
         {stepId === 'assistant' && (
           <AssistantStep
             state={assistants}
@@ -78,6 +81,6 @@ export function OnboardingSteps() {
           </VStack>
         )}
       </VStack>
-    </Modal>
+    </OnboardingModal>
   );
 }
