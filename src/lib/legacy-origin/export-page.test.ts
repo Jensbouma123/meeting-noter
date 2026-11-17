@@ -2,14 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 import { EXPORT_TYPE, LIMITS, REQUEST_TYPE } from './constants';
 import { exportPage } from './export-page';
 
-type Handler = (e: { origin: string; source: unknown; data: unknown }) => void;
-
 function runPage(items: Record<string, string>) {
   const script = /<script>([\s\S]*)<\/script>/.exec(exportPage(47823).html)?.[1] ?? '';
   const keys = Object.keys(items);
   const storage = { length: keys.length, key: (i: number) => keys[i] ?? null, getItem: (k: string) => items[k] ?? null };
-  let handler: Handler = () => undefined;
-  new Function('addEventListener', 'localStorage', script)((_: string, h: Handler) => { handler = h; }, storage);
+  let handler: (e: { origin: string; source: unknown; data: unknown }) => void = () => undefined;
+  new Function('addEventListener', 'localStorage', script)((_: string, h: typeof handler) => { handler = h; }, storage);
   return (origin: string, data: unknown = { type: REQUEST_TYPE }) => {
     const source = { postMessage: vi.fn() };
     handler({ origin, source, data });
