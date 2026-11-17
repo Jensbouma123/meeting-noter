@@ -2,7 +2,13 @@
 import '@testing-library/jest-dom/vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { acceptAckPastModels, entry, registerOnboardingTestEnv, setEntries } from './OnboardingDialog.testSupport';
+import {
+  acceptAckPastModels,
+  advanceToAck,
+  entry,
+  registerOnboardingTestEnv,
+  setEntries,
+} from './OnboardingDialog.testSupport';
 import { OnboardingDialog } from './OnboardingDialog';
 
 registerOnboardingTestEnv();
@@ -34,10 +40,9 @@ const next = () => screen.getByRole('button', { name: 'Continue' });
 function openAssistantStep() {
   setEntries({ asr: entry('cached') });
   render(<OnboardingDialog />);
-  fireEvent.click(next());
-  fireEvent.click(next());
+  advanceToAck();
   acceptAckPastModels();
-  expect(screen.getByText('Step 5 of 8')).toBeInTheDocument();
+  expect(screen.getByText('Step 6 of 9')).toBeInTheDocument();
 }
 
 describe('assistant onboarding step', () => {
@@ -59,7 +64,7 @@ describe('assistant onboarding step', () => {
     stubFetch(Promise.resolve(LIST));
     openAssistantStep();
     fireEvent.click(screen.getByRole('button', { name: /Skip, I'll do this later/ }));
-    expect(screen.getByText('Step 6 of 8')).toBeInTheDocument();
+    expect(screen.getByText('Step 7 of 9')).toBeInTheDocument();
   });
 
   it('does not block when detection fails', async () => {
@@ -71,6 +76,6 @@ describe('assistant onboarding step', () => {
     expect(await screen.findByText(/Could not check your assistants/)).toBeInTheDocument();
     expect(next()).toBeEnabled();
     fireEvent.click(next());
-    expect(screen.getByText('Step 6 of 8')).toBeInTheDocument();
+    expect(screen.getByText('Step 7 of 9')).toBeInTheDocument();
   });
 });

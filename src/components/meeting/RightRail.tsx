@@ -11,7 +11,7 @@ import { Button, Drawer, useToast, VStack } from '@jensbouma123/acciva-ui';
 import { RailCollapsed } from './RailCollapsed';
 import { RailTabPanel } from './RailTabPanel';
 import { RailTabs } from './RailTabs';
-import { persistRailOpen, readInitialRailOpen } from './railOpenState';
+import { persistRailOpen, readStoredRailOpen } from './railOpenState';
 import { useHydrated } from './useHydrated';
 import type { RailTab, RightRailProps } from './RightRail.types';
 
@@ -23,9 +23,10 @@ export function RightRail({ sessionId, segments = [] }: RightRailProps) {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<RailTab>('participants');
   const hydrated = useHydrated();
-  const [initialOpen] = useState(readInitialRailOpen);
+  const [storedOpen] = useState(readStoredRailOpen);
+  const isLgUp = useMediaQuery('(min-width: 1024px)');
   const [override, setOverride] = useState<boolean | null>(null);
-  const open = hydrated ? (override ?? initialOpen) : true;
+  const open = hydrated ? (override ?? storedOpen ?? isLgUp) : true;
 
   const speakerStatRows = useSpeakerStats();
 
@@ -49,7 +50,6 @@ export function RightRail({ sessionId, segments = [] }: RightRailProps) {
   };
 
   const isMdUp = useMediaQuery('(min-width: 768px)');
-  const isLgUp = useMediaQuery('(min-width: 1024px)');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [wasLgUp, setWasLgUp] = useState(isLgUp);
   if (wasLgUp !== isLgUp) {

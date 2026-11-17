@@ -15,6 +15,7 @@ import { fillTemplate } from './fillTemplate';
 import { AckStep } from './AckStep';
 import { AutoCloseStep } from './AutoCloseStep';
 import { AssistantStep } from './AssistantStep';
+import { LanguageStep } from './LanguageStep';
 import { MODELS_REQUIRED_HINT_ID, ModelsStep } from './ModelsStep';
 import { OnboardingModal } from './OnboardingModal';
 import { OnboardingFooter } from './OnboardingFooter';
@@ -25,7 +26,7 @@ import type { StepId } from './types';
 
 export function OnboardingSteps() {
   const t = useT('onboarding');
-  const [stepId, setStepId] = useState<StepId>('welcome');
+  const [stepId, setStepId] = useState<StepId>('language');
   const [ackChecked, setAckChecked] = useState(isAckAccepted);
   const [autoCloseChecked, setAutoCloseChecked] = useState(isAutoCloseAccepted);
   const closable = useOnboardingReopened();
@@ -67,6 +68,7 @@ export function OnboardingSteps() {
       }
     >
       <VStack spacing="md" className="w-full">
+        {stepId === 'language' && <LanguageStep />}
         {stepId === 'welcome' && <Text size="sm">{t('welcome.body')}</Text>}
         {stepId === 'who' && <WhoStep />}
         {stepId === 'ack' && <AckStep checked={ackChecked} onChange={setAckChecked} />}

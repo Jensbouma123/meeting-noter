@@ -7,6 +7,7 @@ import {
   acceptAck,
   acceptAckPastModels,
   acceptAutoClose,
+  advanceToAck,
   entry,
   registerOnboardingTestEnv,
   setEntries,
@@ -21,8 +22,7 @@ const next = () => fireEvent.click(screen.getByRole('button', { name: 'Continue'
 
 function toModelsStep() {
   render(<OnboardingDialog />);
-  next();
-  next();
+  advanceToAck();
   acceptAck();
 }
 
@@ -41,14 +41,13 @@ describe('mandatory first-run onboarding', () => {
     dialog().getBoundingClientRect = () => ({ top: 10, left: 10, right: 20, bottom: 20 }) as DOMRect;
     fireEvent.click(dialog(), { clientX: 0, clientY: 0 });
     expect(shouldShowOnboarding()).toBe(true);
-    expect(screen.getByText('Step 1 of 8')).toBeInTheDocument();
+    expect(screen.getByText('Step 1 of 9')).toBeInTheDocument();
   });
 
   it('closes only after the last step is finished', () => {
     setEntries({ asr: entry('cached') });
     render(<OnboardingDialog />);
-    next();
-    next();
+    advanceToAck();
     acceptAckPastModels();
     fireEvent.click(screen.getByRole('button', { name: /Skip, I'll do this later/ }));
     next();
