@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { REVEAL_EVENT } from '@/lib/meeting/seek-event';
 import { flushSync } from 'react-dom';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useSpeakerStats } from '@/lib/meeting';
@@ -58,8 +59,13 @@ export function RightRail({ sessionId, segments = [] }: RightRailProps) {
 
   useEffect(() => {
     const openDrawer = () => setDrawerOpen(true);
+    const closeDrawer = () => setDrawerOpen(false);
     window.addEventListener('mn:open-speakers', openDrawer);
-    return () => window.removeEventListener('mn:open-speakers', openDrawer);
+    window.addEventListener(REVEAL_EVENT, closeDrawer);
+    return () => {
+      window.removeEventListener('mn:open-speakers', openDrawer);
+      window.removeEventListener(REVEAL_EVENT, closeDrawer);
+    };
   }, []);
 
   const panel = (className: string) => (

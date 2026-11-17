@@ -53,3 +53,10 @@ export interface SuggestionsListProps {
   onDismiss: (sourceSegmentId: string) => void;
   onAdded?: (id: string) => void;
 }
+
+export interface SourceTextProps {
+  t: NotesTranslate;
+  text: string;
+  segmentId?: string;
+  done?: boolean;
+}

@@ -2,6 +2,7 @@ import type { RefObject } from 'react';
 import type { VirtualListHandle } from '@jensbouma123/acciva-ui';
 import type { Segment, Speaker, Status, SystemVia } from '@/lib/meeting';
 import type { SettingsSectionId } from '@/components/settings/types';
+import type { FlashRowProps } from '@/hooks/types';
 import type { ModelReadiness } from './modelReadiness.types';
 import type { getSpeakerColor } from './speaker-theme';
 
@@ -47,6 +48,7 @@ export interface TranscriptRowBaseProps {
   rowClass: string;
   sessionId?: string;
   speakers: Record<string, Speaker>;
+  flash?: FlashRowProps;
 }
 
 export interface TranscriptLineRowProps extends TranscriptRowBaseProps {

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Segment } from './types';
-import { addAction, addDecision, getNotes, openCount, removeAction, removeDecision, updateAction } from './notes';
+import { addAction, addDecision, getNotes, getNotesSnapshot, openCount, subscribeNotesSnapshot, removeAction, removeDecision, updateAction } from './notes';
 import { notesKey, subscribe } from './notes-storage';
 import { suggestFromSegments } from './note-suggestions';
 
@@ -88,5 +88,29 @@ describe('meeting notes', () => {
       seg('3', 'graag de planning nog even doen.'),
     ]);
     expect(out.map((item) => item.sourceSegmentId)).toEqual(['2']);
+  });
+});
+
+describe('notes snapshot', () => {
+  beforeEach(() => installStorage());
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('returns a stable reference and reads storage once until a write', () => {
+    const getItem = vi.spyOn(window.localStorage, 'getItem');
+    const parse = vi.spyOn(JSON, 'parse');
+    const off = subscribeNotesSnapshot('snap', () => {});
+    const first = getNotesSnapshot('snap');
+    expect(getNotesSnapshot('snap')).toBe(first);
+    expect(getItem).toHaveBeenCalledTimes(1);
+    expect(parse).not.toHaveBeenCalled();
+    addAction('snap', 'Write it');
+    getItem.mockClear();
+    const next = getNotesSnapshot('snap');
+    expect(next).not.toBe(first);
+    expect(next.actions).toHaveLength(1);
+    expect(getNotesSnapshot('snap')).toBe(next);
+    expect(getItem).toHaveBeenCalledTimes(1);
+    off();
+    vi.restoreAllMocks();
   });
 });
