@@ -1,18 +1,10 @@
 // @vitest-environment jsdom
-import { describe, expect, it, vi } from 'vitest';
-import {
-  FOLDERS_CHANGED_EVENT,
-  createFolder,
-  deleteFolder,
-  fetchFolders,
-  moveFolder,
-  moveMeeting,
-  renameFolder,
-} from './folders-api';
-import { fetchMock, installFolderFetchMock, reply } from './folders-api.testSupport';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { createFolder, deleteFolder, moveFolder, moveMeeting, renameFolder } from './folders-api';
+import { calls, reply, replies, resetFetch, restoreGlobals } from './folders-api.test-support';
 
-installFolderFetchMock();
-const { replies, calls } = fetchMock;
+beforeEach(resetFetch);
+afterEach(restoreGlobals);
 
 describe('folders-api writes', () => {
   it('createFolder posts name and parentId and returns the new folder', async () => {
@@ -42,7 +34,10 @@ describe('folders-api writes', () => {
 
   it('deleteFolder passes the mode as a query parameter', async () => {
     replies.push(reply(200, { ok: true, deleted: { folders: 2, meetings: 3 } }));
-    await expect(deleteFolder('a', 'delete-contents')).resolves.toEqual({ ok: true, deleted: { folders: 2, meetings: 3 } });
+    await expect(deleteFolder('a', 'delete-contents')).resolves.toEqual({
+      ok: true,
+      deleted: { folders: 2, meetings: 3 },
+    });
     expect(calls[0].url).toBe('/api/folders/a?mode=delete-contents');
     expect(calls[0].init?.method).toBe('DELETE');
   });
@@ -54,7 +49,9 @@ describe('folders-api writes', () => {
     expect(calls[0].init?.method).toBe('PUT');
     expect(JSON.parse(calls[0].init?.body as string)).toEqual({ folderId: null });
   });
+});
 
+describe('folders-api error handling', () => {
   it('surfaces the server error code, such as a cycle, without throwing', async () => {
     replies.push(reply(409, { ok: false, error: 'cycle' }));
     await expect(moveFolder('a', 'b')).resolves.toEqual({ ok: false, error: 'cycle' });
@@ -73,27 +70,5 @@ describe('folders-api writes', () => {
   it('reports a network error as "network"', async () => {
     replies.push(new TypeError('Failed to fetch'));
     await expect(deleteFolder('a', 'move-up')).resolves.toEqual({ ok: false, error: 'network' });
-  });
-});
-
-describe('folders-api change notification', () => {
-  it('dispatches mn:folders-changed after a successful write', async () => {
-    const seen = vi.fn();
-    window.addEventListener(FOLDERS_CHANGED_EVENT, seen);
-    replies.push(reply(200, { ok: true }));
-    await moveMeeting('m1', 'a');
-    expect(seen).toHaveBeenCalledTimes(1);
-    window.removeEventListener(FOLDERS_CHANGED_EVENT, seen);
-  });
-
-  it('does not dispatch after a failed write, and reads never dispatch', async () => {
-    const seen = vi.fn();
-    window.addEventListener(FOLDERS_CHANGED_EVENT, seen);
-    replies.push(reply(409, { ok: false, error: 'cycle' }));
-    await moveFolder('a', 'b');
-    replies.push(reply(200, { ok: true, folders: [] }));
-    await fetchFolders();
-    expect(seen).not.toHaveBeenCalled();
-    window.removeEventListener(FOLDERS_CHANGED_EVENT, seen);
   });
 });

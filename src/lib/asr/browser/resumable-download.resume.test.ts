@@ -9,8 +9,9 @@ import {
   droppedConnectionStream,
   fullStream,
   headResponse,
+  logRequest,
   treeApiResponse,
-} from './resumable-download.resume.testSupport';
+} from './resumable-download.resume.test-support';
 
 describe('downloadHfFileResumable — refresh mid-download', () => {
   let requestLog: Array<{ url: string; method: string; range: string | null }>;
@@ -28,7 +29,7 @@ describe('downloadHfFileResumable — refresh mid-download', () => {
       'fetch',
       vi.fn(async (input: string | URL, init?: RequestInit) => {
         const url = String(input);
-        requestLog.push({ url, method: init?.method ?? 'GET', range: (init?.headers as Record<string, string>)?.Range ?? null });
+        logRequest(requestLog, input, init);
         if (url.includes('/api/models/')) return treeApiResponse();
         if (init?.method === 'HEAD') return headResponse();
         return new Response(droppedConnectionStream(400), { status: 200 });
@@ -42,11 +43,11 @@ describe('downloadHfFileResumable — refresh mid-download', () => {
       'fetch',
       vi.fn(async (input: string | URL, init?: RequestInit) => {
         const url = String(input);
-        const range = (init?.headers as Record<string, string> | undefined)?.Range ?? null;
-        requestLog.push({ url, method: init?.method ?? 'GET', range });
+        logRequest(requestLog, input, init);
         if (url.includes('/api/models/')) return treeApiResponse();
         if (init?.method === 'HEAD') return headResponse();
 
+        const range = (init?.headers as Record<string, string> | undefined)?.Range ?? null;
         if (range) {
           const match = /bytes=(\d+)-/.exec(range);
           const start = match ? Number(match[1]) : 0;

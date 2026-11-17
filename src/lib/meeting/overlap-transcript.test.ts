@@ -3,7 +3,7 @@ import { groupTurns } from './group-turns';
 import { toPlainText } from './export-writers';
 import { splitTranscript } from './split-transcript';
 import { seg } from './export.testUtils';
-import { overlap, speakers, transcript } from './overlap-transcript.testSupport';
+import { overlap, speakers, transcript, words } from './overlap-transcript.testSupport';
 
 describe('overlapping speech', () => {
   it('splitTranscript makes the overlap one block between turns, speakers with words first', () => {
@@ -40,7 +40,7 @@ describe('overlapping speech', () => {
     ]);
   });
 
-  it('makes an overlap whose words are all one speaker\'s ordinary lines, in the exports too', () => {
+  it("makes an overlap whose words are all one speaker's ordinary lines, in the exports too", () => {
     const oneVoice = [
       seg({ id: 'a', speaker: 'mic:0', start: 0, end: 4, text: 'so I think' }),
       seg({ id: 'b', speaker: 'mic:0', start: 4.1, end: 5, text: 'we should', overlap }),
@@ -56,8 +56,6 @@ describe('overlapping speech', () => {
   });
 
   it('makes an overlap ordinary lines when one column is a back-channel: under 2 words and 0.8 s', () => {
-    const words = (text: string, start: number, each: number) =>
-      text.split(' ').map((w, i) => ({ text: w, start: start + i * each, end: start + (i + 1) * each }));
     const noise = [
       seg({ id: 'a', speaker: 'mic:0', start: 4.1, end: 4.5, text: 'careful', overlap, words: words('careful', 4.1, 0.4) }),
       seg({ id: 'b', speaker: 'mic:1', start: 4.5, end: 4.7, text: 'I', overlap, words: words('I', 4.5, 0.2) }),
@@ -71,5 +69,35 @@ describe('overlapping speech', () => {
     expect(splitTranscript(noise).every((b) => b.segments.every((s) => !s.overlap))).toBe(true);
     const held = [noise[0], { ...noise[1], end: 5.3, words: words('I', 4.5, 0.8) }, noise[2]];
     expect(splitTranscript(held).map((b) => b.kind)).toEqual(['overlap']);
+  });
+
+  it('makes the mic and the call talking at once one overlap block, under the same column rule', () => {
+    const line = (id: string, source: 'mic' | 'system', speaker: string, start: number, text: string) => {
+      const ws = words(text, start);
+      return seg({ id, source, speaker, start, end: ws[ws.length - 1].end, text, words: ws });
+    };
+    const both = {
+      ...speakers,
+      'system:0': { id: 'system:0', source: 'system' as const, label: 'Caller', colorIndex: 3 },
+    };
+    const crossSource = [
+      line('m1', 'mic', 'mic:0', 0, 'so I think'),
+      line('m2', 'mic', 'mic:0', 10, 'we should really ship it'),
+      line('s1', 'system', 'system:0', 10.6, 'no wait hear me out'),
+      line('s2', 'system', 'system:0', 20, 'right then'),
+    ];
+    const blocks = splitTranscript(crossSource);
+    expect(blocks.map((b) => [b.kind, b.segments.map((s) => s.id)])).toEqual([
+      ['turn', ['m1']],
+      ['overlap', ['m2', 's1']],
+      ['turn', ['s2']],
+    ]);
+    expect(blocks[1]).toMatchObject({ speakers: ['mic:0', 'system:0'] });
+    expect(toPlainText(crossSource, both, 'T')).toContain(
+      '[00:10] [overlap] Ann: we should really ship it\n[00:10] [overlap] Caller: no wait hear me out',
+    );
+    const backChannel = [crossSource[1], line('s1', 'system', 'system:0', 10.6, 'yeah')];
+    expect(splitTranscript(backChannel).map((b) => b.kind)).toEqual(['turn', 'turn']);
+    expect(splitTranscript([crossSource[0], crossSource[3]]).map((b) => b.kind)).toEqual(['turn', 'turn']);
   });
 });

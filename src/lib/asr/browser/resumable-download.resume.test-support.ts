@@ -47,3 +47,15 @@ export function fullStream(from = 0): ReadableStream<Uint8Array> {
     },
   });
 }
+
+export function logRequest(
+  log: Array<{ url: string; method: string; range: string | null }>,
+  input: string | URL,
+  init?: RequestInit,
+): void {
+  log.push({
+    url: String(input),
+    method: init?.method ?? 'GET',
+    range: (init?.headers as Record<string, string> | undefined)?.Range ?? null,
+  });
+}

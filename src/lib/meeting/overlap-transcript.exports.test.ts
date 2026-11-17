@@ -3,7 +3,7 @@ import { groupTurns } from './group-turns';
 import { toMarkdown, toPlainText, toSrt } from './export-writers';
 import { speakers, transcript } from './overlap-transcript.testSupport';
 
-describe('overlapping speech in exports', () => {
+describe('overlapping speech in the exports', () => {
   it('writes overlap as consecutive lines marked [overlap], each with its speaker', () => {
     const md = toMarkdown(transcript, speakers, 'T');
     expect(md).toContain(

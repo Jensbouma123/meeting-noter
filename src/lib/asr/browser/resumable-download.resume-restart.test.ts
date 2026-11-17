@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { downloadHfFileResumable } from './resumable-download';
 import {
   FILE,
@@ -9,10 +9,17 @@ import {
   droppedConnectionStream,
   fullStream,
   headResponse,
+  logRequest,
   treeApiResponse,
-} from './resumable-download.resume.testSupport';
+} from './resumable-download.resume.test-support';
 
-describe('downloadHfFileResumable — restart when Range is ignored', () => {
+describe('downloadHfFileResumable — range ignored by the server', () => {
+  let requestLog: Array<{ url: string; method: string; range: string | null }>;
+
+  beforeEach(() => {
+    requestLog = [];
+  });
+
   afterEach(() => {
     vi.unstubAllGlobals();
   });
@@ -22,6 +29,7 @@ describe('downloadHfFileResumable — restart when Range is ignored', () => {
       'fetch',
       vi.fn(async (input: string | URL, init?: RequestInit) => {
         const url = String(input);
+        logRequest(requestLog, input, init);
         if (url.includes('/api/models/')) return treeApiResponse();
         if (init?.method === 'HEAD') return headResponse();
         return new Response(droppedConnectionStream(300), { status: 200 });

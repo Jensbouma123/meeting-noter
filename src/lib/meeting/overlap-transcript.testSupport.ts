@@ -14,3 +14,6 @@ export const transcript = [
   seg({ id: 'c', speaker: 'mic:1', start: 4.5, end: 5.8, text: 'no wait', overlap }),
   seg({ id: 'd', speaker: 'mic:1', start: 6, end: 8, text: 'hear me out' }),
 ];
+
+export const words = (text: string, start: number, each = 0.3) =>
+  text.split(' ').map((w, i) => ({ text: w, start: start + i * each, end: start + (i + 1) * each }));
