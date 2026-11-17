@@ -62,7 +62,7 @@ CONVERT_DEPS=(--with numpy==1.26.4 --with onnx==1.17.0 --with onnxconverter-comm
 # a new sha here, and only this pin decides whether a download is accepted.
 MODEL_TAG=model-parakeet-v3-webgpu-1
 MODEL_URL=${MEETING_NOTER_MODEL_URL:-https://github.com/$REPO/releases/download/$MODEL_TAG/encoder-model.q4f16.onnx}
-MODEL_SHA256=${MEETING_NOTER_MODEL_SHA256:-0000000000000000000000000000000000000000000000000000000000000000}
+MODEL_SHA256=${MEETING_NOTER_MODEL_SHA256:-49e96bd6f4c900bf16fb1d47338a517c7d8bef45b9013abfa2a7c3e93d434e9e}
 ROOT=${MEETING_NOTER_ROOT:-"$HOME/Library/Application Support/Meeting Noter"}
 MODEL_DIR_NAME=parakeet-tdt-0.6b-v3-webgpu
 AGENTS="$HOME/Library/LaunchAgents"
