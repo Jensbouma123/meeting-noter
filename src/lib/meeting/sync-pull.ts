@@ -1,13 +1,13 @@
 import type { MeetingSummaryRow, StoredMeeting } from '@/lib/meeting-db/types';
 import { evictSynced, isOpen } from './meeting-loader';
 import { adoptMeetingSummary, adoptStoredMeeting, evictMeetingContent } from './session-server-adopt';
-import { getSessionMetadata } from './session-open';
+import { getSessionMetadataMap } from './session-open';
 import { listSessions } from './session-crud';
 import { getTranscriptSessionId, isCaptureActive } from './transcript-session';
 import { dropDeleted } from './sync-flush';
 import { queueMeetingSync } from './sync-queue';
 import { LIST_PAGE } from './sync-state';
-import { SYNCED_KEY, markSynced, readJson, readPending } from './sync-storage';
+import { readPending, readSynced, writeSynced } from './sync-storage';
 
 async function fetchServerList(): Promise<{ list: MeetingSummaryRow[]; deleted: string[] } | null> {
   const list: MeetingSummaryRow[] = [];
@@ -49,12 +49,13 @@ export async function pullFromServer(): Promise<number> {
     if (!onServer.has(s.sessionId) && !gone.has(s.sessionId)) queueMeetingSync(s.sessionId);
   }
   const pending = readPending();
-  const synced = readJson<Record<string, number>>(SYNCED_KEY, {});
+  const synced = readSynced();
+  const localById = getSessionMetadataMap();
   let adopted = 0;
   for (const row of list) {
     if (pending.save.includes(row.id) || pending.remove.includes(row.id)) continue;
     if (isCaptureActive() && getTranscriptSessionId() === row.id) continue;
-    const local = getSessionMetadata(row.id);
+    const local = localById.get(row.id);
     if (local && (synced[row.id] ?? local.updatedAt) >= row.updatedAt) continue;
     if (isOpen(row.id)) {
       if (!(await adoptOpenMeeting(row.id))) continue;
@@ -62,9 +63,10 @@ export async function pullFromServer(): Promise<number> {
       evictMeetingContent(row.id);
       adoptMeetingSummary(row);
     }
-    markSynced(row.id, row.updatedAt);
+    synced[row.id] = row.updatedAt;
     adopted += 1;
   }
+  if (adopted > 0) writeSynced(synced);
   evictSynced();
   if (adopted > 0 && typeof window !== 'undefined') window.dispatchEvent(new Event('mn:sessions-changed'));
   return adopted;
