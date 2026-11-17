@@ -31,7 +31,7 @@ describe.skipIf(process.platform !== 'darwin')('install.sh speech model', () => 
     publishRelease('0.2.2');
     const second = runScript(INSTALL, env);
     expect(second.code, second.out).toBe(0);
-    expect(second.out).toContain('al aanwezig');
+    expect(second.out).toContain('Het huidige GPU-spraakmodel blijft in gebruik');
     expect(readFileSync(path.join(sandbox.home, 'uv-calls'), 'utf8').trim().split('\n')).toHaveLength(1);
     expect(readFileSync(servedModelFile(), 'utf8')).toBe('fake-encoder');
   });

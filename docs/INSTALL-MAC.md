@@ -15,24 +15,32 @@ beheerdersrechten nodig, en er komt geen waarschuwing van macOS.
    ```
 
 3. Wacht enkele minuten. De app draait daarna; de installer bereidt dan nog eenmalig
-   het snelle GPU-spraakmodel voor (zie hieronder, ca. 5-15 minuten extra). Daarna opent Meeting Noter in uw browser op
+   het snelle GPU-spraakmodel voor (zie hieronder; een download van 516 MB, of ca. 5-15 minuten als het hier gebouwd moet worden). Daarna opent Meeting Noter in uw browser op
    `http://localhost:3000`, en staat **Meeting Noter** in de map **Apps**
    (Programma's) en in Spotlight. Bent u geen beheerder van de Mac, dan staat het
    in de map Apps in uw thuismap (`~/Applications`).
 
-**Snel GPU-spraakmodel.** Na de installatie bouwt de installer eenmalig het
-WebGPU-model (`encoder-model.q4f16.onnx`, 516 MB) op uw eigen Mac: hij downloadt
-daarvoor het bronmodel (ca. 2,5 GB) van Hugging Face en het hulpprogramma `uv`
-(vastgepinde versie, SHA-256 gecontroleerd) en zet het om. Dat kost ca. 5-15
-minuten en ca. 4 GB tijdelijke schijfruimte (wordt daarna verwijderd); er is
-minimaal 6 GB vrije ruimte en 8 GB werkgeheugen nodig. Het resultaat staat in
+**Snel GPU-spraakmodel.** Na de installatie downloadt de installer eenmalig het
+kant-en-klare WebGPU-model (`encoder-model.q4f16.onnx`, 516 MB) van de vaste
+GitHub-release `model-parakeet-v3-webgpu-1` en controleert het tegen de SHA-256
+die in `install.sh` vastligt. Daarvoor is alleen ruimte voor het bestand nodig.
+Mislukt die download of klopt de controlesom niet, dan bouwt de installer het
+model alsnog op uw eigen Mac: hij downloadt daarvoor het bronmodel (ca. 2,5 GB)
+van Hugging Face en het hulpprogramma `uv` (vastgepinde versie, SHA-256
+gecontroleerd) en zet het om. Dat kost ca. 5-15 minuten en ca. 4 GB tijdelijke
+schijfruimte (wordt daarna verwijderd); er is dan minimaal 6 GB vrije ruimte en
+8 GB werkgeheugen nodig. Het resultaat staat in
 `~/Library/Application Support/Meeting Noter/models/` en blijft bewaard bij
-updates (het wordt niet opnieuw gebouwd). Met dit model kunt u live
+updates; alleen een nieuwe modelversie in een update vervangt het). Met dit model kunt u live
 transcriberen; bij het eerste gebruik vraagt de app toestemming om het te laden.
-Mislukt de bouw (of is er te weinig ruimte), dan werkt de app met het CPU-model:
-transcriptie pas na Stop. Opnieuw proberen:
+Lukt beide niet, dan werkt de app met het CPU-model: transcriptie pas na Stop.
+Opnieuw proberen:
 `curl -fsSL https://github.com/Jensbouma123/meeting-noter/releases/latest/download/install.sh | bash -s -- --gpu-model`.
-Logbestand: `logs/model-build.log`.
+Logbestand van de bouw: `logs/model-build.log`.
+
+Het spraakmodel is afgeleid van [parakeet-tdt-0.6b-v3](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3)
+van NVIDIA, gelicenseerd onder [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/);
+omgezet naar ONNX (via `istupakov/parakeet-tdt-0.6b-v3-onnx`) en 4-bit gekwantiseerd.
 
 Nodig: macOS 13.5 of nieuwer. Systeemaudio van gespreksdeelnemers opnemen (de
 audio-helper) vraagt macOS 14.4 of nieuwer; op een oudere Mac werkt de app met de
@@ -91,12 +99,13 @@ de browser wist u via de websitegegevens van `localhost` in uw browser.
 | `~/Library/Application Support/Meeting Noter/meetings.db`, `meetings/` | uw vergaderingen: database en een Markdown-bestand per vergadering (blijven bewaard bij updates en verwijderen) |
 | `~/Library/Application Support/Meeting Noter/app/mcp/meetings-mcp.mjs` | MCP-server waarmee AI-assistenten uw vergaderingen lezen ([MCP.md](MCP.md)) |
 | `~/Library/Application Support/Meeting Noter/app/node/bin/node` | Meegeleverde Node.js; de Claude Desktop-koppeling gebruikt deze en bouwt nooit zelf (`npm run test:mcp-e2e` controleert dit in de gebouwde app) |
-| `~/Library/Application Support/Meeting Noter/models/` | het zelfgebouwde WebGPU-spraakmodel (blijft bewaard bij updates) |
-| `~/Library/Application Support/Meeting Noter/bin/uv` | modelbouwer, alleen gebruikt om het model te maken |
+| `~/Library/Application Support/Meeting Noter/models/` | het WebGPU-spraakmodel, gedownload of zelfgebouwd (blijft bewaard bij updates) |
+| `~/Library/Application Support/Meeting Noter/bin/uv` | modelbouwer, alleen gedownload als het model hier gebouwd moet worden |
 | `/Applications/Meeting Noter.app` (of `~/Applications/…`) | opent `http://localhost:3000`, biedt updates aan |
 
-De installer downloadt van GitHub-releases (de app en `uv`, SHA-256 gecontroleerd)
-en, voor het spraakmodel, van Hugging Face (`istupakov/parakeet-tdt-0.6b-v3-onnx`). Voor de updatecheck vraagt de app alleen het versienummer
+De installer downloadt van GitHub-releases (de app, het spraakmodel en zo nodig `uv`,
+SHA-256 gecontroleerd) en, alleen als het spraakmodel hier gebouwd moet worden, van
+Hugging Face (`istupakov/parakeet-tdt-0.6b-v3-onnx`). Voor de updatecheck vraagt de app alleen het versienummer
 van de nieuwste release op bij `api.github.com`. Audio en transcripties verlaten uw
 Mac niet.
 
@@ -121,3 +130,28 @@ HOME=/tmp/mn-home MEETING_NOTER_NO_LAUNCHD=1 MEETING_NOTER_NO_OPEN=1 \
 ```
 
 (Een pad met spaties schrijft u in de `file://`-URL als `%20`.)
+
+### Het spraakmodel publiceren en bijwerken
+
+`scripts/installer/publish-model.sh N` bouwt `encoder-model.q4f16.onnx` lokaal
+(zelfde vastgepinde `uv run` als de terugvaloptie van de installer), schrijft de
+`.sha256` en uploadt beide met `gh release upload` naar de prerelease
+`model-parakeet-v3-webgpu-N` (aangemaakt als die ontbreekt; een prerelease wordt
+nooit "latest"). `--build-only` slaat de upload over.
+
+Een nieuw model uitrollen:
+
+1. `scripts/installer/publish-model.sh 2` (het volgende nummer; een bestaande tag
+   nooit hergebruiken).
+2. Zet in `install.sh` `MODEL_VERSION=2` en `MODEL_SHA256` op de afgedrukte hash.
+3. Publiceer een app-release met die `install.sh`.
+
+Bij elke installatie of update vergelijkt de installer de hash in
+`models/parakeet-tdt-0.6b-v3-webgpu/encoder-model.q4f16.onnx.sha256` met
+`MODEL_SHA256`. Verschillen ze (of ontbreekt dat bestand, bij een oudere
+installatie of een zelfgebouwd model), dan downloadt hij het nieuwe model,
+controleert het, zet het in één keer op zijn plaats en herstart de server. Mislukt
+dat, dan blijft het huidige model in gebruik.
+
+Testen: `npm run test:model-e2e` (met `MODEL_E2E_FILE=<gebouwd bestand>` tegen de
+echte vastgepinde hash).
