@@ -17,16 +17,6 @@ beforeAll(() => {
   HTMLDialogElement.prototype.close ||= function (this: HTMLDialogElement) {
     this.removeAttribute('open');
   };
-  window.matchMedia ??= ((query: string) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addEventListener() {},
-    removeEventListener() {},
-    addListener() {},
-    removeListener() {},
-    dispatchEvent: () => false,
-  })) as unknown as typeof window.matchMedia;
 });
 
 afterEach(() => {

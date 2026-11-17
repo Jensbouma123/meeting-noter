@@ -14,10 +14,10 @@ describe('revealing a segment in the virtualised transcript', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     scroll.mockClear();
-    vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener: () => {}, removeEventListener: () => {} }));
   });
   afterEach(() => {
     cleanup();
+    vi.unstubAllGlobals();
     vi.useRealTimers();
   });
 
