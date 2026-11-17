@@ -10,7 +10,12 @@ export function failure(error: string, status: number): Response {
 export async function readJson(request: Request, maxBytes: number): Promise<JsonBody> {
   const tooLarge = { ok: false as const, response: failure('body-too-large', 413) };
   if (Number(request.headers.get('content-length') ?? 0) > maxBytes) return tooLarge;
-  const bytes = await readCapped(request, maxBytes);
+  let bytes: Uint8Array | null;
+  try {
+    bytes = await readCapped(request, maxBytes);
+  } catch {
+    return { ok: false, response: failure('body-unreadable', 400) };
+  }
   if (bytes === null) return tooLarge;
   try {
     return { ok: true, value: JSON.parse(new TextDecoder().decode(bytes)) };
@@ -24,19 +29,15 @@ async function readCapped(request: Request, maxBytes: number): Promise<Uint8Arra
   const reader = request.body.getReader();
   const chunks: Uint8Array[] = [];
   let total = 0;
-  try {
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      total += value.byteLength;
-      if (total > maxBytes) {
-        await reader.cancel().catch(() => {});
-        return null;
-      }
-      chunks.push(value);
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      await reader.cancel().catch(() => {});
+      return null;
     }
-  } catch {
-    return new Uint8Array();
+    chunks.push(value);
   }
   const out = new Uint8Array(total);
   let offset = 0;
