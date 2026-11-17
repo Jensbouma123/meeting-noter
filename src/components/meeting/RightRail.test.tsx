@@ -19,10 +19,6 @@ function view(lang: 'en' | 'nl' = 'en') {
 
 beforeEach(() => {
   window.localStorage.clear();
-  window.matchMedia ??= ((q: string) => ({
-    matches: false, media: q, addEventListener() {}, removeEventListener() {},
-    addListener() {}, removeListener() {}, onchange: null, dispatchEvent: () => false,
-  })) as unknown as typeof window.matchMedia;
 });
 afterEach(cleanup);
 

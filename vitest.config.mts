@@ -18,6 +18,7 @@ export default defineConfig({
           name: 'app',
           testTimeout: 20_000,
           hookTimeout: 20_000,
+          setupFiles: ['./src/test/vitest.setup.ts'],
           exclude: [...exclude, installerTests],
           server: { deps: { inline: [/@jensbouma123\/acciva-ui/] } },
         },
