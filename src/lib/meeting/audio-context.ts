@@ -14,24 +14,32 @@ export async function prepareAudioContext(ctx: AudioContext): Promise<void> {
   if (ctx.state === 'suspended') {
     try {
       await ctx.resume();
-    } catch {}
+    } catch (err) {
+      console.warn('AudioContext resume failed; continuing suspended', err);
+    }
   }
 }
 
 export async function suspendAudioContext(ctx: AudioContext | null): Promise<void> {
   try {
     await ctx?.suspend();
-  } catch {}
+  } catch (err) {
+    console.warn('AudioContext suspend failed', err);
+  }
 }
 
 export async function resumeAudioContext(ctx: AudioContext | null): Promise<void> {
   try {
     await ctx?.resume();
-  } catch {}
+  } catch (err) {
+    console.warn('AudioContext resume failed', err);
+  }
 }
 
 export async function closeAudioContext(ctx: AudioContext | null): Promise<void> {
   try {
     await ctx?.close();
-  } catch {}
+  } catch (err) {
+    console.warn('AudioContext close failed', err);
+  }
 }

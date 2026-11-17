@@ -13,7 +13,9 @@ function dropVideoTracks(stream: MediaStream): void {
   for (const track of stream.getVideoTracks()) {
     try {
       track.stop();
-    } catch {}
+    } catch (err) {
+      console.warn('Failed to stop video track', err);
+    }
     stream.removeTrack(track);
   }
 }
@@ -22,7 +24,9 @@ async function disableVoiceProcessing(stream: MediaStream): Promise<void> {
   for (const track of stream.getAudioTracks()) {
     try {
       await track.applyConstraints?.({ echoCancellation: false, noiseSuppression: false, autoGainControl: false });
-    } catch {}
+    } catch (err) {
+      console.warn('Failed to disable voice processing on audio track', err);
+    }
   }
 }
 
