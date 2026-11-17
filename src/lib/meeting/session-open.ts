@@ -6,7 +6,7 @@ import { getState } from './store-core';
 import { getTranscriptSessionId } from './transcript-session';
 import type { Segment, Speaker } from './types';
 import type { AutosavedSession } from './types/autosave';
-import type { SessionMetadata, SessionWithMetadata } from './types/session-store';
+import type { SessionEntry, SessionMetadata, SessionWithMetadata } from './types/session-store';
 
 export function openSession(sessionId: string): AutosavedSession | null {
   let transcript = loadSessionTranscript(sessionId);
@@ -73,9 +73,7 @@ export function getFullSession(
   };
 }
 
-export function getSessionMetadata(sessionId: string): SessionMetadata | null {
-  const entry = readSessionIndex().sessions.find((s) => s.sessionId === sessionId);
-  if (!entry) return null;
+function toMetadata(entry: SessionEntry): SessionMetadata {
   return {
     sessionId: entry.sessionId,
     title: entry.title,
@@ -86,6 +84,15 @@ export function getSessionMetadata(sessionId: string): SessionMetadata | null {
     isDraft: entry.isDraft,
     captureMode: entry.captureMode,
   };
+}
+
+export function getSessionMetadata(sessionId: string): SessionMetadata | null {
+  const entry = readSessionIndex().sessions.find((s) => s.sessionId === sessionId);
+  return entry ? toMetadata(entry) : null;
+}
+
+export function getSessionMetadataMap(): Map<string, SessionMetadata> {
+  return new Map(readSessionIndex().sessions.map((s) => [s.sessionId, toMetadata(s)]));
 }
 
 export function sessionExists(sessionId: string): boolean {
