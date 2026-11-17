@@ -9,7 +9,7 @@ import { buildTurnActions } from './buildTurnActions';
 import { useSpeakerStyle } from './useSpeakerStyle';
 import type { TranscriptLineRowProps } from './LiveTranscript.types';
 
-export function TranscriptLineRow({ item, index, isLast, rowClass, sessionId, speakers }: TranscriptLineRowProps) {
+export function TranscriptLineRow({ item, index, isLast, rowClass, sessionId, speakers, flash }: TranscriptLineRowProps) {
   const t = useT('transcript');
   const speakerStyle = useSpeakerStyle(speakers);
   const { seg, turnStart } = item;
@@ -17,7 +17,7 @@ export function TranscriptLineRow({ item, index, isLast, rowClass, sessionId, sp
   const sourceLabel = seg.source === 'mic' ? t('mic') : t('call');
 
   return (
-    <div className={`mn-vrow px-4 md:px-8 ${index === 0 ? 'pt-6' : ''} ${isLast ? 'pb-40' : ''}`}>
+    <div ref={flash?.ref} className={`mn-vrow px-4 md:px-8 ${index === 0 ? 'pt-6' : ''} ${isLast ? 'pb-40' : ''} ${flash?.className ?? ''}`}>
       <div className="mx-auto w-full max-w-[calc(72ch+10rem)]">
         <div
           data-speaker={seg.speaker}
