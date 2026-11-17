@@ -43,7 +43,11 @@ export function startDiarization(sources: readonly Source[]): void {
   }
   if (entry.status === 'downloading' || entry.status === 'not-downloaded') {
     waitForDownload(sources, startReadySources);
-    if (entry.status === 'not-downloaded') void retryDownload(DIARIZATION_REGISTRY_KEY).catch(() => {});
+    if (entry.status === 'not-downloaded') {
+      void retryDownload(DIARIZATION_REGISTRY_KEY).catch((err) =>
+        console.warn('[diarization] Retry download failed', err),
+      );
+    }
     return;
   }
   if (entry.status !== 'cached') {

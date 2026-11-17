@@ -14,6 +14,8 @@ export function teardownSource(entry: SourceNodes, acquirer: SourceAcquirer): vo
     entry.node.port.close();
     entry.node.disconnect();
     entry.ctxSource.disconnect();
-  } catch {}
+  } catch (err) {
+    console.warn('Failed to disconnect audio source nodes during teardown', err);
+  }
   stopTracks(entry.stream);
 }
