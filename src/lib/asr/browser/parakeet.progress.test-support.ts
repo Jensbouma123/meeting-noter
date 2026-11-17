@@ -65,15 +65,12 @@ export const resumableDownloadMock = async () => {
       _revision: string,
       options?: { onProgress?: (p: { loaded: number; total: number; file: string }) => void },
     ) => {
-
       if (loadState.served === 0) {
         loadState.served += 1;
         if (loadState.files === 'hang') {
-
           return new Promise(() => {});
         }
         if (loadState.files === 'bytes') {
-
           for (const loaded of [400, 900]) {
             const event = { loaded, total: 900, file };
             loadState.reported.push(event);
