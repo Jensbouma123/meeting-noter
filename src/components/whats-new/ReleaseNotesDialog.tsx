@@ -17,7 +17,11 @@ export function ReleaseNotesDialog({ open, onClose, title, notes, pageUrl }: Rel
       size="md"
       footer={
         <>
-          {link && <Button variant="ghost" onClick={() => window.open(link, '_blank', 'noopener,noreferrer')}>{t('viewOnGithub')}</Button>}
+          {link && (
+            <Button variant="ghost" onClick={() => window.open(link, '_blank', 'noopener,noreferrer')}>
+              {t('viewOnGithub')}
+            </Button>
+          )}
           <Button onClick={onClose}>{t('close')}</Button>
         </>
       }

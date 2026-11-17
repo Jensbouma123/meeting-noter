@@ -6,14 +6,10 @@ import { useT } from '@/lib/i18n/useT';
 export function DownloadProgressBar({ progress }: { progress: ModelProgress }) {
   const t = useT('models');
   const throughputText =
-    progress.throughputBytesPerSec > 0
-      ? ` · ${formatBytes(progress.throughputBytesPerSec)}/s`
-      : '';
+    progress.throughputBytesPerSec > 0 ? ` · ${formatBytes(progress.throughputBytesPerSec)}/s` : '';
 
   const etaText =
-    progress.etaSeconds > 0 && !isNaN(progress.etaSeconds)
-      ? ` · ${formatSeconds(progress.etaSeconds)} left`
-      : '';
+    progress.etaSeconds > 0 && !isNaN(progress.etaSeconds) ? ` · ${formatSeconds(progress.etaSeconds)} left` : '';
 
   return (
     <VStack spacing="xs" className="w-full">

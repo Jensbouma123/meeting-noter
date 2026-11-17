@@ -1,18 +1,7 @@
-import type {
-  CachedFileRecord,
-  ChunkBytes,
-  PartialFileRecord,
-} from '../types/download-cache-records';
+import type { CachedFileRecord, ChunkBytes, PartialFileRecord } from '../types/download-cache-records';
 import type { Sha256 } from '../sha256';
 import { updateSliced } from '../sha256-sliced';
-import {
-  deleteChunksFrom,
-  deleteMetaRecord,
-  getChunk,
-  getChunks,
-  putChunk,
-  putMetaRecord,
-} from './cache-primitives';
+import { deleteChunksFrom, deleteMetaRecord, getChunk, getChunks, putChunk, putMetaRecord } from './cache-primitives';
 import { deleteCachedFile } from './cached-files';
 import { ChunkAssembler } from './chunk-assembler';
 import { CACHE_CHUNK_BYTES, FILE_STORE, PARTIAL_STORE } from './constants';
@@ -37,9 +26,7 @@ export class ChunkWriter extends ChunkAssembler {
 
   async flushPartial(): Promise<void> {
     await this.writeTailIfChanged();
-    await this.safely('Recording resume progress', () =>
-      putMetaRecord(PARTIAL_STORE, this.key, this.partialRecord()),
-    );
+    await this.safely('Recording resume progress', () => putMetaRecord(PARTIAL_STORE, this.key, this.partialRecord()));
   }
 
   async resumeFrom(record: PartialFileRecord): Promise<boolean> {

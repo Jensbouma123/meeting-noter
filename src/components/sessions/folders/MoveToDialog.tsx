@@ -30,7 +30,11 @@ export function MoveToDialog({ target, folders, meetingFolders, onClose, onMove 
       >
         <Folder className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
         <span className="truncate">{label}</span>
-        {id === current && <Badge variant="neutral" size="xs">{t('current')}</Badge>}
+        {id === current && (
+          <Badge variant="neutral" size="xs">
+            {t('current')}
+          </Badge>
+        )}
       </button>
     </li>
   );
@@ -39,7 +43,11 @@ export function MoveToDialog({ target, folders, meetingFolders, onClose, onMove 
       open={target !== null}
       onClose={onClose}
       title={t('moveToTitle').replace('{name}', target?.title ?? '')}
-      footer={<Button variant="outline" onClick={onClose}>{t('cancel')}</Button>}
+      footer={
+        <Button variant="outline" onClick={onClose}>
+          {t('cancel')}
+        </Button>
+      }
     >
       <ul className="max-h-80 overflow-y-auto" aria-label={t('moveToTitle').replace('{name}', target?.title ?? '')}>
         {row(null, t('topLevel'), 0)}

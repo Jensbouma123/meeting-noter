@@ -21,12 +21,16 @@ export function AssistantLoading() {
             className="flex w-full items-center gap-3 p-4 motion-safe:animate-pulse"
           >
             <AssistantLogo id={id} />
-            <Text size="sm" weight="medium">{ASSISTANT_NAMES[id]}</Text>
+            <Text size="sm" weight="medium">
+              {ASSISTANT_NAMES[id]}
+            </Text>
             <span className="ml-auto h-6 w-20 rounded-full bg-border-subtle" aria-hidden="true" />
           </div>
         ))}
       </SettingsGroup>
-      <Text size="xs" variant="muted">{t('loading')}</Text>
+      <Text size="xs" variant="muted">
+        {t('loading')}
+      </Text>
     </div>
   );
 }

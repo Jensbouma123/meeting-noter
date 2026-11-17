@@ -6,7 +6,8 @@ import { APP_PORT, LEGACY_PORT } from '../../src/lib/lifecycle/constants';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const read = (file: string) => readFileSync(path.join(repo, file), 'utf8');
-const lines3000 = (text: string) => text.split('\n').filter((l) => /\b3000\b/.test(l) && !l.trimStart().startsWith('#'));
+const lines3000 = (text: string) =>
+  text.split('\n').filter((l) => /\b3000\b/.test(l) && !l.trimStart().startsWith('#'));
 
 describe('installed app port', () => {
   it('is not the next dev port', () => {

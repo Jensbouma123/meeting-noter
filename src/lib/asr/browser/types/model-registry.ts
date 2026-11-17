@@ -1,13 +1,7 @@
 import type { AsrBackend } from './model-manifest';
 import type { ManifestRuntimeOptions } from './model-manifest';
 
-export type ModelStatus =
-  | 'not-downloaded'
-  | 'downloading'
-  | 'cached'
-  | 'failed'
-  | 'cancelled'
-  | 'unavailable';
+export type ModelStatus = 'not-downloaded' | 'downloading' | 'cached' | 'failed' | 'cancelled' | 'unavailable';
 
 export interface ModelProgress {
   loadedBytes: number;

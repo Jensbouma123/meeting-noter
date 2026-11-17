@@ -3,7 +3,11 @@ import { CHAIN } from './constants';
 import type { ChainPosition } from './types';
 
 export function chainPosition(name: string, defaultEncoder: string): ChainPosition | null {
-  const key = name.trim().toLowerCase().replace(/^webgpu-/, '').replace(/^wasm-/, '');
+  const key = name
+    .trim()
+    .toLowerCase()
+    .replace(/^webgpu-/, '')
+    .replace(/^wasm-/, '');
   if (key === 'q4f16') return { key: 'q4f16', backend: 'webgpu', encoder: defaultEncoder === 'q4f16' ? null : 'q4f16' };
   if (key === 'fp16') return { key: 'fp16', backend: 'webgpu', encoder: defaultEncoder === 'fp16' ? null : 'fp16' };
   if (key === 'int8') return { key: 'int8', backend: 'wasm', encoder: null };
@@ -15,20 +19,13 @@ export function encoderQuantForFile(file: string | null | undefined): string | n
   return match ? match[1] : null;
 }
 
-export function variantForEncoderFile(
-  backend: AsrBackend | 'auto',
-  encoderFile: string | null | undefined,
-): string {
+export function variantForEncoderFile(backend: AsrBackend | 'auto', encoderFile: string | null | undefined): string {
   if (backend === 'auto') return 'auto';
   const quant = encoderQuantForFile(encoderFile);
   return quant ? `${backend}-${quant}` : backend;
 }
 
-export function requestedVariant(
-  backend: AsrBackend | 'auto',
-  encoder: string | null,
-  defaultEncoder: string,
-): string {
+export function requestedVariant(backend: AsrBackend | 'auto', encoder: string | null, defaultEncoder: string): string {
   if (backend === 'auto') return 'auto';
   const pos = chainPosition(encoder ?? (backend === 'wasm' ? 'int8' : defaultEncoder), defaultEncoder);
   return pos ? `${pos.backend}-${pos.key}` : backend;

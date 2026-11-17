@@ -25,7 +25,10 @@ describe('diarization worker speaker state', () => {
     const { serializeSpeakerState } = await import('./speaker-state');
     const embeds = new Float32Array(2 * 512).fill(0.25);
     const probs = new Float32Array(2 * 8).fill(0.5);
-    const state = serializeSpeakerState({ numFrames: 2, compressed: false, embeds, probs }, { hiddenSize: 512, numSpeakers: 8 });
+    const state = serializeSpeakerState(
+      { numFrames: 2, compressed: false, embeds, probs },
+      { hiddenSize: 512, numSpeakers: 8 },
+    );
 
     send({ type: 'init', id: 'c', source: 'mic', speakerState: state });
     await flush();
@@ -39,7 +42,12 @@ describe('diarization worker speaker state', () => {
     await flush();
     expect(posted).toContainEqual({ type: 'flushed', id: 'c', speakerState: state });
 
-    loadState.coreSnapshot = { numFrames: 0, compressed: false, embeds: new Float32Array(0), probs: new Float32Array(0) };
+    loadState.coreSnapshot = {
+      numFrames: 0,
+      compressed: false,
+      embeds: new Float32Array(0),
+      probs: new Float32Array(0),
+    };
     posted.length = 0;
     send({ type: 'flush', id: 'c' });
     await flush();

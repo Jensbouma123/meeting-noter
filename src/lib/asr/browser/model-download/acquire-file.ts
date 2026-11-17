@@ -30,9 +30,7 @@ export async function acquireHfFile(
         (await getRepoFileMeta(repoId, revision, filename)) ??
         (options.urlOverride ? await headFileMeta(options.urlOverride).catch(() => null) : null);
       const cached = await readCachedFile(key).catch(() => null);
-      const meta = cached
-        ? await settleWithin(lookupMeta(), CACHED_META_DEADLINE_MS)
-        : await lookupMeta();
+      const meta = cached ? await settleWithin(lookupMeta(), CACHED_META_DEADLINE_MS) : await lookupMeta();
       if (cached && (!meta || isSizeValid(cached.record.size, meta.size))) {
         const total = meta?.size ?? cached.record.size;
         onProgress?.({ loaded: total, total, file: filename, resuming: false });

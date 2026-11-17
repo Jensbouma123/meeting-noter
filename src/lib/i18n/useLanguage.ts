@@ -10,8 +10,5 @@ export function getDefaultLanguage(browserLanguage?: string): Language {
 
 export function useLanguage(): Language {
   const context = useContext(LanguageContext);
-  return (
-    context ??
-    getDefaultLanguage(typeof navigator === 'undefined' ? undefined : navigator.language)
-  );
+  return context ?? getDefaultLanguage(typeof navigator === 'undefined' ? undefined : navigator.language);
 }

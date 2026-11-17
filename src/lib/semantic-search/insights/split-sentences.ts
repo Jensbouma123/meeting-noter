@@ -16,7 +16,13 @@ export function splitSentences(turns: readonly Turn[]): Sentence[] {
       if (text === '') continue;
       const lead = match[0].length - match[0].trimStart().length;
       const part = partAt(turn, (match.index ?? 0) + lead);
-      out.push({ id: `${turn.parts[0].segmentId}:${n++}`, segmentId: part.segmentId, speakerId: turn.speakerId, start: part.start, text });
+      out.push({
+        id: `${turn.parts[0].segmentId}:${n++}`,
+        segmentId: part.segmentId,
+        speakerId: turn.speakerId,
+        start: part.start,
+        text,
+      });
     }
   }
   return out.sort((a, b) => a.start - b.start);

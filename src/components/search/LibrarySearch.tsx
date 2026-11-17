@@ -18,10 +18,7 @@ function progressLabel(progress: BackfillProgress, t: (key: string) => string): 
 export function LibrarySearch({ sessions, progress }: LibrarySearchProps) {
   const t = useT('search');
   const search = useSemanticLibrarySearch();
-  const titles = useMemo(
-    () => Object.fromEntries(sessions.map((s) => [s.sessionId, s.title])),
-    [sessions],
-  );
+  const titles = useMemo(() => Object.fromEntries(sessions.map((s) => [s.sessionId, s.title])), [sessions]);
   const status = progress ? progressLabel(progress, t) : null;
   return (
     <>

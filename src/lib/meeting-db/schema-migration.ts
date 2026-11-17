@@ -14,7 +14,10 @@ const ADDED_COLUMNS = [
 ] as const;
 
 function columnNames(db: DatabaseSync, table: string): string[] {
-  return db.prepare(`PRAGMA table_info(${table})`).all().map((c) => String(c.name));
+  return db
+    .prepare(`PRAGMA table_info(${table})`)
+    .all()
+    .map((c) => String(c.name));
 }
 
 function addMissingColumns(db: DatabaseSync): void {

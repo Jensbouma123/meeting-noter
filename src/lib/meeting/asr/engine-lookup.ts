@@ -62,10 +62,13 @@ export async function getBrowserEngine(): Promise<AsrEngine | null> {
     return loadEngine(registryEntry.modelRepo, manifest);
   }
 
-  if (registryEntry?.status === 'failed' || registryEntry?.status === 'cancelled' || registryEntry?.status === 'unavailable') {
+  if (
+    registryEntry?.status === 'failed' ||
+    registryEntry?.status === 'cancelled' ||
+    registryEntry?.status === 'unavailable'
+  ) {
     setBlockedReason(
-      registryEntry.error ??
-      'The speech model could not be downloaded. Retry it in Settings › Speech model.',
+      registryEntry.error ?? 'The speech model could not be downloaded. Retry it in Settings › Speech model.',
     );
     return null;
   }
@@ -73,7 +76,7 @@ export async function getBrowserEngine(): Promise<AsrEngine | null> {
   if (!isConsentGiven(PARQUET_REGISTRY_KEY)) {
     setBlockedReason(
       'The speech model has not been downloaded yet, so nothing is being transcribed. ' +
-      'Download it to enable on-device transcription.',
+        'Download it to enable on-device transcription.',
     );
     return null;
   }

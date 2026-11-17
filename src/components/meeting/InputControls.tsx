@@ -23,12 +23,44 @@ export function InputControls({
 
   return (
     <div className="flex shrink-0 items-center gap-1.5">
-      <RadioGroup value={mode === 'system' ? 'both' : mode} onChange={(value) => onModeChange(value as CaptureMode)} size="md" variant="segmented" orientation="horizontal" aria-label={t('audioSource')} className={`gap-0 ${SEGMENT_TRACK}`}>
+      <RadioGroup
+        value={mode === 'system' ? 'both' : mode}
+        onChange={(value) => onModeChange(value as CaptureMode)}
+        size="md"
+        variant="segmented"
+        orientation="horizontal"
+        aria-label={t('audioSource')}
+        className={`gap-0 ${SEGMENT_TRACK}`}
+      >
         <Tooltip content={inputsLocked ? t('micTipLocked') : t('micTip')}>
-          <span className="inline-flex"><Radio value="mic" disabled={inputsLocked} className={`gap-1.5 ${SEGMENT}`} label={<><Mic aria-hidden="true" /><span className="sr-only md:not-sr-only">{t('mic')}</span></>} /></span>
+          <span className="inline-flex">
+            <Radio
+              value="mic"
+              disabled={inputsLocked}
+              className={`gap-1.5 ${SEGMENT}`}
+              label={
+                <>
+                  <Mic aria-hidden="true" />
+                  <span className="sr-only md:not-sr-only">{t('mic')}</span>
+                </>
+              }
+            />
+          </span>
         </Tooltip>
         <Tooltip content={inputsLocked ? t('micCallTipLocked') : t('micCallTip')}>
-          <span className="inline-flex"><Radio value="both" disabled={inputsLocked} className={`gap-1.5 whitespace-nowrap ${SEGMENT}`} label={<><PhoneCall aria-hidden="true" /><span className="sr-only md:not-sr-only">{t('micCall')}</span></>} /></span>
+          <span className="inline-flex">
+            <Radio
+              value="both"
+              disabled={inputsLocked}
+              className={`gap-1.5 whitespace-nowrap ${SEGMENT}`}
+              label={
+                <>
+                  <PhoneCall aria-hidden="true" />
+                  <span className="sr-only md:not-sr-only">{t('micCall')}</span>
+                </>
+              }
+            />
+          </span>
         </Tooltip>
       </RadioGroup>
 

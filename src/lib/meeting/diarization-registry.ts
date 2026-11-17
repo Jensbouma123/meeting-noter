@@ -1,14 +1,6 @@
-import {
-  registerModel,
-  registerDownloadHandler,
-  type AsrBackend,
-} from '@/lib/asr/browser';
+import { registerModel, registerDownloadHandler, type AsrBackend } from '@/lib/asr/browser';
 import { ensureDiarizationModelsCached } from '@/lib/diarization/browser/downloader';
-import {
-  DIARIZATION_MODELS,
-  DIARIZATION_TOTAL_SIZE_BYTES,
-  SPEAKER_EMBEDDER,
-} from '@/lib/diarization/browser/manifest';
+import { DIARIZATION_MODELS, DIARIZATION_TOTAL_SIZE_BYTES, SPEAKER_EMBEDDER } from '@/lib/diarization/browser/manifest';
 
 import { fetchSpeakerEmbedderBestEffort } from './diarization-embedder-fetch';
 import { DIARIZATION_REGISTRY_KEY } from '@/lib/asr/browser/model-registry-known-keys';

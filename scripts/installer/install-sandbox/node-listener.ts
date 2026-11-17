@@ -7,7 +7,12 @@ const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const accepts = (port: number) =>
   new Promise<boolean>((r) => {
-    const c = createConnection(port, '127.0.0.1').once('connect', () => { c.destroy(); r(true); }).once('error', () => r(false));
+    const c = createConnection(port, '127.0.0.1')
+      .once('connect', () => {
+        c.destroy();
+        r(true);
+      })
+      .once('error', () => r(false));
   });
 
 export async function startNodeListener(link: string, cwd: string) {
@@ -18,7 +23,12 @@ export async function startNodeListener(link: string, cwd: string) {
   mkdirSync(path.dirname(link), { recursive: true });
   symlinkSync(process.execPath, link);
   const script = `require('net').createServer().listen(${port}, '127.0.0.1')`;
-  const pid = Number(execFileSync('/bin/sh', ['-c', '"$0" -e "$1" </dev/null >/dev/null 2>&1 & echo $!', link, script], { cwd, encoding: 'utf8' }).trim());
+  const pid = Number(
+    execFileSync('/bin/sh', ['-c', '"$0" -e "$1" </dev/null >/dev/null 2>&1 & echo $!', link, script], {
+      cwd,
+      encoding: 'utf8',
+    }).trim(),
+  );
   for (let i = 0; i < 100; i++) {
     if (await accepts(port)) break;
     await delay(50);
@@ -26,12 +36,23 @@ export async function startNodeListener(link: string, cwd: string) {
   return { pid, port };
 }
 
-export const isAlive = (pid: number) => { try { process.kill(pid, 0); return true; } catch { return false; } };
+export const isAlive = (pid: number) => {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 export async function waitUntilGone(pid: number) {
   for (let i = 0; i < 100 && isAlive(pid); i++) await delay(50);
 }
 
 export function killIfStillRunning(pid: number) {
-  try { process.kill(pid, 'SIGKILL'); } catch { void 0; }
+  try {
+    process.kill(pid, 'SIGKILL');
+  } catch {
+    void 0;
+  }
 }

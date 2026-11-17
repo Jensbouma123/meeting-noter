@@ -3,7 +3,10 @@ import { EXPORT_TYPE, LIMITS, PROTOCOL_VERSION } from './constants';
 import { legacyOrigins } from './origins';
 import type { LegacyEntry, LegacyMessage } from './types';
 
-export function parseExportMessage(message: LegacyMessage, allowed: readonly string[] = legacyOrigins()): LegacyEntry[] | null {
+export function parseExportMessage(
+  message: LegacyMessage,
+  allowed: readonly string[] = legacyOrigins(),
+): LegacyEntry[] | null {
   if (!allowed.includes(message.origin)) return null;
   const data = message.data as { type?: unknown; version?: unknown; entries?: unknown } | null;
   if (!data || typeof data !== 'object' || data.type !== EXPORT_TYPE || data.version !== PROTOCOL_VERSION) return null;

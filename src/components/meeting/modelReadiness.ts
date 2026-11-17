@@ -11,10 +11,7 @@ function engineReadiness(asr: AsrRuntimeState): ModelReadiness {
   return 'ready';
 }
 
-export function deriveModelReadiness(
-  entries: ModelEntry[],
-  asr: AsrRuntimeState,
-): ModelReadiness {
+export function deriveModelReadiness(entries: ModelEntry[], asr: AsrRuntimeState): ModelReadiness {
   const entry = asrModelEntry(entries);
   if (!entry) return 'not-downloaded';
 

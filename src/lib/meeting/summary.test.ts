@@ -4,8 +4,11 @@ import { buildSummary } from './summary';
 
 const translate = (language: 'en' | 'nl') => (key: string) => t('summary', key, language);
 const base = {
-  title: 'Planning', date: '11 November 2026', durationS: 65,
-  participants: ['Ari'], decisions: [{ id: 'd', text: 'Ship it' }],
+  title: 'Planning',
+  date: '11 November 2026',
+  durationS: 65,
+  participants: ['Ari'],
+  decisions: [{ id: 'd', text: 'Ship it' }],
   actions: [
     { id: 'a', text: 'Send notes', done: false },
     { id: 'b', text: 'Book room', done: true, ownerName: 'Ari', due: 'Friday' },
@@ -15,7 +18,18 @@ const base = {
 describe('buildSummary', () => {
   it.each(['md', 'txt'] as const)('includes all summary fields in %s', (format) => {
     const result = buildSummary({ ...base, format, t: translate('en') });
-    for (const part of ['Planning', '11 November 2026', '1m 5s', 'Participants', 'Ari', 'Decisions', 'Ship it', 'Action items', '☐ Send notes', '☑ Book room (Ari · Friday)']) {
+    for (const part of [
+      'Planning',
+      '11 November 2026',
+      '1m 5s',
+      'Participants',
+      'Ari',
+      'Decisions',
+      'Ship it',
+      'Action items',
+      '☐ Send notes',
+      '☑ Book room (Ari · Friday)',
+    ]) {
       expect(result).toContain(part);
     }
   });
@@ -31,7 +45,14 @@ describe('buildSummary', () => {
   });
 
   it('omits empty list sections', () => {
-    const result = buildSummary({ ...base, participants: [], decisions: [], actions: [], format: 'md', t: translate('en') });
+    const result = buildSummary({
+      ...base,
+      participants: [],
+      decisions: [],
+      actions: [],
+      format: 'md',
+      t: translate('en'),
+    });
     expect(result).not.toContain('Participants');
     expect(result).not.toContain('Decisions');
     expect(result).not.toContain('Action items');

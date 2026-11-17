@@ -22,8 +22,7 @@ export function deleteDatabaseWithinDeadline(
     };
     const timer = setTimeout(() => {
       console.warn(
-        `[resumable-download] "${name}" is held open by another connection; ` +
-          'continuing without clearing it.',
+        `[resumable-download] "${name}" is held open by another connection; ` + 'continuing without clearing it.',
       );
       finish('blocked');
     }, timeoutMs);

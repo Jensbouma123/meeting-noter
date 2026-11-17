@@ -1,23 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  consentedAndCached,
-  fakes,
-  resetBridge,
-  resetFakesAndRegistry
-} from './diarization-bridge-fakes';
+import { consentedAndCached, fakes, resetBridge, resetFakesAndRegistry } from './diarization-bridge-fakes';
 
 vi.mock('@/lib/asr/browser', async (importOriginal) =>
-  (await import('./diarization-bridge-fakes')).mockAsrBrowser(importOriginal));
+  (await import('./diarization-bridge-fakes')).mockAsrBrowser(importOriginal),
+);
 
-vi.mock('@/lib/diarization/browser', async () =>
-  (await import('./diarization-bridge-fakes')).mockDiarizationBrowser());
+vi.mock('@/lib/diarization/browser', async () => (await import('./diarization-bridge-fakes')).mockDiarizationBrowser());
 
 beforeEach(resetFakesAndRegistry);
 
 afterEach(resetBridge);
 
 describe('diarization bridge — open turns', () => {
-  it('labels new speech with an open turn\'s speaker, replaces it when it grows, and cuts only at closed ends', async () => {
+  it("labels new speech with an open turn's speaker, replaces it when it grows, and cuts only at closed ends", async () => {
     const { bridge, store } = await consentedAndCached();
     const asr = await import('./asr/speaker');
     const timeline = vi.spyOn(asr, 'setSpeakerTimeline');
@@ -88,4 +83,3 @@ describe('diarization bridge — open turns', () => {
     timeline.mockRestore();
   });
 });
-

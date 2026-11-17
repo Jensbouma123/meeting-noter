@@ -76,9 +76,7 @@ describe('embed worker', () => {
 
   it('client rejects pending calls when the worker crashes', async () => {
     let w!: EmbedWorkerLike;
-    const e = createWorkerEmbedder(
-      () => (w = { onmessage: null, onerror: null, terminate() {}, postMessage() {} }),
-    );
+    const e = createWorkerEmbedder(() => (w = { onmessage: null, onerror: null, terminate() {}, postMessage() {} }));
     const p = e.embed(['x']);
     w.onerror?.({ message: 'died' });
     await expect(p).rejects.toThrow('died');

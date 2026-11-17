@@ -13,7 +13,14 @@ describe('evictSynced', () => {
     const count = (n: number) => {
       localStorage.clear();
       const sessions = Array.from({ length: n }, (_, i) => ({
-        version: 1, sessionId: `s${i}`, title: 't', segmentCount: 1, durationSeconds: 1, createdAt: 1, updatedAt: 1, isDraft: false,
+        version: 1,
+        sessionId: `s${i}`,
+        title: 't',
+        segmentCount: 1,
+        durationSeconds: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        isDraft: false,
       }));
       localStorage.setItem(SESSIONS_KEY_FOR_TESTS, JSON.stringify({ version: 1, sessions }));
       localStorage.setItem(SYNCED_KEY, JSON.stringify(Object.fromEntries(sessions.map((s) => [s.sessionId, 5]))));
@@ -28,7 +35,18 @@ describe('evictSynced', () => {
   });
 
   it('isOpen matches the autosaved session id', () => {
-    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ version: 1, sessionId: 'a', title: '', segments: [{ id: 1, speakerId: 's', text: 'x', startMs: 0, endMs: 1, final: true }], speakers: [], startedAt: 1, savedAt: Date.now() }));
+    localStorage.setItem(
+      AUTOSAVE_KEY,
+      JSON.stringify({
+        version: 1,
+        sessionId: 'a',
+        title: '',
+        segments: [{ id: 1, speakerId: 's', text: 'x', startMs: 0, endMs: 1, final: true }],
+        speakers: [],
+        startedAt: 1,
+        savedAt: Date.now(),
+      }),
+    );
     expect(isOpen('a')).toBe(true);
     expect(isOpen('b')).toBe(false);
   });

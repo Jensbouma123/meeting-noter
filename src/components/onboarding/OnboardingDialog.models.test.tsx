@@ -7,7 +7,14 @@ import {
   LANGID_REGISTRY_KEY,
   SEARCH_REGISTRY_KEY,
 } from '@/lib/asr/browser/model-registry-known-keys';
-import { acceptAck, entry, initiateDownloads, recordConsent, registerOnboardingTestEnv, setEntries } from './OnboardingDialog.testSupport';
+import {
+  acceptAck,
+  entry,
+  initiateDownloads,
+  recordConsent,
+  registerOnboardingTestEnv,
+  setEntries,
+} from './OnboardingDialog.testSupport';
 import { OnboardingDialog } from './OnboardingDialog';
 
 registerOnboardingTestEnv();
@@ -55,7 +62,7 @@ describe('OnboardingDialog models step', () => {
     allModels('not-downloaded');
     openModelsStep();
     fireEvent.click(await screen.findByRole('button', { name: 'Download 2 GB' }));
-    const [choice, keys] = recordConsent.mock.calls[0] as [ 'accepted', string[] ];
+    const [choice, keys] = recordConsent.mock.calls[0] as ['accepted', string[]];
     real.recordConsent(choice, keys);
     expect(real.isConsentGiven(SEARCH_REGISTRY_KEY)).toBe(true);
     real.resetConsent();

@@ -23,7 +23,9 @@ export function UpdateBanner({ isRecording = false }: { isRecording?: boolean })
       <Alert layout="banner" variant="info" role="status" dismissible onDismiss={() => dismiss(latest)}>
         <span className="flex flex-wrap items-center gap-2">
           <span>{t('banner').replace('{version}', latest)}</span>
-          <Button size="sm" onClick={updateNow}>{t('updateNow')}</Button>
+          <Button size="sm" onClick={updateNow}>
+            {t('updateNow')}
+          </Button>
           <Button
             variant="ghost"
             size="sm"

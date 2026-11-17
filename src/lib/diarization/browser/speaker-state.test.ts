@@ -20,7 +20,9 @@ describe('serializeSpeakerState / deserializeSpeakerState', () => {
     const back = deserializeSpeakerState(JSON.parse(text), SHAPE)!;
     expect(back.numFrames).toBe(2);
     expect(back.compressed).toBe(true);
-    values.forEach((v, i) => expect(Math.abs(back.embeds[i] - v)).toBeLessThanOrEqual(Math.abs(v) * 2 ** -11 + 2 ** -25));
+    values.forEach((v, i) =>
+      expect(Math.abs(back.embeds[i] - v)).toBeLessThanOrEqual(Math.abs(v) * 2 ** -11 + 2 ** -25),
+    );
     expect(back.probs[0]).toBeCloseTo(0.9, 3);
     expect(back.probs[3]).toBeCloseTo(0.001, 4);
   });

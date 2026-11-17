@@ -46,7 +46,10 @@ export function canMoveFolder(folders: readonly FolderRow[], folderId: string, t
   return targetId === null || !folderSubtreeIds(folders, folderId).has(targetId);
 }
 
-export function folderPickerOptions(folders: readonly FolderRow[], exclude: ReadonlySet<string> = new Set()): PickerOption[] {
+export function folderPickerOptions(
+  folders: readonly FolderRow[],
+  exclude: ReadonlySet<string> = new Set(),
+): PickerOption[] {
   const out: PickerOption[] = [];
   const walk = (nodes: FolderNode[], depth: number) => {
     for (const n of nodes) {

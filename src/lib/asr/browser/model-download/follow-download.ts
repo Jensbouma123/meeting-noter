@@ -52,9 +52,12 @@ export function followDownload(
     channel?.addEventListener('message', onMessage);
 
     const pollTimer = setInterval(() => {
-      isModelFileCachedByKey(key).then((done) => {
-        if (done) takeResult();
-      }, () => {});
+      isModelFileCachedByKey(key).then(
+        (done) => {
+          if (done) takeResult();
+        },
+        () => {},
+      );
     }, FOLLOWER_POLL_MS);
   });
 }

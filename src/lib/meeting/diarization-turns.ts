@@ -50,7 +50,10 @@ export function insertTurn(turn: SpeakerTurn): void {
 export function replaceTurns(source: Source, next: readonly SpeakerTurn[]): void {
   const list = [...next].sort((a, b) => a.start - b.start);
   turns.set(source, list);
-  maxTurnLength.set(source, list.reduce((max, t) => Math.max(max, t.end - t.start), 0));
+  maxTurnLength.set(
+    source,
+    list.reduce((max, t) => Math.max(max, t.end - t.start), 0),
+  );
 }
 
 export function clearTurns(): void {

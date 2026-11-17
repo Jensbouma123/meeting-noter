@@ -21,11 +21,18 @@ export function toMarkdown(
     if (i > 0) lines.push('');
     const markdownLineBreak = (j: number) => (j < t.lines.length - 1 ? '  ' : '');
     if (t.overlap) {
-      lines.push(...t.lines.map((l, j) =>
-        `[${formatClock(l.start)}] ${OVERLAP_MARK} **${l.label}:** ${l.text}${markdownLineBreak(j)}`));
+      lines.push(
+        ...t.lines.map(
+          (l, j) => `[${formatClock(l.start)}] ${OVERLAP_MARK} **${l.label}:** ${l.text}${markdownLineBreak(j)}`,
+        ),
+      );
       return;
     }
-    lines.push(`**${t.label}**`, '', ...t.lines.map((l, j) => `[${formatClock(l.start)}] ${l.text}${markdownLineBreak(j)}`));
+    lines.push(
+      `**${t.label}**`,
+      '',
+      ...t.lines.map((l, j) => `[${formatClock(l.start)}] ${l.text}${markdownLineBreak(j)}`),
+    );
   });
   return lines.join('\n') + '\n';
 }
@@ -43,7 +50,11 @@ function turnLines(turns: Turn[]): string[] {
   return lines;
 }
 
-export function toTranscriptBody(segments: Segment[], speakers: Record<string, Speaker>, options: ExportOptions = {}): string {
+export function toTranscriptBody(
+  segments: Segment[],
+  speakers: Record<string, Speaker>,
+  options: ExportOptions = {},
+): string {
   return turnLines(groupTurns(segments, speakers, options.callAudioMissing)).join('\n');
 }
 
@@ -62,11 +73,7 @@ export function toPlainText(
   return lines.join('\n') + '\n';
 }
 
-export function toSrt(
-  segments: Segment[],
-  speakers: Record<string, Speaker>,
-  callAudioMissing = false,
-): string {
+export function toSrt(segments: Segment[], speakers: Record<string, Speaker>, callAudioMissing = false): string {
   const finals = finalSegments(segments);
   const cues = finals.map((seg, i) => {
     const end = Math.max(seg.end, seg.start);

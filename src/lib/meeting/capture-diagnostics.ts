@@ -7,7 +7,10 @@ export function readSources(sources: Map<Source, SourceNodes>): Partial<Record<S
   for (const [source, entry] of sources) {
     const { stats } = entry;
     readout[source] = {
-      tracks: entry.kind === 'helper' ? [helperReadout(entry.helper, source)] : entry.stream.getAudioTracks().map(trackReadout),
+      tracks:
+        entry.kind === 'helper'
+          ? [helperReadout(entry.helper, source)]
+          : entry.stream.getAudioTracks().map(trackReadout),
       frames: stats.frames,
       zeroFrames: stats.zeroFrames,
       soundFrames: stats.soundFrames,

@@ -9,7 +9,8 @@ import { INSTALL, installRoot, sandbox, useInstallSandbox } from './install-sand
 
 const installedVersion = () => readFileSync(path.join(installRoot(), 'app/VERSION'), 'utf8').trim();
 const startedVersions = () => readFileSync(path.join(sandbox.home, 'starts'), 'utf8').trim().split('\n');
-const launchAgent = (name: string) => path.join(sandbox.home, 'Library/LaunchAgents', `nl.jensbouma.meeting-noter.${name}.plist`);
+const launchAgent = (name: string) =>
+  path.join(sandbox.home, 'Library/LaunchAgents', `nl.jensbouma.meeting-noter.${name}.plist`);
 
 describe.skipIf(process.platform !== 'darwin')('install.sh', () => {
   useInstallSandbox();

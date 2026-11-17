@@ -26,9 +26,7 @@ describe('declared file sizes', () => {
       const url = String(input);
       if (url.includes('/api/models/')) {
         return new Response(
-          JSON.stringify(
-            Object.entries(tree).map(([path, size]) => ({ type: 'file', path, size })),
-          ),
+          JSON.stringify(Object.entries(tree).map(([path, size]) => ({ type: 'file', path, size }))),
           { status: 200 },
         );
       }

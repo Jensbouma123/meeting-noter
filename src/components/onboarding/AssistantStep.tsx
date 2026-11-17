@@ -12,11 +12,23 @@ export function AssistantStep({ state, searchMissing, onSkip }: AssistantStepPro
   return (
     <VStack spacing="sm" className="w-full">
       <Text size="sm">{t('assistant.body')}</Text>
-      {loadFailed && <Alert variant="danger" layout="inline">{a('loadFailed')}</Alert>}
+      {loadFailed && (
+        <Alert variant="danger" layout="inline">
+          {a('loadFailed')}
+        </Alert>
+      )}
       {assistants === null && !loadFailed && <AssistantLoading />}
       {assistants && <AssistantList assistants={assistants} state={state} />}
-      {anyMissing && <Text size="xs" variant="muted">{t('assistant.install')}</Text>}
-      {searchMissing && <Text size="xs" variant="muted">{t('assistant.search')}</Text>}
+      {anyMissing && (
+        <Text size="xs" variant="muted">
+          {t('assistant.install')}
+        </Text>
+      )}
+      {searchMissing && (
+        <Text size="xs" variant="muted">
+          {t('assistant.search')}
+        </Text>
+      )}
       <div>
         <Button variant="ghost" size={{ base: 'md', md: 'sm' }} onClick={onSkip}>
           {t('assistant.skip')}

@@ -9,7 +9,6 @@ export const fakes = {
   retried: [] as string[],
 };
 
-
 export async function mockAsrBrowser(importOriginal: () => Promise<typeof import('@/lib/asr/browser')>) {
   const actual = await importOriginal();
   return {

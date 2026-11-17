@@ -10,17 +10,11 @@ const defaultPause = () => new Promise<void>((resolve) => setTimeout(resolve, 50
 
 function pendingIds(deps: BackfillDeps): string[] {
   const ids = (deps.listMeetingIds ?? (() => listSessions().map((s) => s.sessionId)))();
-  const indexed = new Set(
-    deps.store === undefined ? listIndexedMeetingIds() : listIndexedMeetingIds(deps.store),
-  );
+  const indexed = new Set(deps.store === undefined ? listIndexedMeetingIds() : listIndexedMeetingIds(deps.store));
   return ids.filter((id) => !indexed.has(id) && !deps.attempted?.has(id));
 }
 
-async function runLoop(
-  embedder: Embedder,
-  ids: string[],
-  deps: BackfillDeps,
-): Promise<BackfillProgress> {
+async function runLoop(embedder: Embedder, ids: string[], deps: BackfillDeps): Promise<BackfillProgress> {
   const captureActive = deps.captureActive ?? isCaptureActive;
   const progress: BackfillProgress = { total: ids.length, done: 0, failed: 0, aborted: false };
   deps.onProgress?.({ ...progress });

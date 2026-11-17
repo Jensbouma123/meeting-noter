@@ -38,12 +38,22 @@ describe('folders and Markdown files', () => {
     const child = store.createFolder('Weekly sync', parent.id);
     store.save(sampleMeeting());
     store.moveMeeting('meeting-1', child.id);
-    const oldPath = path.join(dir, 'meetings', markdownFolderPath(store.db.listFolders(), child.id), store.db.markdownFile('meeting-1')!.split('/').at(-1)!);
+    const oldPath = path.join(
+      dir,
+      'meetings',
+      markdownFolderPath(store.db.listFolders(), child.id),
+      store.db.markdownFile('meeting-1')!.split('/').at(-1)!,
+    );
     expect(path.relative(path.join(dir, 'meetings'), oldPath).startsWith('..')).toBe(false);
     expect(fs.existsSync(oldPath)).toBe(true);
 
     store.renameFolder(parent.id, 'Roadmap');
-    const renamedPath = path.join(dir, 'meetings', markdownFolderPath(store.db.listFolders(), child.id), store.db.markdownFile('meeting-1')!.split('/').at(-1)!);
+    const renamedPath = path.join(
+      dir,
+      'meetings',
+      markdownFolderPath(store.db.listFolders(), child.id),
+      store.db.markdownFile('meeting-1')!.split('/').at(-1)!,
+    );
     expect(fs.existsSync(oldPath)).toBe(false);
     expect(fs.existsSync(renamedPath)).toBe(true);
     expect(path.relative(path.join(dir, 'meetings'), renamedPath).startsWith('..')).toBe(false);

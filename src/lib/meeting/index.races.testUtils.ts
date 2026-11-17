@@ -32,7 +32,10 @@ export function installRaceHarness(): RaceHarness {
     startDiarization: vi.fn(),
   };
   const overrides: Record<string, Record<string, unknown>> = {
-    './asr/backend': { resolveAsrBackend: harness.asr.resolveAsrBackend, isPostStopTranscriptionOnly: () => harness.backend === 'wasm' },
+    './asr/backend': {
+      resolveAsrBackend: harness.asr.resolveAsrBackend,
+      isPostStopTranscriptionOnly: () => harness.backend === 'wasm',
+    },
     './asr/live-push': { pushLiveAudio: harness.asr.pushLiveAudio },
     './asr/recording-mode': { bufferRecordedAudio: harness.asr.bufferRecordedAudio },
     './asr/live-flush': { flushLiveAudio: harness.asr.flushLiveAudio },

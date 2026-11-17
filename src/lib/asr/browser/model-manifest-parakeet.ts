@@ -1,12 +1,10 @@
 import type { AsrModelManifest } from './types/model-manifest';
 
 export const FP16_ENCODER_URL =
-  process.env.NEXT_PUBLIC_FP16_ENCODER_URL ??
-  '/models/parakeet-tdt-0.6b-v3-webgpu/encoder-model.fp16.onnx';
+  process.env.NEXT_PUBLIC_FP16_ENCODER_URL ?? '/models/parakeet-tdt-0.6b-v3-webgpu/encoder-model.fp16.onnx';
 
 export const Q4F16_ENCODER_URL =
-  process.env.NEXT_PUBLIC_Q4F16_ENCODER_URL ??
-  '/models/parakeet-tdt-0.6b-v3-webgpu/encoder-model.q4f16.onnx';
+  process.env.NEXT_PUBLIC_Q4F16_ENCODER_URL ?? '/models/parakeet-tdt-0.6b-v3-webgpu/encoder-model.q4f16.onnx';
 
 const DECODER_INT8_BYTES = 18_202_004;
 const VOCAB_BYTES = 93_939;
@@ -25,11 +23,7 @@ export const PARAKEET_TDT_V3_WEBGPU: AsrModelManifest = Object.freeze({
   encoderQuant: 'q4f16',
   decoderQuant: 'int8',
   preprocessorBackend: 'js',
-  files: [
-    'encoder-model.q4f16.onnx',
-    'decoder_joint-model.int8.onnx',
-    'vocab.txt',
-  ],
+  files: ['encoder-model.q4f16.onnx', 'decoder_joint-model.int8.onnx', 'vocab.txt'],
   fileUrlOverrides: Object.freeze({
     'encoder-model.q4f16.onnx': Q4F16_ENCODER_URL,
   }),
@@ -45,11 +39,7 @@ export const PARAKEET_TDT_V3_WEBGPU_FP16: AsrModelManifest = Object.freeze({
   ...PARAKEET_TDT_V3_WEBGPU,
   variant: 'webgpu-fp16',
   encoderQuant: 'fp16',
-  files: [
-    'encoder-model.fp16.onnx',
-    'decoder_joint-model.int8.onnx',
-    'vocab.txt',
-  ],
+  files: ['encoder-model.fp16.onnx', 'decoder_joint-model.int8.onnx', 'vocab.txt'],
   fileUrlOverrides: Object.freeze({
     'encoder-model.fp16.onnx': FP16_ENCODER_URL,
   }),
@@ -77,11 +67,7 @@ export const PARAKEET_TDT_V3_WASM: AsrModelManifest = Object.freeze({
   encoderQuant: 'int8',
   decoderQuant: 'int8',
   preprocessorBackend: 'js',
-  files: [
-    'encoder-model.int8.onnx',
-    'decoder_joint-model.int8.onnx',
-    'vocab.txt',
-  ],
+  files: ['encoder-model.int8.onnx', 'decoder_joint-model.int8.onnx', 'vocab.txt'],
   fileSizes: Object.freeze({
     'encoder-model.int8.onnx': 652_183_999,
     'decoder_joint-model.int8.onnx': DECODER_INT8_BYTES,

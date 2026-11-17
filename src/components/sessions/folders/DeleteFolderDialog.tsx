@@ -14,9 +14,15 @@ export function DeleteFolderDialog({ folder, folders, meetingFolders, onClose, o
       title={t('deleteTitle').replace('{name}', folder?.name ?? '')}
       footer={
         <HStack spacing="sm" wrap>
-          <Button variant="outline" onClick={onClose}>{t('cancel')}</Button>
-          <Button variant="outline" onClick={() => onConfirm('move-up')}>{t('moveUp')}</Button>
-          <Button variant="danger" onClick={() => onConfirm('delete-contents')}>{t('deleteWithContents')}</Button>
+          <Button variant="outline" onClick={onClose}>
+            {t('cancel')}
+          </Button>
+          <Button variant="outline" onClick={() => onConfirm('move-up')}>
+            {t('moveUp')}
+          </Button>
+          <Button variant="danger" onClick={() => onConfirm('delete-contents')}>
+            {t('deleteWithContents')}
+          </Button>
         </HStack>
       }
     >

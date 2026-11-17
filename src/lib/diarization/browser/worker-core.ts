@@ -29,9 +29,7 @@ export function createCore(
     mode: model.backend === 'webgpu' ? REALTIME_MODE : DEFAULT_MODE,
     turns: { provisional: true },
     speakerState: msg.speakerState ? deserializeSpeakerState(msg.speakerState, SPEAKER_SHAPE) : null,
-    onStep: msg.debug
-      ? (audioSec, inferMs) => logStepTiming(msg.source, model.backend, audioSec, inferMs)
-      : undefined,
+    onStep: msg.debug ? (audioSec, inferMs) => logStepTiming(msg.source, model.backend, audioSec, inferMs) : undefined,
     onProbabilities: rescore ? (probs) => rescore.pushProbs(probs) : undefined,
   });
 }

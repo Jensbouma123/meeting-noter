@@ -52,9 +52,7 @@ export function createFakeEngine(state: AsrEngineTestState) {
       });
       return { segments: [{ id: 'seg-1' }], language: null, error: null };
     }
-    async recognize(
-      audio: Float32Array,
-    ): Promise<{ text: string; words: TimedTestWord[]; error: string | null }> {
+    async recognize(audio: Float32Array): Promise<{ text: string; words: TimedTestWord[]; error: string | null }> {
       state.recognized.push({
         samples: audio.length,
         firstSample: audio.length > 0 ? audio[0] : Number.NaN,
@@ -67,8 +65,9 @@ export function createFakeEngine(state: AsrEngineTestState) {
         return { text: '', words: [], error: message };
       }
       const seconds = audio.length / 16_000;
-      const words = (state.words ?? ((s: number) => [{ text: 'hello', start: 0, end: Math.min(0.5, s) }]))(seconds)
-        .filter((w) => w.end <= seconds);
+      const words = (state.words ?? ((s: number) => [{ text: 'hello', start: 0, end: Math.min(0.5, s) }]))(
+        seconds,
+      ).filter((w) => w.end <= seconds);
       return { text: words.map((w) => w.text).join(' '), words, error: null };
     }
     async stop(): Promise<void> {

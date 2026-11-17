@@ -44,7 +44,7 @@ export function useRecordingControls(setLangOverride: (code: string | null) => v
       setLangOverride(code);
       meeting.setLanguage(code);
     },
-    [setLangOverride]
+    [setLangOverride],
   );
 
   return { stopRecording, pauseRecording, resumeRecording, pickLanguage };

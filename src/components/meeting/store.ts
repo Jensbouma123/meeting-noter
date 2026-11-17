@@ -13,18 +13,7 @@ import type {
   SystemVia,
 } from '@/lib/meeting';
 
-export type {
-  CaptureMode,
-  LanguageInfo,
-  Levels,
-  MeetingState,
-  Segment,
-  Source,
-  Speaker,
-  StartOpts,
-  Status,
-  SystemVia,
-};
+export type { CaptureMode, LanguageInfo, Levels, MeetingState, Segment, Source, Speaker, StartOpts, Status, SystemVia };
 
 function checkIsMock(): boolean {
   if (process.env.NEXT_PUBLIC_MOCK === '1') return true;

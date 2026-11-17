@@ -1,9 +1,4 @@
-import {
-  initRegistry,
-  registerDefaultModels,
-  autoResumeConsentedDownloads,
-  detectAsrBackend,
-} from '@/lib/asr/browser';
+import { initRegistry, registerDefaultModels, autoResumeConsentedDownloads, detectAsrBackend } from '@/lib/asr/browser';
 import { registerDiarizationModel } from '@/lib/meeting/diarization-registry';
 import { fetchSpeakerEmbedderIfModelCached } from '@/lib/meeting/diarization-embedder-fetch';
 import { registerLangIdModel } from '@/lib/meeting/langid-registry';

@@ -3,7 +3,14 @@ import '@testing-library/jest-dom/vitest';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { restartOnboarding, shouldShowOnboarding } from '@/lib/onboarding/store';
-import { acceptAck, acceptAckPastModels, acceptAutoClose, entry, registerOnboardingTestEnv, setEntries } from './OnboardingDialog.testSupport';
+import {
+  acceptAck,
+  acceptAckPastModels,
+  acceptAutoClose,
+  entry,
+  registerOnboardingTestEnv,
+  setEntries,
+} from './OnboardingDialog.testSupport';
 import { OnboardingDialog } from './OnboardingDialog';
 
 registerOnboardingTestEnv();

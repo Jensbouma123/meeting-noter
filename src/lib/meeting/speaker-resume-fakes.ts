@@ -63,7 +63,8 @@ export function mockDiarizationBridge() {
     },
     stopDiarizationForSource() {},
     pushDiarizationAudio() {},
-  };}
+  };
+}
 
 export async function speak(parts: Float32Array[]): Promise<void> {
   await vi.waitFor(() => expect(fake.cores.get('mic')).toBeDefined());

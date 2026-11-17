@@ -32,9 +32,9 @@ export function CaptureSourceReadout({ source, diag }: CaptureSourceReadoutProps
         clock {(diag.clock[source] ?? 0).toFixed(1)} s · to ASR {frames?.toAsr ?? 0}/{frames?.captured ?? 0}
       </div>
       <div>
-        ASR: chunked {asr?.frames ?? 0} · not-ready drops {asr?.droppedNotReady ?? 0} · speech{' '}
-        {asr?.speechFrames ?? 0} · floor {formatDbfs(asr?.noiseFloor ?? 0)} · windows {asr?.windows ?? 0} · words{' '}
-        {asr?.words ?? 0} · updates {asr?.segments ?? 0}
+        ASR: chunked {asr?.frames ?? 0} · not-ready drops {asr?.droppedNotReady ?? 0} · speech {asr?.speechFrames ?? 0}{' '}
+        · floor {formatDbfs(asr?.noiseFloor ?? 0)} · windows {asr?.windows ?? 0} · words {asr?.words ?? 0} · updates{' '}
+        {asr?.segments ?? 0}
       </div>
       <div>
         diarization:{' '}

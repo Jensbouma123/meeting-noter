@@ -5,9 +5,12 @@ import type { Source } from './types/basics';
 
 export function helperReadout(helper: HelperSource, source: Source): TrackReadout {
   return {
-    label: source === 'mic'
-      ? `System audio helper (mic alone: ${helper.mic?.state ?? 'unavailable'})`
-      : helper.mic ? `System audio helper (Core Audio tap + mic: ${helper.mic.state})` : 'System audio helper (Core Audio tap)',
+    label:
+      source === 'mic'
+        ? `System audio helper (mic alone: ${helper.mic?.state ?? 'unavailable'})`
+        : helper.mic
+          ? `System audio helper (Core Audio tap + mic: ${helper.mic.state})`
+          : 'System audio helper (Core Audio tap)',
     readyState: helper.live ? 'live' : 'ended',
     muted: helper.hello.permission === 'denied',
     enabled: true,

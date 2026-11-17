@@ -14,7 +14,14 @@ export function detectInstall({
     const current = readTrimmedFile(path.join(root, 'app', 'VERSION'));
     const arch = readTrimmedFile(path.join(root, 'app', 'ARCH'));
     if (current && arch) {
-      return { kind: 'installer', current, root, arch, appDir: path.join(root, 'app'), stateDir: path.join(root, 'logs') };
+      return {
+        kind: 'installer',
+        current,
+        root,
+        arch,
+        appDir: path.join(root, 'app'),
+        stateDir: path.join(root, 'logs'),
+      };
     }
   }
   const base = { current: version, root: null, arch: null, appDir: cwd };

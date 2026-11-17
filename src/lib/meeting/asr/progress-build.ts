@@ -35,7 +35,8 @@ function describeLoadingDetail(percent: number | null): string | null {
   const fetch = asrState.fetchProgress;
   if (fetch) {
     const { loadedBytes, totalBytes, file } = fetch;
-    const count = totalBytes > 0 ? `${formatBytes(loadedBytes)} of ${formatBytes(totalBytes)}` : formatBytes(loadedBytes);
+    const count =
+      totalBytes > 0 ? `${formatBytes(loadedBytes)} of ${formatBytes(totalBytes)}` : formatBytes(loadedBytes);
     return file ? `Fetching ${file}: ${count}` : `Fetching model files: ${count}`;
   }
   return percent === null ? (describeInitStage(asrState.initProgress) ?? 'Starting the model') : null;

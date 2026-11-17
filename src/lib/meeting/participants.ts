@@ -37,8 +37,7 @@ function writeList(key: string, names: string[]): void {
   try {
     if (names.length === 0) window.localStorage.removeItem(key);
     else window.localStorage.setItem(key, JSON.stringify(names));
-  } catch {
-  }
+  } catch {}
   for (const fn of listeners) fn();
 }
 
@@ -66,8 +65,7 @@ export function adoptParticipants(sessionId: string, names: readonly string[] | 
   try {
     if (names === null) window.localStorage.removeItem(sessionParticipantsKey(sessionId));
     else window.localStorage.setItem(sessionParticipantsKey(sessionId), JSON.stringify(uniqueNames(names)));
-  } catch {
-  }
+  } catch {}
   for (const fn of listeners) fn();
 }
 
@@ -95,8 +93,7 @@ export function setParticipants(sessionId: string, names: readonly string[]): st
   const clean = uniqueNames(names);
   try {
     window.localStorage.setItem(sessionParticipantsKey(sessionId), JSON.stringify(clean));
-  } catch {
-  }
+  } catch {}
   queueMeetingSync(sessionId);
   for (const fn of listeners) fn();
   if (clean.length > 0) {

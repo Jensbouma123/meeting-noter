@@ -14,17 +14,16 @@ export function RailPeopleSection({ sessionId, rows, onAssigned }: RailPeopleSec
   const tp = useT('participants');
   const participants = useParticipants(sessionId);
   const recentParticipants = useRecentParticipants();
-  const unmatched = unassignedParticipants(participants, rows.map((r) => r.label));
+  const unmatched = unassignedParticipants(
+    participants,
+    rows.map((r) => r.label),
+  );
   const hasUnnamed = rows.some((r) => isUnnamedSpeakerLabel(r.label));
   const [unmatchedBefore, unmatchedAfter] = (hasUnnamed ? tp('unassigned') : tp('notHeard')).split('{names}');
 
   return (
     <>
-      <section
-        aria-labelledby="rail-people-h"
-        data-testid="participants-editor"
-        className="flex w-full flex-col gap-2"
-      >
+      <section aria-labelledby="rail-people-h" data-testid="participants-editor" className="flex w-full flex-col gap-2">
         <h3 id="rail-people-h" className="m-0">
           <Text size="xs" weight="semibold" variant="muted">
             {tp('heading')}

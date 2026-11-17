@@ -19,13 +19,7 @@ import {
   readAllKeys,
   databaseExists,
 } from './resumable-download.cache-fixtures';
-import {
-  REVISION,
-  content,
-  sha256,
-  stubRepo,
-  bytesBehind,
-} from './resumable-download.stub-repo';
+import { REVISION, content, sha256, stubRepo, bytesBehind } from './resumable-download.stub-repo';
 
 installCacheHooks();
 

@@ -7,7 +7,15 @@ const out = path.join(root, 'public', 'ort');
 
 const sources = {
   web: path.join(root, 'node_modules', 'onnxruntime-web', 'dist'),
-  transformers: path.join(root, 'node_modules', '@huggingface', 'transformers', 'node_modules', 'onnxruntime-web', 'dist'),
+  transformers: path.join(
+    root,
+    'node_modules',
+    '@huggingface',
+    'transformers',
+    'node_modules',
+    'onnxruntime-web',
+    'dist',
+  ),
 };
 if (!existsSync(sources.transformers)) sources.transformers = sources.web;
 

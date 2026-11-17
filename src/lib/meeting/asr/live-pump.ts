@@ -3,14 +3,7 @@ import { debugEnabled } from '@/lib/asr/browser/quiet-console';
 import { CAPTURE_SAMPLE_RATE } from '../pcm';
 import type { Source } from '../types/basics';
 import { asrState } from './state';
-import {
-  liveChunker,
-  liveChunkers,
-  liveCounters,
-  liveGateOpenAt,
-  liveServedAt,
-  liveShowing,
-} from './live-state';
+import { liveChunker, liveChunkers, liveCounters, liveGateOpenAt, liveServedAt, liveShowing } from './live-state';
 import { recognizeLiveWindow } from './live-window';
 
 function nextDueSource(): Source | null {

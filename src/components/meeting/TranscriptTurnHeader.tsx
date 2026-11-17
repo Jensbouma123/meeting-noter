@@ -4,11 +4,7 @@ import { getSpeakerColor } from './speaker-theme';
 import { formatTimestamp } from './transcriptTurnFormat';
 import type { TranscriptTurnHeaderProps } from './TranscriptTurnHeader.types';
 
-export function TranscriptTurnHeader({
-  segment,
-  speakerLabel,
-  speakerColorIndex,
-}: TranscriptTurnHeaderProps) {
+export function TranscriptTurnHeader({ segment, speakerLabel, speakerColorIndex }: TranscriptTurnHeaderProps) {
   const t = useT('transcript');
   const colorStyle = getSpeakerColor(speakerColorIndex);
   const isFinal = segment.final;
@@ -16,7 +12,12 @@ export function TranscriptTurnHeader({
   return (
     <HStack spacing="sm" align="center" className="select-none">
       <span className={`size-2.5 shrink-0 rounded-full ${colorStyle.dotClass}`} aria-hidden="true" />
-      <Text as="span" size="sm" weight="semibold" className={`${colorStyle.textClass} transition-opacity ${isFinal ? '' : 'opacity-70'}`}>
+      <Text
+        as="span"
+        size="sm"
+        weight="semibold"
+        className={`${colorStyle.textClass} transition-opacity ${isFinal ? '' : 'opacity-70'}`}
+      >
         {speakerLabel}
       </Text>
       <Text as="span" size="xs" variant="muted" font="mono" className="tabular-nums">

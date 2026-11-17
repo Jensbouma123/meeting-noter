@@ -17,17 +17,20 @@ export function updateProgress(
   etaSeconds: number,
   resuming = false,
 ): void {
-  if (!patchEntry(key, {
-    progress: {
-      loadedBytes,
-      totalBytes,
-      currentFile,
-      throughputBytesPerSec,
-      etaSeconds,
-      percent: percentOf(loadedBytes, totalBytes),
-      resuming,
-    },
-  })) return;
+  if (
+    !patchEntry(key, {
+      progress: {
+        loadedBytes,
+        totalBytes,
+        currentFile,
+        throughputBytesPerSec,
+        etaSeconds,
+        percent: percentOf(loadedBytes, totalBytes),
+        resuming,
+      },
+    })
+  )
+    return;
   const now = Date.now();
   if (now - registryState.lastProgressPersistAt >= PROGRESS_PERSIST_MS) persistEntries();
   if (now - registryState.lastProgressNotifyAt >= PROGRESS_NOTIFY_MS) {

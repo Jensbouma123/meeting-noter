@@ -21,7 +21,8 @@ export function syntheticClip(seconds = 10): Float32Array {
 }
 
 export async function decodeBytes(raw: ArrayBuffer): Promise<Float32Array> {
-  const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  const Ctx =
+    window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!Ctx) throw new Error('No WebAudio in this browser.');
   const ctx = new Ctx();
   try {

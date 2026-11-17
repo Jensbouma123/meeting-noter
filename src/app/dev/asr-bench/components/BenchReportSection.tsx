@@ -6,7 +6,8 @@ const reportAsText = (report: BenchReport): string =>
     `backend=${report.backend} encoder=${report.encoderQuant} clip=${report.audioSeconds.toFixed(1)}s`,
     `load=${(report.loadMs / 1000).toFixed(1)}s meanRTF=${report.meanRtf.toFixed(3)}`,
     ...report.results.map(
-      (r) => `run${r.run}: ${(r.transcribeMs / 1000).toFixed(2)}s RTF=${r.rtf.toFixed(3)} text="${r.text.slice(0, 120)}"`,
+      (r) =>
+        `run${r.run}: ${(r.transcribeMs / 1000).toFixed(2)}s RTF=${r.rtf.toFixed(3)} text="${r.text.slice(0, 120)}"`,
     ),
     `UA: ${report.userAgent}`,
   ].join('\n');

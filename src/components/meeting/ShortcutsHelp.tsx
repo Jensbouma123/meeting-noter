@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  Badge,
-  Button,
-  Divider,
-  HStack,
-  Modal,
-  Text,
-  VStack,
-} from '@jensbouma123/acciva-ui';
+import { Badge, Button, Divider, HStack, Modal, Text, VStack } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { SHORTCUTS } from './shortcuts';
 import type { ShortcutsHelpProps } from './ShortcutsHelp.types';

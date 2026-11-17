@@ -63,7 +63,10 @@ describe('diarization worker', () => {
   it('streams 2 s chunks on WebGPU and 4 s chunks on WASM', async () => {
     loadState.failLoad = false;
     const { DEFAULT_MODE, REALTIME_MODE } = await import('./constants');
-    for (const [b, mode] of [['webgpu', REALTIME_MODE], ['wasm', DEFAULT_MODE]] as const) {
+    for (const [b, mode] of [
+      ['webgpu', REALTIME_MODE],
+      ['wasm', DEFAULT_MODE],
+    ] as const) {
       vi.resetModules();
       cores.length = 0;
       loadState.backend = b;

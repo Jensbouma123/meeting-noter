@@ -39,9 +39,8 @@ export function loadIdleSession(sessionId: string, snapshot: IdleSnapshot | null
   if (isCaptureActive()) return false;
   cancelAppend();
   const segments = snapshot && Array.isArray(snapshot.segments) ? restorableSegments(snapshot.segments) : [];
-  const speakers = snapshot && snapshot.speakers && typeof snapshot.speakers === 'object'
-    ? { ...snapshot.speakers }
-    : {};
+  const speakers =
+    snapshot && snapshot.speakers && typeof snapshot.speakers === 'object' ? { ...snapshot.speakers } : {};
   setTranscriptSessionId(sessionId);
   setState({
     segments,
@@ -55,7 +54,7 @@ export function loadIdleSession(sessionId: string, snapshot: IdleSnapshot | null
 export function restoreSnapshot(
   segments: Segment[],
   speakers: Record<string, Speaker>,
-  startedAt: number | null = null
+  startedAt: number | null = null,
 ): void {
   try {
     const safeSegments = Array.isArray(segments) ? restorableSegments(segments) : [];

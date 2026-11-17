@@ -13,7 +13,8 @@ export async function GET(request: Request): Promise<Response> {
   if (refused) return refused;
   const version = lifecycle().install.current;
   try {
-    if (!shouldShowWhatsNew(meetingStore().db, version)) return Response.json({ show: false, version, notes: null, pageUrl: null });
+    if (!shouldShowWhatsNew(meetingStore().db, version))
+      return Response.json({ show: false, version, notes: null, pageUrl: null });
     const { notes, pageUrl } = await fetchReleaseNotes(version);
     return Response.json({ show: notes !== null, version, notes, pageUrl });
   } catch (err) {

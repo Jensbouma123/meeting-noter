@@ -13,7 +13,9 @@ const dialog = vi.hoisted(() => ({ openDialog: vi.fn() }));
 const vectors = vi.hoisted(() => ({ byId: {} as Record<string, Float32Array[]> }));
 
 vi.mock('@jensbouma123/acciva-ui', async (orig) => ({ ...(await orig<object>()), useToast: () => ({ toast }) }));
-vi.mock('@/lib/semantic-search/store', () => ({ loadIndex: (id: string) => (vectors.byId[id] ? { vectors: vectors.byId[id] } : null) }));
+vi.mock('@/lib/semantic-search/store', () => ({
+  loadIndex: (id: string) => (vectors.byId[id] ? { vectors: vectors.byId[id] } : null),
+}));
 vi.mock('@/lib/semantic-search/model-gate', () => ({ isSearchModelReady: () => gate.ready }));
 vi.mock('@/lib/asr/browser/model-registry-dialog', () => dialog);
 vi.mock('@/lib/folders/folders-api', () => ({ moveMeeting: vi.fn(), declineFolderSuggestion: vi.fn() }));
@@ -21,7 +23,8 @@ vi.mock('@/lib/folders/folders-api', () => ({ moveMeeting: vi.fn(), declineFolde
 const noop = () => {};
 const v = (...n: number[]) => new Float32Array(n);
 const win = (x: number, y: number) => [v(x, y), v(x, y), v(x, y)];
-const folder = (id: string): FolderRow => ({ id, name: id, parentId: null, sortIndex: 0, context: '' }) as unknown as FolderRow;
+const folder = (id: string): FolderRow =>
+  ({ id, name: id, parentId: null, sortIndex: 0, context: '' }) as unknown as FolderRow;
 
 afterEach(() => {
   cleanup();
@@ -33,7 +36,17 @@ afterEach(() => {
 describe('Suggest folder menu item', () => {
   it('sits right below "Move to…" and triggers the suggestion', () => {
     const onSuggest = vi.fn();
-    render(<RailSessionRow session={draft()} isActive onOpen={noop} onClear={noop} onDelete={noop} onMove={noop} onSuggest={onSuggest} />);
+    render(
+      <RailSessionRow
+        session={draft()}
+        isActive
+        onOpen={noop}
+        onClear={noop}
+        onDelete={noop}
+        onMove={noop}
+        onSuggest={onSuggest}
+      />,
+    );
     fireEvent.click(screen.getByRole('button', { name: 'More actions for “Standup”' }));
     const items = screen.getAllByRole('menuitem', { hidden: true }).map((i) => i.textContent);
     expect(items.indexOf('Suggest folder')).toBe(items.indexOf('Move to…') + 1);
@@ -42,7 +55,17 @@ describe('Suggest folder menu item', () => {
   });
 
   it('is disabled and busy while computing', () => {
-    render(<RailSessionRow session={draft()} isActive onOpen={noop} onClear={noop} onDelete={noop} onSuggest={noop} suggesting />);
+    render(
+      <RailSessionRow
+        session={draft()}
+        isActive
+        onOpen={noop}
+        onClear={noop}
+        onDelete={noop}
+        onSuggest={noop}
+        suggesting
+      />,
+    );
     fireEvent.click(screen.getByRole('button', { name: 'More actions for “Standup”' }));
     const item = screen.getByRole('menuitem', { name: 'Suggest folder', hidden: true });
     expect(item).toHaveAttribute('aria-busy', 'true');

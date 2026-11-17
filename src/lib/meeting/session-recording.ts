@@ -36,7 +36,7 @@ function startFreshSession(sessionId: string, title: string): string {
 export function startRecordingInSession(
   sessionId: string,
   mode: RecordInSessionMode,
-  opts: { title?: string } = {}
+  opts: { title?: string } = {},
 ): string | null {
   if (isCaptureActive()) return null;
   flushAutosave();

@@ -8,7 +8,13 @@ describe('meetings MCP server folders', () => {
   it('offers the read-only meeting and folder tools', async () => {
     const { client } = await connect();
     const { tools } = await client.listTools();
-    expect(tools.map((t) => t.name).sort()).toEqual(['get_active_meeting', 'get_meeting','list_folders', 'list_meetings', 'search_meetings']);
+    expect(tools.map((t) => t.name).sort()).toEqual([
+      'get_active_meeting',
+      'get_meeting',
+      'list_folders',
+      'list_meetings',
+      'search_meetings',
+    ]);
     expect(tools.every((t) => t.annotations?.readOnlyHint === true)).toBe(true);
   });
 
@@ -20,7 +26,12 @@ describe('meetings MCP server folders', () => {
     const folders = JSON.parse((await call('list_folders')).text);
     expect(folders).toEqual([
       { id: '10000000-0000-4000-8000-000000000001', name: 'Planning', parentId: null, path: 'Planning' },
-      { id: '10000000-0000-4000-8000-000000000002', name: '2026', parentId: '10000000-0000-4000-8000-000000000001', path: 'Planning/2026' },
+      {
+        id: '10000000-0000-4000-8000-000000000002',
+        name: '2026',
+        parentId: '10000000-0000-4000-8000-000000000001',
+        path: 'Planning/2026',
+      },
     ]);
   });
 
@@ -34,9 +45,19 @@ describe('meetings MCP server folders', () => {
     });
     const direct = JSON.parse((await call('list_meetings', { folderId: '20000000-0000-4000-8000-000000000001' })).text);
     expect(direct.map((m: { id: string }) => m.id)).toEqual(['parent-meeting']);
-    const nested = JSON.parse((await call('list_meetings', { folderId: '20000000-0000-4000-8000-000000000001', includeSubfolders: true })).text);
+    const nested = JSON.parse(
+      (await call('list_meetings', { folderId: '20000000-0000-4000-8000-000000000001', includeSubfolders: true })).text,
+    );
     expect(nested.map((m: { id: string }) => m.id).sort()).toEqual(['child-meeting', 'parent-meeting']);
-    const hits = JSON.parse((await call('search_meetings', { query: 'budget', folderId: '20000000-0000-4000-8000-000000000001', includeSubfolders: true })).text);
+    const hits = JSON.parse(
+      (
+        await call('search_meetings', {
+          query: 'budget',
+          folderId: '20000000-0000-4000-8000-000000000001',
+          includeSubfolders: true,
+        })
+      ).text,
+    );
     expect(hits.map((m: { id: string }) => m.id).sort()).toEqual(['child-meeting', 'parent-meeting']);
   });
 });

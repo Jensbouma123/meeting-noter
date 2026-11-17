@@ -28,12 +28,18 @@ describe('revealing a segment in the virtualised transcript', () => {
     expect(flashed(container)).toHaveLength(1);
     expect(flashed(container)[0].querySelector('[data-seg-id="s2"]')).not.toBeNull();
     expect(scroll).toHaveBeenCalledWith({ behavior: 'smooth', block: 'center' });
-    act(() => { vi.advanceTimersByTime(1000); });
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
     expect(flashed(container)).toHaveLength(0);
   });
 
   it('uses instant scrolling under reduced motion', () => {
-    vi.stubGlobal('matchMedia', (q: string) => ({ matches: q.includes('reduce'), addEventListener: () => {}, removeEventListener: () => {} }));
+    vi.stubGlobal('matchMedia', (q: string) => ({
+      matches: q.includes('reduce'),
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }));
     render(view(segments));
     Element.prototype.scrollIntoView = scroll;
     act(() => requestReveal('s1'));

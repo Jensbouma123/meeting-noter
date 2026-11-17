@@ -24,13 +24,7 @@ describe('BrowserASREngine load progress (teardown)', () => {
     await expect(engine.ensureLoaded()).resolves.toBeUndefined();
 
     expect(engine.isReady).toBe(true);
-    expect(progress.map((p) => p.stage)).toEqual([
-      'files',
-      'files',
-      'files',
-      'files',
-      'session',
-    ]);
+    expect(progress.map((p) => p.stage)).toEqual(['files', 'files', 'files', 'files', 'session']);
     expect(warn).toHaveBeenCalled();
   });
 
@@ -42,23 +36,16 @@ describe('BrowserASREngine load progress (teardown)', () => {
 
     expect(loadState.createdFrom.length).toBeGreaterThan(0);
 
-    expect(new Set(loadState.revoked)).toEqual(
-      new Set([...WASM.files].map((file) => `blob:fake/${file}`)),
-    );
+    expect(new Set(loadState.revoked)).toEqual(new Set([...WASM.files].map((file) => `blob:fake/${file}`)));
   });
 
   it('releases the blob URLs even when session creation fails', async () => {
-
     loadState.failCreate = true;
     const { BrowserASREngine } = await import('./parakeet');
     const { events } = recorder();
 
-    await expect(new BrowserASREngine({ ...WASM }, events).ensureLoaded()).rejects.toThrow(
-      'session creation exploded',
-    );
-    expect(new Set(loadState.revoked)).toEqual(
-      new Set([...WASM.files].map((file) => `blob:fake/${file}`)),
-    );
+    await expect(new BrowserASREngine({ ...WASM }, events).ensureLoaded()).rejects.toThrow('session creation exploded');
+    expect(new Set(loadState.revoked)).toEqual(new Set([...WASM.files].map((file) => `blob:fake/${file}`)));
   });
 
   it('keeps the model across a session stop, so the next recording does not rebuild it', async () => {

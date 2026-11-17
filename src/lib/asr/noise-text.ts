@@ -2,16 +2,51 @@ import { DEFAULT_SPEECH_GATE_CONFIG } from './speech-gate-defaults';
 import type { NoiseTextConfig } from './types';
 
 const FILLERS = new Set([
-  'ah', 'ahm', 'eh', 'ehm', 'er', 'erm', 'hm', 'hmm', 'mhm', 'mm', 'mm-hmm', 'uh', 'uhm', 'um', 'umm',
+  'ah',
+  'ahm',
+  'eh',
+  'ehm',
+  'er',
+  'erm',
+  'hm',
+  'hmm',
+  'mhm',
+  'mm',
+  'mm-hmm',
+  'uh',
+  'uhm',
+  'um',
+  'umm',
 ]);
 
 const COMMON_REPLIES = new Set([
-  'yeah', 'yes', 'yep', 'yup', 'no', 'nope', 'okay', 'ok', 'right', 'sure', 'exactly', 'cool', 'alright', 'thanks',
-  'ja', 'nee', 'oké', 'precies', 'klopt', 'prima',
+  'yeah',
+  'yes',
+  'yep',
+  'yup',
+  'no',
+  'nope',
+  'okay',
+  'ok',
+  'right',
+  'sure',
+  'exactly',
+  'cool',
+  'alright',
+  'thanks',
+  'ja',
+  'nee',
+  'oké',
+  'precies',
+  'klopt',
+  'prima',
 ]);
 
 function stripToWord(text: string): string {
-  return text.toLowerCase().replace(/[^\p{L}\p{N}'-]/gu, '').replace(/^[-']+|[-']+$/g, '');
+  return text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}'-]/gu, '')
+    .replace(/^[-']+|[-']+$/g, '');
 }
 
 export function isFiller(text: string): boolean {

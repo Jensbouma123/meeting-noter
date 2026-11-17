@@ -4,11 +4,7 @@ import { openCacheDb } from './cache-db';
 import { CHUNK_STORE } from './constants';
 import { requestOnce } from './idb-request';
 
-function transact(
-  storeName: string,
-  mode: IDBTransactionMode,
-  work: (store: IDBObjectStore) => void,
-): Promise<void> {
+function transact(storeName: string, mode: IDBTransactionMode, work: (store: IDBObjectStore) => void): Promise<void> {
   return openCacheDb().then(
     (db) =>
       new Promise<void>((resolve, reject) => {

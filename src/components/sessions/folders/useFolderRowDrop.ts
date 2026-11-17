@@ -10,9 +10,12 @@ export function useFolderRowDrop({ folderId, controller, expanded, hasContent, o
     if (hoverTimer.current) clearTimeout(hoverTimer.current);
     hoverTimer.current = null;
   };
-  useEffect(() => () => {
-    if (hoverTimer.current) clearTimeout(hoverTimer.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    },
+    [],
+  );
 
   const rowProps = {
     ...draggableProps(FOLDER_MIME, folderId, () => controller.beginFolderDrag(folderId)),
@@ -45,7 +48,8 @@ export function useFolderRowDrop({ folderId, controller, expanded, hasContent, o
       setOver(false);
       const item = readDragItem(e.dataTransfer);
       if (item?.kind === 'meeting') void controller.dropMeeting(item.id, folderId);
-      else if (item?.kind === 'folder' && !controller.isSibling(item.id, folderId)) void controller.dropFolder(item.id, folderId);
+      else if (item?.kind === 'folder' && !controller.isSibling(item.id, folderId))
+        void controller.dropFolder(item.id, folderId);
     },
   };
   return { over, rowProps };

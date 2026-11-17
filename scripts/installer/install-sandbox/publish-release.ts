@@ -3,7 +3,10 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { UNINSTALL, sandbox, writeExecutable } from './sandbox';
 
-export function publishRelease(version: string, { arch = 'arm64', helper = 'helper-v1', launcher = '', node = 'exit 0' } = {}) {
+export function publishRelease(
+  version: string,
+  { arch = 'arm64', helper = 'helper-v1', launcher = '', node = 'exit 0' } = {},
+) {
   const stage = path.join(sandbox.dir, `stage-${arch}`, 'meeting-noter');
   rmSync(path.dirname(stage), { recursive: true, force: true });
   writeExecutable(path.join(stage, 'node/bin/node'), `#!/bin/sh\n${node}\n`);
@@ -12,7 +15,10 @@ export function publishRelease(version: string, { arch = 'arm64', helper = 'help
   writeFileSync(path.join(stage, 'server/server.js'), '');
   mkdirSync(path.join(stage, 'launcher'), { recursive: true });
   writeFileSync(path.join(stage, 'launcher/AppIcon.icns'), 'icns');
-  writeExecutable(path.join(stage, 'launcher/launcher.sh'), `#!/bin/bash\necho ${version} >> "$HOME/starts"\n${launcher}\n`);
+  writeExecutable(
+    path.join(stage, 'launcher/launcher.sh'),
+    `#!/bin/bash\necho ${version} >> "$HOME/starts"\n${launcher}\n`,
+  );
   writeFileSync(path.join(stage, 'uninstall.sh'), readFileSync(UNINSTALL));
   writeFileSync(path.join(stage, 'VERSION'), `${version}\n`);
   writeFileSync(path.join(stage, 'ARCH'), `${arch}\n`);

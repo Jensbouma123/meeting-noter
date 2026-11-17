@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { useTheme } from '@jensbouma123/acciva-ui/theme';
-import { getPreferenceSnapshot, getServerPreferenceSnapshot, storePreference, subscribePreference } from './themePreferenceStore';
+import {
+  getPreferenceSnapshot,
+  getServerPreferenceSnapshot,
+  storePreference,
+  subscribePreference,
+} from './themePreferenceStore';
 import type { ThemePreference } from './ThemeSwitcher.types';
 
 export function useThemePreference() {
@@ -9,7 +14,7 @@ export function useThemePreference() {
   const preference = useSyncExternalStore<ThemePreference | null>(
     subscribePreference,
     getPreferenceSnapshot,
-    getServerPreferenceSnapshot
+    getServerPreferenceSnapshot,
   );
 
   useEffect(() => {
@@ -22,7 +27,7 @@ export function useThemePreference() {
       storePreference(next);
       setMode(next);
     },
-    [setMode]
+    [setMode],
   );
 
   return { preference: preference ?? 'system', choose } as const;

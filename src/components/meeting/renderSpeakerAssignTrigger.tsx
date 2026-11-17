@@ -39,7 +39,13 @@ export function renderSpeakerAssignTrigger({
         trailingIcon={<ChevronDown className="size-3 shrink-0 text-muted-foreground" aria-hidden="true" />}
         className="-ml-1.5 min-w-0 w-full max-w-none flex-1 justify-start px-1.5"
       >
-        <span ref={nameRef} title={nameTruncated ? label : undefined} className="min-w-0 flex-1 truncate text-left text-sm font-medium text-foreground">{label}</span>
+        <span
+          ref={nameRef}
+          title={nameTruncated ? label : undefined}
+          className="min-w-0 flex-1 truncate text-left text-sm font-medium text-foreground"
+        >
+          {label}
+        </span>
       </Button>
     );
   }

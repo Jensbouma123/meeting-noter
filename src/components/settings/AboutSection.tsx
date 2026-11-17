@@ -22,26 +22,67 @@ export function AboutSection() {
   return (
     <>
       <SettingsGroup>
-        <SettingsRow label="Meeting Noter" description={t('aboutDescription')} control={<Text size="sm" variant="muted" font="mono">v{APP_VERSION}</Text>} />
+        <SettingsRow
+          label="Meeting Noter"
+          description={t('aboutDescription')}
+          control={
+            <Text size="sm" variant="muted" font="mono">
+              v{APP_VERSION}
+            </Text>
+          }
+        />
         <VStack spacing="xs" className="w-full p-4">
-          <Text size="xs" variant="muted">{t('privacy')}</Text>
+          <Text size="xs" variant="muted">
+            {t('privacy')}
+          </Text>
         </VStack>
       </SettingsGroup>
       <SettingsGroup>
         <SettingsRow
           label={tOnboarding('reopen.title')}
           description={tOnboarding('reopen.description')}
-          control={<Button variant="outline" onClick={restartOnboarding}>{tOnboarding('reopen.action')}</Button>}
+          control={
+            <Button variant="outline" onClick={restartOnboarding}>
+              {tOnboarding('reopen.action')}
+            </Button>
+          }
         />
       </SettingsGroup>
       <SettingsGroup>
-        <SettingsRow label={t('updates')} description={info?.notes || (info?.available ? '' : t(update.status === 'checking' ? 'checking' : update.status === 'error' ? 'checkFailed' : 'upToDate'))} control={null} />
-        {info?.notes && <Alert variant="info" layout="inline">{info.notes}</Alert>}
-        {info?.available && !info.canApply && <Alert variant="warning" layout="inline">{t('manual')}</Alert>}
+        <SettingsRow
+          label={t('updates')}
+          description={
+            info?.notes ||
+            (info?.available
+              ? ''
+              : t(update.status === 'checking' ? 'checking' : update.status === 'error' ? 'checkFailed' : 'upToDate'))
+          }
+          control={null}
+        />
+        {info?.notes && (
+          <Alert variant="info" layout="inline">
+            {info.notes}
+          </Alert>
+        )}
+        {info?.available && !info.canApply && (
+          <Alert variant="warning" layout="inline">
+            {t('manual')}
+          </Alert>
+        )}
         <div className="p-4 flex flex-wrap gap-2">
-          <Button variant="primary" onClick={() => void update.refresh()}>{t('checkAgain')}</Button>
-          {info?.available && info.pageUrl && <Button variant="outline" onClick={() => window.open(info.pageUrl, '_blank', 'noopener,noreferrer')}>{t('whatsNew')}</Button>}
-          {info?.available && <Button onClick={() => setOpen(true)} disabled={!info.canApply}>{t('updateNow')}</Button>}
+          <Button variant="primary" onClick={() => void update.refresh()}>
+            {t('checkAgain')}
+          </Button>
+          {info?.available && info.pageUrl && (
+            <Button variant="outline" onClick={() => window.open(info.pageUrl, '_blank', 'noopener,noreferrer')}>
+              {t('whatsNew')}
+            </Button>
+          )}
+          {info?.available && (
+            <Button onClick={() => setOpen(true)} disabled={!info.canApply}>
+              {t('updateNow')}
+            </Button>
+          )}
         </div>
       </SettingsGroup>
       <UpdateDialog open={open} onClose={() => setOpen(false)} />

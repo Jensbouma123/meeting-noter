@@ -27,14 +27,7 @@ describe('BrowserASREngine load progress', () => {
     expect(files.map((p) => p.done)).toEqual([0, 1, 2, 3]);
     expect(files.every((p) => p.total === 3)).toBe(true);
 
-    expect(progress.map((p) => p.stage)).toEqual([
-      'files',
-      'files',
-      'files',
-      'files',
-      'session',
-      'warmup',
-    ]);
+    expect(progress.map((p) => p.stage)).toEqual(['files', 'files', 'files', 'files', 'session', 'warmup']);
 
     expect(loadState.transcribeCalls).toEqual([16000]);
     expect(loadState.melResets).toBe(1);
@@ -63,26 +56,15 @@ describe('BrowserASREngine load progress', () => {
 
     loadState.hold = false;
     await loaded;
-    expect(progress.map((p) => p.stage)).toEqual([
-      'files',
-      'files',
-      'files',
-      'files',
-      'session',
-      'warmup',
-    ]);
+    expect(progress.map((p) => p.stage)).toEqual(['files', 'files', 'files', 'files', 'session', 'warmup']);
   });
 
   it('says the manifest is incomplete rather than inventing a file list, and fakes no progress', async () => {
-
     const { BrowserASREngine } = await import('./parakeet');
     const { progress, events } = recorder();
 
     await expect(
-      new BrowserASREngine(
-        { ...WASM, files: [] as unknown as typeof WASM.files },
-        events,
-      ).ensureLoaded(),
+      new BrowserASREngine({ ...WASM, files: [] as unknown as typeof WASM.files }, events).ensureLoaded(),
     ).rejects.toThrow(/manifest is missing required files/);
 
     expect(progress.filter((p) => p.stage === 'files')).toEqual([]);

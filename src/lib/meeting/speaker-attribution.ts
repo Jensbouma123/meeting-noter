@@ -33,7 +33,11 @@ export function publishLiveUpdate(
     start,
     end,
     final: update.final,
-    words: update.words.map((w) => ({ text: w.text, start: w.start / CAPTURE_SAMPLE_RATE, end: w.end / CAPTURE_SAMPLE_RATE })),
+    words: update.words.map((w) => ({
+      text: w.text,
+      start: w.start / CAPTURE_SAMPLE_RATE,
+      end: w.end / CAPTURE_SAMPLE_RATE,
+    })),
   };
   if (!timeline) {
     upsertSegment(seg);

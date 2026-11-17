@@ -30,9 +30,7 @@ export function useOnboardingModels(): OnboardingModels {
     const keys = list.map((e) => e.key);
     recordConsent('accepted', keys);
     const failedKeys = keys.filter((k) => entries[k]?.status === 'failed');
-    const run = failedKeys.length > 0
-      ? Promise.all(failedKeys.map((k) => retryDownload(k)))
-      : initiateDownloads();
+    const run = failedKeys.length > 0 ? Promise.all(failedKeys.map((k) => retryDownload(k))) : initiateDownloads();
     void run.catch(() => undefined);
   };
 

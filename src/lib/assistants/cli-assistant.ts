@@ -4,7 +4,11 @@ import type { AssistantDeps, CliAssistant, AssistantInfo, AssistantStatus, Conne
 
 async function statusOf(bin: string, deps: AssistantDeps): Promise<AssistantStatus> {
   const { ok, stdout } = await deps.runCli(bin, ['mcp', 'list']);
-  const listed = ok && stdout.split('\n').some((l) => l.trim().startsWith(`${MCP_SERVER_NAME}:`) || l.trim().startsWith(`${MCP_SERVER_NAME} `));
+  const listed =
+    ok &&
+    stdout
+      .split('\n')
+      .some((l) => l.trim().startsWith(`${MCP_SERVER_NAME}:`) || l.trim().startsWith(`${MCP_SERVER_NAME} `));
   if (!listed) return 'not-connected';
   return deps.fileExists(mcpScriptPath(deps.env, { exists: deps.fileExists })) ? 'connected' : 'needs-repair';
 }

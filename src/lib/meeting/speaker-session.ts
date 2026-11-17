@@ -15,6 +15,6 @@ export function saveSpeakerSession(): void {
   const { id, append } = session.speakerSession;
   const reported = takeReportedSpeakerStates();
   if (!id) return;
-  const kept = append ? loadSpeakerState(id) ?? {} : {};
+  const kept = append ? (loadSpeakerState(id) ?? {}) : {};
   saveSpeakerState(id, { ...kept, ...reported });
 }

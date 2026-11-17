@@ -23,7 +23,11 @@ describe('folders', () => {
     const c = db.createFolder('C', a.id);
     expect(a.name).toBe('A');
     expect(db.renameFolder(c.id, 'C2').name).toBe('C2');
-    expect(db.listFolders().map((f) => [f.name, f.parentId])).toEqual([['A', null], ['B', a.id], ['C2', a.id]]);
+    expect(db.listFolders().map((f) => [f.name, f.parentId])).toEqual([
+      ['A', null],
+      ['B', a.id],
+      ['C2', a.id],
+    ]);
     expect(b.sort).toBeLessThan(c.sort);
     expect(code(() => db.createFolder('  '))).toBe('bad-name');
     expect(code(() => db.createFolder('x', 'nope'))).toBe('bad-parent');
@@ -68,7 +72,12 @@ describe('folders', () => {
     db.upsert(sampleMeeting());
     db.moveMeeting('meeting-1', b.id);
     db.deleteFolder(b.id, 'move-up');
-    expect(db.listFolders().map((f) => f.id).sort()).toEqual([a.id, c.id].sort());
+    expect(
+      db
+        .listFolders()
+        .map((f) => f.id)
+        .sort(),
+    ).toEqual([a.id, c.id].sort());
     expect(db.listFolders().find((f) => f.id === c.id)!.parentId).toBe(a.id);
     expect(db.get('meeting-1')!.folderId).toBe(a.id);
     db.deleteFolder(a.id, 'move-up');
@@ -96,7 +105,9 @@ describe('folders', () => {
   it('migrates a folders table without roster columns to inherit', () => {
     const file = path.join(tmpDir(), 'roster-v7.db');
     const first = new MeetingsDb(file);
-    first.db.exec('ALTER TABLE folders DROP COLUMN roster; ALTER TABLE folders DROP COLUMN roster_inherit; PRAGMA user_version = 7');
+    first.db.exec(
+      'ALTER TABLE folders DROP COLUMN roster; ALTER TABLE folders DROP COLUMN roster_inherit; PRAGMA user_version = 7',
+    );
     first.close();
     const db = new MeetingsDb(file);
     const folder = db.createFolder('X');

@@ -16,10 +16,13 @@ export function readNotes(sessionId: string): Notes {
     const parsed = JSON.parse(raw) as Partial<Notes>;
     if (!parsed || !Array.isArray(parsed.actions) || !Array.isArray(parsed.decisions)) return { ...EMPTY_NOTES };
     return {
-      actions: parsed.actions.filter((item): item is ActionItem =>
-        !!item && typeof item.id === 'string' && typeof item.text === 'string' && typeof item.done === 'boolean'),
-      decisions: parsed.decisions.filter((item): item is Decision =>
-        !!item && typeof item.id === 'string' && typeof item.text === 'string'),
+      actions: parsed.actions.filter(
+        (item): item is ActionItem =>
+          !!item && typeof item.id === 'string' && typeof item.text === 'string' && typeof item.done === 'boolean',
+      ),
+      decisions: parsed.decisions.filter(
+        (item): item is Decision => !!item && typeof item.id === 'string' && typeof item.text === 'string',
+      ),
     };
   } catch {
     return { ...EMPTY_NOTES };

@@ -88,8 +88,14 @@ export function markdownFolderPath(folders: FolderRow[], folderId: string | null
   while (folder) {
     if (seen.has(folder.id)) return '';
     seen.add(folder.id);
-    const slug = folder.name.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'folder';
+    const slug =
+      folder.name
+        .normalize('NFKD')
+        .replace(/[̀-ͯ]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 60) || 'folder';
     const id = folder.id.replace(/[^A-Za-z0-9]/g, '').slice(0, 8) || 'folder';
     parts.unshift(`${slug}-${id}`);
     folder = folder.parentId ? byId.get(folder.parentId) : undefined;

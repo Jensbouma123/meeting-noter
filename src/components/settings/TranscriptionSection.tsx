@@ -6,10 +6,7 @@ import type { SettingsSectionProps } from './types';
 import { SettingsGroup } from './SettingsGroup';
 import { SettingsRow } from './SettingsRow';
 
-export function TranscriptionSection({
-  settings,
-  onSettingsChange,
-}: SettingsSectionProps) {
+export function TranscriptionSection({ settings, onSettingsChange }: SettingsSectionProps) {
   const t = useT('settings');
   const languageOptions = [
     { value: 'auto', label: t('autoDetect') },

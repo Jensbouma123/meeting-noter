@@ -1,10 +1,6 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  areModelFilesCached,
-  deleteModelCache,
-  downloadHfFileResumable,
-} from './resumable-download';
+import { areModelFilesCached, deleteModelCache, downloadHfFileResumable } from './resumable-download';
 import type { PinTestServer as Server } from './types/pin-test-server';
 import { FILE_STORE, installCacheHooks, readAllKeys } from './resumable-download.cache-fixtures';
 

@@ -31,7 +31,12 @@ describe('localStorage holds only unsent edits and the open meeting', () => {
     expect(localStorage.getItem(notesKey(closed))).toBeNull();
     expect(localStorage.getItem(transcriptKey(open))).not.toBeNull();
     expect(localStorage.getItem(notesKey(open))).not.toBeNull();
-    expect(store.listSessions().map((s) => s.title).sort()).toEqual(['Closed', 'Open']);
+    expect(
+      store
+        .listSessions()
+        .map((s) => s.title)
+        .sort(),
+    ).toEqual(['Closed', 'Open']);
 
     expect(await sync.ensureMeetingLoaded(closed)).toBe(true);
     expect(store.openSession(closed)?.segments.map((s) => s.text)).toEqual(['old news']);
@@ -46,7 +51,6 @@ describe('localStorage holds only unsent edits and the open meeting', () => {
     addAction(id, 'Write it up');
     await sync.flushServerSync();
     expect(localStorage.getItem(transcriptKey(id))).toBeNull();
-
 
     harness.online = false;
     store.renameSession(id, 'Kept whole v2');
@@ -69,7 +73,11 @@ describe('localStorage holds only unsent edits and the open meeting', () => {
     expect(await sync.searchMeetingIds('quarterly')).toBeNull();
     await sync.startServerSync();
     const store = { ...(await import('./session-crud')), ...(await import('./session-open')) };
-    const id = store.persistSession({ title: 'Finance', segments: [line('a', 'quarterly budget review', 0)], speakers: {} });
+    const id = store.persistSession({
+      title: 'Finance',
+      segments: [line('a', 'quarterly budget review', 0)],
+      speakers: {},
+    });
     await sync.flushServerSync();
     expect(localStorage.getItem(transcriptKey(id))).toBeNull();
     expect(await sync.searchMeetingIds('budget')).toEqual(new Set([id]));

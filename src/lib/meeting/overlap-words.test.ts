@@ -23,7 +23,15 @@ describe('overlapSpans', () => {
   });
 
   it('does not count a turn that ends where the next begins', () => {
-    expect(overlapSpans([{ speaker: 'a', start: 0, end: 2 }, { speaker: 'b', start: 2, end: 4 }], 0)).toEqual([]);
+    expect(
+      overlapSpans(
+        [
+          { speaker: 'a', start: 0, end: 2 },
+          { speaker: 'b', start: 2, end: 4 },
+        ],
+        0,
+      ),
+    ).toEqual([]);
   });
 });
 

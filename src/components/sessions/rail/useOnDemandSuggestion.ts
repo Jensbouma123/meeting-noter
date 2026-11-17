@@ -36,7 +36,13 @@ export function useOnDemandSuggestion(
       setPendingId(id);
       const contextVectors = await loadFolderContextVectors(folders);
       await new Promise((resolve) => setTimeout(resolve, 0));
-      const result = suggestFolderOnDemand(id, meetingFolders, (mid) => loadIndex(mid)?.vectors ?? null, contextVectors, (mid) => cachedCentroid(mid));
+      const result = suggestFolderOnDemand(
+        id,
+        meetingFolders,
+        (mid) => loadIndex(mid)?.vectors ?? null,
+        contextVectors,
+        (mid) => cachedCentroid(mid),
+      );
       setPendingId(null);
       if (!result) {
         toast.info(t('suggestNoMatch'));

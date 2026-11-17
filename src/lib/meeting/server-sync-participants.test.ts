@@ -28,7 +28,6 @@ describe('participants and speaker names are meeting data in the DB', () => {
 
     expect(JSON.parse(localStorage.getItem('mn.sync.pending.v1')!).save).toEqual([]);
 
-
     const draft = store.createDraftSession('Later');
     setParticipants(draft, []);
     await sync.flushServerSync();

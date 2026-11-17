@@ -18,7 +18,9 @@ export function buildCheck(info: InstallInfo, rel: Release | null, running: bool
     latest: available ? rel.version : null,
     available,
     name: available ? rel.name : null,
-    notes: available ? (rel.notes ?? (bundled as Record<string, string>)[rel.version] ?? null)?.slice(0, MAX_NOTES) ?? null : null,
+    notes: available
+      ? ((rel.notes ?? (bundled as Record<string, string>)[rel.version] ?? null)?.slice(0, MAX_NOTES) ?? null)
+      : null,
     publishedAt: available ? rel.publishedAt : null,
     pageUrl: available ? rel.pageUrl : null,
     installKind: info.kind,

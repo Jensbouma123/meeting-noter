@@ -18,7 +18,12 @@ describe('detectInstall', () => {
   it('recognises a curl install from MEETING_NOTER_ROOT or from the server cwd', () => {
     const root = makeInstallerRoot(dir);
     const viaEnv = detectInstall({ cwd: '/', env: { NODE_ENV: 'production', MEETING_NOTER_ROOT: root } });
-    expect(viaEnv).toMatchObject({ kind: 'installer', current: '0.2.3', arch: 'arm64', stateDir: path.join(root, 'logs') });
+    expect(viaEnv).toMatchObject({
+      kind: 'installer',
+      current: '0.2.3',
+      arch: 'arm64',
+      stateDir: path.join(root, 'logs'),
+    });
     const viaCwd = detectInstall({ cwd: path.join(root, 'app', 'server'), env: { NODE_ENV: 'production' } });
     expect(viaCwd.kind).toBe('installer');
   });
@@ -28,7 +33,10 @@ describe('detectInstall', () => {
     mkdirSync(path.join(repo, 'scripts'), { recursive: true });
     writeFileSync(path.join(repo, 'scripts', 'update.mjs'), '');
     const prod = { NODE_ENV: 'production' as const };
-    expect(detectInstall({ cwd: repo, env: prod, version: '1.0.0' })).toMatchObject({ kind: 'source', current: '1.0.0' });
+    expect(detectInstall({ cwd: repo, env: prod, version: '1.0.0' })).toMatchObject({
+      kind: 'source',
+      current: '1.0.0',
+    });
     mkdirSync(path.join(repo, '.git'));
     expect(detectInstall({ cwd: repo, env: prod }).kind).toBe('git');
     expect(detectInstall({ cwd: repo, env: { NODE_ENV: 'development' } }).kind).toBe('dev');

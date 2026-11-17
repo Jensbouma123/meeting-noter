@@ -3,7 +3,11 @@ import '@testing-library/jest-dom/vitest';
 import { cleanup, fireEvent, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { meeting } from './store';
-import { openAssignMenu as open, renderSpeakerAssign as view, resetSpeakerAssignState } from './SpeakerAssign.testUtils';
+import {
+  openAssignMenu as open,
+  renderSpeakerAssign as view,
+  resetSpeakerAssignState,
+} from './SpeakerAssign.testUtils';
 
 vi.mock('./store', () => ({ meeting: { renameSpeaker: vi.fn() } }));
 

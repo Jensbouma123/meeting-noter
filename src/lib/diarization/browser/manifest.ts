@@ -25,10 +25,7 @@ export const SPEAKER_EMBEDDER: DiarizationModelFile = Object.freeze({
   sizeBytes: 26_534_365,
 });
 
-export const DIARIZATION_TOTAL_SIZE_BYTES = DIARIZATION_MODELS.reduce(
-  (sum, f) => sum + f.sizeBytes,
-  0,
-);
+export const DIARIZATION_TOTAL_SIZE_BYTES = DIARIZATION_MODELS.reduce((sum, f) => sum + f.sizeBytes, 0);
 
 export function externalDataPath(file: DiarizationModelFile): string {
   return file.filename.slice(file.filename.lastIndexOf('/') + 1);

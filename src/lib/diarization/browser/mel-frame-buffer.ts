@@ -22,10 +22,7 @@ export class MelFrameBuffer {
   }
 
   slice(fromFrame: number, count: number): Float32Array {
-    return this.frames.slice(
-      (fromFrame - this.start) * NUM_MEL_BINS,
-      (fromFrame - this.start + count) * NUM_MEL_BINS,
-    );
+    return this.frames.slice((fromFrame - this.start) * NUM_MEL_BINS, (fromFrame - this.start + count) * NUM_MEL_BINS);
   }
 
   dropBefore(frame: number): void {

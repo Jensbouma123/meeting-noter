@@ -4,7 +4,15 @@ import { ParticipantChips } from './ParticipantChips';
 import { ParticipantPicker } from './ParticipantPicker';
 import type { ParticipantsListProps } from './ParticipantsList.types';
 
-export function ParticipantsList({ people, roster, folderName, selected, onChange, onCreate, placement }: ParticipantsListProps) {
+export function ParticipantsList({
+  people,
+  roster,
+  folderName,
+  selected,
+  onChange,
+  onCreate,
+  placement,
+}: ParticipantsListProps) {
   const toggle = (name: string) => {
     const key = name.toLowerCase();
     const exists = selected.some((item) => item.toLowerCase() === key);

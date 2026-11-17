@@ -10,12 +10,7 @@ import { useScrollToActiveMatch } from './useScrollToActiveMatch';
 import { useSearchHighlight } from './useSearchHighlight';
 import type { TranscriptSearchProps } from './TranscriptSearch.types';
 
-export function TranscriptSearch({
-  segments,
-  getScrollElement,
-  onClose,
-  onNavigatedAway,
-}: TranscriptSearchProps) {
+export function TranscriptSearch({ segments, getScrollElement, onClose, onNavigatedAway }: TranscriptSearchProps) {
   const t = useT('transcript');
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
@@ -41,7 +36,9 @@ export function TranscriptSearch({
       ? ''
       : matches.length === 0
         ? t('noResults')
-        : t('resultCount').replace('{current}', String(clampedActive + 1)).replace('{total}', String(matches.length));
+        : t('resultCount')
+            .replace('{current}', String(clampedActive + 1))
+            .replace('{total}', String(matches.length));
 
   return (
     <Card

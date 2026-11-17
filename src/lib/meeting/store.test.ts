@@ -41,7 +41,14 @@ describe('speaker labels when call audio never attached', () => {
 
 describe('saved sessions and overlaps', () => {
   const saved = (over: Partial<Segment> = {}): Segment => ({
-    id: 's', source: 'mic', speaker: 'mic:0', text: 'hi', start: 0, end: 1, final: true, ...over,
+    id: 's',
+    source: 'mic',
+    speaker: 'mic:0',
+    text: 'hi',
+    start: 0,
+    end: 1,
+    final: true,
+    ...over,
   });
 
   it('loads a session saved before overlaps, and keeps a saved overlap', () => {
@@ -55,7 +62,14 @@ describe('saved sessions and overlaps', () => {
 
   it('drops a malformed overlap rather than the line', () => {
     const bad = saved({ overlap: { start: 0, end: 1, speakers: 'mic:0' } as unknown as Segment['overlap'] });
-    loadIdleSession('bad', { segments: [bad, saved({ id: 't', overlap: null as unknown as Segment['overlap'] })], speakers: {}, startedAt: null });
-    expect(getState().segments.map((s) => [s.id, 'overlap' in s])).toEqual([['s', false], ['t', false]]);
+    loadIdleSession('bad', {
+      segments: [bad, saved({ id: 't', overlap: null as unknown as Segment['overlap'] })],
+      speakers: {},
+      startedAt: null,
+    });
+    expect(getState().segments.map((s) => [s.id, 'overlap' in s])).toEqual([
+      ['s', false],
+      ['t', false],
+    ]);
   });
 });

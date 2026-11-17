@@ -5,16 +5,20 @@ import type { LegacyEntry } from './types';
 
 const fetchWith = (state: string) =>
   vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) =>
-    Response.json(init?.method === 'POST' ? { ok: true } : { state })) as unknown as typeof fetch & ReturnType<typeof vi.fn>;
+    Response.json(init?.method === 'POST' ? { ok: true } : { state }),
+  ) as unknown as typeof fetch & ReturnType<typeof vi.fn>;
 
 describe('importLegacyOrigin', () => {
   beforeEach(() => localStorage.clear());
 
-  it.each(['none', 'busy', 'expired', 'done'])('does not touch the old origin when the server says %s', async (state) => {
-    const request = vi.fn();
-    expect(await importLegacyOrigin(window, fetchWith(state), request)).toBeNull();
-    expect(request).not.toHaveBeenCalled();
-  });
+  it.each(['none', 'busy', 'expired', 'done'])(
+    'does not touch the old origin when the server says %s',
+    async (state) => {
+      const request = vi.fn();
+      expect(await importLegacyOrigin(window, fetchWith(state), request)).toBeNull();
+      expect(request).not.toHaveBeenCalled();
+    },
+  );
 
   it('imports, then tells the server it is done', async () => {
     const f = fetchWith('listening');

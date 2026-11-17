@@ -6,10 +6,17 @@ import { ReleaseNotesDialog } from './ReleaseNotesDialog';
 import { RELEASES_PAGE_URL } from './constants';
 
 beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
-  HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
+  HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute('open', '');
+  };
+  HTMLDialogElement.prototype.close = function () {
+    this.removeAttribute('open');
+  };
 });
-afterEach(() => { cleanup(); vi.restoreAllMocks(); });
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
 describe('ReleaseNotesDialog without notes', () => {
   it('says so and links to the releases page when no page url is known', () => {

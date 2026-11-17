@@ -18,11 +18,11 @@ import type { ConsentDialogProps } from './types';
 
 export function ModelConsentDialog({ onDismiss }: ConsentDialogProps) {
   const t = useT('models');
-  const { entries, consentState: consent, dialogVisible } = useSyncExternalStore(
-    subscribeRegistry,
-    getState,
-    getServerSnapshot
-  );
+  const {
+    entries,
+    consentState: consent,
+    dialogVisible,
+  } = useSyncExternalStore(subscribeRegistry, getState, getServerSnapshot);
   const titleId = useId();
   const sizeKnown = useModelSizesKnown(entries);
   const preparation = useModelPreparation();
@@ -31,9 +31,7 @@ export function ModelConsentDialog({ onDismiss }: ConsentDialogProps) {
   const anyFailed = Object.values(entries).some((e) => e.status === 'failed');
   const preparing = isPreparing(preparation);
 
-  const modelsToShow = Object.values(entries).filter(
-    (e) => e.status !== 'cached' && e.status !== 'unavailable'
-  );
+  const modelsToShow = Object.values(entries).filter((e) => e.status !== 'cached' && e.status !== 'unavailable');
 
   const neverPrompted = consent === null || consent.decidedAt === null;
   const userDeclined = consent !== null && consent.choice === 'declined';

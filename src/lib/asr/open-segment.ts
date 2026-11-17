@@ -51,7 +51,14 @@ export class OpenSegment {
         words,
       });
     } else if (this.id !== null) {
-      updates.push({ id: this.id, text: this.shownText, startSample: bufferStart, endSample: end, final: true, words: [] });
+      updates.push({
+        id: this.id,
+        text: this.shownText,
+        startSample: bufferStart,
+        endSample: end,
+        final: true,
+        words: [],
+      });
     }
     this.clear();
   }

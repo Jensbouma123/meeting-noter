@@ -11,7 +11,11 @@ describe('server sync', () => {
     const sync = await loadSync();
     await sync.startServerSync();
     const sessions = { ...(await import('./session-crud')), ...(await import('./session-open')) };
-    const id = sessions.persistSession({ title: 'Filed sync', segments: [line('f1', 'folder survives', 0)], speakers: {} });
+    const id = sessions.persistSession({
+      title: 'Filed sync',
+      segments: [line('f1', 'folder survives', 0)],
+      speakers: {},
+    });
     await sync.flushServerSync();
 
     const { meetingStore } = await import('@/lib/meeting-db/meeting-store');
@@ -30,7 +34,8 @@ describe('server sync', () => {
     await sync.startServerSync();
     const sessions = { ...(await import('./session-crud')), ...(await import('./session-open')) };
     const id = sessions.persistSession({
-      title: 'Spans', speakers: {},
+      title: 'Spans',
+      speakers: {},
       segments: [{ ...line('w1', 'we ship with framna', 0), lowConfSpans: [[13, 19, 0.4]] }, line('w2', 'sure', 3)],
     });
     await sync.flushServerSync();
@@ -54,14 +59,27 @@ describe('server sync', () => {
   it('moves the browser meetings and an unfiled autosave into the DB once, and says so', async () => {
     const { persistSession } = await import('./session-crud');
     const { addDecision } = await import('./notes');
-    const a = persistSession({ title: 'Kickoff', segments: [line('a1', 'welcome everyone', 0)], speakers: {}, startedAt: 1_000 });
+    const a = persistSession({
+      title: 'Kickoff',
+      segments: [line('a1', 'welcome everyone', 0)],
+      speakers: {},
+      startedAt: 1_000,
+    });
     addDecision(a, 'Weekly demos on Thursday');
     persistSession({ title: 'Retro', segments: [line('b1', 'what went well', 0)], speakers: {} });
 
-    localStorage.setItem('mn.autosave.v1', JSON.stringify({
-      version: 1, savedAt: Date.now(), sessionId: 'crashed-1', title: 'Crashed call',
-      segments: [line('c1', 'lost words', 0)], speakers: {}, startedAt: null,
-    }));
+    localStorage.setItem(
+      'mn.autosave.v1',
+      JSON.stringify({
+        version: 1,
+        savedAt: Date.now(),
+        sessionId: 'crashed-1',
+        title: 'Crashed call',
+        segments: [line('c1', 'lost words', 0)],
+        speakers: {},
+        startedAt: null,
+      }),
+    );
 
     const sync = await loadSync();
     const events: unknown[] = [];
@@ -71,11 +89,15 @@ describe('server sync', () => {
     expect(events).toEqual([result]);
 
     const db = readDb();
-    expect(db.list().map((m) => m.title).sort()).toEqual(['Crashed call', 'Kickoff', 'Retro']);
+    expect(
+      db
+        .list()
+        .map((m) => m.title)
+        .sort(),
+    ).toEqual(['Crashed call', 'Kickoff', 'Retro']);
     expect(db.search('thursday').map((m) => m.id)).toEqual([a]);
     db.close();
     expect(fs.readdirSync(path.join(harness.dir, 'meetings'))).toHaveLength(3);
-
 
     expect(await sync.migrateBrowserMeetings()).toBeNull();
 
@@ -118,5 +140,4 @@ describe('server sync', () => {
     expect(db.get(id)).toBeNull();
     db.close();
   });
-
 });

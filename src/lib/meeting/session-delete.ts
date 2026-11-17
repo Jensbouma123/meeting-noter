@@ -24,13 +24,25 @@ export function sweepMeetingStorage(keepSessionId: string | null): void {
   try {
     const keep = new Set<string>();
     if (keepSessionId) {
-      for (const k of [sessionTranscriptKey(keepSessionId), speakerStateKey(keepSessionId), notesKey(keepSessionId), indexKey(keepSessionId), sessionParticipantsKey(keepSessionId)]) keep.add(k);
+      for (const k of [
+        sessionTranscriptKey(keepSessionId),
+        speakerStateKey(keepSessionId),
+        notesKey(keepSessionId),
+        indexKey(keepSessionId),
+        sessionParticipantsKey(keepSessionId),
+      ])
+        keep.add(k);
     }
     const doomed: string[] = [];
     for (let i = 0; i < localStorage.length; i += 1) {
       const key = localStorage.key(i);
       if (!key || keep.has(key)) continue;
-      if (/^mn\.(session\.|speaker-state\.|notes\.v1\.|semindex\.|semcentroid\.)/.test(key) || key === 'mn.semindex.ids.v1' || isSessionParticipantsKey(key)) doomed.push(key);
+      if (
+        /^mn\.(session\.|speaker-state\.|notes\.v1\.|semindex\.|semcentroid\.)/.test(key) ||
+        key === 'mn.semindex.ids.v1' ||
+        isSessionParticipantsKey(key)
+      )
+        doomed.push(key);
     }
     for (const key of doomed) localStorage.removeItem(key);
     invalidateIndexCache();
@@ -43,9 +55,7 @@ function dropOrphanedAutosave(sessionId: string, remainingIds: string[]): void {
   try {
     const autosaved = loadAutosavedSession();
     const orphaned =
-      autosaved &&
-      autosaved.sessionId !== getTranscriptSessionId() &&
-      !remainingIds.includes(autosaved.sessionId);
+      autosaved && autosaved.sessionId !== getTranscriptSessionId() && !remainingIds.includes(autosaved.sessionId);
     if (autosaved && (autosaved.sessionId === sessionId || orphaned)) {
       clearAutosavedSession();
     }
@@ -71,7 +81,10 @@ export function deleteSession(sessionId: string, opts: { deletedOnServer?: boole
 
   if (getTranscriptSessionId() === sessionId) clearIdleSession();
 
-  dropOrphanedAutosave(sessionId, index.sessions.map((s) => s.sessionId));
+  dropOrphanedAutosave(
+    sessionId,
+    index.sessions.map((s) => s.sessionId),
+  );
   return existingIdx >= 0;
 }
 

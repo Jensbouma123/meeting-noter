@@ -7,7 +7,10 @@ export function FolderSuggestionChip({ suggestion }: FolderSuggestionChipProps) 
   const tf = useFoldersT();
   const { folderLabel, onAccept, onDecline } = suggestion;
   return (
-    <div className="ml-3 mr-12 inline-flex w-fit max-w-[calc(100%-3.75rem)] items-center gap-1.5 rounded-md border border-border-soft bg-muted/40 px-2 py-1" data-testid="folder-suggestion">
+    <div
+      className="ml-3 mr-12 inline-flex w-fit max-w-[calc(100%-3.75rem)] items-center gap-1.5 rounded-md border border-border-soft bg-muted/40 px-2 py-1"
+      data-testid="folder-suggestion"
+    >
       <Folder aria-hidden="true" className="size-3.5 shrink-0 text-muted-foreground" />
       <span className="min-w-0 flex-1 whitespace-normal break-words text-xs leading-normal">
         <span className="text-muted-foreground">{tf('suggestIn').replace('{folder}', '').trim()}</span>{' '}

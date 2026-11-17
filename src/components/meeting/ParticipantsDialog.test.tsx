@@ -21,8 +21,12 @@ const search = () => screen.getByRole('combobox', { name: 'Search people' }) as 
 const seed = () => setParticipants('old', ['Anna', 'Piet', 'Sam', 'Els', 'Bram']);
 
 beforeAll(() => {
-  HTMLDialogElement.prototype.showModal ||= function (this: HTMLDialogElement) { this.setAttribute('open', ''); };
-  HTMLDialogElement.prototype.close ||= function (this: HTMLDialogElement) { this.removeAttribute('open'); };
+  HTMLDialogElement.prototype.showModal ||= function (this: HTMLDialogElement) {
+    this.setAttribute('open', '');
+  };
+  HTMLDialogElement.prototype.close ||= function (this: HTMLDialogElement) {
+    this.removeAttribute('open');
+  };
 });
 beforeEach(() => localStorage.clear());
 afterEach(cleanup);

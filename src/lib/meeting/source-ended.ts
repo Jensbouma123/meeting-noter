@@ -23,8 +23,7 @@ export async function degradeAfterSourceEnded(source: Source): Promise<void> {
   }
   await stopMeeting();
   setState({
-    error: source === 'system'
-      ? 'System audio share ended — session stopped'
-      : 'Microphone track ended — session stopped',
+    error:
+      source === 'system' ? 'System audio share ended — session stopped' : 'Microphone track ended — session stopped',
   });
 }

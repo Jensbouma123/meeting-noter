@@ -36,10 +36,7 @@ function readSpeakers(db: DatabaseSync, meetingId: string): Record<string, Speak
 export function readMeeting(db: DatabaseSync, id: string): StoredMeeting | null {
   const row = db.prepare('SELECT * FROM meetings WHERE id = ?').get(id);
   if (!row) return null;
-  const segments = db
-    .prepare('SELECT * FROM segments WHERE meeting_id = ? ORDER BY seq')
-    .all(id)
-    .map(toStoredSegment);
+  const segments = db.prepare('SELECT * FROM segments WHERE meeting_id = ? ORDER BY seq').all(id).map(toStoredSegment);
   return {
     id: str(row.id),
     title: str(row.title),

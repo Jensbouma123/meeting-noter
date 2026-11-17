@@ -19,23 +19,23 @@ function view(
   return (
     <ToastProvider>
       <TopBar
-          title="Standup"
-          onTitleChange={() => {}}
-          status={status}
-          startedAt={Date.now()}
-          stats={null}
-          language={{ code: 'en', name: 'English', locked: false, confidence: 1 }}
-          languageAuto
-          selectedLang="auto"
-          onPickLanguage={() => {}}
-          onOpenSettings={() => {}}
-          modelReadiness={modelReadiness}
-          modelProgress={modelProgress}
-          onClearTranscript={() => {}}
-          onOpenShare={() => {}}
-          updateAvailable
-          modelFailed
-        />
+        title="Standup"
+        onTitleChange={() => {}}
+        status={status}
+        startedAt={Date.now()}
+        stats={null}
+        language={{ code: 'en', name: 'English', locked: false, confidence: 1 }}
+        languageAuto
+        selectedLang="auto"
+        onPickLanguage={() => {}}
+        onOpenSettings={() => {}}
+        modelReadiness={modelReadiness}
+        modelProgress={modelProgress}
+        onClearTranscript={() => {}}
+        onOpenShare={() => {}}
+        updateAvailable
+        modelFailed
+      />
     </ToastProvider>
   );
 }

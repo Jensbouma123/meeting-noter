@@ -14,7 +14,10 @@ export function CreateFolderDialog({ initialParentId, folders, onClose, onCreate
       setError(t('nameRequired'));
       return;
     }
-    const duplicate = folders.some((folder) => folder.parentId === parentId && folder.name.trim().toLocaleLowerCase() === name.trim().toLocaleLowerCase());
+    const duplicate = folders.some(
+      (folder) =>
+        folder.parentId === parentId && folder.name.trim().toLocaleLowerCase() === name.trim().toLocaleLowerCase(),
+    );
     if (duplicate) {
       setError(t('nameDuplicate'));
       return;
@@ -29,8 +32,12 @@ export function CreateFolderDialog({ initialParentId, folders, onClose, onCreate
       title={t('newFolder')}
       footer={
         <div className="dialog-actions flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <Button variant="outline" onClick={onClose}>{t('cancel')}</Button>
-          <Button variant="primary" onClick={() => void submit()}>{t('create')}</Button>
+          <Button variant="outline" onClick={onClose}>
+            {t('cancel')}
+          </Button>
+          <Button variant="primary" onClick={() => void submit()}>
+            {t('create')}
+          </Button>
         </div>
       }
     >
@@ -72,7 +79,11 @@ export function CreateFolderDialog({ initialParentId, folders, onClose, onCreate
             setError('');
           }}
         />
-        {error && <Text role="alert" size="xs" variant="muted">{error}</Text>}
+        {error && (
+          <Text role="alert" size="xs" variant="muted">
+            {error}
+          </Text>
+        )}
       </VStack>
     </Modal>
   );

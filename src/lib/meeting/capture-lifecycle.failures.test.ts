@@ -90,15 +90,18 @@ describe('Capture: every acquired track is stopped', () => {
 describe('call audio reaches the transcript', () => {
   const handler = { onFrame: vi.fn(), onLevel: vi.fn(), onSourceEnded: vi.fn() };
 
-  it.each(['both', 'system'] as const)('Chrome/Edge still ask env.getDisplayMedia for audio in "%s" mode', async (mode) => {
-    const { Capture } = await import('./capture');
-    const cap = new Capture(handler);
-    await cap.start(mode);
-    expect(env.getDisplayMedia).toHaveBeenCalledTimes(1);
-    expect(env.getDisplayMedia).toHaveBeenCalledWith(expect.objectContaining({ audio: true }));
-    expect(cap.activeSources).toContain('system');
-    await cap.dispose();
-  });
+  it.each(['both', 'system'] as const)(
+    'Chrome/Edge still ask env.getDisplayMedia for audio in "%s" mode',
+    async (mode) => {
+      const { Capture } = await import('./capture');
+      const cap = new Capture(handler);
+      await cap.start(mode);
+      expect(env.getDisplayMedia).toHaveBeenCalledTimes(1);
+      expect(env.getDisplayMedia).toHaveBeenCalledWith(expect.objectContaining({ audio: true }));
+      expect(cap.activeSources).toContain('system');
+      await cap.dispose();
+    },
+  );
 
   it('Safari never asks env.getUserMedia because WebKit can disrupt another call', async () => {
     installBrowser(SAFARI);

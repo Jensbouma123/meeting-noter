@@ -6,6 +6,9 @@ export function declineFolderSuggestionRow(db: DatabaseSync, meetingId: string, 
   if (!row) return false;
   const declined = parseJson<string[]>(row.declined, []);
   if (!declined.includes(folderId)) declined.push(folderId);
-  db.prepare('UPDATE meetings SET folder_suggestion_declined = ? WHERE id = ?').run(JSON.stringify(declined), meetingId);
+  db.prepare('UPDATE meetings SET folder_suggestion_declined = ? WHERE id = ?').run(
+    JSON.stringify(declined),
+    meetingId,
+  );
   return true;
 }

@@ -6,7 +6,12 @@ import type { RailHeaderProps } from './types';
 export function RailHeader({ sessionCount, open, onNewSession, onToggle }: RailHeaderProps) {
   const t = useT('sidebar');
   return (
-    <HStack as="header" spacing="sm" justify="between" className="h-14 box-border shrink-0 border-b border-border-subtle px-3">
+    <HStack
+      as="header"
+      spacing="sm"
+      justify="between"
+      className="h-14 box-border shrink-0 border-b border-border-subtle px-3"
+    >
       <HStack spacing="sm" className="min-w-0 flex-1">
         <Video className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
         <Heading as="span" size="xs" variant="muted" weight="semibold" truncate>

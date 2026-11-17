@@ -46,9 +46,7 @@ describe('diarization downloader', () => {
 
   it('fetches the embedder separately', async () => {
     await ensureSpeakerEmbedderCached();
-    expect(mocks.ensured).toEqual([
-      'csukuangfj/speaker-embedding-models:wespeaker_en_voxceleb_resnet34.onnx',
-    ]);
+    expect(mocks.ensured).toEqual(['csukuangfj/speaker-embedding-models:wespeaker_en_voxceleb_resnet34.onnx']);
   });
 
   it('does not need the embedder to start Sortformer', async () => {

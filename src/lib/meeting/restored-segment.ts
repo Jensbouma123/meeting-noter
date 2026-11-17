@@ -4,7 +4,8 @@ export function restoredSegment(seg: Segment): Segment {
   if (seg.overlap === undefined) return seg;
   const o = seg.overlap as Partial<Record<keyof NonNullable<Segment['overlap']>, unknown>> | null;
   const valid =
-    typeof o === 'object' && o !== null &&
+    typeof o === 'object' &&
+    o !== null &&
     typeof o.start === 'number' &&
     typeof o.end === 'number' &&
     Array.isArray(o.speakers) &&

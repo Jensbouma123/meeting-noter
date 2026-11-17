@@ -6,7 +6,10 @@ const cwd = '/Apps/Meeting Noter/app/server';
 const packaged = '/Apps/Meeting Noter/app/mcp/meetings-mcp.mjs';
 const bundledNode = '/Apps/Meeting Noter/app/node/bin/node';
 const noEnv = {} as NodeJS.ProcessEnv;
-const probe = (...files: string[]) => (f: string) => files.includes(f);
+const probe =
+  (...files: string[]) =>
+  (f: string) =>
+    files.includes(f);
 
 describe('MCP path resolution', () => {
   it('prefers the packaged script next to the server dir', () => {
@@ -25,11 +28,16 @@ describe('MCP path resolution', () => {
   });
 
   it('honours the env override', () => {
-    expect(mcpScriptPath({ NODE_ENV: 'test', MEETING_NOTER_MCP_PATH: '/x.mjs' }, { cwd, exists: probe(packaged) })).toBe('/x.mjs');
+    expect(
+      mcpScriptPath({ NODE_ENV: 'test', MEETING_NOTER_MCP_PATH: '/x.mjs' }, { cwd, exists: probe(packaged) }),
+    ).toBe('/x.mjs');
   });
 
   it('uses the bundled node when present, else node on PATH', () => {
-    expect(mcpEntry(noEnv, { cwd, exists: probe(packaged, bundledNode) })).toEqual({ command: bundledNode, args: [packaged] });
+    expect(mcpEntry(noEnv, { cwd, exists: probe(packaged, bundledNode) })).toEqual({
+      command: bundledNode,
+      args: [packaged],
+    });
     expect(mcpEntry(noEnv, { cwd: '/repo', exists: probe() }).command).toBe('node');
   });
 });

@@ -25,7 +25,10 @@ export function createAppClient(app) {
     while (Date.now() < until) {
       await sleep(500);
       const s = await getJson(`${app}/api/app/update/status`);
-      if (!s) { phases.add('(server down)'); continue; }
+      if (!s) {
+        phases.add('(server down)');
+        continue;
+      }
       if (s.phase) phases.add(s.phase);
       if (s.state === 'done' || s.state === 'failed') return { started, final: s, phases: [...phases] };
     }

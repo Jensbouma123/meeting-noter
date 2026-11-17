@@ -1,9 +1,4 @@
-import {
-  forceWasmBackend,
-  openDialog,
-  registerDefaultModels,
-  resetConsent,
-} from '@/lib/asr/browser';
+import { forceWasmBackend, openDialog, registerDefaultModels, resetConsent } from '@/lib/asr/browser';
 import { getAsrModelFamily, setAsrModelFamily, type AsrModelFamily } from '@/lib/asr/browser/model-family';
 import { isPostStopTranscriptionRunning } from '../post-stop-progress';
 import { SMALL_MODEL_AFTER_CRASH_DESCRIPTION } from './constants';

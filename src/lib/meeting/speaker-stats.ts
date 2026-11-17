@@ -12,10 +12,7 @@ function fallbackSpeaker(id: string): Speaker {
   };
 }
 
-export function computeSpeakerStats(
-  segments: Segment[],
-  speakers: Record<string, Speaker>
-): SpeakerStat[] {
+export function computeSpeakerStats(segments: Segment[], speakers: Record<string, Speaker>): SpeakerStat[] {
   const times: Record<string, number> = {};
 
   for (const seg of segments) {

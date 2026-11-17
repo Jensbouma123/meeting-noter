@@ -2,7 +2,13 @@
 import '@testing-library/jest-dom/vitest';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ACK_STORAGE_KEY, AUTOCLOSE_STORAGE_KEY, ASSISTANT_SEEN_STORAGE_KEY, ONBOARDING_STORAGE_KEY, finishOnboarding } from '@/lib/onboarding/store';
+import {
+  ACK_STORAGE_KEY,
+  AUTOCLOSE_STORAGE_KEY,
+  ASSISTANT_SEEN_STORAGE_KEY,
+  ONBOARDING_STORAGE_KEY,
+  finishOnboarding,
+} from '@/lib/onboarding/store';
 import { registerOnboardingTestEnv } from './OnboardingDialog.testSupport';
 import { OnboardingDialog } from './OnboardingDialog';
 
@@ -10,12 +16,21 @@ registerOnboardingTestEnv();
 
 const LIST = {
   assistants: [
-    { id: 'claude-desktop', status: 'not-connected', canAutoConnect: true, manualCommand: null, configPath: '/cfg.json' },
+    {
+      id: 'claude-desktop',
+      status: 'not-connected',
+      canAutoConnect: true,
+      manualCommand: null,
+      configPath: '/cfg.json',
+    },
   ],
 };
 
 beforeEach(() => {
-  vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => LIST })));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => ({ ok: true, json: async () => LIST })),
+  );
 });
 afterEach(() => vi.unstubAllGlobals());
 

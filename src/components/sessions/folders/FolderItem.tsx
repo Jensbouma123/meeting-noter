@@ -9,7 +9,19 @@ import { useFoldersT } from './useFoldersT';
 import type { FolderItemProps } from './types';
 
 export function FolderItem(props: FolderItemProps) {
-  const { node, depth, controller, counts, byFolder, collapsed, onToggle, visible, onShowMore, renderSession, onNewSession } = props;
+  const {
+    node,
+    depth,
+    controller,
+    counts,
+    byFolder,
+    collapsed,
+    onToggle,
+    visible,
+    onShowMore,
+    renderSession,
+    onNewSession,
+  } = props;
   const t = useFoldersT();
   const { folder } = node;
   const expanded = !collapsed.has(folder.id);
@@ -35,7 +47,12 @@ export function FolderItem(props: FolderItemProps) {
           <ChevronRight className={`size-4 transition-transform ${expanded ? 'rotate-90' : ''}`} />
         </span>
         {renaming ? (
-          <RenameInput initial={folder.name} label={t('name')} onDone={(name) => void controller.rename(folder.id, name)} onCancel={() => controller.setRenamingId(null)} />
+          <RenameInput
+            initial={folder.name}
+            label={t('name')}
+            onDone={(name) => void controller.rename(folder.id, name)}
+            onCancel={() => controller.setRenamingId(null)}
+          />
         ) : (
           <button
             type="button"
@@ -46,9 +63,17 @@ export function FolderItem(props: FolderItemProps) {
             }}
             className={`flex min-w-0 flex-1 items-center gap-2 rounded-md py-1.5 text-left text-sm ${FOCUS}`}
           >
-            {expanded ? <FolderOpen className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" /> : <Folder className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />}
+            {expanded ? (
+              <FolderOpen className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+            ) : (
+              <Folder className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+            )}
             <span className="truncate">{folder.name}</span>
-            {(counts.get(folder.id) ?? 0) > 0 && <Badge variant="neutral" size="xs">{counts.get(folder.id)}</Badge>}
+            {(counts.get(folder.id) ?? 0) > 0 && (
+              <Badge variant="neutral" size="xs">
+                {counts.get(folder.id)}
+              </Badge>
+            )}
           </button>
         )}
         {onNewSession && (
@@ -79,7 +104,9 @@ export function FolderItem(props: FolderItemProps) {
           ))}
           {allMeetings.length > meetings.length && (
             <li style={{ paddingLeft: childIndent }}>
-              <Button variant="ghost" size="sm" onClick={() => onShowMore(folder.id)}>{t('showMore')}</Button>
+              <Button variant="ghost" size="sm" onClick={() => onShowMore(folder.id)}>
+                {t('showMore')}
+              </Button>
             </li>
           )}
         </ul>

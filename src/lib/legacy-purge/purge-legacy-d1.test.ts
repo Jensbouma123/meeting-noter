@@ -28,9 +28,7 @@ async function count(store: string, key: string): Promise<number> {
   return new Promise((resolve, reject) => {
     const objectStore = db.transaction(store, 'readonly').objectStore(store);
     const request =
-      store === CHUNK_STORE
-        ? objectStore.count(IDBKeyRange.bound([key, 0], [key, 99]))
-        : objectStore.count(key);
+      store === CHUNK_STORE ? objectStore.count(IDBKeyRange.bound([key, 0], [key, 99])) : objectStore.count(key);
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });

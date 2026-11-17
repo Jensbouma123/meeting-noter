@@ -27,7 +27,9 @@ export function useBannerState(isRecording: boolean): BannerState {
   const update = useUpdate(isRecording);
   const preview = usePreview() === 'update';
   const [previewDismissed, setPreviewDismissed] = useState(false);
-  if (preview) return { info: previewDismissed ? null : sampleInfo(), preview, dismiss: () => setPreviewDismissed(true) };
-  const info = update.info?.available && update.info.latest && update.dismissedVersion !== update.info.latest ? update.info : null;
+  if (preview)
+    return { info: previewDismissed ? null : sampleInfo(), preview, dismiss: () => setPreviewDismissed(true) };
+  const info =
+    update.info?.available && update.info.latest && update.dismissedVersion !== update.info.latest ? update.info : null;
   return { info, preview, dismiss: update.dismiss };
 }

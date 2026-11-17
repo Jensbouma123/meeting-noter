@@ -8,7 +8,10 @@ import type { Segment } from '@/lib/meeting/types';
 
 describe('NotesPanel', () => {
   const sessionId = 'notes-panel-test';
-  afterEach(() => { cleanup(); window.localStorage.removeItem(notesKey(sessionId)); });
+  afterEach(() => {
+    cleanup();
+    window.localStorage.removeItem(notesKey(sessionId));
+  });
 
   it('shows no input until Add is clicked, Enter saves, Escape cancels', () => {
     render(<NotesPanel sessionId={sessionId} />);
@@ -16,7 +19,9 @@ describe('NotesPanel', () => {
     expect(screen.getByText('No action items yet.')).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: 'Add action item' }));
-    fireEvent.change(screen.getByRole('textbox', { name: 'Add action item' }), { target: { value: 'Send the follow-up' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Add action item' }), {
+      target: { value: 'Send the follow-up' },
+    });
     fireEvent.keyDown(screen.getByRole('textbox', { name: 'Add action item' }), { key: 'Enter' });
     expect(getNotes(sessionId).actions).toMatchObject([{ text: 'Send the follow-up', done: false }]);
     expect(screen.queryByRole('textbox')).toBeNull();
@@ -47,10 +52,14 @@ describe('NotesPanel', () => {
   });
 
   it('collapses suggestions, then adds or dismisses a full-sentence one', () => {
-    const seg = (id: string, text: string): Segment => ({ id, text, speakerId: 's', startMs: 0, endMs: 1 } as unknown as Segment);
-    render(<NotesPanel sessionId={sessionId} segments={[
-      seg('a', "I'll send the action item tomorrow."), seg('b', 'Graag even doen.'),
-    ]} />);
+    const seg = (id: string, text: string): Segment =>
+      ({ id, text, speakerId: 's', startMs: 0, endMs: 1 }) as unknown as Segment;
+    render(
+      <NotesPanel
+        sessionId={sessionId}
+        segments={[seg('a', "I'll send the action item tomorrow."), seg('b', 'Graag even doen.')]}
+      />,
+    );
     const toggle = screen.getByRole('button', { name: 'Suggestions (1)' });
     expect(toggle.getAttribute('aria-expanded')).toBe('false');
     expect(screen.queryByRole('button', { name: /Add suggestion/ })).toBeNull();

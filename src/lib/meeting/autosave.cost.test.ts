@@ -24,7 +24,9 @@ describe('autosave tick cost', () => {
     const transcriptWrites = setItem.mock.calls.filter(([k]) => k === sessionTranscriptKey('a'));
     expect(transcriptWrites).toHaveLength(1);
     expect(setItem.mock.calls.filter(([k]) => k.startsWith('mn.autosave'))).toHaveLength(0);
-    expect(stringify.mock.calls.filter(([v]) => (v as { segments?: unknown[] })?.segments?.length === 6)).toHaveLength(1);
+    expect(stringify.mock.calls.filter(([v]) => (v as { segments?: unknown[] })?.segments?.length === 6)).toHaveLength(
+      1,
+    );
   });
 
   it('restores through the pointer slot and still reads legacy inline slots', async () => {
@@ -34,7 +36,15 @@ describe('autosave tick cost', () => {
     expect(loadAutosavedSession()?.segments).toHaveLength(3);
     localStorage.setItem(
       AUTOSAVE_KEY,
-      JSON.stringify({ version: 1, savedAt: Date.now(), sessionId: 'old', title: 'T', segments: big('old', 2).segments, speakers: {}, startedAt: null }),
+      JSON.stringify({
+        version: 1,
+        savedAt: Date.now(),
+        sessionId: 'old',
+        title: 'T',
+        segments: big('old', 2).segments,
+        speakers: {},
+        startedAt: null,
+      }),
     );
     expect(loadAutosavedSession()).toMatchObject({ sessionId: 'old' });
     expect(loadAutosavedSession()?.segments).toHaveLength(2);

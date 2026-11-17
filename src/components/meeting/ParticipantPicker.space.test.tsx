@@ -12,8 +12,14 @@ describe('ParticipantPicker space handling', () => {
     const onToggle = vi.fn();
     render(
       <LanguageContext.Provider value="en">
-        <ParticipantPicker people={['Anna', 'Piet']} roster={[]} folderName={null} selected={[]}
-          onToggle={onToggle} onCreate={vi.fn()} />
+        <ParticipantPicker
+          people={['Anna', 'Piet']}
+          roster={[]}
+          folderName={null}
+          selected={[]}
+          onToggle={onToggle}
+          onCreate={vi.fn()}
+        />
       </LanguageContext.Provider>,
     );
     fireEvent.mouseEnter(screen.getByRole('option', { name: 'Anna' }));

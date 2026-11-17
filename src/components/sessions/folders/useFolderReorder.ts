@@ -18,20 +18,23 @@ export function useFolderReorder({ folders, setFolders, report, refresh }: Folde
     },
     [folders],
   );
-  const previewReorder = useCallback((targetId: string) => {
-    const dragId = dragFolderId.current;
-    if (!dragId || dragId === targetId) return;
-    setFolders((prev) => {
-      const dragged = prev.find((f) => f.id === dragId);
-      const target = prev.find((f) => f.id === targetId);
-      if (!dragged || !target || dragged.parentId !== target.parentId) return prev;
-      const from = prev.indexOf(dragged);
-      const rest = prev.filter((f) => f !== dragged);
-      const at = rest.indexOf(target) + (from < prev.indexOf(target) ? 1 : 0);
-      reordered.current = true;
-      return [...rest.slice(0, at), dragged, ...rest.slice(at)];
-    });
-  }, [setFolders]);
+  const previewReorder = useCallback(
+    (targetId: string) => {
+      const dragId = dragFolderId.current;
+      if (!dragId || dragId === targetId) return;
+      setFolders((prev) => {
+        const dragged = prev.find((f) => f.id === dragId);
+        const target = prev.find((f) => f.id === targetId);
+        if (!dragged || !target || dragged.parentId !== target.parentId) return prev;
+        const from = prev.indexOf(dragged);
+        const rest = prev.filter((f) => f !== dragged);
+        const at = rest.indexOf(target) + (from < prev.indexOf(target) ? 1 : 0);
+        reordered.current = true;
+        return [...rest.slice(0, at), dragged, ...rest.slice(at)];
+      });
+    },
+    [setFolders],
+  );
   const commitReorder = useCallback(() => {
     const dragId = dragFolderId.current;
     dragFolderId.current = null;

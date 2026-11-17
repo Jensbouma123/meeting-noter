@@ -9,4 +9,3 @@ export interface Server {
   bodyFetches: number;
   sidecarFetches: number;
 }
-

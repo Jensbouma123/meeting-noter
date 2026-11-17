@@ -18,13 +18,7 @@ import { AssistantSection } from '@/components/settings/AssistantSection';
 import { AppearanceSection } from '@/components/settings/AppearanceSection';
 import { AboutSection } from '@/components/settings/AboutSection';
 
-export function SettingsSheet({
-  open,
-  onClose,
-  settings,
-  onSettingsChange,
-  section,
-}: SettingsSheetProps) {
+export function SettingsSheet({ open, onClose, settings, onSettingsChange, section }: SettingsSheetProps) {
   const [activeSection, setActiveSection] = useState<SettingsSectionId>(DEFAULT_SETTINGS_SECTION);
   const [hydrated, setHydrated] = useState(false);
   const [prevOpen, setPrevOpen] = useState(open);
@@ -55,9 +49,7 @@ export function SettingsSheet({
       onSectionChange={selectSection}
       alertSections={modelFailed ? ['advanced'] : []}
     >
-      {activeSection === 'general' && (
-        <GeneralSection settings={settings} onSettingsChange={onSettingsChange} />
-      )}
+      {activeSection === 'general' && <GeneralSection settings={settings} onSettingsChange={onSettingsChange} />}
       {activeSection === 'theme' && <AppearanceSection />}
       {activeSection === 'vocabulary' && <VocabularySection />}
       {activeSection === 'advanced' && <AdvancedSection />}

@@ -10,19 +10,39 @@ import { AssistantLogo } from './AssistantLogo';
 import { SettingsRow } from './SettingsRow';
 import type { AssistantCardProps } from './Assistant.types';
 
-const BADGE = { connected: 'success', 'needs-repair': 'warning', 'not-connected': 'neutral', 'not-found': 'warning' } as const;
+const BADGE = {
+  connected: 'success',
+  'needs-repair': 'warning',
+  'not-connected': 'neutral',
+  'not-found': 'warning',
+} as const;
 
-export function AssistantCard({ assistant, busy, error, confirm, restartNotice, onConnect, onDisconnect, onCancelConfirm }: AssistantCardProps) {
+export function AssistantCard({
+  assistant,
+  busy,
+  error,
+  confirm,
+  restartNotice,
+  onConnect,
+  onDisconnect,
+  onCancelConfirm,
+}: AssistantCardProps) {
   const t = useT('assistant');
   const { id, status, canAutoConnect, manualCommand, configPath } = assistant;
   const isDesktop = id === 'claude-desktop';
   const control =
     status === 'needs-repair' ? (
-      <Button onClick={() => onConnect(false)} disabled={busy || !!confirm}>{t('repair')}</Button>
+      <Button onClick={() => onConnect(false)} disabled={busy || !!confirm}>
+        {t('repair')}
+      </Button>
     ) : status === 'connected' ? (
-      <Button variant="danger" onClick={onDisconnect} disabled={busy}>{t('disconnect')}</Button>
+      <Button variant="danger" onClick={onDisconnect} disabled={busy}>
+        {t('disconnect')}
+      </Button>
     ) : status === 'not-found' ? null : canAutoConnect ? (
-      <Button onClick={() => onConnect(false)} disabled={busy || !!confirm}>{t('connect')}</Button>
+      <Button onClick={() => onConnect(false)} disabled={busy || !!confirm}>
+        {t('connect')}
+      </Button>
     ) : manualCommand ? (
       <AssistantCopyButton text={manualCommand} label={t('copyCommand')} />
     ) : null;
@@ -34,18 +54,35 @@ export function AssistantCard({ assistant, busy, error, confirm, restartNotice, 
           <span className="flex items-center gap-3">
             <AssistantLogo id={id} />
             {ASSISTANT_NAMES[id]}
-            <Badge variant={BADGE[status]} size="sm">{t(`status.${status}`)}</Badge>
+            <Badge variant={BADGE[status]} size="sm">
+              {t(`status.${status}`)}
+            </Badge>
           </span>
         }
         description={t(status === 'not-found' ? 'notFoundHint' : `hint.${id}`)}
         control={control}
-        footer={(configPath || manualCommand) && <AssistantDetails configPath={configPath} manualCommand={manualCommand} />}
+        footer={
+          (configPath || manualCommand) && <AssistantDetails configPath={configPath} manualCommand={manualCommand} />
+        }
       />
       {isDesktop && confirm && (
-        <AssistantConfirm backupPath={confirm.backupPath} busy={busy} onConfirm={() => onConnect(true)} onCancel={onCancelConfirm} />
+        <AssistantConfirm
+          backupPath={confirm.backupPath}
+          busy={busy}
+          onConfirm={() => onConnect(true)}
+          onCancel={onCancelConfirm}
+        />
       )}
-      {restartNotice && <Text size="xs" variant="muted" className="px-4 pb-3">{t(`restart.${id}`)}</Text>}
-      {error && <Alert variant="danger" layout="inline">{t('error')}</Alert>}
+      {restartNotice && (
+        <Text size="xs" variant="muted" className="px-4 pb-3">
+          {t(`restart.${id}`)}
+        </Text>
+      )}
+      {error && (
+        <Alert variant="danger" layout="inline">
+          {t('error')}
+        </Alert>
+      )}
     </div>
   );
 }

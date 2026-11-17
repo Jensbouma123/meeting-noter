@@ -1,6 +1,12 @@
 import type { RescoreWindow } from '../types/rescore';
 
-function channelLabels(windows: RescoreWindow[], labels: Int32Array, k: number, frames: number, fallback: number): Int32Array {
+function channelLabels(
+  windows: RescoreWindow[],
+  labels: Int32Array,
+  k: number,
+  frames: number,
+  fallback: number,
+): Int32Array {
   const ws = windows
     .map((w, i) => ({ c: 0.5 * (w.start + w.end), l: labels[i], k: w.channel }))
     .filter((w) => w.k === k)

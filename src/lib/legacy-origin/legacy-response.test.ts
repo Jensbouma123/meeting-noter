@@ -5,9 +5,12 @@ const opts = { port: 3000, appPort: 47823, version: '0.6.0' };
 const get = (url: string, host = 'localhost:3000', method = 'GET') => legacyResponse(method, url, host, opts);
 
 describe('legacyResponse (the one-time listener on the old port)', () => {
-  it.each(['evil.example:3000', 'localhost:47823', 'localhost', '127.0.0.1:3000.evil', ''])('refuses Host %j', (host) => {
-    expect(get('/legacy-export', host).status).toBe(403);
-  });
+  it.each(['evil.example:3000', 'localhost:47823', 'localhost', '127.0.0.1:3000.evil', ''])(
+    'refuses Host %j',
+    (host) => {
+      expect(get('/legacy-export', host).status).toBe(403);
+    },
+  );
 
   it('refuses anything but GET and HEAD', () => {
     expect(get('/api/app/status', 'localhost:3000', 'POST').status).toBe(405);

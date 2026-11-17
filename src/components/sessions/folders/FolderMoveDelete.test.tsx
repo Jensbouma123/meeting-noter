@@ -58,7 +58,9 @@ describe('moving folders', () => {
     await screen.findByText('Home');
     const list = await openMovePicker('Home');
     fireEvent.click(within(list).getByRole('button', { name: /Work/ }));
-    await waitFor(() => expect(mutations('PATCH')[0]).toMatchObject({ url: '/api/folders/c', body: JSON.stringify({ parentId: 'a' }) }));
+    await waitFor(() =>
+      expect(mutations('PATCH')[0]).toMatchObject({ url: '/api/folders/c', body: JSON.stringify({ parentId: 'a' }) }),
+    );
   });
 });
 

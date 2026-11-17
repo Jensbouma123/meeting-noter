@@ -1,6 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Segment } from './types';
-import { addAction, addDecision, getNotes, getNotesSnapshot, openCount, subscribeNotesSnapshot, removeAction, removeDecision, updateAction } from './notes';
+import {
+  addAction,
+  addDecision,
+  getNotes,
+  getNotesSnapshot,
+  openCount,
+  subscribeNotesSnapshot,
+  removeAction,
+  removeDecision,
+  updateAction,
+} from './notes';
 import { notesKey, subscribe } from './notes-storage';
 import { suggestFromSegments } from './note-suggestions';
 
@@ -16,7 +26,13 @@ function installStorage() {
 }
 
 const seg = (id: string, text: string): Segment => ({
-  id, text, source: 'mic', speaker: 'mic:0', start: 0, end: 1, final: true,
+  id,
+  text,
+  source: 'mic',
+  speaker: 'mic:0',
+  start: 0,
+  end: 1,
+  final: true,
 });
 
 describe('meeting notes', () => {
@@ -26,9 +42,19 @@ describe('meeting notes', () => {
   it('creates, updates, removes notes, persists them, and notifies subscribers', () => {
     const listener = vi.fn();
     const unsubscribe = subscribe('session', listener);
-    const action = addAction('session', 'Send the deck', { ownerName: 'Sam', due: '2026-11-12', sourceSegmentId: 's1' });
+    const action = addAction('session', 'Send the deck', {
+      ownerName: 'Sam',
+      due: '2026-11-12',
+      sourceSegmentId: 's1',
+    });
     expect(listener).toHaveBeenCalledTimes(1);
-    expect(action).toMatchObject({ text: 'Send the deck', ownerName: 'Sam', due: '2026-11-12', done: false, sourceSegmentId: 's1' });
+    expect(action).toMatchObject({
+      text: 'Send the deck',
+      ownerName: 'Sam',
+      due: '2026-11-12',
+      done: false,
+      sourceSegmentId: 's1',
+    });
     expect(getNotes('session').actions).toEqual([action]);
     expect(openCount('session')).toBe(1);
 
@@ -66,19 +92,23 @@ describe('meeting notes', () => {
       seg('neutral', 'We had a useful conversation today.'),
     ]);
     expect(suggestions).toHaveLength(2);
-    expect(suggestions).toEqual(expect.arrayContaining([
-      expect.objectContaining({ text: 'Actiepunt: ik pak de planning op.', sourceSegmentId: 'nl' }),
-      expect.objectContaining({ text: "I'll send the action item tomorrow.", sourceSegmentId: 'en' }),
-    ]));
+    expect(suggestions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ text: 'Actiepunt: ik pak de planning op.', sourceSegmentId: 'nl' }),
+        expect.objectContaining({ text: "I'll send the action item tomorrow.", sourceSegmentId: 'en' }),
+      ]),
+    );
     expect(getNotes('session')).toEqual({ actions: [], decisions: [] });
   });
 
   it('matches Dutch and English decision cues without suggesting neutral lines', () => {
-    expect(suggestFromSegments([
-      seg('nl', 'We besluiten om maandag te starten.'),
-      seg('en', 'Agreed, we will start Monday.'),
-      seg('neutral', 'Monday is the first day of the week.'),
-    ])).toHaveLength(2);
+    expect(
+      suggestFromSegments([
+        seg('nl', 'We besluiten om maandag te starten.'),
+        seg('en', 'Agreed, we will start Monday.'),
+        seg('neutral', 'Monday is the first day of the week.'),
+      ]),
+    ).toHaveLength(2);
   });
 
   it('ignores fragments under 5 words and dedupes repeated sentences', () => {

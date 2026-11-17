@@ -21,5 +21,9 @@ export function readPreview(search: string): PreviewKind | null {
 const noopSubscribe = () => () => {};
 
 export function usePreview(): PreviewKind | null {
-  return useSyncExternalStore(noopSubscribe, () => readPreview(window.location.search), () => null);
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => readPreview(window.location.search),
+    () => null,
+  );
 }

@@ -17,7 +17,14 @@ const switcher = createLanguageSwitcher();
 function applyDetection(code: string, confidence: number): void {
   const accepted = switcher.offer({ code, confidence });
   if (languageLocked || !accepted) return;
-  setState({ language: { code: accepted.code, name: languageNameFor(accepted.code), locked: false, confidence: accepted.confidence } });
+  setState({
+    language: {
+      code: accepted.code,
+      name: languageNameFor(accepted.code),
+      locked: false,
+      confidence: accepted.confidence,
+    },
+  });
 }
 
 export function startLangId(sources: readonly Source[]): void {
@@ -66,7 +73,9 @@ function releaseOverrideToDetection(): void {
   const best = switcher.current;
   const current = getState().language;
   if (best) {
-    setState({ language: { code: best.code, name: languageNameFor(best.code), locked: false, confidence: best.confidence } });
+    setState({
+      language: { code: best.code, name: languageNameFor(best.code), locked: false, confidence: best.confidence },
+    });
   } else if (current?.locked) {
     setState({ language: { ...current, locked: false } });
   }

@@ -27,7 +27,7 @@ describe('live audio windows', () => {
     return { asr, store };
   }
 
-  it('serves a source that has shown nothing yet before the other source\'s update', async () => {
+  it("serves a source that has shown nothing yet before the other source's update", async () => {
     const { asr } = await readyWebgpuAsr();
     let release: () => void = () => {};
     engineState.hold = new Promise<void>((resolve) => (release = resolve));

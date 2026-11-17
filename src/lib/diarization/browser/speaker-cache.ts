@@ -82,12 +82,7 @@ export class SpeakerCache {
     return scoreFrames(probs, numFrames, this.config, this.budget.minPositiveScores);
   }
 
-  update(
-    chunkEmbeds: Float32Array,
-    logits: Float32Array,
-    silenceEmbeds: Float32Array,
-    numChunkFrames: number,
-  ): void {
+  update(chunkEmbeds: Float32Array, logits: Float32Array, silenceEmbeds: Float32Array, numChunkFrames: number): void {
     const { hiddenSize: h, numSpeakers: s, fifoLength, updatePeriod, cacheLength } = this.config;
     const numCache = this.numCache;
     const numFifo = this.numFifo;

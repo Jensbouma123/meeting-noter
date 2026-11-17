@@ -16,6 +16,7 @@ export function POST(request: Request): Response {
   if (!(request.headers.get('content-type') ?? '').startsWith('application/json')) {
     return Response.json({ ok: false, error: 'json-required' }, { status: 415 });
   }
-  if (legacyBridge().state !== 'listening') return Response.json({ ok: false, state: legacyBridge().state }, { status: 409 });
+  if (legacyBridge().state !== 'listening')
+    return Response.json({ ok: false, state: legacyBridge().state }, { status: 409 });
   return Response.json({ ok: true, state: completeLegacyBridge().state });
 }

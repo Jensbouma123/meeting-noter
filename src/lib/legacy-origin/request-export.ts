@@ -4,7 +4,11 @@ import { isLocalHostname } from './origins';
 import { parseExportMessage } from './parse-export';
 import type { LegacyEntry } from './types';
 
-export function requestExport(win: Window, timeoutMs = IMPORT_TIMEOUT_MS, port = LEGACY_PORT): Promise<LegacyEntry[] | null> {
+export function requestExport(
+  win: Window,
+  timeoutMs = IMPORT_TIMEOUT_MS,
+  port = LEGACY_PORT,
+): Promise<LegacyEntry[] | null> {
   const hostname = win.location.hostname;
   if (!isLocalHostname(hostname)) return Promise.resolve(null);
   const origin = `http://${hostname}:${port}`;

@@ -20,7 +20,11 @@ function AsrBench() {
   const { log, appendLog } = useBenchLog();
   const clipRef = useRef<Float32Array | null>(null);
   const { phase, setPhase, report, reportError, setReportError, run } = useBenchRun({
-    backend, encoder, runs, clipRef, appendLog,
+    backend,
+    encoder,
+    runs,
+    clipRef,
+    appendLog,
   });
 
   const benchResult = useMemo<Record<string, unknown>>(() => {

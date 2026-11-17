@@ -30,16 +30,12 @@ export async function POST(request: Request): Promise<Response> {
   const dir = benchResultsDir();
   const name = resultFileName(payload);
   const receivedAt = new Date().toISOString();
-  const serialize = (file: string) =>
-    `${JSON.stringify({ ...payload, receivedAt, file }, null, 2)}\n`;
+  const serialize = (file: string) => `${JSON.stringify({ ...payload, receivedAt, file }, null, 2)}\n`;
 
   try {
     await mkdir(dir, { recursive: true });
   } catch (err) {
-    return Response.json(
-      { ok: false, error: `could not create ${dir}: ${errorMessage(err)}` },
-      { status: 500 },
-    );
+    return Response.json({ ok: false, error: `could not create ${dir}: ${errorMessage(err)}` }, { status: 500 });
   }
 
   let file = null;
@@ -51,10 +47,7 @@ export async function POST(request: Request): Promise<Response> {
       break;
     } catch (err) {
       if ((err as NodeJS.ErrnoException)?.code === 'EEXIST') continue;
-      return Response.json(
-        { ok: false, error: `could not write ${dir}: ${errorMessage(err)}` },
-        { status: 500 },
-      );
+      return Response.json({ ok: false, error: `could not write ${dir}: ${errorMessage(err)}` }, { status: 500 });
     }
   }
   if (file === null) {

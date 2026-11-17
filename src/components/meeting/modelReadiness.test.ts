@@ -33,9 +33,7 @@ describe('deriveModelReadiness', () => {
   it('reports a failed engine, and a failed download, as failed', () => {
     const entries = [entry({ key: 'parakeet-ttd' })];
     expect(deriveModelReadiness(entries, asr('failed'))).toBe('failed');
-    const failedEntry = [
-      entry({ key: 'parakeet-ttd', status: 'failed', isReady: false, error: 'offline' }),
-    ];
+    const failedEntry = [entry({ key: 'parakeet-ttd', status: 'failed', isReady: false, error: 'offline' })];
     expect(deriveModelReadiness(failedEntry, asr('failed'))).toBe('failed');
   });
 

@@ -19,7 +19,12 @@ export function RailTabPanel({ sessionId, activeTab, rows, segments, className, 
       ) : (
         <NotesPanel
           sessionId={sessionId}
-          speakers={rows.map((row) => ({ id: row.id, label: row.label, colorIndex: row.colorIndex, source: row.source }))}
+          speakers={rows.map((row) => ({
+            id: row.id,
+            label: row.label,
+            colorIndex: row.colorIndex,
+            source: row.source,
+          }))}
           segments={segments}
         />
       )}

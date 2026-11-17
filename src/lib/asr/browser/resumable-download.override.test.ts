@@ -1,10 +1,6 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  areModelFilesCached,
-  deleteModelCache,
-  downloadHfFileResumable,
-} from './resumable-download';
+import { areModelFilesCached, deleteModelCache, downloadHfFileResumable } from './resumable-download';
 
 const REPO = 'test/url-override-repo';
 const FILE = 'encoder-model.fp16.onnx';
@@ -83,8 +79,10 @@ describe('urlOverride', () => {
     await downloadHfFileResumable(REPO, FILE, 'main', { urlOverride: OVERRIDE_URL });
     const bodyFetchesAfter = requestedUrls
       .slice(callsBefore)
-      
-      .filter((u, i) => !u.includes('/api/models/') && !u.endsWith('.sha256') && requestedMethods[callsBefore + i] !== 'HEAD');
+
+      .filter(
+        (u, i) => !u.includes('/api/models/') && !u.endsWith('.sha256') && requestedMethods[callsBefore + i] !== 'HEAD',
+      );
     expect(bodyFetchesAfter, 'a cached override file must not fetch its body again').toEqual([]);
   });
 });

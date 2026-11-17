@@ -1,19 +1,13 @@
 import type { ChunkOpts, TranscriptLine, Window } from './types';
 
-export function chunkTranscript(
-  meetingId: string,
-  lines: TranscriptLine[],
-  opts: ChunkOpts = {},
-): Window[] {
+export function chunkTranscript(meetingId: string, lines: TranscriptLine[], opts: ChunkOpts = {}): Window[] {
   const width = opts.windowSeconds ?? 30;
   const stride = opts.strideSeconds ?? width;
   if (!(width > 0) || !(stride > 0)) {
     throw new RangeError('window and stride must be positive');
   }
 
-  const sorted = lines
-    .filter((l) => l.text.trim() !== '')
-    .sort((a, b) => a.start - b.start);
+  const sorted = lines.filter((l) => l.text.trim() !== '').sort((a, b) => a.start - b.start);
   if (sorted.length === 0) return [];
 
   const end = Math.max(...sorted.map((l) => l.end));

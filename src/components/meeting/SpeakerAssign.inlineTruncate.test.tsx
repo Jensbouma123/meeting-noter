@@ -27,7 +27,10 @@ describe('SpeakerAssign inline long name', () => {
     const spy = vi.spyOn(proto, 'scrollWidth', 'get').mockReturnValue(200);
     vi.spyOn(proto, 'clientWidth', 'get').mockReturnValue(80);
     renderSpeakerAssign('Raphael van Marion');
-    expect(screen.getByTestId('speaker-assign').querySelector('span.truncate')).toHaveAttribute('title', 'Raphael van Marion');
+    expect(screen.getByTestId('speaker-assign').querySelector('span.truncate')).toHaveAttribute(
+      'title',
+      'Raphael van Marion',
+    );
     spy.mockRestore();
   });
 });

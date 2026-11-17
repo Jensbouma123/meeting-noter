@@ -8,7 +8,11 @@ import { registerListMeetings } from './tools/list-meetings';
 import { registerSearchMeetings } from './tools/search-meetings';
 import { createWithDb } from './with-db';
 
-export function createMeetingsMcpServer(openDb: () => MeetingsDb | null, version = '0.0.0', activeMeetingFile = ''): McpServer {
+export function createMeetingsMcpServer(
+  openDb: () => MeetingsDb | null,
+  version = '0.0.0',
+  activeMeetingFile = '',
+): McpServer {
   const server = new McpServer({ name: SERVER_NAME, version });
   const withDb = createWithDb(openDb);
   registerListFolders(server, withDb);

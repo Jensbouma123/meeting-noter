@@ -13,10 +13,7 @@ function frames(...channels: string[]): Float32Array {
   return out;
 }
 
-function tracker(
-  numSpeakers: number,
-  opts: Partial<Omit<TurnTrackerOptions, 'numSpeakers' | 'frameSec'>> = {},
-) {
+function tracker(numSpeakers: number, opts: Partial<Omit<TurnTrackerOptions, 'numSpeakers' | 'frameSec'>> = {}) {
   return new TurnTracker({ numSpeakers, frameSec: FRAME, maxGapSec: 0.03, minTurnSec: 0.03, maxOpenSec: 1, ...opts });
 }
 

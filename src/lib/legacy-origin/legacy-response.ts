@@ -4,7 +4,12 @@ import type { LegacyListenOptions, LegacyResponse } from './types';
 
 const NO_STORE = { 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' };
 
-export function legacyResponse(method: string, rawUrl: string, host: string, opts: LegacyListenOptions): LegacyResponse {
+export function legacyResponse(
+  method: string,
+  rawUrl: string,
+  host: string,
+  opts: LegacyListenOptions,
+): LegacyResponse {
   const hostname = host.replace(/:\d+$/, '');
   if (host !== `localhost:${opts.port}` && host !== `127.0.0.1:${opts.port}`) {
     return { status: 403, headers: NO_STORE, body: 'forbidden' };

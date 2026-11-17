@@ -1,8 +1,4 @@
-import type {
-  CompressedFrames,
-  CompressionBudget,
-  SpeakerCacheConfig,
-} from './types';
+import type { CompressedFrames, CompressionBudget, SpeakerCacheConfig } from './types';
 
 const LOG_HALF = Math.log(0.5);
 

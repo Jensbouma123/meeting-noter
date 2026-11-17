@@ -51,7 +51,7 @@ export class FakeHelperSocket {
     return this.sent.some((m) => JSON.parse(m).type === 'start');
   }
 
-    get askedMic(): boolean {
+  get askedMic(): boolean {
     return this.sent.some((m) => JSON.parse(m).type === 'start' && JSON.parse(m).mic === true);
   }
 
@@ -63,9 +63,10 @@ export class FakeHelperSocket {
       if (FakeHelperSocket.mode === 'tap-fails') {
         this.text({ type: 'error', message: 'Could not start the system audio tap' });
       } else {
-        const mic = msg.mic && FakeHelperSocket.mic !== undefined
-          ? { mic: FakeHelperSocket.mic, micPermission: FakeHelperSocket.mic === 'denied' ? 'denied' : 'granted' }
-          : {};
+        const mic =
+          msg.mic && FakeHelperSocket.mic !== undefined
+            ? { mic: FakeHelperSocket.mic, micPermission: FakeHelperSocket.mic === 'denied' ? 'denied' : 'granted' }
+            : {};
         this.text({ type: 'started', sampleRate: 16000, ...mic });
       }
     });
@@ -80,11 +81,11 @@ export class FakeHelperSocket {
     this.onmessage?.({ data: JSON.stringify(msg) });
   }
 
-    samples(samples: Int16Array): void {
+  samples(samples: Int16Array): void {
     this.onmessage?.({ data: samples.slice().buffer });
   }
 
-    drop(): void {
+  drop(): void {
     this.readyState = 3;
     this.onclose?.({});
   }

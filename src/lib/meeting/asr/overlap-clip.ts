@@ -14,9 +14,10 @@ export async function recognizeOverlapClip(audio: Float32Array): Promise<TimedWo
   }
   const engine = asrState.engine?.isReady ? asrState.engine : null;
   if (!engine || liveBusy()) return [];
-  const clip = audio.length > OVERLAP_CLIP_MAX_SECONDS * CAPTURE_SAMPLE_RATE
-    ? audio.subarray(0, OVERLAP_CLIP_MAX_SECONDS * CAPTURE_SAMPLE_RATE)
-    : audio;
+  const clip =
+    audio.length > OVERLAP_CLIP_MAX_SECONDS * CAPTURE_SAMPLE_RATE
+      ? audio.subarray(0, OVERLAP_CLIP_MAX_SECONDS * CAPTURE_SAMPLE_RATE)
+      : audio;
   asrState.transcribeInFlight = true;
   try {
     const result = await engine.recognize(clip);

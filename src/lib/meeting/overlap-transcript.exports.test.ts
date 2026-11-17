@@ -14,7 +14,9 @@ describe('overlapping speech in the exports', () => {
     expect(md).toContain('**Participants:** Ann, Bo');
 
     const txt = toPlainText(transcript, speakers, 'T');
-    expect(txt).toContain('Ann\n[00:00] so I think\n\n[00:04] [overlap] Ann: we should\n[00:04] [overlap] Bo: no wait\n\nBo\n');
+    expect(txt).toContain(
+      'Ann\n[00:00] so I think\n\n[00:04] [overlap] Ann: we should\n[00:04] [overlap] Bo: no wait\n\nBo\n',
+    );
 
     const srt = toSrt(transcript, speakers);
     expect(srt).toContain('[overlap] Bo: no wait');

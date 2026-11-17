@@ -13,7 +13,15 @@ describe('LiveTranscript timeline', () => {
       view([seg('b', 'mic:0', 12), seg('a', 'mic:0', 3), seg('c', 'mic:0', 40), seg('d', 'mic:0', 65)]),
     );
     expect(timeline(container)).toEqual([
-      ['Speaker 1', [['00:03', 'a'], ['00:12', 'b'], ['00:40', 'c'], ['01:05', 'd']]],
+      [
+        'Speaker 1',
+        [
+          ['00:03', 'a'],
+          ['00:12', 'b'],
+          ['00:40', 'c'],
+          ['01:05', 'd'],
+        ],
+      ],
     ]);
   });
 
@@ -22,7 +30,13 @@ describe('LiveTranscript timeline', () => {
       view([seg('a', 'mic:0', 0), seg('b', 'mic:0', 3), seg('c', 'mic:1', 6), seg('d', 'mic:0', 9)]),
     );
     expect(timeline(container)).toEqual([
-      ['Speaker 1', [['00:00', 'a'], ['00:03', 'b']]],
+      [
+        'Speaker 1',
+        [
+          ['00:00', 'a'],
+          ['00:03', 'b'],
+        ],
+      ],
       ['Speaker 2', [['00:06', 'c']]],
       ['Speaker 1', [['00:09', 'd']]],
     ]);
@@ -47,7 +61,13 @@ describe('LiveTranscript timeline', () => {
     rerender(view([lines[0], { ...lines[1], speaker: 'mic:1' }, { ...lines[2], speaker: 'mic:1' }]));
     expect(timeline(container)).toEqual([
       ['Speaker 1', [['00:00', 'a']]],
-      ['Speaker 2', [['00:03', 'b'], ['00:06', 'c']]],
+      [
+        'Speaker 2',
+        [
+          ['00:03', 'b'],
+          ['00:06', 'c'],
+        ],
+      ],
     ]);
   });
 
@@ -75,7 +95,7 @@ describe('LiveTranscript timeline', () => {
     expect(after.closest('[data-index]')!.getAttribute('data-index')).toBe('2');
   });
 
-  it('never size-contains lines, and shows the speaker in the line\'s own row', () => {
+  it("never size-contains lines, and shows the speaker in the line's own row", () => {
     const { container, rerender } = render(view([seg('a', 'mic:0', 3, 'hi')]));
     const css = readFileSync(resolve(__dirname, '../../app/globals.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
     expect(css).not.toMatch(/content-visibility|contain-intrinsic|contain:\s*(size|strict|content)/);

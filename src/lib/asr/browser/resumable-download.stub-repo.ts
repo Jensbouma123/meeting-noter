@@ -14,7 +14,6 @@ export function sha256(bytes: Uint8Array): string {
   return createHash('sha256').update(bytes).digest('hex');
 }
 
-
 export function stubRepo(repo: string, file: string, bytes: Uint8Array, sliceBytes = 256 * 1024): DownloadStub {
   const ranges: Array<string | null> = [];
   const fn = vi.fn(async (input: string | URL, init?: RequestInit) => {
@@ -55,10 +54,7 @@ export function stubRepo(repo: string, file: string, bytes: Uint8Array, sliceByt
   return { fetch: fn as unknown as FetchMock, calls: () => fn.mock.calls.length, ranges: () => ranges };
 }
 
-
 export async function bytesBehind(blobUrl: string): Promise<Uint8Array> {
   const response = await fetch(blobUrl);
   return new Uint8Array(await response.arrayBuffer());
 }
-
-

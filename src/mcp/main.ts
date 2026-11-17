@@ -15,7 +15,11 @@ function dbPathFromArgs(argv: string[]): string {
 
 const file = dbPathFromArgs(process.argv.slice(2));
 const version = typeof MEETING_NOTER_VERSION === 'string' ? MEETING_NOTER_VERSION : '0.0.0';
-const server = createMeetingsMcpServer(() => (fs.existsSync(file) ? new MeetingsDb(file, { readOnly: true }) : null), version, activeMeetingPath(path.dirname(file)));
+const server = createMeetingsMcpServer(
+  () => (fs.existsSync(file) ? new MeetingsDb(file, { readOnly: true }) : null),
+  version,
+  activeMeetingPath(path.dirname(file)),
+);
 
 server.connect(new StdioServerTransport()).then(
   () => console.error(`[meeting-noter mcp] reading ${file}`),

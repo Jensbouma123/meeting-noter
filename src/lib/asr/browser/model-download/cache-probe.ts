@@ -19,10 +19,7 @@ export async function probeCachedModelFiles(
   }
 }
 
-export async function areModelFilesCached(
-  manifest: ManifestFiles,
-  revision = 'main',
-): Promise<ModelCacheState> {
+export async function areModelFilesCached(manifest: ManifestFiles, revision = 'main'): Promise<ModelCacheState> {
   let cached = 0;
   for (const file of manifest.files) {
     if (await isFileCached(manifest, file, revision)) cached += 1;

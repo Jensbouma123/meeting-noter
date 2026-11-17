@@ -12,11 +12,15 @@ describe('end to end: the app saves, the MCP server finds it', () => {
   it('a meeting saved through the session store is returned by search_meetings over stdio', async () => {
     const root = path.resolve(__dirname, '../../..');
     const bundle = path.join(harness.dir, 'meetings-mcp.mjs');
-    execFileSync(process.execPath, [path.join(root, 'node_modules/rolldown/bin/cli.mjs'), '-c', 'scripts/mcp/rolldown.config.mjs'], {
-      cwd: root,
-      env: { ...process.env, MCP_OUT: bundle },
-      stdio: 'ignore',
-    });
+    execFileSync(
+      process.execPath,
+      [path.join(root, 'node_modules/rolldown/bin/cli.mjs'), '-c', 'scripts/mcp/rolldown.config.mjs'],
+      {
+        cwd: root,
+        env: { ...process.env, MCP_OUT: bundle },
+        stdio: 'ignore',
+      },
+    );
 
     const sync = await loadSync();
     await sync.startServerSync();

@@ -57,9 +57,7 @@ export function SearchPanel({
 
       {view.status === 'loading' && <Text>{t('searching')}</Text>}
 
-      {view.status === 'error' && (
-        <Text role="alert">{t('failed').replace('{message}', view.message)}</Text>
-      )}
+      {view.status === 'error' && <Text role="alert">{t('failed').replace('{message}', view.message)}</Text>}
 
       {view.status === 'done' && view.hits.length === 0 && (
         <EmptyState title={t('noMatches')} description={t('noMatchesHint')} />

@@ -25,7 +25,11 @@ afterEach(() => {
 
 const LOCAL = { host: 'localhost:3000', 'content-type': 'application/json' };
 const req = (method: string, p: string, body?: unknown, headers: Record<string, string> = LOCAL) =>
-  new Request(`http://localhost:3000/api${p}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+  new Request(`http://localhost:3000/api${p}`, {
+    method,
+    headers,
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
 const ctx = (id: string) => ({ params: Promise.resolve({ id }) });
 
 describe('/api/folders', () => {
@@ -46,7 +50,8 @@ describe('/api/folders', () => {
 
   it('creates, moves, files and deletes; maps errors to statuses', async () => {
     const mk = async (name: string, parentId?: string) =>
-      ((await (await post(req('POST', '/folders', { name, parentId }))).json()) as { folder: { id: string } }).folder.id;
+      ((await (await post(req('POST', '/folders', { name, parentId }))).json()) as { folder: { id: string } }).folder
+        .id;
     const a = await mk('A');
     const b = await mk('B', a);
     expect((await post(req('POST', '/folders', { name: '' }))).status).toBe(400);
@@ -80,9 +85,16 @@ describe('/api/folders', () => {
     const body = (await saved.json()) as { folder: { roster: string[]; inheritRoster: boolean } };
     expect(body.folder.roster).toEqual(['Anna', 'Piet']);
     expect(body.folder.inheritRoster).toBe(false);
-    expect((await patch(req('PATCH', `/folders/${response.folder.id}`, { roster: 'Anna' }), ctx(response.folder.id))).status).toBe(400);
-    expect((await patch(req('PATCH', `/folders/${response.folder.id}`, { roster: [1] }), ctx(response.folder.id))).status).toBe(400);
-    expect((await patch(req('PATCH', `/folders/${response.folder.id}`, { inheritRoster: 'yes' }), ctx(response.folder.id))).status).toBe(400);
+    expect(
+      (await patch(req('PATCH', `/folders/${response.folder.id}`, { roster: 'Anna' }), ctx(response.folder.id))).status,
+    ).toBe(400);
+    expect(
+      (await patch(req('PATCH', `/folders/${response.folder.id}`, { roster: [1] }), ctx(response.folder.id))).status,
+    ).toBe(400);
+    expect(
+      (await patch(req('PATCH', `/folders/${response.folder.id}`, { inheritRoster: 'yes' }), ctx(response.folder.id)))
+        .status,
+    ).toBe(400);
     const listed = (await (await getFolders(req('GET', '/folders'))).json()) as {
       folders: Array<{ id: string; roster: string[]; inheritRoster: boolean }>;
     };
@@ -93,12 +105,16 @@ describe('/api/folders', () => {
   });
 
   it('stores a trimmed folder context through PATCH and rejects bad values', async () => {
-    const { folder } = (await (await post(req('POST', '/folders', { name: 'Team' }))).json()) as { folder: { id: string; context: string } };
+    const { folder } = (await (await post(req('POST', '/folders', { name: 'Team' }))).json()) as {
+      folder: { id: string; context: string };
+    };
     expect(folder.context).toBe('');
     const saved = await patch(req('PATCH', `/folders/${folder.id}`, { context: '  design syncs ' }), ctx(folder.id));
     expect(((await saved.json()) as { folder: { context: string } }).folder.context).toBe('design syncs');
     expect((await patch(req('PATCH', `/folders/${folder.id}`, { context: 5 }), ctx(folder.id))).status).toBe(400);
-    expect((await patch(req('PATCH', `/folders/${folder.id}`, { context: 'x'.repeat(1001) }), ctx(folder.id))).status).toBe(400);
+    expect(
+      (await patch(req('PATCH', `/folders/${folder.id}`, { context: 'x'.repeat(1001) }), ctx(folder.id))).status,
+    ).toBe(400);
   });
 
   it('validates route ids and bodies and exposes folderId through meeting reads', async () => {
@@ -110,12 +126,19 @@ describe('/api/folders', () => {
     expect((await fileMeeting(req('PUT', '/meetings/x/folder', { folderId: 7 }), ctx('x'))).status).toBe(400);
     expect((await fileMeeting(req('PUT', '/meetings/x/folder', { folderId: null }), ctx('bad/id'))).status).toBe(400);
 
-    const folder = ((await (await post(req('POST', '/folders', { name: 'Filed' }))).json()) as { folder: { id: string } }).folder;
+    const folder = (
+      (await (await post(req('POST', '/folders', { name: 'Filed' }))).json()) as { folder: { id: string } }
+    ).folder;
     const meeting = sampleMeeting({ updatedAt: 10 });
     expect((await put(req('PUT', `/meetings/${meeting.id}`, meeting), ctx(meeting.id))).status).toBe(200);
-    expect((await fileMeeting(req('PUT', `/meetings/${meeting.id}/folder`, { folderId: folder.id }), ctx(meeting.id))).status).toBe(200);
+    expect(
+      (await fileMeeting(req('PUT', `/meetings/${meeting.id}/folder`, { folderId: folder.id }), ctx(meeting.id)))
+        .status,
+    ).toBe(200);
 
-    const list = (await (await getMeetings(req('GET', '/meetings'))).json()) as { meetings: Array<{ id: string; folderId: string | null; updatedAt: number }> };
+    const list = (await (await getMeetings(req('GET', '/meetings'))).json()) as {
+      meetings: Array<{ id: string; folderId: string | null; updatedAt: number }>;
+    };
     const row = list.meetings.find((item) => item.id === meeting.id)!;
     expect(row.folderId).toBe(folder.id);
     expect(row.updatedAt).toBeGreaterThan(meeting.updatedAt);

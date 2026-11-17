@@ -8,18 +8,18 @@ function isDirective(comment) {
 
 const rule = {
   meta: {
-    type: "problem",
+    type: 'problem',
     schema: [],
     messages: {
-      comment: "Comments are not allowed; rename or extract so the code says it.",
+      comment: 'Comments are not allowed; rename or extract so the code says it.',
     },
   },
   create(context) {
     return {
       Program() {
         for (const comment of context.sourceCode.getAllComments()) {
-          if (comment.type === "Shebang" || isDirective(comment)) continue;
-          context.report({ loc: comment.loc, messageId: "comment" });
+          if (comment.type === 'Shebang' || isDirective(comment)) continue;
+          context.report({ loc: comment.loc, messageId: 'comment' });
         }
       },
     };

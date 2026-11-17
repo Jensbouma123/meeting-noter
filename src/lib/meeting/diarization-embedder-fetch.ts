@@ -8,9 +8,7 @@ import { DIARIZATION_REGISTRY_KEY } from '@/lib/asr/browser/model-registry-known
 
 let inFlight: Promise<void> | null = null;
 
-export function fetchSpeakerEmbedderBestEffort(
-  onProgress?: (progress: DownloadProgress) => void,
-): Promise<void> {
+export function fetchSpeakerEmbedderBestEffort(onProgress?: (progress: DownloadProgress) => void): Promise<void> {
   if (!isConsentGiven(DIARIZATION_REGISTRY_KEY)) return Promise.resolve();
   inFlight ??= (async () => {
     try {

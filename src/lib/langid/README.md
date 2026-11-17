@@ -79,6 +79,7 @@ detection fires once ~5s of audio has accumulated, then again every ~20s of
 new audio (re-detection, in case the speaker or source changes).
 
 ## Wiring into `src/lib/meeting/index.ts` (not done here — that file is owned
+
 ## by another worker; this is the snippet for whoever picks it up)
 
 `MeetingState.language` is currently always empty and `setLanguage()` is an

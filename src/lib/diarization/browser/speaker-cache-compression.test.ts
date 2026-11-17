@@ -47,13 +47,17 @@ describe('SpeakerCache compression', () => {
     expect(ids(c)).toEqual([0, SILENCE_ID, SILENCE_ID, SILENCE_ID, SILENCE_ID, SILENCE_ID, SILENCE_ID, SILENCE_ID]);
   });
 
-  it('keeps a compressed cache\'s stored probabilities instead of re-estimating them', () => {
+  it("keeps a compressed cache's stored probabilities instead of re-estimating them", () => {
     const c = cache({ fifoLength: 0, updatePeriod: 1 });
     const speaking = [S0, S0, S0, [0.05, 0.9], [0.05, 0.9], QUIET, QUIET, QUIET, QUIET];
     step(c, [0, 1, 2, 3, 4, 5, 6, 7, 8], speaking);
     expect(c.isCompressed).toBe(true);
     const before = c.getCacheProbs();
-    step(c, [9], Array.from({ length: 9 }, () => QUIET));
+    step(
+      c,
+      [9],
+      Array.from({ length: 9 }, () => QUIET),
+    );
     const after = c.getCacheProbs();
     expect(after[0]).toBeCloseTo(before[0], 6);
     expect(after[0]).toBeCloseTo(0.9, 5);

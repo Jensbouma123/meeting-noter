@@ -13,7 +13,15 @@ function rawBytes(file: string): string {
     .map((suffix) => (fs.existsSync(file + suffix) ? fs.readFileSync(file + suffix).toString('latin1') : ''))
     .join('\n');
 }
-const SECRETS = ['café export', 'quarterly budget', 'Freeze the scope', 'release notes', 'Roadmap sync', 'Anna', 'Jens'];
+const SECRETS = [
+  'café export',
+  'quarterly budget',
+  'Freeze the scope',
+  'release notes',
+  'Roadmap sync',
+  'Anna',
+  'Jens',
+];
 
 describe('deleting leaves no meeting text on disk', () => {
   function fill(file: string, count = 1): MeetingsDb {
@@ -55,7 +63,16 @@ describe('deleting leaves no meeting text on disk', () => {
   it('clearing a transcript (re-save without lines) scrubs the old text', () => {
     const file = path.join(tmpDir(), 'meetings.db');
     const db = fill(file);
-    db.upsert(sampleMeeting({ updatedAt: Date.UTC(2026, 10, 3, 11, 0), segments: [], speakers: {}, notes: { actions: [], decisions: [] }, participants: null, title: 'Untitled' }));
+    db.upsert(
+      sampleMeeting({
+        updatedAt: Date.UTC(2026, 10, 3, 11, 0),
+        segments: [],
+        speakers: {},
+        notes: { actions: [], decisions: [] },
+        participants: null,
+        title: 'Untitled',
+      }),
+    );
     const bytes = rawBytes(file);
     for (const s of ['café export', 'quarterly budget', 'Freeze the scope', 'release notes', 'Anna', 'Jens']) {
       expect(bytes, s).not.toContain(s);
@@ -67,7 +84,14 @@ describe('deleting leaves no meeting text on disk', () => {
     const db = fill(file);
     db.upsert(sampleMeeting({ updatedAt: Date.UTC(2026, 10, 3, 10, 30), participants: ['Marieke'] }));
     expect(rawBytes(file)).toContain('Marieke');
-    db.upsert(sampleMeeting({ updatedAt: Date.UTC(2026, 10, 3, 11, 0), title: 'Renamed', participants: ['Zed'], notes: { actions: [], decisions: [] } }));
+    db.upsert(
+      sampleMeeting({
+        updatedAt: Date.UTC(2026, 10, 3, 11, 0),
+        title: 'Renamed',
+        participants: ['Zed'],
+        notes: { actions: [], decisions: [] },
+      }),
+    );
     const bytes = rawBytes(file);
     for (const s of ['Roadmap sync', 'Marieke', 'Freeze the scope']) expect(bytes, s).not.toContain(s);
   });

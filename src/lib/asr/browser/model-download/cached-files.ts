@@ -1,10 +1,5 @@
 import type { CachedFile, CachedFileRecord } from '../types/download-cache-records';
-import {
-  deleteChunksFrom,
-  deleteMetaRecord,
-  getChunks,
-  getMetaRecord,
-} from './cache-primitives';
+import { deleteChunksFrom, deleteMetaRecord, getChunks, getMetaRecord } from './cache-primitives';
 import { FILE_STORE, PARTIAL_STORE } from './constants';
 
 export function cacheKey(repoId: string, revision: string, filename: string): string {
@@ -43,10 +38,6 @@ export async function isModelFileCachedByKey(key: string): Promise<boolean> {
   }
 }
 
-export function isModelFileCached(
-  repoId: string,
-  filename: string,
-  revision: string,
-): Promise<boolean> {
+export function isModelFileCached(repoId: string, filename: string, revision: string): Promise<boolean> {
   return isModelFileCachedByKey(cacheKey(repoId, revision, filename));
 }

@@ -26,16 +26,27 @@ function stubEmbedder(seen: string[] = []): Embedder {
   };
 }
 
-const seg = (id: string, start: number, text: string, speaker = 'mic:0'): Segment => ({ id, source: 'mic', speaker, text, start, end: start + 2, final: true });
+const seg = (id: string, start: number, text: string, speaker = 'mic:0'): Segment => ({
+  id,
+  source: 'mic',
+  speaker,
+  text,
+  start,
+  end: start + 2,
+  final: true,
+});
 
 describe('extractInsights', () => {
   it('keeps cued, complete NL/EN sentences that beat the negative prototypes', async () => {
-    const out = await extractInsights([
-      seg('1', 1, 'We hebben besloten om vrijdag te releasen.'),
-      seg('2', 5, 'Ik stuur de offerte'),
-      seg('3', 6, 'morgen naar de klant.'),
-      seg('4', 9, 'We gaan zo meteen kijken of de speakers kloppen.'),
-    ], stubEmbedder());
+    const out = await extractInsights(
+      [
+        seg('1', 1, 'We hebben besloten om vrijdag te releasen.'),
+        seg('2', 5, 'Ik stuur de offerte'),
+        seg('3', 6, 'morgen naar de klant.'),
+        seg('4', 9, 'We gaan zo meteen kijken of de speakers kloppen.'),
+      ],
+      stubEmbedder(),
+    );
     expect(out.map((i) => [i.kind, i.segmentId, i.text])).toEqual([
       ['decision', '1', 'We hebben besloten om vrijdag te releasen.'],
       ['action', '2', 'Ik stuur de offerte morgen naar de klant.'],
@@ -44,27 +55,35 @@ describe('extractInsights', () => {
 
   it('never embeds or returns the noise from meeting 8fdc9a6d', async () => {
     const seen: string[] = [];
-    const out = await extractInsights([
-      seg('a', 1, 'Und zwar können entsprechend.'),
-      seg('b', 4, 'Dat is gewoon één.', 'mic:1'),
-      seg('c', 7, 'Yes, I feel like'),
-      seg('d', 12, 'I think we have a float look.', 'mic:1'),
-      seg('e', 16, 'En dat is dus het fijne waarom dit zo snel gaat.'),
-    ], stubEmbedder(seen));
+    const out = await extractInsights(
+      [
+        seg('a', 1, 'Und zwar können entsprechend.'),
+        seg('b', 4, 'Dat is gewoon één.', 'mic:1'),
+        seg('c', 7, 'Yes, I feel like'),
+        seg('d', 12, 'I think we have a float look.', 'mic:1'),
+        seg('e', 16, 'En dat is dus het fijne waarom dit zo snel gaat.'),
+      ],
+      stubEmbedder(seen),
+    );
     expect(out).toEqual([]);
     expect(seen).toEqual([]);
   });
 
   it('dedupes near-identical sentences keeping the earliest', async () => {
-    const out = await extractInsights([
-      seg('1', 1, 'We decided to ship the export on Friday.'),
-      seg('2', 9, 'So we decided to ship the export on Friday.'),
-    ], stubEmbedder());
+    const out = await extractInsights(
+      [
+        seg('1', 1, 'We decided to ship the export on Friday.'),
+        seg('2', 9, 'So we decided to ship the export on Friday.'),
+      ],
+      stubEmbedder(),
+    );
     expect(out.map((i) => i.segmentId)).toEqual(['1']);
   });
 
   it('caps at 5 per kind', async () => {
-    const segs = Array.from({ length: 9 }, (_, n) => seg(String(n), n * 10, `We hebben besloten om optie ${n} te kiezen.`));
+    const segs = Array.from({ length: 9 }, (_, n) =>
+      seg(String(n), n * 10, `We hebben besloten om optie ${n} te kiezen.`),
+    );
     const out = await extractInsights(segs, {
       dim: 16,
       async embed(texts) {

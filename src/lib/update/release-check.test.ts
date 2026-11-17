@@ -36,7 +36,11 @@ describe('buildCheck', () => {
   });
 
   it('offers the update only once the installer tarball is uploaded', () => {
-    expect(buildCheck(info('installer'), rel([]), false)).toMatchObject({ available: false, canApply: false, latest: null });
+    expect(buildCheck(info('installer'), rel([]), false)).toMatchObject({
+      available: false,
+      canApply: false,
+      latest: null,
+    });
     expect(buildCheck(info('installer'), rel(ready), false)).toMatchObject({
       available: true,
       canApply: true,
@@ -44,7 +48,11 @@ describe('buildCheck', () => {
       notes: 'Nieuw',
       restartAutomatic: true,
     });
-    expect(buildCheck(info('git'), rel([]), false)).toMatchObject({ available: true, canApply: true, restartAutomatic: false });
+    expect(buildCheck(info('git'), rel([]), false)).toMatchObject({
+      available: true,
+      canApply: true,
+      restartAutomatic: false,
+    });
   });
 
   it('says why it cannot apply', () => {

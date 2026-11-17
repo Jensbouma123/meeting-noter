@@ -20,7 +20,11 @@ afterEach(() => {
 
 const LOCAL = { host: 'localhost:3000', 'content-type': 'application/json' };
 const req = (method: string, p: string, body?: unknown, headers: Record<string, string> = LOCAL) =>
-  new Request(`http://localhost:3000/api${p}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+  new Request(`http://localhost:3000/api${p}`, {
+    method,
+    headers,
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
 const ctx = (id: string) => ({ params: Promise.resolve({ id }) });
 
 async function createFolder(name: string): Promise<string> {
@@ -29,10 +33,15 @@ async function createFolder(name: string): Promise<string> {
 }
 async function setContext(id: string, body: unknown, headers: Record<string, string> = LOCAL) {
   const res = await patch(req('PATCH', `/folders/${id}`, body, headers), ctx(id));
-  return { status: res.status, json: (await res.json()) as { ok: boolean; error?: string; folder?: { context: string } } };
+  return {
+    status: res.status,
+    json: (await res.json()) as { ok: boolean; error?: string; folder?: { context: string } },
+  };
 }
 async function storedContext(id: string): Promise<string | undefined> {
-  const folders = ((await (await getFolders(req('GET', '/folders'))).json()) as { folders: Array<{ id: string; context: string }> }).folders;
+  const folders = (
+    (await (await getFolders(req('GET', '/folders'))).json()) as { folders: Array<{ id: string; context: string }> }
+  ).folders;
   return folders.find((f) => f.id === id)?.context;
 }
 
@@ -74,7 +83,9 @@ describe('PATCH /api/folders/:id context (review060)', () => {
     expect(out.status).toBe(200);
     expect(await storedContext(id)).toBe(payload.trim());
     expect(await storedContext(victim)).toBe('');
-    const names = ((await (await getFolders(req('GET', '/folders'))).json()) as { folders: Array<{ name: string }> }).folders.map((f) => f.name);
+    const names = (
+      (await (await getFolders(req('GET', '/folders'))).json()) as { folders: Array<{ name: string }> }
+    ).folders.map((f) => f.name);
     expect(names.sort()).toEqual(['Attacker', 'Victim']);
   });
 

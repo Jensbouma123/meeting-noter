@@ -12,13 +12,15 @@ import { num } from './row-mapping';
 import type { StoredMeeting, UpsertOptions, UpsertOutcome } from './types';
 
 export function upsertMeetingRows(db: DatabaseSync, meeting: StoredMeeting, opts: UpsertOptions): UpsertOutcome {
-  if (db.prepare('SELECT 1 FROM deleted_meetings WHERE id = ?').get(meeting.id)) return { result: 'deleted', shrunk: false };
+  if (db.prepare('SELECT 1 FROM deleted_meetings WHERE id = ?').get(meeting.id))
+    return { result: 'deleted', shrunk: false };
   const existing = db
     .prepare('SELECT updated_at, segment_count, folder_id, title, notes, participants FROM meetings WHERE id = ?')
     .get(meeting.id);
   if (existing) {
     const stored = num(existing.updated_at);
-    if (stored > meeting.updatedAt || (opts.onlyIfNewer && stored === meeting.updatedAt)) return { result: 'stale', shrunk: false };
+    if (stored > meeting.updatedAt || (opts.onlyIfNewer && stored === meeting.updatedAt))
+      return { result: 'stale', shrunk: false };
   }
   const segments = sortedByStart(meeting);
   let shrunk = !!existing && num(existing.segment_count) > segments.length;

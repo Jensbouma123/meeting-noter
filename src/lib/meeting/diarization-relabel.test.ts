@@ -17,7 +17,15 @@ const COUNT = 300;
 beforeEach(() => {
   setState({ segments: [] });
   for (let i = 0; i < COUNT; i += 1) {
-    upsertSegment({ id: `s${i}`, source: 'mic', speaker: 'mic:0', text: `w${i}`, start: i * 2, end: i * 2 + 1, final: true });
+    upsertSegment({
+      id: `s${i}`,
+      source: 'mic',
+      speaker: 'mic:0',
+      text: `w${i}`,
+      start: i * 2,
+      end: i * 2 + 1,
+      final: true,
+    });
   }
   ensureSpeaker('mic:9', 'both');
   vi.clearAllMocks();

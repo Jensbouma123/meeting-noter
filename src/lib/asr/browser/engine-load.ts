@@ -28,8 +28,10 @@ export function isSafariBrowser(): boolean {
   return /apple/i.test(vendor) && !/chrome|chromium|crios|fxios|edg/i.test(ua);
 }
 
-export function startStallWatchdog(stallMs: number, describe: (ms: number) => string): {
-
+export function startStallWatchdog(
+  stallMs: number,
+  describe: (ms: number) => string,
+): {
   stall: Promise<never>;
 
   noteProgress: () => void;

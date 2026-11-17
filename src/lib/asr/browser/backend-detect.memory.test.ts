@@ -1,9 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  detectAsrBackend,
-  forceWasmBackend,
-  resetAsrBackendDetectionForTests,
-} from './backend-detect';
+import { detectAsrBackend, forceWasmBackend, resetAsrBackendDetectionForTests } from './backend-detect';
 
 function stubDeviceMemory(value: unknown): void {
   vi.stubGlobal('navigator', {
@@ -96,13 +92,11 @@ describe('detectAsrBackend', () => {
   });
 
   it('keeps Chrome WebGPU on the fp16 path when memory permits', async () => {
-
     stubChrome();
     expect(await detectAsrBackend()).toBe('webgpu');
   });
 
   it('does not mistake Chrome-on-macOS for Safari', async () => {
-
     const { isSafariEngine } = await import('./is-safari-engine');
     stubChrome();
     expect(isSafariEngine()).toBe(false);

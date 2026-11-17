@@ -7,10 +7,7 @@ import { clearInitProgress } from './progress-update';
 import { describeLoadFailure } from './load-failure';
 import { createEngine } from './engine-create';
 
-export async function loadEngine(
-  modelRepo: string | undefined,
-  manifest: AsrModelManifest,
-): Promise<AsrEngine | null> {
+export async function loadEngine(modelRepo: string | undefined, manifest: AsrModelManifest): Promise<AsrEngine | null> {
   if (asrState.engine?.isReady) return asrState.engine;
 
   setBlockedReason(null);

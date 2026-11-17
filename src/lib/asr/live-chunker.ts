@@ -22,7 +22,9 @@ export class LiveChunker {
     this.cfg = { ...DEFAULT_LIVE_CHUNKER_CONFIG, ...cfg };
     this.gate = new SpeechGate(this.cfg);
     this.segment = new OpenSegment(newId, this.cfg);
-    this.applier = new WindowApplier(this.segment, this.buffer, this.cfg, (updates, end) => this.closeSegment(updates, end));
+    this.applier = new WindowApplier(this.segment, this.buffer, this.cfg, (updates, end) =>
+      this.closeSegment(updates, end),
+    );
   }
 
   get buffered(): number {

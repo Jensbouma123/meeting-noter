@@ -22,7 +22,12 @@ describe('creating folders', () => {
     expect(mutations('POST')).toHaveLength(0);
     fireEvent.change(input, { target: { value: 'Planning' } });
     fireEvent.keyDown(input, { key: 'Enter' });
-    await waitFor(() => expect(mutations('POST')[0]).toMatchObject({ url: '/api/folders', body: JSON.stringify({ name: 'Planning', parentId: null }) }));
+    await waitFor(() =>
+      expect(mutations('POST')[0]).toMatchObject({
+        url: '/api/folders',
+        body: JSON.stringify({ name: 'Planning', parentId: null }),
+      }),
+    );
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   });
 
@@ -83,7 +88,10 @@ describe('renaming folders', () => {
     fireEvent.change(input, { target: { value: '  Q2 plan  ' } });
     fireEvent.keyDown(input, { key: 'Enter' });
     await waitFor(() => expect(mutations('PATCH')).toHaveLength(1));
-    expect(mutations('PATCH')[0]).toMatchObject({ url: '/api/folders/b', body: JSON.stringify({ name: '  Q2 plan  ' }) });
+    expect(mutations('PATCH')[0]).toMatchObject({
+      url: '/api/folders/b',
+      body: JSON.stringify({ name: '  Q2 plan  ' }),
+    });
     await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Folder name' })).toBeNull());
   });
 

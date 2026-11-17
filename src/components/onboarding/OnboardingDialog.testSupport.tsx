@@ -53,7 +53,14 @@ export const entry = (status: string) => ({
   key: 'asr',
   status,
   estimatedSizeBytes: 2_000_000_000,
-  progress: { loadedBytes: 500, totalBytes: 1000, percent: 50, throughputBytesPerSec: 0, etaSeconds: 0, currentFile: '' },
+  progress: {
+    loadedBytes: 500,
+    totalBytes: 1000,
+    percent: 50,
+    throughputBytesPerSec: 0,
+    etaSeconds: 0,
+    currentFile: '',
+  },
 });
 
 export function registerOnboardingTestEnv() {

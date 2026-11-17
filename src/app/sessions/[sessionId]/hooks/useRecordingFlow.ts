@@ -12,11 +12,24 @@ export function useRecordingFlow(params: RecordingFlowParams) {
   const [participantsPrompt, setParticipantsPrompt] = useState(false);
 
   const { startRecording, markParticipantsAnswered } = useStartRecording({
-    initialSessionId, settings, modelReady, modelReadiness, status, title,
-    setTargetPrompt, setParticipantsPrompt, setLangOverride, setResumeCandidate,
+    initialSessionId,
+    settings,
+    modelReady,
+    modelReadiness,
+    status,
+    title,
+    setTargetPrompt,
+    setParticipantsPrompt,
+    setLangOverride,
+    setResumeCandidate,
   });
   const startInSession = useStartInSession({
-    initialSessionId, settings, setTitle, setTargetPrompt, setLangOverride, setResumeCandidate,
+    initialSessionId,
+    settings,
+    setTitle,
+    setTargetPrompt,
+    setLangOverride,
+    setResumeCandidate,
   });
   const controls = useRecordingControls(setLangOverride);
 

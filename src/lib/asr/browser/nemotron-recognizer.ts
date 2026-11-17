@@ -1,8 +1,4 @@
-import {
-  NEMOTRON,
-  NEMOTRON_EMISSION_LEAD_S,
-  NEMOTRON_LANG_IDS,
-} from './nemotron-constants';
+import { NEMOTRON, NEMOTRON_EMISSION_LEAD_S, NEMOTRON_LANG_IDS } from './nemotron-constants';
 import { greedyDecodeChunk } from './nemotron-greedy-decode';
 import { NemotronMelStream } from './nemotron-mel-stream';
 import { NemotronPredictionState } from './nemotron-prediction-state';
@@ -46,16 +42,18 @@ export class NemotronRecognizer {
     const { Tensor } = this.ort;
     const mel = new NemotronMelStream();
     const melCache = new Float32Array(preEncodeCache * nMels);
-    let cacheChannel: OrtTensorLike = new Tensor(
-      'float32',
-      new Float32Array(layers * leftContext * hidden),
-      [1, layers, leftContext, hidden],
-    );
-    let cacheTime: OrtTensorLike = new Tensor(
-      'float32',
-      new Float32Array(layers * hidden * convContext),
-      [1, layers, hidden, convContext],
-    );
+    let cacheChannel: OrtTensorLike = new Tensor('float32', new Float32Array(layers * leftContext * hidden), [
+      1,
+      layers,
+      leftContext,
+      hidden,
+    ]);
+    let cacheTime: OrtTensorLike = new Tensor('float32', new Float32Array(layers * hidden * convContext), [
+      1,
+      layers,
+      hidden,
+      convContext,
+    ]);
     let cacheLen: OrtTensorLike = new Tensor('int64', new BigInt64Array(1), [1]);
     const lang = new Tensor('int64', BigInt64Array.from([BigInt(langId)]), [1]);
     const length = new Tensor('int64', BigInt64Array.from([BigInt(preEncodeCache + melFramesPerChunk)]), [1]);
@@ -72,7 +70,8 @@ export class NemotronRecognizer {
       const chunk = new Float32Array(chunkSamples);
       if (c < audioChunks) chunk.set(audio.subarray(c * chunkSamples, Math.min(audio.length, (c + 1) * chunkSamples)));
       const { mel: frames, frames: count } = mel.computeLogMel(chunk);
-      if (count !== melFramesPerChunk) throw new Error(`Nemotron frontend produced ${count} frames, expected ${melFramesPerChunk}`);
+      if (count !== melFramesPerChunk)
+        throw new Error(`Nemotron frontend produced ${count} frames, expected ${melFramesPerChunk}`);
       signal.set(melCache, 0);
       signal.set(frames, melCache.length);
       melCache.set(frames.subarray((count - preEncodeCache) * nMels));

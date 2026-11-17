@@ -2,7 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 export function resolveInsideRoot(markdownDir: string, name: string): string | null {
-  if (!name || path.isAbsolute(name) || name.split(/[\\/]/).some((part) => !part || part === '.' || part === '..')) return null;
+  if (!name || path.isAbsolute(name) || name.split(/[\\/]/).some((part) => !part || part === '.' || part === '..'))
+    return null;
   const root = path.resolve(markdownDir);
   const target = path.resolve(root, name);
   return target.startsWith(`${root}${path.sep}`) ? target : null;

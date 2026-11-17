@@ -20,7 +20,8 @@ function configureOrt(ort: typeof Ort, config: BrowserASRConfig): void {
   }
   applyOrtWasmPaths(ort.env);
   const threaded = typeof SharedArrayBuffer !== 'undefined';
-  const wanted = config.cpuThreads ?? (isSafariBrowser() ? 1 : Math.min(4, globalThis.navigator?.hardwareConcurrency ?? 4));
+  const wanted =
+    config.cpuThreads ?? (isSafariBrowser() ? 1 : Math.min(4, globalThis.navigator?.hardwareConcurrency ?? 4));
   ort.env.wasm.numThreads = threaded ? wanted : 1;
   ort.env.wasm.proxy = false;
 }

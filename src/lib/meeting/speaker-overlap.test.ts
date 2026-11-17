@@ -13,9 +13,12 @@ afterEach(() => {
 describe('overlapping speech', () => {
   const overlap = { start: 12, end: 14, speakers: ['mic:0', 'mic:1'] };
   const overlaps: OverlapAt = (a, b) => (a < overlap.end && b > overlap.start ? [overlap] : []);
-  const primary = turnsAt([['mic:0', 9, 12.9], ['mic:1', 13, 17]]);
+  const primary = turnsAt([
+    ['mic:0', 9, 12.9],
+    ['mic:1', 13, 17],
+  ]);
 
-  it('cuts the overlap\'s words into parts of their own, each still one speaker\'s', () => {
+  it("cuts the overlap's words into parts of their own, each still one speaker's", () => {
     const seg = line('s1', ['a', 'b', 'c', 'd', 'e', 'f'], 10);
     const parts = splitBySpeaker(seg, primary, undefined, overlaps);
 
@@ -34,7 +37,12 @@ describe('overlapping speech', () => {
     const [inside] = splitBySpeaker(seg, () => 'mic:1', undefined, overlaps);
     expect(inside).toMatchObject({ speaker: 'mic:1', overlap });
 
-    const [after] = splitBySpeaker(inside, () => 'mic:1', undefined, () => []);
+    const [after] = splitBySpeaker(
+      inside,
+      () => 'mic:1',
+      undefined,
+      () => [],
+    );
     expect(after).not.toHaveProperty('overlap');
     expect(splitBySpeaker(inside, () => 'mic:1', undefined, overlaps)[0]).toBe(inside);
   });

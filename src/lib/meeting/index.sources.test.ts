@@ -22,9 +22,12 @@ describe('meeting session audio sources and stop ordering', () => {
       sendFrame(mic);
     }
     expect(race.asr.pushLiveAudio.mock.calls.map((c) => [c[0], c[2]])).toEqual([
-      ['system', 0], ['mic', 0],
-      ['system', 1600], ['mic', 1600],
-      ['system', 3200], ['mic', 3200],
+      ['system', 0],
+      ['mic', 0],
+      ['system', 1600],
+      ['mic', 1600],
+      ['system', 3200],
+      ['mic', 3200],
     ]);
     await meeting.stop();
   });

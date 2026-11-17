@@ -24,8 +24,13 @@ export function AckOnlyDialog() {
       title={t(needAck ? 'ack.title' : 'autoclose.title')}
       footer={
         <div className="dialog-actions flex w-full justify-end">
-          <Button variant="primary" size={{ base: 'md', md: 'sm' }} disabled={!ready}
-            onClick={confirm} className="w-full sm:w-auto">
+          <Button
+            variant="primary"
+            size={{ base: 'md', md: 'sm' }}
+            disabled={!ready}
+            onClick={confirm}
+            className="w-full sm:w-auto"
+          >
             {t('next')}
           </Button>
         </div>

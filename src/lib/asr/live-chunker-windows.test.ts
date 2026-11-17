@@ -20,7 +20,9 @@ describe('live chunking windows', () => {
   it('keeps the window bounded and splits long segments', () => {
     const talk = script(78);
     const { segments, requests } = run(40, (t) => t >= 0.5 && t < 39.5, recognizer(talk));
-    expect(Math.max(...requests.map((r) => r.samples))).toBeLessThanOrEqual(DEFAULT_LIVE_CHUNKER_CONFIG.maxWindowSamples);
+    expect(Math.max(...requests.map((r) => r.samples))).toBeLessThanOrEqual(
+      DEFAULT_LIVE_CHUNKER_CONFIG.maxWindowSamples,
+    );
     for (const s of segments) {
       expect(s.endSample - s.startSample).toBeLessThanOrEqual(DEFAULT_LIVE_CHUNKER_CONFIG.maxSegmentSamples + 3 * SR);
     }
@@ -28,7 +30,11 @@ describe('live chunking windows', () => {
   });
 
   it('never sends silence to the model', () => {
-    const { segments, requests } = run(30, () => false, () => [{ text: '.', start: 0, end: 0.1 }]);
+    const { segments, requests } = run(
+      30,
+      () => false,
+      () => [{ text: '.', start: 0, end: 0.1 }],
+    );
     expect(requests).toEqual([]);
     expect(segments).toEqual([]);
   });
@@ -52,21 +58,39 @@ describe('live chunking windows', () => {
 
   it.each([
     ['filler', [{ text: 'Hmm.', start: 0.2, end: 0.6 }]],
-    ['a letter or two', [{ text: 'k', start: 0.2, end: 0.3 }, { text: 'S.', start: 0.4, end: 0.5 }]],
+    [
+      'a letter or two',
+      [
+        { text: 'k', start: 0.2, end: 0.3 },
+        { text: 'S.', start: 0.4, end: 0.5 },
+      ],
+    ],
     ['a word the model only guessed at', [{ text: 'Amen.', start: 0.2, end: 0.6, confidence: 0.6 }]],
   ])('never makes a segment out of %s', (_name, heard: TimedWord[]) => {
-    const { segments, requests } = run(6, (t) => t > 1 && t < 2.5, () => heard);
+    const { segments, requests } = run(
+      6,
+      (t) => t > 1 && t < 2.5,
+      () => heard,
+    );
     expect(requests.length).toBeGreaterThan(0);
     expect(segments).toEqual([]);
   });
 
   it('keeps a one-word reply the model is unsure of', () => {
-    const { segments } = run(6, (t) => t > 1 && t < 2.5, () => [{ text: 'Yeah.', start: 0.2, end: 0.6, confidence: 0.55 }]);
+    const { segments } = run(
+      6,
+      (t) => t > 1 && t < 2.5,
+      () => [{ text: 'Yeah.', start: 0.2, end: 0.6, confidence: 0.55 }],
+    );
     expect(segments.map((s) => [s.text, s.final])).toEqual([['Yeah.', true]]);
   });
 
   it('never makes a segment out of punctuation or an empty result', () => {
-    const { segments, requests } = run(10, (t) => t > 1 && t < 4, () => [{ text: '.', start: 0.2, end: 0.3 }]);
+    const { segments, requests } = run(
+      10,
+      (t) => t > 1 && t < 4,
+      () => [{ text: '.', start: 0.2, end: 0.3 }],
+    );
     expect(requests.length).toBeGreaterThan(0);
     expect(segments).toEqual([]);
   });

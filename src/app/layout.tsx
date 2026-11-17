@@ -1,50 +1,46 @@
-import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { ThemeProvider, ThemeInitScript } from "@jensbouma123/acciva-ui/theme";
-import { ToastProvider } from "@jensbouma123/acciva-ui";
-import "./globals.css";
-import { PinThemeSeed } from "@/lib/theme/PinThemeSeed";
-import { THEME_SEED } from "@/lib/theme/theme-seed";
-import { UpdateBanner } from "@/components/UpdateBanner";
-import { WhatsNewDialog } from "@/components/whats-new/WhatsNewDialog";
-import { OnboardingHost } from "@/components/onboarding/OnboardingHost";
-import { I18nProvider } from "@/lib/i18n/I18nProvider";
-import { LifecycleClient } from "@/components/lifecycle/LifecycleClient";
-import { MeetingsSync } from "@/components/lifecycle/MeetingsSync";
-import { LegacyOriginImport } from "@/components/lifecycle/LegacyOriginImport";
-import { ActiveMeetingReporter } from "@/components/lifecycle/ActiveMeetingReporter";
+import type { Metadata, Viewport } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
+import { ThemeProvider, ThemeInitScript } from '@jensbouma123/acciva-ui/theme';
+import { ToastProvider } from '@jensbouma123/acciva-ui';
+import './globals.css';
+import { PinThemeSeed } from '@/lib/theme/PinThemeSeed';
+import { THEME_SEED } from '@/lib/theme/theme-seed';
+import { UpdateBanner } from '@/components/UpdateBanner';
+import { WhatsNewDialog } from '@/components/whats-new/WhatsNewDialog';
+import { OnboardingHost } from '@/components/onboarding/OnboardingHost';
+import { I18nProvider } from '@/lib/i18n/I18nProvider';
+import { LifecycleClient } from '@/components/lifecycle/LifecycleClient';
+import { MeetingsSync } from '@/components/lifecycle/MeetingsSync';
+import { LegacyOriginImport } from '@/components/lifecycle/LegacyOriginImport';
+import { ActiveMeetingReporter } from '@/components/lifecycle/ActiveMeetingReporter';
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
-  title: { default: "Meeting Noter", template: "%s · Meeting Noter" },
-  description: "Live meeting transcripts with speaker labels, processed on your device.",
+  title: { default: 'Meeting Noter', template: '%s · Meeting Noter' },
+  description: 'Live meeting transcripts with speaker labels, processed on your device.',
 };
 
 export const viewport: Viewport = {
-  width: "device-width",
+  width: 'device-width',
   initialScale: 1,
-  viewportFit: "cover",
-  interactiveWidget: "resizes-content",
+  viewportFit: 'cover',
+  interactiveWidget: 'resizes-content',
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#e3eae4" },
-    { media: "(prefers-color-scheme: dark)", color: "#070a07" },
+    { media: '(prefers-color-scheme: light)', color: '#e3eae4' },
+    { media: '(prefers-color-scheme: dark)', color: '#070a07' },
   ],
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="nl"

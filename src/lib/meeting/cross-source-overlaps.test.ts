@@ -15,7 +15,12 @@ describe('crossSourceOverlaps', () => {
     seg({ id: 's3', source: 'system', speaker: 'system:1', start: 28.98, end: 36.98, words: words('c', 29, 36.9) }),
   ];
   const halluc = seg({
-    id: 'm1', source: 'mic', speaker: 'mic:0', start: 14.2, end: 15.6, text: 'Bedankt voor het kijken.',
+    id: 'm1',
+    source: 'mic',
+    speaker: 'mic:0',
+    start: 14.2,
+    end: 15.6,
+    text: 'Bedankt voor het kijken.',
     words: [
       { text: 'Bedankt', start: 14.2, end: 14.6 },
       { text: 'voor', start: 14.6, end: 14.8 },

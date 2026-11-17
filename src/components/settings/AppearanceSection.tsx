@@ -21,12 +21,7 @@ export function AppearanceSection() {
           onChange={(v) => choose(v as ThemePreference)}
           orientation={isSmUp ? 'horizontal' : 'vertical'}
         >
-          <Radio
-            value="system"
-            variant="card"
-            label={t('system')}
-            description={t('systemThemeDescription')}
-          />
+          <Radio value="system" variant="card" label={t('system')} description={t('systemThemeDescription')} />
           <Radio value="light" variant="card" label={t('light')} />
           <Radio value="dark" variant="card" label={t('dark')} />
         </RadioGroup>

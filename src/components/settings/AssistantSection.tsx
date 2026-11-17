@@ -12,8 +12,14 @@ export function AssistantSection() {
   const state = useAssistantState();
   return (
     <>
-      <Text size="sm" variant="muted">{t('intro')}</Text>
-      {state.loadFailed && <Alert variant="danger" layout="inline">{t('loadFailed')}</Alert>}
+      <Text size="sm" variant="muted">
+        {t('intro')}
+      </Text>
+      {state.loadFailed && (
+        <Alert variant="danger" layout="inline">
+          {t('loadFailed')}
+        </Alert>
+      )}
       {state.assistants === null && !state.loadFailed && <AssistantLoading />}
       {state.assistants && <AssistantList assistants={state.assistants} state={state} />}
       <AssistantExamples />

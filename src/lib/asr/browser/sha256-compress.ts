@@ -1,11 +1,6 @@
 import { ROUND_CONSTANTS } from './sha256-constants';
 
-export function compressBlock(
-  state: Uint32Array,
-  schedule: Uint32Array,
-  data: Uint8Array,
-  offset: number,
-): void {
+export function compressBlock(state: Uint32Array, schedule: Uint32Array, data: Uint8Array, offset: number): void {
   const w = schedule;
   for (let i = 0; i < 16; i += 1) {
     const j = offset + i * 4;

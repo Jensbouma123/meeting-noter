@@ -17,7 +17,7 @@ export function useMeeting<T>(selector: (s: MeetingState) => T): T {
       return () => stateListeners.delete(cb);
     },
     () => selector(simulation.state),
-    () => selector(INITIAL_STATE)
+    () => selector(INITIAL_STATE),
   );
 }
 

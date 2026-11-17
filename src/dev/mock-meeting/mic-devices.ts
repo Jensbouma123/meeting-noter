@@ -4,7 +4,9 @@ function fakeMicDevice(deviceId: string, label: string, groupId: string): MediaD
     label,
     kind: 'audioinput',
     groupId,
-    toJSON() { return this; },
+    toJSON() {
+      return this;
+    },
   } as unknown as MediaDeviceInfo;
 }
 

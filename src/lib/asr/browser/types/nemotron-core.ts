@@ -8,11 +8,7 @@ export interface OrtTensorLike {
 }
 
 export interface OrtLike {
-  Tensor: new (
-    type: 'float32' | 'int64',
-    data: Float32Array | BigInt64Array,
-    dims: readonly number[],
-  ) => OrtTensorLike;
+  Tensor: new (type: 'float32' | 'int64', data: Float32Array | BigInt64Array, dims: readonly number[]) => OrtTensorLike;
 }
 
 export interface SessionLike {
@@ -39,7 +35,6 @@ export interface NemotronResult {
 }
 
 export interface NemotronRecognizeOptions {
-
   langId?: number;
 
   flushChunks?: number;

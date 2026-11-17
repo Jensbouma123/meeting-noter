@@ -34,8 +34,13 @@ describe.skipIf(process.platform !== 'darwin')('install.sh failures and recovery
     expect(r.out).toContain('Meeting Noter 0.3.0 startte niet');
     expect(r.out).toContain('Vorige versie 0.2.0 teruggezet');
     expect(installedVersion()).toBe('0.2.0');
-    expect(readFileSync(path.join(sandbox.home, 'starts'), 'utf8').trim().split('\n')).toEqual(['0.2.0', '0.3.0', '0.2.0']);
-    for (const d of ['app.old', 'app.new', 'app.failed']) expect(existsSync(path.join(installRoot(), d)), d).toBe(false);
+    expect(readFileSync(path.join(sandbox.home, 'starts'), 'utf8').trim().split('\n')).toEqual([
+      '0.2.0',
+      '0.3.0',
+      '0.2.0',
+    ]);
+    for (const d of ['app.old', 'app.new', 'app.failed'])
+      expect(existsSync(path.join(installRoot(), d)), d).toBe(false);
     expect(installedSum()).toBe(sum);
   });
 

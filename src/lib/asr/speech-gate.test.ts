@@ -30,7 +30,10 @@ describe('voicing', () => {
 describe('steadiness', () => {
   it('is high for a held vowel and low for a key press', () => {
     expect(steadiness(voice(240, 0.1))).toBeGreaterThan(0.5);
-    const thump = Float32Array.from({ length: 240 }, (_, i) => Math.exp(-i / 64) * Math.sin((2 * Math.PI * 200 * i) / 8000));
+    const thump = Float32Array.from(
+      { length: 240 },
+      (_, i) => Math.exp(-i / 64) * Math.sin((2 * Math.PI * 200 * i) / 8000),
+    );
     expect(steadiness(thump)).toBeLessThan(0.05);
   });
 });

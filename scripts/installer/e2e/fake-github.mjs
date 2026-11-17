@@ -8,20 +8,25 @@ export async function startFakeGithub(currentRelease) {
     const latest = currentRelease();
     if (req.url === '/api/releases/latest') {
       res.writeHead(200, { 'content-type': 'application/json' });
-      return res.end(JSON.stringify({
-        tag_name: `v${latest.version}`,
-        name: `v${latest.version}`,
-        html_url: 'http://example.invalid/release',
-        body: 'e2e',
-        published_at: new Date().toISOString(),
-        assets: [{ name: ASSET }, { name: `${ASSET}.sha256` }],
-      }));
+      return res.end(
+        JSON.stringify({
+          tag_name: `v${latest.version}`,
+          name: `v${latest.version}`,
+          html_url: 'http://example.invalid/release',
+          body: 'e2e',
+          published_at: new Date().toISOString(),
+          assets: [{ name: ASSET }, { name: `${ASSET}.sha256` }],
+        }),
+      );
     }
     const prefix = '/latest/download/';
     const name = req.url.startsWith(prefix) ? req.url.slice(prefix.length) : null;
     const served = ['install.sh', ASSET, `${ASSET}.sha256`];
     const file = name && served.includes(name) ? path.join(latest.dir, name) : null;
-    if (!file) { res.writeHead(404); return res.end(); }
+    if (!file) {
+      res.writeHead(404);
+      return res.end();
+    }
     const body = readFileSync(file);
     res.writeHead(200, { 'content-length': body.length });
     if (name === ASSET && latest.cut) {

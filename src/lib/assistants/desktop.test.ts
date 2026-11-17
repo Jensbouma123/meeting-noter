@@ -39,7 +39,10 @@ describe('Claude Desktop config', () => {
   it('refuses to overwrite an unreadable config', async () => {
     const t = setup();
     fs.writeFileSync(t.file, '{broken');
-    expect(await connectAssistant('claude-desktop', fakeDeps(t.env), true)).toEqual({ ok: false, error: 'config-unreadable' });
+    expect(await connectAssistant('claude-desktop', fakeDeps(t.env), true)).toEqual({
+      ok: false,
+      error: 'config-unreadable',
+    });
     expect(fs.readFileSync(t.file, 'utf8')).toBe('{broken');
   });
 

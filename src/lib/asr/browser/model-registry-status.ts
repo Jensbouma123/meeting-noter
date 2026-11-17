@@ -1,10 +1,5 @@
 import { persistEntries } from './model-registry-persistence';
-import {
-  emptyProgress,
-  notifyListeners,
-  patchEntry,
-  registryState,
-} from './model-registry-state';
+import { emptyProgress, notifyListeners, patchEntry, registryState } from './model-registry-state';
 
 function commit(): void {
   notifyListeners();
@@ -40,22 +35,28 @@ export function markCancelled(key: string): void {
 }
 
 export function markUnavailable(key: string): void {
-  if (!patchEntry(key, {
-    status: 'unavailable',
-    error: 'Model unavailable in this browser.',
-    isReady: false,
-  })) return;
+  if (
+    !patchEntry(key, {
+      status: 'unavailable',
+      error: 'Model unavailable in this browser.',
+      isReady: false,
+    })
+  )
+    return;
   commit();
 }
 
 export function markDownloading(key: string, totalBytes: number): void {
-  if (!patchEntry(key, {
-    status: 'downloading',
-    error: null,
-    wasCancelled: false,
-    isReady: false,
-    progress: { ...emptyProgress(totalBytes), resuming: false },
-  })) return;
+  if (
+    !patchEntry(key, {
+      status: 'downloading',
+      error: null,
+      wasCancelled: false,
+      isReady: false,
+      progress: { ...emptyProgress(totalBytes), resuming: false },
+    })
+  )
+    return;
   commit();
 }
 
@@ -64,9 +65,7 @@ export function setEstimatedSize(key: string, sizeBytes: number): void {
   if (!entry || !Number.isFinite(sizeBytes) || sizeBytes <= 0) return;
   patchEntry(key, {
     estimatedSizeBytes: sizeBytes,
-    ...(entry.status === 'downloading'
-      ? { progress: { ...entry.progress, totalBytes: sizeBytes } }
-      : {}),
+    ...(entry.status === 'downloading' ? { progress: { ...entry.progress, totalBytes: sizeBytes } } : {}),
   });
   commit();
 }

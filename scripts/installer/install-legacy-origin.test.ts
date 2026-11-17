@@ -40,7 +40,10 @@ describe.skipIf(process.platform !== 'darwin')('install.sh legacy origin (port 3
 
   it('an update stops our old server on the legacy port even without a pid file, and spares others', async () => {
     install('0.5.1');
-    const ours = await startNodeListener(path.join(installRoot(), 'app/node-listener'), path.join(installRoot(), 'app'));
+    const ours = await startNodeListener(
+      path.join(installRoot(), 'app/node-listener'),
+      path.join(installRoot(), 'app'),
+    );
     const foreign = await startNodeListener(path.join(sandbox.dir, 'elsewhere/node'), sandbox.dir);
     try {
       publishRelease('0.6.0');

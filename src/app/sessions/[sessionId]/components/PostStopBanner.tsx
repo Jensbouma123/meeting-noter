@@ -9,9 +9,17 @@ export function PostStopBanner({ message, postStop, detail }: PostStopBannerProp
   const percent = postStop?.percent ?? null;
 
   return (
-    <Alert variant="info" layout="banner" role="status" title={t('postStopTitle')} className="rounded-none max-sm:[&_p]:line-clamp-2">
+    <Alert
+      variant="info"
+      layout="banner"
+      role="status"
+      title={t('postStopTitle')}
+      className="rounded-none max-sm:[&_p]:line-clamp-2"
+    >
       <VStack spacing="xs" className="w-full">
-        <Text as="span" size="xs" variant="muted">{message}.</Text>
+        <Text as="span" size="xs" variant="muted">
+          {message}.
+        </Text>
         {transcribing && (
           <>
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-elevation-2">
@@ -35,17 +43,22 @@ export function PostStopBanner({ message, postStop, detail }: PostStopBannerProp
             </div>
             {detail && (
               <Text as="span" size="xs" variant="muted" className="tabular-nums">
-                {t('transcribing')}{percent === null ? '' : ` ${percent}%`}
+                {t('transcribing')}
+                {percent === null ? '' : ` ${percent}%`}
                 {` · ${detail}`}
               </Text>
             )}
           </>
         )}
         {postStop?.phase === 'done' && (
-          <Text as="span" size="xs" variant="muted">{detail}</Text>
+          <Text as="span" size="xs" variant="muted">
+            {detail}
+          </Text>
         )}
         {postStop?.phase === 'error' && (
-          <Text as="span" size="xs" variant="danger">{detail}</Text>
+          <Text as="span" size="xs" variant="danger">
+            {detail}
+          </Text>
         )}
         {postStop !== null && postStop.droppedSeconds > 0 && (
           <Text as="span" size="xs" variant="muted">

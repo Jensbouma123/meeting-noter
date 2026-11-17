@@ -3,13 +3,7 @@
 import { Text, VStack } from '@jensbouma123/acciva-ui';
 import type { SettingsRowProps } from './types';
 
-export function SettingsRow({
-  label,
-  description,
-  control,
-  htmlFor,
-  footer,
-}: SettingsRowProps) {
+export function SettingsRow({ label, description, control, htmlFor, footer }: SettingsRowProps) {
   return (
     <div className="flex w-full flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
       <VStack spacing="xs" className="min-w-0 flex-1">

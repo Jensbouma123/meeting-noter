@@ -34,7 +34,8 @@ describe('candidateKinds', () => {
       'Ich werde das morgen erledigen, versprochen.',
       'Je vais envoyer le document demain matin.',
       'I will send the updated slides to the team...',
-    ]) expect(candidateKinds(text), text).toEqual([]);
+    ])
+      expect(candidateKinds(text), text).toEqual([]);
   });
 });
 

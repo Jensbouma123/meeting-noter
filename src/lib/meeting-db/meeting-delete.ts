@@ -13,7 +13,12 @@ export function deleteMeetingRows(db: DatabaseSync, id: string, now: number): Me
   return { deleted: true, markdownFile: row.markdown_file === null ? null : String(row.markdown_file) };
 }
 
-export function deleteFolderRows(db: DatabaseSync, id: string, mode: FolderDeleteMode, now: number): FolderDeleteResult {
+export function deleteFolderRows(
+  db: DatabaseSync,
+  id: string,
+  mode: FolderDeleteMode,
+  now: number,
+): FolderDeleteResult {
   const folder = readFolder(db, id);
   if (mode === 'move-up') {
     db.prepare('UPDATE folders SET parent_id = ?, updated_at = ? WHERE parent_id = ?').run(folder.parentId, now, id);

@@ -28,7 +28,8 @@ export function useSeekFromQuery(listRef: RefObject<VirtualListHandle | null>, i
   useEffect(() => {
     const onSeek = (e: Event) => {
       const seconds = (e as CustomEvent<number>).detail;
-      if (typeof seconds === 'number' && items.length > 0) listRef.current?.scrollToIndex(seekIndex(items, seconds), 'center');
+      if (typeof seconds === 'number' && items.length > 0)
+        listRef.current?.scrollToIndex(seekIndex(items, seconds), 'center');
     };
     window.addEventListener(SEEK_EVENT, onSeek);
     return () => window.removeEventListener(SEEK_EVENT, onSeek);

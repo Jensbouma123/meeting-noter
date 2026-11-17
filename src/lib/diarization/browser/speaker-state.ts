@@ -18,10 +18,7 @@ export function serializeSpeakerState(
   };
 }
 
-export function deserializeSpeakerState(
-  value: unknown,
-  shape: SpeakerStateShape,
-): SpeakerCacheSnapshot | null {
+export function deserializeSpeakerState(value: unknown, shape: SpeakerStateShape): SpeakerCacheSnapshot | null {
   if (!value || typeof value !== 'object') return null;
   const v = value as Partial<SerializedSpeakerState>;
   if (v.version !== STATE_VERSION || v.hiddenSize !== shape.hiddenSize || v.numSpeakers !== shape.numSpeakers) {

@@ -4,7 +4,14 @@ import type { UpdateExit, UpdateMeta, UpdateStatus } from './types';
 function visibleLogLines(log: string): string[] {
   return log
     .split(/\n/)
-    .map((l) => (l.split('\r').filter((s) => s.trim()).pop() ?? '').trimEnd())
+    .map((l) =>
+      (
+        l
+          .split('\r')
+          .filter((s) => s.trim())
+          .pop() ?? ''
+      ).trimEnd(),
+    )
     .filter((l) => l.trim());
 }
 
@@ -16,7 +23,13 @@ function lastPercentAfter(log: string, marker: string | null): number | null {
   return Math.min(100, Number(all[all.length - 1][1].replace(',', '.')));
 }
 
-function finishedStatus(base: UpdateStatus, meta: UpdateMeta, log: string, lines: string[], exit: UpdateExit): UpdateStatus {
+function finishedStatus(
+  base: UpdateStatus,
+  meta: UpdateMeta,
+  log: string,
+  lines: string[],
+  exit: UpdateExit,
+): UpdateStatus {
   const finished = { ...base, finishedAt: exit.at };
   const installer = meta.kind === 'installer';
   if (exit.code === 0) {
@@ -49,7 +62,12 @@ function runningStatus(base: UpdateStatus, meta: UpdateMeta, log: string): Updat
   return { ...running, phase: 'starting', code: 'preparing' };
 }
 
-export function deriveStatus(meta: UpdateMeta | null, log: string, exit: UpdateExit | null, alive: boolean): UpdateStatus {
+export function deriveStatus(
+  meta: UpdateMeta | null,
+  log: string,
+  exit: UpdateExit | null,
+  alive: boolean,
+): UpdateStatus {
   if (!meta) return IDLE_STATUS;
   const lines = visibleLogLines(log);
   const base = {

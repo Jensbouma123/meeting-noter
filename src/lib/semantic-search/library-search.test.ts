@@ -14,7 +14,10 @@ describe('bestPerMeeting', () => {
   it('keeps the best window per meeting above the minimum score, capped and sorted', () => {
     const hits = [hit('a', 0, 0.5), hit('a', 1, 0.8), hit('b', 0, 0.34), hit('c', 2, 0.6), hit('d', 0, 0.4)];
     const out = bestPerMeeting(hits, 0.35, 2);
-    expect(out.map((h) => [h.meetingId, h.window.index])).toEqual([['a', 1], ['c', 2]]);
+    expect(out.map((h) => [h.meetingId, h.window.index])).toEqual([
+      ['a', 1],
+      ['c', 2],
+    ]);
   });
 });
 

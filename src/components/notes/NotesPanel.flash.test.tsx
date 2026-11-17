@@ -5,15 +5,33 @@ import { saveInsights } from '@/lib/semantic-search/insights/store';
 import { NotesPanel } from './NotesPanel';
 
 const items = [
-  { id: 'decision:s1:0', kind: 'decision' as const, text: 'We ship on Friday.', segmentId: 's1', speakerId: 'mic:0', start: 65, score: 0.7 },
-  { id: 'action:s2:0', kind: 'action' as const, text: 'I will send the notes.', segmentId: 's2', speakerId: 'mic:0', start: 90, score: 0.7 },
+  {
+    id: 'decision:s1:0',
+    kind: 'decision' as const,
+    text: 'We ship on Friday.',
+    segmentId: 's1',
+    speakerId: 'mic:0',
+    start: 65,
+    score: 0.7,
+  },
+  {
+    id: 'action:s2:0',
+    kind: 'action' as const,
+    text: 'I will send the notes.',
+    segmentId: 's2',
+    speakerId: 'mic:0',
+    start: 90,
+    score: 0.7,
+  },
 ];
 const scroll = vi.fn();
 
 function mockMotion(reduced: boolean) {
   vi.stubGlobal('matchMedia', (query: string) => ({
-    matches: reduced && query.includes('reduce'), media: query,
-    addEventListener: () => {}, removeEventListener: () => {},
+    matches: reduced && query.includes('reduce'),
+    media: query,
+    addEventListener: () => {},
+    removeEventListener: () => {},
   }));
 }
 
@@ -22,7 +40,10 @@ beforeEach(() => {
   localStorage.clear();
   scroll.mockClear();
   Element.prototype.scrollIntoView = scroll;
-  vi.stubGlobal('fetch', vi.fn(async () => new Response('{"ok":true}')));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => new Response('{"ok":true}')),
+  );
   saveInsights('m1', { version: 2, items, dismissed: [] });
   mockMotion(false);
 });
@@ -44,9 +65,13 @@ describe.each([
     expect(scroll).toHaveBeenCalledWith({ behavior: 'smooth', block: 'nearest' });
     expect(scroll.mock.contexts[0]).toBe(row);
     expect(row.className).toContain('bg-primary-500/15');
-    act(() => { vi.advanceTimersByTime(999); });
+    act(() => {
+      vi.advanceTimersByTime(999);
+    });
     expect(row.className).toContain('bg-primary-500/15');
-    act(() => { vi.advanceTimersByTime(2); });
+    act(() => {
+      vi.advanceTimersByTime(2);
+    });
     expect(row.className).not.toContain('bg-primary-500/15');
   });
 

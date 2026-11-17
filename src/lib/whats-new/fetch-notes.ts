@@ -11,7 +11,7 @@ export async function fetchReleaseNotes(version: string, fetchFn: typeof fetch =
       signal: AbortSignal.timeout(5000),
     });
     if (!res.ok) return { notes: local, pageUrl: null };
-    const rel = await res.json() as { body?: unknown; html_url?: unknown };
+    const rel = (await res.json()) as { body?: unknown; html_url?: unknown };
     const body = typeof rel.body === 'string' && rel.body.trim() ? rel.body.slice(0, MAX_NOTES) : local;
     return { notes: body, pageUrl: typeof rel.html_url === 'string' ? rel.html_url : null };
   } catch {

@@ -17,7 +17,11 @@ describe('deriveStatus', () => {
 
   it('follows install.sh through its phases', () => {
     const at = (log: string) => deriveStatus(meta(), log, null, true);
-    expect(at('Installatieprogramma ophalen…\n')).toMatchObject({ state: 'running', phase: 'starting', code: 'preparing' });
+    expect(at('Installatieprogramma ophalen…\n')).toMatchObject({
+      state: 'running',
+      phase: 'starting',
+      code: 'preparing',
+    });
     const dl = 'Downloaden: meeting-noter-macos-arm64.tar.gz\n\r#####   12.5%\r##########   42.7%';
     expect(at(dl)).toMatchObject({ phase: 'downloading', percent: 42.7, code: 'downloading' });
     expect(at(`${dl}\r####### 100.0%\n`)).toMatchObject({ phase: 'installing', code: 'installing' });
@@ -37,13 +41,16 @@ describe('deriveStatus', () => {
       finishedAt: '2026-11-11T10:05:00.000Z',
       restartRequired: false,
     });
-    expect(deriveStatus(meta(), '✓ U heeft al de nieuwste versie (0.3.0).', exit(0), false).code).toBe('already-latest');
+    expect(deriveStatus(meta(), '✓ U heeft al de nieuwste versie (0.3.0).', exit(0), false).code).toBe(
+      'already-latest',
+    );
     expect(deriveStatus(meta(), 'x\n❌ Download mislukt.\n   Er ging iets mis', exit(1), false)).toMatchObject({
       state: 'failed',
       code: 'failed',
       detail: 'Download mislukt.',
     });
-    const rolledBack = 'x\n❌ Meeting Noter 0.3.0 startte niet. Logbestand: l\n   ↩️  Vorige versie 0.2.3 teruggezet / Previous version restored.\n   Er ging iets mis';
+    const rolledBack =
+      'x\n❌ Meeting Noter 0.3.0 startte niet. Logbestand: l\n   ↩️  Vorige versie 0.2.3 teruggezet / Previous version restored.\n   Er ging iets mis';
     expect(deriveStatus(meta(), rolledBack, exit(1), false)).toMatchObject({
       state: 'failed',
       code: 'rolled-back',

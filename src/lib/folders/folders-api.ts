@@ -82,5 +82,7 @@ export async function moveMeeting(meetingId: string, folderId: string | null): P
 }
 
 export async function declineFolderSuggestion(meetingId: string, folderId: string): Promise<ApiResult> {
-  return changed(await call(`/api/meetings/${encodeURIComponent(meetingId)}/folder-suggestion`, json('PUT', { folderId })));
+  return changed(
+    await call(`/api/meetings/${encodeURIComponent(meetingId)}/folder-suggestion`, json('PUT', { folderId })),
+  );
 }

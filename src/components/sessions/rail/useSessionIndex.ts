@@ -44,7 +44,7 @@ export function useSessionIndex() {
       refresh();
       return removed;
     },
-    [refresh, toast, t]
+    [refresh, toast, t],
   );
 
   const clear = useCallback(
@@ -60,7 +60,7 @@ export function useSessionIndex() {
       refresh();
       return cleared;
     },
-    [refresh, toast, t]
+    [refresh, toast, t],
   );
 
   return { sessions, loaded, refresh, remove, clear };

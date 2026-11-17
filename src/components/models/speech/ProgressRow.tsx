@@ -7,9 +7,7 @@ export function ProgressRow({ entry }: { entry: ModelEntry }) {
   const t = useT('models');
   const { progress } = entry;
   const etaText =
-    progress.etaSeconds > 0 && !isNaN(progress.etaSeconds)
-      ? ` · ${formatSeconds(progress.etaSeconds)} left`
-      : '';
+    progress.etaSeconds > 0 && !isNaN(progress.etaSeconds) ? ` · ${formatSeconds(progress.etaSeconds)} left` : '';
 
   if (progress.resuming) {
     return (
@@ -26,8 +24,7 @@ export function ProgressRow({ entry }: { entry: ModelEntry }) {
     <VStack spacing="xs" className="w-full">
       <ProgressTrack value={progress.percent} label={t('progress.download')} />
       <Text size="xs" variant="muted" font="mono" className="tabular-nums">
-        {formatBytes(progress.loadedBytes)} / {formatBytes(progress.totalBytes)} ·{' '}
-        {progress.percent}%{etaText}
+        {formatBytes(progress.loadedBytes)} / {formatBytes(progress.totalBytes)} · {progress.percent}%{etaText}
       </Text>
     </VStack>
   );

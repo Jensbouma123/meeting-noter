@@ -22,7 +22,11 @@ export function getNotesSnapshot(sessionId: string): Notes {
   if (cached) return cached;
   const fresh = readNotes(sessionId);
   snapshots.set(sessionId, fresh);
-  if (!watchers.has(sessionId)) watchers.set(sessionId, subscribe(sessionId, () => void snapshots.delete(sessionId)));
+  if (!watchers.has(sessionId))
+    watchers.set(
+      sessionId,
+      subscribe(sessionId, () => void snapshots.delete(sessionId)),
+    );
   return fresh;
 }
 
@@ -46,7 +50,7 @@ export function addAction(sessionId: string, text: string, options: ActionItemIn
 
 export function updateAction(sessionId: string, actionId: string, patch: NotePatch): void {
   const notes = readNotes(sessionId);
-  const actions = notes.actions.map((item) => item.id === actionId ? { ...item, ...patch, id: item.id } : item);
+  const actions = notes.actions.map((item) => (item.id === actionId ? { ...item, ...patch, id: item.id } : item));
   if (!notes.actions.some((item) => item.id === actionId)) return;
   writeNotes(sessionId, { ...notes, actions });
 }

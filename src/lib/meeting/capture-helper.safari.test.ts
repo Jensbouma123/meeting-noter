@@ -75,8 +75,15 @@ describe('Safari with the helper running', () => {
     const cap = new Capture({ ...handler, onWarning });
     await cap.start('both');
     expect(onWarning).not.toHaveBeenCalled();
-    socket().text({ type: 'mic', mic: 'silent', micError: 'MacBook Pro Microphone delivers only silence', micPermission: 'unknown' });
-    expect(onWarning).toHaveBeenCalledExactlyOnceWith(expect.stringMatching(/microphone is not recorded.*only silence.*Microphone permission/));
+    socket().text({
+      type: 'mic',
+      mic: 'silent',
+      micError: 'MacBook Pro Microphone delivers only silence',
+      micPermission: 'unknown',
+    });
+    expect(onWarning).toHaveBeenCalledExactlyOnceWith(
+      expect.stringMatching(/microphone is not recorded.*only silence.*Microphone permission/),
+    );
     expect(cap.diagnostics().sources.system?.tracks[0].label).toMatch(/mic: silent/);
     socket().text({ type: 'mic', mic: 'live', micPermission: 'granted' });
     expect(onWarning).toHaveBeenCalledOnce();

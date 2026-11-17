@@ -20,7 +20,12 @@ async function setup() {
   return { spill, spiller: new RunSpiller(spill, 2) };
 }
 
-const probs = owners([[0, 60, [0]], [60, 80, [1]], [80, 90, [0, 1]], [90, 200, [0]]]);
+const probs = owners([
+  [0, 60, [0]],
+  [60, 80, [1]],
+  [80, 90, [0, 1]],
+  [90, 200, [0]],
+]);
 
 describe('RunSpiller', () => {
   it('spills exclusive runs with a tail, rewinding short runs and skipping overlap', async () => {

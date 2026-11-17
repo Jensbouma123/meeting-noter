@@ -12,8 +12,7 @@ vi.mock('@/lib/diarization/browser/downloader', () => ({
   isEmbedderCached: async () => dl.embedderCached,
 }));
 
-vi.mock('@/lib/diarization/browser', async () =>
-  (await import('./diarization-bridge-fakes')).mockDiarizationBrowser());
+vi.mock('@/lib/diarization/browser', async () => (await import('./diarization-bridge-fakes')).mockDiarizationBrowser());
 
 beforeEach(async () => {
   dl.embedderCached = false;
@@ -27,7 +26,9 @@ afterEach(resetBridge);
 describe('best-effort speaker embedder fetch', () => {
   it('leaves diarization cached and logs a warning when the embedder fetch fails', async () => {
     const { registry, bridge } = await consentedAndCached();
-    const { fetchSpeakerEmbedderIfModelCached, fetchSpeakerEmbedderBestEffort } = await import('./diarization-embedder-fetch');
+    const { fetchSpeakerEmbedderIfModelCached, fetchSpeakerEmbedderBestEffort } = await import(
+      './diarization-embedder-fetch'
+    );
     dl.ensureEmbedder.mockRejectedValue(new Error('network'));
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     fetchSpeakerEmbedderIfModelCached();
@@ -40,7 +41,9 @@ describe('best-effort speaker embedder fetch', () => {
 
   it('fetches only the embedder for a cached install, and retries after a failure', async () => {
     await consentedAndCached();
-    const { fetchSpeakerEmbedderIfModelCached, fetchSpeakerEmbedderBestEffort } = await import('./diarization-embedder-fetch');
+    const { fetchSpeakerEmbedderIfModelCached, fetchSpeakerEmbedderBestEffort } = await import(
+      './diarization-embedder-fetch'
+    );
     fetchSpeakerEmbedderIfModelCached();
     await fetchSpeakerEmbedderBestEffort();
     expect(dl.ensureEmbedder).toHaveBeenCalledTimes(1);
@@ -59,7 +62,9 @@ describe('best-effort speaker embedder fetch', () => {
   it('does not fetch without consent', async () => {
     const { bridge } = await modules();
     bridge.registerDiarizationModel('webgpu');
-    const { fetchSpeakerEmbedderBestEffort, fetchSpeakerEmbedderIfModelCached } = await import('./diarization-embedder-fetch');
+    const { fetchSpeakerEmbedderBestEffort, fetchSpeakerEmbedderIfModelCached } = await import(
+      './diarization-embedder-fetch'
+    );
     fetchSpeakerEmbedderIfModelCached();
     await fetchSpeakerEmbedderBestEffort();
     expect(dl.ensureEmbedder).not.toHaveBeenCalled();

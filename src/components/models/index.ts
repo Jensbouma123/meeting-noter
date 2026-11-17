@@ -1,6 +1,4 @@
-export {
-  ModelRegistryProvider,
-} from './ModelRegistryProvider';
+export { ModelRegistryProvider } from './ModelRegistryProvider';
 export { useModelCached } from './useModelCached';
 export { useModelStatus } from './useModelStatus';
 export { useAnyDownloading } from './useAnyDownloading';

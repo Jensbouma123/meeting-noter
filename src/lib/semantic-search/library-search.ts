@@ -5,11 +5,7 @@ export const MIN_LIBRARY_SCORE = 0.35;
 export const MAX_LIBRARY_MEETINGS = 8;
 const WINDOW_POOL = 24;
 
-export function bestPerMeeting(
-  hits: Hit[],
-  minScore = MIN_LIBRARY_SCORE,
-  maxMeetings = MAX_LIBRARY_MEETINGS,
-): Hit[] {
+export function bestPerMeeting(hits: Hit[], minScore = MIN_LIBRARY_SCORE, maxMeetings = MAX_LIBRARY_MEETINGS): Hit[] {
   const best = new Map<string, Hit>();
   for (const hit of hits) {
     if (hit.score < minScore) continue;

@@ -2,15 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { useOnChange } from '@/hooks/useOnChange';
-import {
-  Button,
-  FormField,
-  HStack,
-  Input,
-  Modal,
-  Text,
-  VStack,
-} from '@jensbouma123/acciva-ui';
+import { Button, FormField, HStack, Input, Modal, Text, VStack } from '@jensbouma123/acciva-ui';
 import { useLanguage } from '@/lib/i18n/useLanguage';
 import { useT } from '@/lib/i18n/useT';
 import { defaultMeetingName } from './defaultMeetingName';
@@ -61,23 +53,14 @@ export function NewSessionDialog({ open, onClose, onCreate }: NewSessionDialogPr
           <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
             {t('cancel')}
           </Button>
-          <Button
-            variant="primary"
-            onClick={submitSessionName}
-            loading={isSubmitting}
-          >
+          <Button variant="primary" onClick={submitSessionName} loading={isSubmitting}>
             {t('create')}
           </Button>
         </HStack>
       }
     >
       <VStack spacing="md" fill>
-        <FormField
-          id="session-name"
-          label={t('nameOptional')}
-          hint={t('nameHint')}
-          error={error ?? undefined}
-        >
+        <FormField id="session-name" label={t('nameOptional')} hint={t('nameHint')} error={error ?? undefined}>
           <Input
             ref={nameRef}
             value={draft}

@@ -22,7 +22,7 @@ describe('ASR worker: ORT session log suppression', () => {
     expect(ort.env.logLevel).toBe('error');
   });
 
-  it('forces logSeverityLevel to 3 even when the caller asks for 2 (parakeet.js\'s default)', async () => {
+  it("forces logSeverityLevel to 3 even when the caller asks for 2 (parakeet.js's default)", async () => {
     await import('./parakeet');
     const ort = await import('onnxruntime-web');
 

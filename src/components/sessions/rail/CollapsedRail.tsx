@@ -7,7 +7,12 @@ export function CollapsedRail({ onNewSession, onToggle }: CollapsedRailProps) {
   const t = useT('sidebar');
   return (
     <VStack spacing="lg" align="center" className="h-full">
-      <HStack as="header" align="center" justify="center" className="h-14 w-full box-border shrink-0 border-b border-border-subtle">
+      <HStack
+        as="header"
+        align="center"
+        justify="center"
+        className="h-14 w-full box-border shrink-0 border-b border-border-subtle"
+      >
         <Button
           variant="ghost"
           size="sm"

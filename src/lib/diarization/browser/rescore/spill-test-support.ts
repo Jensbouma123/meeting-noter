@@ -33,9 +33,7 @@ export function fakeHandle(): SyncAccessHandleLike & { bytes: () => Uint8Array; 
   };
 }
 
-export function fakeDirectory(
-  handle: SyncAccessHandleLike | null,
-): OpfsDirectoryLike & { files: Set<string> } {
+export function fakeDirectory(handle: SyncAccessHandleLike | null): OpfsDirectoryLike & { files: Set<string> } {
   const files = new Set<string>();
   return {
     files,

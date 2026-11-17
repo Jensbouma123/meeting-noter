@@ -90,7 +90,12 @@ try {
 
   console.log('\n4. Update to a release whose server does not start');
   latest = await makeRelease('1.0.4', { broken: true });
-  await expectKept(latest, { what: 'the rollback', detail: 'Meeting Noter 1.0.4 startte niet', code: 'rolled-back', restarted: true });
+  await expectKept(latest, {
+    what: 'the rollback',
+    detail: 'Meeting Noter 1.0.4 startte niet',
+    code: 'rolled-back',
+    restarted: true,
+  });
 
   console.log('\n5. Update to a good release after the rollback');
   latest = await makeRelease('1.0.5');

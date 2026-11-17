@@ -93,7 +93,9 @@ describe('createLanguageDetector — one worker for the page', () => {
 
     const last = worker.posted[worker.posted.length - 1].message as { type: string; id: string };
     expect(last.type).toBe('dispose');
-    expect(last.id).toBe((worker.posted.find((p) => (p.message as { type: string }).type === 'push')!.message as { id: string }).id);
+    expect(last.id).toBe(
+      (worker.posted.find((p) => (p.message as { type: string }).type === 'push')!.message as { id: string }).id,
+    );
 
     mic.push(new Float32Array([0.5]));
     expect(worker.posted.filter((p) => (p.message as { type: string }).type === 'push')).toHaveLength(1);

@@ -5,7 +5,12 @@ import { Button, EmptyState, Text } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import type { TranscriptEmptyStateProps } from './LiveTranscript.types';
 
-export function TranscriptEmptyState({ modelReady, modelReadiness, onStartRecording, onOpenSettings }: TranscriptEmptyStateProps) {
+export function TranscriptEmptyState({
+  modelReady,
+  modelReadiness,
+  onStartRecording,
+  onOpenSettings,
+}: TranscriptEmptyStateProps) {
   const t = useT('transcript');
   const preparing = modelReadiness === 'loading' || modelReadiness === 'downloading';
   const failed = modelReadiness === 'failed';
@@ -41,15 +46,13 @@ export function TranscriptEmptyState({ modelReady, modelReadiness, onStartRecord
                 </Button>
                 <Text size="xs" variant="muted">
                   {t('orPress')}{' '}
-                  <kbd className="rounded border border-border-soft px-1.5 font-mono text-[0.7rem] text-muted-foreground">R</kbd>
+                  <kbd className="rounded border border-border-soft px-1.5 font-mono text-[0.7rem] text-muted-foreground">
+                    R
+                  </kbd>
                 </Text>
               </div>
             ) : !preparing ? (
-              <Button
-                variant="outline"
-                size={{ base: 'md', md: 'sm' }}
-                onClick={() => onOpenSettings('advanced')}
-              >
+              <Button variant="outline" size={{ base: 'md', md: 'sm' }} onClick={() => onOpenSettings('advanced')}>
                 {failed ? t('openSettings') : t('setupModel')}
               </Button>
             ) : undefined

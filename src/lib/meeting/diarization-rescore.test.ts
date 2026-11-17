@@ -5,7 +5,8 @@ import type { DiarizationTestTurn } from './types/diarization-test';
 const rescored = vi.hoisted(() => new Map<string, (turns: DiarizationTestTurn[]) => void>());
 
 vi.mock('@/lib/asr/browser', async (importOriginal) =>
-  (await import('./diarization-bridge-fakes')).mockAsrBrowser(importOriginal));
+  (await import('./diarization-bridge-fakes')).mockAsrBrowser(importOriginal),
+);
 
 vi.mock('@/lib/diarization/browser', async () => {
   const base = (await import('./diarization-bridge-fakes')).mockDiarizationBrowser();
@@ -32,7 +33,15 @@ async function stoppedMeeting(segments: number) {
   m.bridge.startDiarization(['mic']);
   fakes.turn.get('mic')!({ speaker: 'mic:0', source: 'mic', start: 0, end: 1000, id: 'mic#0', final: true });
   for (let i = 0; i < segments; i += 1) {
-    m.store.upsertSegment({ id: `s${i}`, source: 'mic', speaker: 'mic:0', text: `w${i}`, start: i * 2, end: i * 2 + 1, final: true });
+    m.store.upsertSegment({
+      id: `s${i}`,
+      source: 'mic',
+      speaker: 'mic:0',
+      text: `w${i}`,
+      start: i * 2,
+      end: i * 2 + 1,
+      final: true,
+    });
   }
   m.bridge.stopDiarization();
   return m;

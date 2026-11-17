@@ -9,10 +9,7 @@ import { SettingsGroup } from './SettingsGroup';
 import { SettingsRow } from './SettingsRow';
 import { SettingsStackedRow } from './SettingsStackedRow';
 
-export function AudioCaptureSection({
-  settings,
-  onSettingsChange,
-}: SettingsSectionProps) {
+export function AudioCaptureSection({ settings, onSettingsChange }: SettingsSectionProps) {
   const t = useT('settings');
   const devices = useMicDevices();
 
@@ -29,10 +26,7 @@ export function AudioCaptureSection({
   return (
     <>
       <SettingsGroup>
-        <SettingsStackedRow
-          label={t('audioSource')}
-          description={t('audioSourceDescription')}
-        >
+        <SettingsStackedRow label={t('audioSource')} description={t('audioSourceDescription')}>
           <RadioGroup
             value={settings.mode}
             onChange={(mode) => onSettingsChange({ ...settings, mode: mode as CaptureMode })}

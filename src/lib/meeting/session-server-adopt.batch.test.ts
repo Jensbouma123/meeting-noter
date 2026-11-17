@@ -30,7 +30,12 @@ function measure(n: number) {
   window.addEventListener('mn:sessions-changed', events);
   adoptMeetingSummaries(Array.from({ length: n }, (_, i) => row(i)));
   window.removeEventListener('mn:sessions-changed', events);
-  const out = { get: get.mock.calls.length, set: set.mock.calls.length, parse: parse.mock.calls.length, events: events.mock.calls.length };
+  const out = {
+    get: get.mock.calls.length,
+    set: set.mock.calls.length,
+    parse: parse.mock.calls.length,
+    events: events.mock.calls.length,
+  };
   vi.restoreAllMocks();
   return out;
 }

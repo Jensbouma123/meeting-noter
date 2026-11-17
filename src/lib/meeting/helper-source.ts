@@ -1,10 +1,5 @@
 import type { HelperHello, HelperMic } from './types/helper';
-import {
-  HELPER_FRAME_SAMPLES,
-  int16Rms,
-  parseHelperMessage,
-  parseMic,
-} from './helper-protocol';
+import { HELPER_FRAME_SAMPLES, int16Rms, parseHelperMessage, parseMic } from './helper-protocol';
 
 export class HelperSource {
   readonly hello: HelperHello;

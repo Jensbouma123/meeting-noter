@@ -20,7 +20,9 @@ describe('/api/meetings deletion', () => {
     expect(await res.json()).toEqual({ ok: true, deleted: true });
     expect((await get(localRequest(`/${m.id}`), idContext(m.id))).status).toBe(404);
     expect(fs.existsSync(path.join(data.dir, 'meetings', markdownFile))).toBe(false);
-    expect(meetingStore().db.listFolders()).toContainEqual(expect.objectContaining({ id: folder.id, name: 'Keep this folder' }));
+    expect(meetingStore().db.listFolders()).toContainEqual(
+      expect.objectContaining({ id: folder.id, name: 'Keep this folder' }),
+    );
   });
 
   it('keeps a deleted meeting deleted: PUT gets 410, import skips it, the list names it', async () => {
@@ -47,11 +49,26 @@ describe('/api/meetings deletion', () => {
     const all = await (await list(localRequest(''))).json();
     expect(all.meetings).toEqual([]);
     expect(all.deleted.sort()).toEqual(['b', a.id].sort());
-    for (const markdownFile of markdownFiles) expect(fs.existsSync(path.join(data.dir, 'meetings', markdownFile))).toBe(false);
-    expect(meetingStore().db.listFolders()).toContainEqual(expect.objectContaining({ id: folder.id, name: 'Keep after delete all' }));
-    const raw = ['', '-wal'].map((x) => (fs.existsSync(path.join(data.dir, 'meetings.db') + x) ? fs.readFileSync(path.join(data.dir, 'meetings.db') + x, 'latin1') : '')).join('');
+    for (const markdownFile of markdownFiles)
+      expect(fs.existsSync(path.join(data.dir, 'meetings', markdownFile))).toBe(false);
+    expect(meetingStore().db.listFolders()).toContainEqual(
+      expect.objectContaining({ id: folder.id, name: 'Keep after delete all' }),
+    );
+    const raw = ['', '-wal']
+      .map((x) =>
+        fs.existsSync(path.join(data.dir, 'meetings.db') + x)
+          ? fs.readFileSync(path.join(data.dir, 'meetings.db') + x, 'latin1')
+          : '',
+      )
+      .join('');
     expect(raw).not.toContain('quarterly budget');
-    expect((await removeAll(new Request('http://evil.example/api/meetings', { method: 'DELETE', headers: { host: 'evil.example' } }))).status).toBe(403);
+    expect(
+      (
+        await removeAll(
+          new Request('http://evil.example/api/meetings', { method: 'DELETE', headers: { host: 'evil.example' } }),
+        )
+      ).status,
+    ).toBe(403);
   });
 
   it('after DELETE all, a stale PUT gets 410 and a stale import is skipped: nothing is resurrected', async () => {
@@ -60,7 +77,10 @@ describe('/api/meetings deletion', () => {
     await removeAll(localRequest('', { method: 'DELETE' }));
     const newer = { ...a, updatedAt: a.updatedAt + 60_000 };
     expect((await put(jsonRequest('PUT', `/${a.id}`, newer), idContext(a.id))).status).toBe(410);
-    expect(await (await importMeetings(jsonRequest('POST', '/import', { meetings: [newer] }))).json()).toMatchObject({ imported: 0, skipped: 1 });
+    expect(await (await importMeetings(jsonRequest('POST', '/import', { meetings: [newer] }))).json()).toMatchObject({
+      imported: 0,
+      skipped: 1,
+    });
     expect((await get(localRequest(`/${a.id}`), idContext(a.id))).status).toBe(404);
     expect((await (await list(localRequest(''))).json()).meetings).toEqual([]);
     expect(fs.readdirSync(path.join(data.dir, 'meetings'))).toEqual([]);

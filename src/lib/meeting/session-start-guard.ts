@@ -18,9 +18,7 @@ export function startIsBlocked(): boolean {
     current === 'requesting' || current === 'connecting' || current === 'live' || current === 'paused';
   if (looksActive) {
     if (!session.sessionOver && session.capture) return true;
-    console.warn(
-      `meeting.start(): status was "${current}" with no active session — resetting and starting anyway.`,
-    );
+    console.warn(`meeting.start(): status was "${current}" with no active session — resetting and starting anyway.`);
   }
   if (isPostStopTranscriptionRunning()) {
     setState({ warning: STILL_TRANSCRIBING_WARNING });

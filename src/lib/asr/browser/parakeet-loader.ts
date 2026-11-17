@@ -15,9 +15,8 @@ async function readModelFiles(
   const files = config.files;
   if (files.length === 0) return;
   reportLoadProgress({ stage: 'files', done: 0, total: files.length });
-  await probeCachedModelFiles(
-    { modelRepo: config.modelRepo, files },
-    ({ done, total }) => reportLoadProgress({ stage: 'files', done, total }),
+  await probeCachedModelFiles({ modelRepo: config.modelRepo, files }, ({ done, total }) =>
+    reportLoadProgress({ stage: 'files', done, total }),
   );
 }
 

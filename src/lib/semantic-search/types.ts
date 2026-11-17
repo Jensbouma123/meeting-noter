@@ -92,7 +92,9 @@ export interface IndexRequest {
 export type EmbedWorkerIn = EmbedRequest | IndexRequest;
 
 export type EmbedWorkerOut =
-  { id: number; vectors: Float32Array[] } | { id: number; record: EncodedIndex | null } | { id: number; error: string };
+  | { id: number; vectors: Float32Array[] }
+  | { id: number; record: EncodedIndex | null }
+  | { id: number; error: string };
 
 export interface EmbedWorkerLike {
   postMessage(msg: EmbedWorkerIn): void;

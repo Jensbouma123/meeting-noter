@@ -16,7 +16,12 @@ export function HomeLayout({
   const { open, toggle } = useRailOpenState(controlledOpen, controlledToggle);
 
   return (
-    <HStack as="div" spacing="none" align="stretch" className="h-dvh w-full max-w-full overflow-hidden bg-background text-foreground">
+    <HStack
+      as="div"
+      spacing="none"
+      align="stretch"
+      className="h-dvh w-full max-w-full overflow-hidden bg-background text-foreground"
+    >
       <SessionSidebar
         activeSessionId={activeSessionId}
         onOpenSession={onOpenSession}

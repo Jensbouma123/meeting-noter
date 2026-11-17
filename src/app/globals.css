@@ -66,7 +66,8 @@
 }
 
 @keyframes softCaret {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.85;
   }
   50% {
@@ -151,7 +152,11 @@
 }
 
 .btn-record-spring {
-  transition: transform 160ms cubic-bezier(0.34, 1.56, 0.64, 1), border-radius 240ms cubic-bezier(0.22, 1, 0.36, 1), background-color 180ms ease, box-shadow 180ms ease;
+  transition:
+    transform 160ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    border-radius 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .btn-record-spring:active {
@@ -195,7 +200,10 @@ body {
     opacity: 0 !important;
   }
   .btn-record-spring {
-    transition: background-color 180ms ease, box-shadow 180ms ease, border-radius 240ms ease !important;
+    transition:
+      background-color 180ms ease,
+      box-shadow 180ms ease,
+      border-radius 240ms ease !important;
     transform: none !important;
   }
   .animate-soft-caret {
@@ -225,7 +233,12 @@ body {
     position-area: block-start span-inline-start;
     margin-block: var(--overlay-gutter) var(--dropdown-offset, 8px);
     position-try-order: normal;
-    position-try-fallbacks: flip-inline, flip-block, flip-block flip-inline, --menu-span-up, --menu-span;
+    position-try-fallbacks:
+      flip-inline,
+      flip-block,
+      flip-block flip-inline,
+      --menu-span-up,
+      --menu-span;
   }
 }
 

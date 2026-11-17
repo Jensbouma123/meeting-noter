@@ -9,7 +9,21 @@ import { LOCAL, dataDirFiles, idContext, rawRequest, registerTempDataDir } from 
 const data = registerTempDataDir('meetings-guards-');
 
 describe('meeting ids never reach a path', () => {
-  const bad = ['..', '../x', '..%2Fx', 'a/b', 'a\\b', '/etc/passwd', 'C:\\x', 'a\0b', 'a b', '.', '', 'x'.repeat(101), 'é'];
+  const bad = [
+    '..',
+    '../x',
+    '..%2Fx',
+    'a/b',
+    'a\\b',
+    '/etc/passwd',
+    'C:\\x',
+    'a\0b',
+    'a b',
+    '.',
+    '',
+    'x'.repeat(101),
+    'é',
+  ];
   it.each(bad)('GET and DELETE answer 400 for %j', async (id) => {
     expect((await get(rawRequest('GET', '/x', LOCAL), idContext(id))).status).toBe(400);
     expect((await remove(rawRequest('DELETE', '/x', LOCAL), idContext(id))).status).toBe(400);

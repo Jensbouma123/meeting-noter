@@ -3,13 +3,7 @@ import { useToast } from '@jensbouma123/acciva-ui';
 import type { FolderRow } from '@/lib/meeting-db/types';
 import type { SessionMetadata } from '@/lib/meeting/types/session-store';
 import { deleteSession } from '@/lib/meeting/session-delete';
-import {
-  createFolder,
-  deleteFolder,
-  moveFolder,
-  moveMeeting,
-  renameFolder,
-} from '@/lib/folders/folders-api';
+import { createFolder, deleteFolder, moveFolder, moveMeeting, renameFolder } from '@/lib/folders/folders-api';
 import type { ApiResult, FolderDeleteMode } from '@/lib/folders/types';
 import { canMoveFolder, folderSubtreeIds } from '@/lib/folders/folder-tree';
 import { CreateFolderDialog } from './CreateFolderDialog';
@@ -33,7 +27,9 @@ export function useFolderController(sessions: readonly SessionMetadata[]): Folde
   const report = useCallback(
     (r: ApiResult<object>): boolean => {
       if (r.ok) return true;
-      toast.warning(r.error === 'cycle' ? t('moveIntoItself') : r.error === 'bad-name' ? t('nameRequired') : t('errorGeneric'));
+      toast.warning(
+        r.error === 'cycle' ? t('moveIntoItself') : r.error === 'bad-name' ? t('nameRequired') : t('errorGeneric'),
+      );
       return false;
     },
     [toast, t],
@@ -42,14 +38,21 @@ export function useFolderController(sessions: readonly SessionMetadata[]): Folde
   const settings = useFolderSettings({ folders, report });
 
   const addFolder = useCallback((parentId: string | null) => setCreateParentId(parentId), []);
-  const createNewFolder = useCallback(async (name: string, parentId: string | null) => {
-    const normalized = name.trim().toLocaleLowerCase();
-    if (!normalized || folders.some((folder) => folder.parentId === parentId && folder.name.trim().toLocaleLowerCase() === normalized)) return false;
-    const result = await createFolder(name.trim(), parentId);
-    if (!report(result) || !result.ok) return false;
-    setCreateParentId(undefined);
-    return true;
-  }, [folders, report]);
+  const createNewFolder = useCallback(
+    async (name: string, parentId: string | null) => {
+      const normalized = name.trim().toLocaleLowerCase();
+      if (
+        !normalized ||
+        folders.some((folder) => folder.parentId === parentId && folder.name.trim().toLocaleLowerCase() === normalized)
+      )
+        return false;
+      const result = await createFolder(name.trim(), parentId);
+      if (!report(result) || !result.ok) return false;
+      setCreateParentId(undefined);
+      return true;
+    },
+    [folders, report],
+  );
   const rename = useCallback(
     async (id: string, name: string) => {
       setRenamingId(null);
@@ -112,7 +115,13 @@ export function useFolderController(sessions: readonly SessionMetadata[]): Folde
           onCreate={createNewFolder}
         />
       )}
-      <MoveToDialog target={moveTarget} folders={folders} meetingFolders={meetingFolders} onClose={() => setMoveTarget(null)} onMove={moveToDestination} />
+      <MoveToDialog
+        target={moveTarget}
+        folders={folders}
+        meetingFolders={meetingFolders}
+        onClose={() => setMoveTarget(null)}
+        onMove={moveToDestination}
+      />
       <DeleteFolderDialog
         folder={deleteTarget}
         folders={folders}

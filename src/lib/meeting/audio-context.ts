@@ -1,6 +1,6 @@
 export function createAudioContext(): AudioContext {
-  const Ctx = window.AudioContext ??
-    (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  const Ctx =
+    window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!Ctx) throw new Error('Web Audio is not supported in this browser');
   return new Ctx();
 }

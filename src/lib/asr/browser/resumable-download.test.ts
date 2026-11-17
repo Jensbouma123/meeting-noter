@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  decideResume,
-  isSizeValid,
-  shouldVerifyHash,
-} from './resumable-download';
+import { decideResume, isSizeValid, shouldVerifyHash } from './resumable-download';
 
 describe('decideResume', () => {
   it('restarts when there is no partial on record', () => {

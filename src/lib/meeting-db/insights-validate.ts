@@ -26,7 +26,10 @@ function parseItem(v: unknown): Insight | null {
 
 export function parseInsightSet(v: unknown): InsightSet | null {
   if (!isObj(v) || v.version !== INSIGHTS_VERSION || !Array.isArray(v.items)) return null;
-  const items = v.items.slice(0, MAX_ITEMS).map(parseItem).filter((i): i is Insight => i !== null);
+  const items = v.items
+    .slice(0, MAX_ITEMS)
+    .map(parseItem)
+    .filter((i): i is Insight => i !== null);
   const dismissed = (Array.isArray(v.dismissed) ? v.dismissed : []).filter(isStr).slice(0, MAX_ITEMS * 4);
   return { version: INSIGHTS_VERSION, items, dismissed };
 }

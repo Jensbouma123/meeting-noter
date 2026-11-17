@@ -7,14 +7,23 @@ import type { SessionMetadata } from '@/lib/meeting/types/session-store';
 import { SessionSidebar } from './SessionSidebar';
 import { draft } from './rail/test-support/draftSession';
 
-const state = vi.hoisted(() => ({ sessions: [] as SessionMetadata[], meetingFolders: {} as Record<string, string | null> }));
+const state = vi.hoisted(() => ({
+  sessions: [] as SessionMetadata[],
+  meetingFolders: {} as Record<string, string | null>,
+}));
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock('./rail/useBackfillIndex', () => ({ useBackfillIndex: () => {} }));
-vi.mock('./rail/useSessionIndex', () => ({ useSessionIndex: () => ({ sessions: state.sessions, remove: vi.fn(), clear: vi.fn() }) }));
+vi.mock('./rail/useSessionIndex', () => ({
+  useSessionIndex: () => ({ sessions: state.sessions, remove: vi.fn(), clear: vi.fn() }),
+}));
 vi.mock('./rail/useFolderSuggestions', () => ({ useFolderSuggestions: () => ({}) }));
-vi.mock('./rail/useOnDemandSuggestion', () => ({ useOnDemandSuggestion: () => ({ views: {}, pendingId: null, suggest: vi.fn() }) }));
-vi.mock('./rail/useSessionSearch', () => ({ useSessionSearch: () => ({ query: '', setQuery: vi.fn(), searching: false, groups: [] }) }));
+vi.mock('./rail/useOnDemandSuggestion', () => ({
+  useOnDemandSuggestion: () => ({ views: {}, pendingId: null, suggest: vi.fn() }),
+}));
+vi.mock('./rail/useSessionSearch', () => ({
+  useSessionSearch: () => ({ query: '', setQuery: vi.fn(), searching: false, groups: [] }),
+}));
 vi.mock('./folders/useFolderController', () => ({
   useFolderController: () => ({ meetingFolders: state.meetingFolders, folders: [], requestMove: vi.fn() }),
 }));
@@ -24,7 +33,13 @@ vi.mock('./rail/DeleteSessionDialog', () => ({ DeleteSessionDialog: () => null }
 vi.mock('./rail/ClearTranscriptDialog', () => ({ ClearTranscriptDialog: () => null }));
 vi.mock('./rail/CollapsedRail', () => ({ CollapsedRail: () => null }));
 vi.mock('./rail/RailBody', () => ({
-  RailBody: ({ sessions, renderRow }: { sessions: SessionMetadata[]; renderRow: (s: SessionMetadata) => ReactNode }) => <>{sessions.map((s) => renderRow(s))}</>,
+  RailBody: ({
+    sessions,
+    renderRow,
+  }: {
+    sessions: SessionMetadata[];
+    renderRow: (s: SessionMetadata) => ReactNode;
+  }) => <>{sessions.map((s) => renderRow(s))}</>,
 }));
 
 afterEach(() => {
@@ -35,7 +50,9 @@ afterEach(() => {
 
 function renderSidebarWith(session: SessionMetadata) {
   state.sessions = [session];
-  return render(<SessionSidebar activeSessionId={null} onOpenSession={vi.fn()} onNewSession={vi.fn()} open onToggle={vi.fn()} />);
+  return render(
+    <SessionSidebar activeSessionId={null} onOpenSession={vi.fn()} onNewSession={vi.fn()} open onToggle={vi.fn()} />,
+  );
 }
 
 describe('SessionSidebar Suggest folder', () => {

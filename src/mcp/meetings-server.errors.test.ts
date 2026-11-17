@@ -25,7 +25,9 @@ describe('meetings MCP server errors', () => {
         isError?: boolean;
       };
       expect(res.isError).toBe(true);
-      expect(res.content[0].text).toBe('Could not read the meetings database. Open Meeting Noter once, then try again.');
+      expect(res.content[0].text).toBe(
+        'Could not read the meetings database. Open Meeting Noter once, then try again.',
+      );
       expect(res.content[0].text).not.toContain(secretPath);
       expect(errorSpy.mock.calls.flat().join(' ')).toContain(secretPath);
     } finally {

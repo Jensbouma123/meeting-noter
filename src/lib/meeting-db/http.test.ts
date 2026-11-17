@@ -5,17 +5,20 @@ function chunkedBody(chunks: string[]) {
   const state = { pulled: 0 };
   let next = 0;
   const encoder = new TextEncoder();
-  const stream = new ReadableStream<Uint8Array>({
-    pull(controller) {
-      state.pulled += 1;
-      if (next >= chunks.length) {
-        controller.close();
-        return;
-      }
-      controller.enqueue(encoder.encode(chunks[next]));
-      next += 1;
+  const stream = new ReadableStream<Uint8Array>(
+    {
+      pull(controller) {
+        state.pulled += 1;
+        if (next >= chunks.length) {
+          controller.close();
+          return;
+        }
+        controller.enqueue(encoder.encode(chunks[next]));
+        next += 1;
+      },
     },
-  }, { highWaterMark: 0 });
+    { highWaterMark: 0 },
+  );
   return { stream, state };
 }
 
@@ -58,11 +61,14 @@ describe('readJson', () => {
   });
 
   it('answers a stream that fails mid-read with 400, not an empty body', async () => {
-    const stream = new ReadableStream<Uint8Array>({
-      pull() {
-        throw new Error('stream broke');
+    const stream = new ReadableStream<Uint8Array>(
+      {
+        pull() {
+          throw new Error('stream broke');
+        },
       },
-    }, { highWaterMark: 0 });
+      { highWaterMark: 0 },
+    );
     const result = await readJson(postWith(stream), 100);
     expect(result.ok).toBe(false);
     if (result.ok) return;

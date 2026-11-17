@@ -8,7 +8,7 @@ export async function applyUpdate(): Promise<UpdateStatus> {
     headers: { 'Content-Type': 'application/json', 'X-Meeting-Noter': '1' },
     body: '{}',
   });
-  const data = await response.json() as { status?: UpdateStatus; error?: string };
+  const data = (await response.json()) as { status?: UpdateStatus; error?: string };
   if (!data.status || (!response.ok && !(response.status === 409 && data.status.state === 'running'))) {
     throw new Error(data.error ?? `Update apply failed: ${response.status}`);
   }

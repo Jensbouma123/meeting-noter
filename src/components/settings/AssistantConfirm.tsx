@@ -11,10 +11,16 @@ export function AssistantConfirm({ backupPath, busy, onConfirm, onCancel }: Assi
       <Alert variant="info" layout="inline">
         {t('confirmText')} <span className="font-mono break-all">{backupPath}</span>
       </Alert>
-      <Text size="xs" variant="muted">{t('confirmRestart')}</Text>
+      <Text size="xs" variant="muted">
+        {t('confirmRestart')}
+      </Text>
       <div className="flex gap-2">
-        <Button onClick={onConfirm} disabled={busy}>{t('confirmYes')}</Button>
-        <Button variant="outline" onClick={onCancel} disabled={busy}>{t('cancel')}</Button>
+        <Button onClick={onConfirm} disabled={busy}>
+          {t('confirmYes')}
+        </Button>
+        <Button variant="outline" onClick={onCancel} disabled={busy}>
+          {t('cancel')}
+        </Button>
       </div>
     </div>
   );

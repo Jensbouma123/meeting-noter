@@ -1,6 +1,11 @@
 import { activeAsrManifest } from './backend-detect';
 import { knownModelKeys } from './model-registry-known-keys';
-import { hubOptionsFor, manifestForVariant, webgpuEncoderOf, WEBGPU_ENCODER_FALLBACKS } from './model-manifest-selection';
+import {
+  hubOptionsFor,
+  manifestForVariant,
+  webgpuEncoderOf,
+  WEBGPU_ENCODER_FALLBACKS,
+} from './model-manifest-selection';
 import type { AsrBackend, AsrModelManifest } from './types/model-manifest';
 import { setActiveBackend } from './model-registry-dialog';
 import { persistEntries, readPersistedConsent, readPersistedEntries } from './model-registry-persistence';
@@ -33,10 +38,7 @@ export function registerModel(config: ModelEntryConfig): ModelEntry {
   return entry;
 }
 
-export function registerManifest(
-  manifest: AsrModelManifest,
-  descriptionOverride?: string,
-): ModelEntry {
+export function registerManifest(manifest: AsrModelManifest, descriptionOverride?: string): ModelEntry {
   return registerModel({
     key: manifest.key,
     variant: manifest.variant,

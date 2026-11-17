@@ -15,7 +15,8 @@ beforeEach(() => {
 
 afterEach(() => vi.unstubAllGlobals());
 
-const reply = (body: unknown) => new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json' } });
+const reply = (body: unknown) =>
+  new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json' } });
 
 describe('folder suggestion api', () => {
   it('declineFolderSuggestion PUTs the folder id and announces a change', async () => {

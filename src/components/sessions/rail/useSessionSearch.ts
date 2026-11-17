@@ -35,10 +35,15 @@ export function useSessionSearch(sessions: SessionMetadata[], meetingFolders: Re
       if (hits) return hits.has(id) ? debouncedQuery : '';
       return lowerTranscriptText(id, updatedAtOf.get(id) ?? 0);
     };
-    return groupSessionsByDay(filterSessions(searching ? sessions : unfiled, debouncedQuery, transcriptOf), undefined, language, {
-      today: todayLabel,
-      yesterday: yesterdayLabel,
-    });
+    return groupSessionsByDay(
+      filterSessions(searching ? sessions : unfiled, debouncedQuery, transcriptOf),
+      undefined,
+      language,
+      {
+        today: todayLabel,
+        yesterday: yesterdayLabel,
+      },
+    );
   }, [sessions, unfiled, searching, debouncedQuery, serverHits, language, todayLabel, yesterdayLabel]);
 
   return { query, setQuery, searching, groups };

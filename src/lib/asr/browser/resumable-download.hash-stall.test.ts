@@ -1,10 +1,7 @@
 import 'fake-indexeddb/auto';
 import { describe, expect, it, vi } from 'vitest';
 import { CACHE_CHUNK_BYTES, DOWNLOAD_STALL_MS, downloadHfFileResumable } from './resumable-download';
-import {
-  installHashHooks,
-  REVISION,
-} from './resumable-download.hash-fixtures';
+import { installHashHooks, REVISION } from './resumable-download.hash-fixtures';
 
 installHashHooks();
 
@@ -18,10 +15,10 @@ describe('a body that stops yielding', () => {
       vi.fn(async (input: string | URL, init?: RequestInit) => {
         const url = String(input);
         if (url.includes('/api/models/')) {
-          return new Response(
-            JSON.stringify([{ type: 'file', path: file, size, lfs: { oid: null } }]),
-            { status: 200, headers: { 'content-type': 'application/json' } },
-          );
+          return new Response(JSON.stringify([{ type: 'file', path: file, size, lfs: { oid: null } }]), {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          });
         }
         if (init?.method === 'HEAD') {
           return new Response(null, {

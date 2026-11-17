@@ -46,7 +46,13 @@ export function startUpdate(info: InstallInfo, toVersion: string): UpdateStatus 
     closeSync(fd);
   }
   if (!pid) throw new Error('updater did not start');
-  const meta: UpdateMeta = { kind: info.kind, pid, fromVersion: info.current, toVersion, startedAt: new Date().toISOString() };
+  const meta: UpdateMeta = {
+    kind: info.kind,
+    pid,
+    fromVersion: info.current,
+    toVersion,
+    startedAt: new Date().toISOString(),
+  };
   writeFileSync(f.meta, JSON.stringify(meta));
   return readUpdateStatus(info.stateDir);
 }

@@ -5,7 +5,6 @@ const state = { status: 'idle', capture: false };
 const embedder = { dim: 1, embed: async () => [] };
 const gate = { ready: true };
 
-
 vi.mock('@/lib/semantic-search/model-gate', () => ({ isSearchModelReady: () => gate.ready }));
 vi.mock('./store-core', () => ({
   getState: () => ({ status: state.status, segments: [{ final: true, text: 'hello there' }] }),
