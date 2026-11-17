@@ -57,7 +57,15 @@ describe('overlapping speech', () => {
 
   it('makes an overlap ordinary lines when one column is a back-channel: under 2 words and 0.8 s', () => {
     const noise = [
-      seg({ id: 'a', speaker: 'mic:0', start: 4.1, end: 4.5, text: 'careful', overlap, words: words('careful', 4.1, 0.4) }),
+      seg({
+        id: 'a',
+        speaker: 'mic:0',
+        start: 4.1,
+        end: 4.5,
+        text: 'careful',
+        overlap,
+        words: words('careful', 4.1, 0.4),
+      }),
       seg({ id: 'b', speaker: 'mic:1', start: 4.5, end: 4.7, text: 'I', overlap, words: words('I', 4.5, 0.2) }),
       seg({ id: 'c', speaker: 'mic:0', start: 4.8, end: 5, text: "I'm", overlap, words: words("I'm", 4.8, 0.2) }),
     ];
