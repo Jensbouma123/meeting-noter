@@ -15,12 +15,14 @@ export function getNotes(sessionId: string): Notes {
 }
 
 const snapshots = new Map<string, Notes>();
+const watchers = new Map<string, () => void>();
 
 export function getNotesSnapshot(sessionId: string): Notes {
   const cached = snapshots.get(sessionId);
   if (cached) return cached;
   const fresh = readNotes(sessionId);
   snapshots.set(sessionId, fresh);
+  if (!watchers.has(sessionId)) watchers.set(sessionId, subscribe(sessionId, () => void snapshots.delete(sessionId)));
   return fresh;
 }
 

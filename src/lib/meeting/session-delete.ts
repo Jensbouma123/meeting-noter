@@ -1,4 +1,4 @@
-import { indexKey, removeIndex } from '@/lib/semantic-search/store';
+import { indexKey, invalidateIndexCache, removeIndex } from '@/lib/semantic-search/store';
 import { clearAutosavedSession, cancelPendingAutosave, loadAutosavedSession } from './autosave';
 import { resetDiarization } from './diarization-bridge';
 import { notesKey } from './notes-storage';
@@ -30,9 +30,10 @@ export function sweepMeetingStorage(keepSessionId: string | null): void {
     for (let i = 0; i < localStorage.length; i += 1) {
       const key = localStorage.key(i);
       if (!key || keep.has(key)) continue;
-      if (/^mn\.(session\.|speaker-state\.|notes\.v1\.|semindex\.)/.test(key) || key === 'mn.semindex.ids.v1' || isSessionParticipantsKey(key)) doomed.push(key);
+      if (/^mn\.(session\.|speaker-state\.|notes\.v1\.|semindex\.|semcentroid\.)/.test(key) || key === 'mn.semindex.ids.v1' || isSessionParticipantsKey(key)) doomed.push(key);
     }
     for (const key of doomed) localStorage.removeItem(key);
+    invalidateIndexCache();
   } catch {
     return;
   }

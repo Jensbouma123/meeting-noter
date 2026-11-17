@@ -23,6 +23,10 @@ function readIds(store: KeyValueStore): string[] {
 
 let indexVersion = 0;
 
+export function invalidateIndexCache(): void {
+  indexVersion++;
+}
+
 export function currentIndexVersion(): number {
   return indexVersion;
 }
