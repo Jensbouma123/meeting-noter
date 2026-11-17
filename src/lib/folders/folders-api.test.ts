@@ -16,7 +16,10 @@ let replies: MockReply[];
 let calls: { url: string; init?: RequestInit }[];
 
 const reply = (status: number, body: unknown) =>
-  new Response(typeof body === 'string' ? body : JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
+  new Response(typeof body === 'string' ? body : JSON.stringify(body), {
+    status,
+    headers: { 'content-type': 'application/json' },
+  });
 
 beforeEach(() => {
   replies = [];
@@ -51,7 +54,9 @@ describe('folders-api reads', () => {
   });
 
   it('fetchMeetingFolders maps each meeting to its folder, defaulting to null', async () => {
-    replies.push(reply(200, { ok: true, meetings: [{ id: 'm1', folderId: 'a' }, { id: 'm2' }, { id: 'm3', folderId: null }] }));
+    replies.push(
+      reply(200, { ok: true, meetings: [{ id: 'm1', folderId: 'a' }, { id: 'm2' }, { id: 'm3', folderId: null }] }),
+    );
     await expect(fetchMeetingFolders()).resolves.toEqual({ m1: 'a', m2: null, m3: null });
     expect(calls[0].url).toBe('/api/meetings');
   });
@@ -90,7 +95,10 @@ describe('folders-api writes', () => {
 
   it('deleteFolder passes the mode as a query parameter', async () => {
     replies.push(reply(200, { ok: true, deleted: { folders: 2, meetings: 3 } }));
-    await expect(deleteFolder('a', 'delete-contents')).resolves.toEqual({ ok: true, deleted: { folders: 2, meetings: 3 } });
+    await expect(deleteFolder('a', 'delete-contents')).resolves.toEqual({
+      ok: true,
+      deleted: { folders: 2, meetings: 3 },
+    });
     expect(calls[0].url).toBe('/api/folders/a?mode=delete-contents');
     expect(calls[0].init?.method).toBe('DELETE');
   });

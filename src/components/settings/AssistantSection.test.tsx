@@ -6,7 +6,13 @@ import { LanguageContext } from '@/lib/i18n/LanguageContext';
 
 const LIST = {
   assistants: [
-    { id: 'claude-desktop', status: 'not-connected', canAutoConnect: true, manualCommand: null, configPath: '/cfg.json' },
+    {
+      id: 'claude-desktop',
+      status: 'not-connected',
+      canAutoConnect: true,
+      manualCommand: null,
+      configPath: '/cfg.json',
+    },
     { id: 'claude-code', status: 'connected', canAutoConnect: false, manualCommand: null, configPath: null },
     { id: 'codex', status: 'not-connected', canAutoConnect: false, manualCommand: 'codex mcp add x', configPath: null },
   ],
@@ -19,7 +25,11 @@ function mockFetch(handler: (url: string, init?: RequestInit) => unknown) {
 }
 
 function renderSection(language: 'en' | 'nl' = 'en') {
-  return render(<LanguageContext.Provider value={language}><AssistantSection /></LanguageContext.Provider>);
+  return render(
+    <LanguageContext.Provider value={language}>
+      <AssistantSection />
+    </LanguageContext.Provider>,
+  );
 }
 
 describe('AssistantSection', () => {
@@ -29,9 +39,16 @@ describe('AssistantSection', () => {
   });
 
   it('shows a labelled placeholder with a logo per assistant while loading', () => {
-    vi.stubGlobal('fetch', vi.fn(() => new Promise(() => undefined)));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise(() => undefined)),
+    );
     renderSection();
-    for (const [id, name] of [['claude-desktop', 'Claude Desktop'], ['claude-code', 'Claude Code'], ['codex', 'Codex']]) {
+    for (const [id, name] of [
+      ['claude-desktop', 'Claude Desktop'],
+      ['claude-code', 'Claude Code'],
+      ['codex', 'Codex'],
+    ]) {
       const card = screen.getByTestId(`assistant-placeholder-${id}`);
       expect(card.getAttribute('aria-label')).toBe(name);
       expect(card.querySelector(`[data-testid="assistant-logo-${id}"]`)?.getAttribute('aria-hidden')).toBe('true');
@@ -45,7 +62,8 @@ describe('AssistantSection', () => {
     await screen.findByText('Connected');
     expect(screen.queryByTestId('assistant-placeholder-codex')).toBeNull();
     expect(screen.queryByText('Looking for AI assistants…')).toBeNull();
-    for (const id of ['claude-desktop', 'claude-code', 'codex']) expect(screen.getByTestId(`assistant-logo-${id}`)).toBeTruthy();
+    for (const id of ['claude-desktop', 'claude-code', 'codex'])
+      expect(screen.getByTestId(`assistant-logo-${id}`)).toBeTruthy();
   });
 
   it('shows statuses per assistant', async () => {
@@ -60,14 +78,19 @@ describe('AssistantSection', () => {
     const fetchMock = mockFetch((url, init) => {
       if (url === '/api/assistants') return LIST;
       const confirmed = JSON.parse(String(init?.body)).confirm;
-      return confirmed ? { ok: true, status: 'connected' } : { needsConfirm: true, configPath: '/cfg.json', backupPath: '/cfg.bak' };
+      return confirmed
+        ? { ok: true, status: 'connected' }
+        : { needsConfirm: true, configPath: '/cfg.json', backupPath: '/cfg.bak' };
     });
     renderSection();
     fireEvent.click((await screen.findAllByText('Connect'))[0]);
     expect(await screen.findByText('/cfg.bak')).toBeTruthy();
     fireEvent.click(screen.getByText('Yes, connect'));
     await waitFor(() => expect(screen.getAllByText('Connected')).toHaveLength(2));
-    expect(fetchMock).toHaveBeenCalledWith('/api/assistants/claude-desktop/connect', expect.objectContaining({ method: 'POST' }));
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/assistants/claude-desktop/connect',
+      expect.objectContaining({ method: 'POST' }),
+    );
   });
 
   it('disconnects and renders Dutch', async () => {
@@ -92,14 +115,27 @@ describe('AssistantSection', () => {
   it('shows Repair for an assistant whose MCP file is missing', async () => {
     const fetchMock = mockFetch((url) =>
       url === '/api/assistants'
-        ? { assistants: [{ id: 'claude-code', status: 'needs-repair', canAutoConnect: true, manualCommand: null, configPath: null }] }
+        ? {
+            assistants: [
+              {
+                id: 'claude-code',
+                status: 'needs-repair',
+                canAutoConnect: true,
+                manualCommand: null,
+                configPath: null,
+              },
+            ],
+          }
         : { ok: true, status: 'connected' },
     );
     renderSection();
     expect(await screen.findByText('Needs repair')).toBeTruthy();
     fireEvent.click(screen.getByText('Repair'));
     await waitFor(() => expect(screen.getByText('Connected')).toBeTruthy());
-    expect(fetchMock).toHaveBeenCalledWith('/api/assistants/claude-code/connect', expect.objectContaining({ method: 'POST' }));
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/assistants/claude-code/connect',
+      expect.objectContaining({ method: 'POST' }),
+    );
   });
 
   it('puts Advanced details inside the assistant row and toggles it', async () => {

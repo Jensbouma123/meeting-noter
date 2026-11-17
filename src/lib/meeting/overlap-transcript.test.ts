@@ -52,7 +52,7 @@ describe('overlapping speech', () => {
     ]);
   });
 
-  it('makes an overlap whose words are all one speaker\'s ordinary lines, in the exports too', () => {
+  it("makes an overlap whose words are all one speaker's ordinary lines, in the exports too", () => {
     const oneVoice = [
       seg({ id: 'a', speaker: 'mic:0', start: 0, end: 4, text: 'so I think' }),
       seg({ id: 'b', speaker: 'mic:0', start: 4.1, end: 5, text: 'we should', overlap }),
@@ -71,7 +71,15 @@ describe('overlapping speech', () => {
     const words = (text: string, start: number, each: number) =>
       text.split(' ').map((w, i) => ({ text: w, start: start + i * each, end: start + (i + 1) * each }));
     const noise = [
-      seg({ id: 'a', speaker: 'mic:0', start: 4.1, end: 4.5, text: 'careful', overlap, words: words('careful', 4.1, 0.4) }),
+      seg({
+        id: 'a',
+        speaker: 'mic:0',
+        start: 4.1,
+        end: 4.5,
+        text: 'careful',
+        overlap,
+        words: words('careful', 4.1, 0.4),
+      }),
       seg({ id: 'b', speaker: 'mic:1', start: 4.5, end: 4.7, text: 'I', overlap, words: words('I', 4.5, 0.2) }),
       seg({ id: 'c', speaker: 'mic:0', start: 4.8, end: 5, text: "I'm", overlap, words: words("I'm", 4.8, 0.2) }),
     ];
@@ -127,7 +135,9 @@ describe('overlapping speech', () => {
     expect(md).toContain('**Participants:** Ann, Bo');
 
     const txt = toPlainText(transcript, speakers, 'T');
-    expect(txt).toContain('Ann\n[00:00] so I think\n\n[00:04] [overlap] Ann: we should\n[00:04] [overlap] Bo: no wait\n\nBo\n');
+    expect(txt).toContain(
+      'Ann\n[00:00] so I think\n\n[00:04] [overlap] Ann: we should\n[00:04] [overlap] Bo: no wait\n\nBo\n',
+    );
 
     const srt = toSrt(transcript, speakers);
     expect(srt).toContain('[overlap] Bo: no wait');

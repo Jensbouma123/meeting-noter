@@ -56,10 +56,18 @@ describe('per-session transcripts (B1)', () => {
     const { openSession, getSessionMetadata } = await import('./session-open');
     const { AUTOSAVE_KEY } = await import('./autosave');
     const a = createDraftSession('A');
-    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({
-      version: 1, savedAt: Date.now(), sessionId: a, title: 'A',
-      segments: [seg('a1', 0, 5)], speakers: {}, startedAt: 1,
-    }));
+    localStorage.setItem(
+      AUTOSAVE_KEY,
+      JSON.stringify({
+        version: 1,
+        savedAt: Date.now(),
+        sessionId: a,
+        title: 'A',
+        segments: [seg('a1', 0, 5)],
+        speakers: {},
+        startedAt: 1,
+      }),
+    );
     expect(openSession(a)?.segments.map((s) => s.id)).toEqual(['a1']);
     expect(getSessionMetadata(a)).toMatchObject({ segmentCount: 1, durationSeconds: 5, isDraft: false });
   });
@@ -71,10 +79,18 @@ describe('Record in an existing session (B3)', () => {
     const { archiveAutosavedSession, getFullSession } = await import('./session-open');
     const { AUTOSAVE_KEY, clearAutosavedSession } = await import('./autosave');
     const a = createDraftSession('A');
-    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({
-      version: 1, savedAt: Date.now(), sessionId: a, title: 'A',
-      segments: [seg('a1', 0, 1)], speakers: {}, startedAt: 1,
-    }));
+    localStorage.setItem(
+      AUTOSAVE_KEY,
+      JSON.stringify({
+        version: 1,
+        savedAt: Date.now(),
+        sessionId: a,
+        title: 'A',
+        segments: [seg('a1', 0, 1)],
+        speakers: {},
+        startedAt: 1,
+      }),
+    );
     expect(archiveAutosavedSession()).toBe(a);
     clearAutosavedSession();
     expect(getFullSession(a)?.segments.map((s) => s.id)).toEqual(['a1']);
@@ -134,7 +150,10 @@ describe('persistSession metadata (B7)', () => {
 describe('word timings', () => {
   it('are left out of a saved transcript', async () => {
     const { saveSessionTranscript, loadSessionTranscript } = await import('./session-transcript-storage');
-    const words = [{ text: 'hello', start: 0, end: 0.4 }, { text: 'there', start: 0.5, end: 1 }];
+    const words = [
+      { text: 'hello', start: 0, end: 0.4 },
+      { text: 'there', start: 0.5, end: 1 },
+    ];
     saveSessionTranscript({ ...snapshot('w1'), segments: [{ ...snapshot('w1').segments[0], words }] } as never);
 
     const loaded = loadSessionTranscript('w1')!;

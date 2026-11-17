@@ -8,10 +8,10 @@ const REVISION = 'main';
 const FULL_CONTENT = new Uint8Array(1000).map((_, i) => i % 256);
 const ETAG = '"fixed-etag-for-this-file"';
 function treeApiResponse(): Response {
-  return new Response(
-    JSON.stringify([{ type: 'file', path: FILE, size: FULL_CONTENT.length }]),
-    { status: 200, headers: { 'content-type': 'application/json' } },
-  );
+  return new Response(JSON.stringify([{ type: 'file', path: FILE, size: FULL_CONTENT.length }]), {
+    status: 200,
+    headers: { 'content-type': 'application/json' },
+  });
 }
 
 function headResponse(): Response {
@@ -67,7 +67,11 @@ describe('downloadHfFileResumable — refresh mid-download', () => {
       'fetch',
       vi.fn(async (input: string | URL, init?: RequestInit) => {
         const url = String(input);
-        requestLog.push({ url, method: init?.method ?? 'GET', range: (init?.headers as Record<string, string>)?.Range ?? null });
+        requestLog.push({
+          url,
+          method: init?.method ?? 'GET',
+          range: (init?.headers as Record<string, string>)?.Range ?? null,
+        });
         if (url.includes('/api/models/')) return treeApiResponse();
         if (init?.method === 'HEAD') return headResponse();
         return new Response(droppedConnectionStream(400), { status: 200 });
@@ -123,7 +127,11 @@ describe('downloadHfFileResumable — refresh mid-download', () => {
       'fetch',
       vi.fn(async (input: string | URL, init?: RequestInit) => {
         const url = String(input);
-        requestLog.push({ url, method: init?.method ?? 'GET', range: (init?.headers as Record<string, string>)?.Range ?? null });
+        requestLog.push({
+          url,
+          method: init?.method ?? 'GET',
+          range: (init?.headers as Record<string, string>)?.Range ?? null,
+        });
         if (url.includes('/api/models/')) return treeApiResponse();
         if (init?.method === 'HEAD') return headResponse();
         return new Response(droppedConnectionStream(300), { status: 200 });
