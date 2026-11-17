@@ -3,7 +3,7 @@ import '@testing-library/jest-dom/vitest';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { loadSettings } from '@/components/meeting/settingsStorage';
-import { ACK_STORAGE_KEY, ONBOARDING_STORAGE_KEY } from '@/lib/onboarding/store';
+import { ACK_STORAGE_KEY, AUTOCLOSE_STORAGE_KEY, ONBOARDING_STORAGE_KEY } from '@/lib/onboarding/store';
 import { getVocabulary } from '@/lib/vocabulary/store';
 import {
   entry,
@@ -12,6 +12,7 @@ import {
   setEntries,
   registerOnboardingTestEnv,
   acceptAck,
+  acceptAutoClose,
 } from './OnboardingDialog.testSupport';
 import { OnboardingDialog } from './OnboardingDialog';
 
@@ -91,10 +92,28 @@ describe('OnboardingDialog steps', () => {
     expect(screen.getByText(/after 2 minutes/)).toBeInTheDocument();
     expect(screen.getByText(/up to 15 minutes/)).toBeInTheDocument();
     expect(screen.getByText(/Spotlight \(Cmd\+Space\)/)).toBeInTheDocument();
-    clickContinue();
+    acceptAutoClose();
     expect(screen.getByText(/Settings → Vocabulary/)).toBeInTheDocument();
     expect(screen.getByText(/Fix this word/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Start using Meeting Noter' }));
     expect(localStorage.getItem(ONBOARDING_STORAGE_KEY)).toBe('1');
+  });
+
+  it('blocks Continue on the auto-close step until its checkbox is checked, and persists it', () => {
+    setEntries({ asr: entry('cached') });
+    render(<OnboardingDialog />);
+    clickContinue();
+    clickContinue();
+    acceptAck();
+    skipAssistants();
+    clickContinue();
+    const box = screen.getByLabelText(/I understand that Meeting Noter closes itself/);
+    expect(box).toHaveAttribute('type', 'checkbox');
+    expect(screen.getByRole('button', { name: 'Continue' })).toBeDisabled();
+    expect(localStorage.getItem(AUTOCLOSE_STORAGE_KEY)).toBeNull();
+    fireEvent.click(box);
+    expect(screen.getByRole('button', { name: 'Continue' })).toBeEnabled();
+    clickContinue();
+    expect(localStorage.getItem(AUTOCLOSE_STORAGE_KEY)).toBe('1');
   });
 });

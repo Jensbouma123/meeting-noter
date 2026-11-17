@@ -80,3 +80,8 @@ export function acceptAck() {
   fireEvent.click(screen.getByRole('checkbox', { name: /I understand: all data is processed locally/ }));
   fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
 }
+
+export function acceptAutoClose() {
+  fireEvent.click(screen.getByRole('checkbox', { name: /I understand that Meeting Noter closes itself/ }));
+  fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+}
