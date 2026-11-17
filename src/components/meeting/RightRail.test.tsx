@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { RightRail } from './RightRail';
 import { LanguageContext } from '@/lib/i18n/LanguageContext';
 import { ToastProvider } from '@jensbouma123/acciva-ui';
+import { installViewport, VIEWPORTS } from '@/test/viewport';
 
 vi.mock('@/components/notes/NotesPanel', () => ({ NotesPanel: () => <div>notes-panel</div> }));
 
@@ -17,10 +18,16 @@ function view(lang: 'en' | 'nl' = 'en') {
   );
 }
 
+let restoreViewport = () => {};
+
 beforeEach(() => {
   window.localStorage.clear();
+  restoreViewport = installViewport(VIEWPORTS.desktop);
 });
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  restoreViewport();
+});
 
 describe('RightRail header tabs', () => {
   it('has two tabs, the count inside Participants, and no separate heading', () => {
