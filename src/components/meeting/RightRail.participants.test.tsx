@@ -23,10 +23,6 @@ beforeEach(() => {
   renameSpeaker.mockClear();
   useSpeakerStats.mockReset();
   useSpeakerStats.mockReturnValue(MIXED_ROWS);
-  window.matchMedia ??= ((q: string) => ({
-    matches: false, media: q, addEventListener() {}, removeEventListener() {},
-    addListener() {}, removeListener() {}, onchange: null, dispatchEvent: () => false,
-  })) as unknown as typeof window.matchMedia;
   setParticipants('s1', ['Anna', 'Jan']);
 });
 afterEach(cleanup);

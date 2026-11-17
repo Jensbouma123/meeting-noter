@@ -9,10 +9,12 @@ export function createExpectations({ app, root, client, installState }) {
   async function expectUpdated(rel) {
     const { started, final, phases } = await client.clickUpdateAndWaitForEnd();
     check(started.ok === true, 'POST /api/app/update starts the updater', JSON.stringify(started));
-    check(final?.state === 'done' && final.code === 'updated' && final.toVersion === rel.version, `status: done, updated to ${rel.version}`, JSON.stringify(final));
+    const updated = final?.state === 'done' && final.code === 'updated' && final.toVersion === rel.version;
+    check(updated, `status: done, updated to ${rel.version}`, JSON.stringify(final));
     console.log(`      phases seen: ${phases.join(' → ')}`);
     const s = await client.appStatus();
-    check(s?.version === rel.version, `the new server answers on the same origin with ${rel.version}`, JSON.stringify(s));
+    const versionServed = s?.version === rel.version;
+    check(versionServed, `the new server answers on the same origin with ${rel.version}`, JSON.stringify(s));
     const page = await fetch(`${app}/`).then((r) => r.text()).catch((e) => String(e));
     check(page.includes(rel.version), 'it serves the page', page);
     check(read('app/VERSION').trim() === rel.version, 'app/VERSION is the new version');
@@ -30,10 +32,12 @@ export function createExpectations({ app, root, client, installState }) {
     const before = await client.appStatus();
     const { started, final } = await client.clickUpdateAndWaitForEnd();
     check(started.ok === true, 'POST /api/app/update starts the updater', JSON.stringify(started));
-    check(final?.state === 'failed' && final.code === code, `status: failed (${code})`, JSON.stringify(final));
+    const failedWithCode = final?.state === 'failed' && final.code === code;
+    check(failedWithCode, `status: failed (${code})`, JSON.stringify(final));
     check(!!final?.detail && final.detail.includes(detail), `the error says "${detail}"`, final?.detail);
     const after = await client.appStatus();
-    check(after?.version === before?.version, `${before?.version} still serves after ${what}`, JSON.stringify(after));
+    const sameVersion = after?.version === before?.version;
+    check(sameVersion, `${before?.version} still serves after ${what}`, JSON.stringify(after));
     if (!restarted) check(after?.pid === before?.pid, 'the old server was never stopped', `${before?.pid} -> ${after?.pid}`);
     check(read('app/VERSION').trim() === before?.version, 'app/VERSION is unchanged');
     check(read('installed.sha256').trim() !== rel.sum, `installed.sha256 does not claim ${rel.version}`);

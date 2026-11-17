@@ -12,14 +12,14 @@ import { LANGID_REGISTRY_KEY } from '@/lib/asr/browser/model-registry-known-keys
 export { LANGID_REGISTRY_KEY };
 
 async function downloadLangIdFiles(onProgress: Parameters<Parameters<typeof registerDownloadHandler>[1]>[0]): Promise<void> {
-  const urls = await Promise.all([
-    downloadHfFileResumable(LANGID_MODEL_REPO, LANGID_MODEL_FILES.encoder, LANGID_MODEL_REVISION, {
-      onProgress: (p) => onProgress(p),
-    }),
-    downloadHfFileResumable(LANGID_MODEL_REPO, LANGID_MODEL_FILES.decoder, LANGID_MODEL_REVISION, {
-      onProgress: (p) => onProgress(p),
-    }),
-  ]);
+  const files = [LANGID_MODEL_FILES.encoder, LANGID_MODEL_FILES.decoder];
+  const urls = await Promise.all(
+    files.map((file) =>
+      downloadHfFileResumable(LANGID_MODEL_REPO, file, LANGID_MODEL_REVISION, {
+        onProgress: (p) => onProgress(p),
+      }),
+    ),
+  );
   for (const url of urls) {
     takeBlobUrlBytes(url);
     if (url.startsWith('blob:')) URL.revokeObjectURL(url);

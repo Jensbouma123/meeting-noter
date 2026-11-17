@@ -12,8 +12,13 @@ export async function startFakeReleaseModelHost(file, currentMode) {
     if (mode === MODEL_HOST_MODES.wrongBytes) return res.end('not the pinned model');
     const size = statSync(file).size;
     res.writeHead(200, { 'content-length': size });
+    const cutAfterHalf = (res) => {
+      const half = createReadStream(file, { end: Math.floor(size / 2) });
+      half.on('end', () => setTimeout(() => res.socket.destroy(), 50));
+      half.pipe(res, { end: false });
+    };
     if (mode === MODEL_HOST_MODES.cutHalfway) {
-      createReadStream(file, { end: Math.floor(size / 2) }).on('end', () => setTimeout(() => res.socket.destroy(), 50)).pipe(res, { end: false });
+      cutAfterHalf(res);
       return;
     }
     createReadStream(file).pipe(res);
