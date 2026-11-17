@@ -17,13 +17,18 @@ export async function startFakeGithub(currentRelease) {
         assets: [{ name: ASSET }, { name: `${ASSET}.sha256` }],
       }));
     }
-    const name = req.url.startsWith('/latest/download/') ? req.url.slice('/latest/download/'.length) : null;
-    const file = name && ['install.sh', ASSET, `${ASSET}.sha256`].includes(name) ? path.join(latest.dir, name) : null;
+    const prefix = '/latest/download/';
+    const name = req.url.startsWith(prefix) ? req.url.slice(prefix.length) : null;
+    const served = ['install.sh', ASSET, `${ASSET}.sha256`];
+    const file = name && served.includes(name) ? path.join(latest.dir, name) : null;
     if (!file) { res.writeHead(404); return res.end(); }
     const body = readFileSync(file);
     res.writeHead(200, { 'content-length': body.length });
     if (name === ASSET && latest.cut) {
-      res.write(body.subarray(0, body.length >> 1), () => setTimeout(() => res.socket.destroy(), 50));
+      const cutAt = body.length >> 1;
+      res.write(body.subarray(0, cutAt), () => {
+        setTimeout(() => res.socket.destroy(), 50);
+      });
       return;
     }
     res.end(body);
