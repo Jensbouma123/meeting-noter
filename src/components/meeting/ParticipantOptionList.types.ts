@@ -1,7 +1,9 @@
 import type { ParticipantOption } from './ParticipantOption.types';
+import type { ParticipantPlacement } from './ParticipantPlacement.types';
 
 export interface ParticipantOptionListProps {
   listId: string;
+  placement: ParticipantPlacement;
   usual: ParticipantOption[];
   others: ParticipantOption[];
   fresh: string | null;
