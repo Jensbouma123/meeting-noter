@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import type { ReactNode } from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import type { SessionMetadata } from '@/lib/meeting/types/session-store';
+import { installViewport, setViewport, VIEWPORTS } from '@/test/viewport';
 import { SessionSidebar } from './SessionSidebar';
 import { draft } from './rail/test-support/draftSession';
 
@@ -42,8 +43,21 @@ vi.mock('./rail/RailBody', () => ({
   }) => <>{sessions.map((s) => renderRow(s))}</>,
 }));
 
+let restoreViewport: () => void = () => {};
+
+beforeEach(() => {
+  restoreViewport = installViewport(VIEWPORTS.phone);
+  HTMLDialogElement.prototype.showModal ||= function (this: HTMLDialogElement) {
+    this.setAttribute('open', '');
+  };
+  HTMLDialogElement.prototype.close ||= function (this: HTMLDialogElement) {
+    this.removeAttribute('open');
+  };
+});
+
 afterEach(() => {
   cleanup();
+  restoreViewport();
   state.sessions = [];
   state.meetingFolders = {};
 });
@@ -54,6 +68,32 @@ function renderSidebarWith(session: SessionMetadata) {
     <SessionSidebar activeSessionId={null} onOpenSession={vi.fn()} onNewSession={vi.fn()} open onToggle={vi.fn()} />,
   );
 }
+
+describe('SessionSidebar responsive guardrails', () => {
+  it('shows the drawer and hides the aside on a phone (400px)', () => {
+    setViewport(VIEWPORTS.phone);
+    renderSidebarWith({ ...draft(), sessionId: 'sess-1' });
+    expect(window.matchMedia('(min-width: 1024px)').matches).toBe(false);
+    expect(screen.queryByRole('dialog', { name: 'Meetings' })).toBeNull();
+    expect(screen.getByRole('complementary', { name: 'Meetings' })).toHaveClass('hidden', 'lg:flex');
+  });
+
+  it('renders the aside at the lg breakpoint (1024px)', () => {
+    setViewport(VIEWPORTS.desktop);
+    renderSidebarWith({ ...draft(), sessionId: 'sess-1' });
+    expect(window.matchMedia('(min-width: 1024px)').matches).toBe(true);
+    expect(screen.getByRole('complementary', { name: 'Meetings' })).toBeInTheDocument();
+  });
+
+  it('opens the drawer when mn:open-sessions is dispatched', () => {
+    renderSidebarWith({ ...draft(), sessionId: 'sess-1' });
+    expect(screen.queryByRole('dialog', { name: 'Meetings' })).toBeNull();
+    act(() => {
+      window.dispatchEvent(new Event('mn:open-sessions'));
+    });
+    expect(screen.getByRole('dialog', { name: 'Meetings' })).toBeInTheDocument();
+  });
+});
 
 describe('SessionSidebar Suggest folder', () => {
   it('hides "Suggest folder" for a meeting that is already in a folder', () => {
