@@ -1,7 +1,8 @@
 let failures = 0;
 
 export function check(ok, what, info = '') {
-  console.log(`${ok ? '  ✓' : '  ✗'} ${what}${ok || !info ? '' : `\n      ${String(info).replace(/\n/g, '\n      ')}`}`);
+  const detail = ok || !info ? '' : `\n      ${String(info).replace(/\n/g, '\n      ')}`;
+  console.log(`${ok ? '  ✓' : '  ✗'} ${what}${detail}`);
   if (!ok) failures++;
 }
 
