@@ -71,6 +71,7 @@ export function registerOnboardingTestEnv() {
     resetVocabularyForTests();
     setEntries({ asr: entry('not-downloaded') });
     resetSettingsStoreForTests();
+    window.dispatchEvent(new StorageEvent('storage', { key: 'mn.settings' }));
     recordConsent.mockClear();
     initiateDownloads.mockClear();
     HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) {
