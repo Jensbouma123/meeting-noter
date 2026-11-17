@@ -1,15 +1,11 @@
-// Deterministic viewport harness for responsive tests.
-// Stubs window.matchMedia so that (min-width)/(max-width) queries resolve against a fixed width.
-// Other media features resolve to false. Call setViewport() to change the width and notify listeners.
+import type { ViewportListener } from './viewport.types';
 
 export const VIEWPORTS = { phone: 400, tablet: 768, desktop: 1024 } as const;
 
-type Listener = (event: { matches: boolean; media: string }) => void;
+let width: number = VIEWPORTS.desktop;
+const listeners = new Set<{ query: string; listener: ViewportListener }>();
 
 const feature = /\((min|max)-width:\s*(\d+(?:\.\d+)?)px\)/g;
-
-let width: number = VIEWPORTS.desktop;
-const listeners = new Set<{ query: string; listener: Listener }>();
 
 function matchesQuery(query: string, viewportWidth: number): boolean {
   const features = [...query.matchAll(feature)];
@@ -19,6 +15,10 @@ function matchesQuery(query: string, viewportWidth: number): boolean {
   );
 }
 
+function removeListener(listener: ViewportListener) {
+  for (const entry of listeners) if (entry.listener === listener) listeners.delete(entry);
+}
+
 function createMediaQueryList(query: string) {
   return {
     get matches() {
@@ -26,23 +26,20 @@ function createMediaQueryList(query: string) {
     },
     media: query,
     onchange: null,
-    addEventListener(_: string, listener: Listener) {
+    addEventListener(_: string, listener: ViewportListener) {
       listeners.add({ query, listener });
     },
-    removeEventListener(_: string, listener: Listener) {
-      for (const entry of listeners) if (entry.listener === listener) listeners.delete(entry);
+    removeEventListener(_: string, listener: ViewportListener) {
+      removeListener(listener);
     },
-    addListener(listener: Listener) {
+    addListener(listener: ViewportListener) {
       listeners.add({ query, listener });
     },
-    removeListener(listener: Listener) {
-      for (const entry of listeners) if (entry.listener === listener) listeners.delete(entry);
-    },
+    removeListener,
     dispatchEvent: () => false,
   };
 }
 
-/** Installs the viewport-aware matchMedia stub at the given width. Returns a restore function. */
 export function installViewport(initialWidth: number = VIEWPORTS.desktop): () => void {
   const previous = window.matchMedia;
   width = initialWidth;
@@ -54,7 +51,6 @@ export function installViewport(initialWidth: number = VIEWPORTS.desktop): () =>
   };
 }
 
-/** Changes the viewport width and notifies every matching listener whose result flipped. */
 export function setViewport(nextWidth: number): void {
   const before = [...listeners].map((entry) => matchesQuery(entry.query, width));
   width = nextWidth;
