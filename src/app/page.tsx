@@ -94,7 +94,7 @@ export default function Home() {
                 </li>
               </ol>
             </section>
-            <Button variant="outline" leadingIcon={<Plus className="size-4" />} onClick={() => setNewDialogOpen(true)}>
+            <Button variant="outline" leadingIcon={<Plus className="size-4" />} onClick={() => openNewSession()}>
               {t('newMeeting')}
             </Button>
           </VStack>
