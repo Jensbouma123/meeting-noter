@@ -40,7 +40,7 @@ describe('MeetingsDb migrations', () => {
     v4.db.exec('ALTER TABLE segments DROP COLUMN low_conf_spans; PRAGMA user_version = 4;');
     v4.close();
     const db = new MeetingsDb(file);
-    expect(db.db.prepare('PRAGMA user_version').get()).toEqual({ user_version: 8 });
+    expect(db.db.prepare('PRAGMA user_version').get()).toEqual({ user_version: 9 });
     expect(db.get('meeting-1')!.segments.every((s) => s.lowConfSpans === undefined)).toBe(true);
     db.upsert(sampleMeeting({ updatedAt: Date.now(), segments: [{ ...sampleMeeting().segments[0], lowConfSpans: [[0, 2, 0.3]] }] }));
     expect(db.get('meeting-1')!.segments[0].lowConfSpans).toEqual([[0, 2, 0.3]]);
@@ -54,7 +54,7 @@ describe('MeetingsDb migrations', () => {
     v5.db.exec('ALTER TABLE meetings DROP COLUMN insights; PRAGMA user_version = 5;');
     v5.close();
     const db = new MeetingsDb(file);
-    expect(db.db.prepare('PRAGMA user_version').get()).toEqual({ user_version: 8 });
+    expect(db.db.prepare('PRAGMA user_version').get()).toEqual({ user_version: 9 });
     expect(db.get('meeting-1')!.insights).toBeNull();
     const set = { version: 2, items: [{ id: 'decision:s2:0', kind: 'decision' as const, text: 'We ship the café export on Friday.', segmentId: 's2', speakerId: 'system:1', start: 40, score: 0.7 }], dismissed: [] };
     expect(db.setInsights('meeting-1', set)).toBe(true);
@@ -73,7 +73,7 @@ describe('MeetingsDb migrations', () => {
     v6.db.exec('ALTER TABLE meetings DROP COLUMN folder_suggestion_declined; PRAGMA user_version = 6;');
     v6.close();
     const db = new MeetingsDb(file);
-    expect(db.db.prepare('PRAGMA user_version').get()).toEqual({ user_version: 8 });
+    expect(db.db.prepare('PRAGMA user_version').get()).toEqual({ user_version: 9 });
     expect(db.list()[0].folderSuggestionDeclined).toEqual([]);
     expect(db.declineFolderSuggestion('meeting-1', 'f1')).toBe(true);
     expect(db.declineFolderSuggestion('meeting-1', 'f1')).toBe(true);
@@ -102,7 +102,7 @@ describe('MeetingsDb migrations', () => {
     v1.db.exec('DROP TABLE deleted_meetings; DROP TABLE meta; ALTER TABLE meetings DROP COLUMN participants; PRAGMA user_version = 1;');
     v1.close();
     const db = new MeetingsDb(file);
-    expect(db.db.prepare('PRAGMA user_version').get()).toEqual({ user_version: 8 });
+    expect(db.db.prepare('PRAGMA user_version').get()).toEqual({ user_version: 9 });
     expect(db.get('meeting-1')?.participants).toBeNull();
     expect(db.search('budget').map((h) => h.id)).toEqual(['meeting-1']);
     db.upsert(sampleMeeting({ updatedAt: Date.now(), participants: ['Noor'] }));

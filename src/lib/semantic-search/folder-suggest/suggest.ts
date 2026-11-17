@@ -2,11 +2,17 @@ import { centroidSimilarity, meanVector } from './centroid';
 import { MIN_COSINE, MIN_FOLDER_MEETINGS, MIN_MARGIN } from './thresholds';
 import type { FolderSuggestion } from './types/folder-suggestion';
 
-export function folderCentroids(meetingCentroidsByFolder: Map<string, Float32Array[]>): Map<string, Float32Array> {
+export function folderCentroids(
+  meetingCentroidsByFolder: Map<string, Float32Array[]>,
+  contextVectors: Record<string, Float32Array> = {},
+): Map<string, Float32Array> {
   const out = new Map<string, Float32Array>();
-  for (const [folderId, centroids] of meetingCentroidsByFolder) {
-    if (centroids.length < MIN_FOLDER_MEETINGS) continue;
-    const mean = meanVector(centroids);
+  const ids = new Set([...meetingCentroidsByFolder.keys(), ...Object.keys(contextVectors)]);
+  for (const folderId of ids) {
+    const centroids = meetingCentroidsByFolder.get(folderId) ?? [];
+    const context = contextVectors[folderId];
+    if (centroids.length < MIN_FOLDER_MEETINGS && !context) continue;
+    const mean = meanVector(context ? [...centroids, context] : centroids);
     if (mean) out.set(folderId, mean);
   }
   return out;

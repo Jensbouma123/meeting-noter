@@ -108,7 +108,7 @@ export interface FolderSettingsDialogProps {
   folder: FolderRow;
   folders: FolderRow[];
   onClose: () => void;
-  onSave: (roster: string[], inheritRoster: boolean) => void;
+  onSave: (roster: string[], inheritRoster: boolean, context: string) => void;
 }
 
 export interface FolderSettingsInput {

@@ -73,6 +73,10 @@ export async function updateFolderRoster(
   return changed(await call(`/api/folders/${encodeURIComponent(id)}`, json('PATCH', { roster, inheritRoster })));
 }
 
+export async function updateFolderContext(id: string, context: string): Promise<ApiResult<{ folder: FolderRow }>> {
+  return changed(await call(`/api/folders/${encodeURIComponent(id)}`, json('PATCH', { context })));
+}
+
 export async function moveMeeting(meetingId: string, folderId: string | null): Promise<ApiResult> {
   return changed(await call(`/api/meetings/${encodeURIComponent(meetingId)}/folder`, json('PUT', { folderId })));
 }

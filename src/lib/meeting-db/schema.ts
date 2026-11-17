@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 8;
+export const SCHEMA_VERSION = 9;
 
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS meetings (
@@ -57,7 +57,8 @@ CREATE TABLE IF NOT EXISTS folders (
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL,
   roster TEXT,
-  roster_inherit INTEGER NOT NULL DEFAULT 1
+  roster_inherit INTEGER NOT NULL DEFAULT 1,
+  context TEXT NOT NULL DEFAULT ''
 );
 CREATE TABLE IF NOT EXISTS meta (
   key TEXT PRIMARY KEY,

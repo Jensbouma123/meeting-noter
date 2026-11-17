@@ -15,6 +15,7 @@ const row = (id: string, parentId: string | null, roster: string[], inheritRoste
   updatedAt: 0,
   roster,
   inheritRoster,
+  context: '',
 });
 
 const team = row('Team', null, ['Anna', 'Piet'], false);
@@ -49,6 +50,13 @@ describe('FolderSettingsDialog', () => {
     expect(screen.queryByLabelText('Add a person')).toBeNull();
   });
 
+  it('saves the folder context text', () => {
+    const { onSave } = show(q1);
+    fireEvent.change(screen.getByLabelText('About this folder'), { target: { value: 'design syncs' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(onSave).toHaveBeenCalledWith([], true, 'design syncs');
+  });
+
   it('edits its own roster once inheritance is switched off', () => {
     const { onSave } = show(q1);
     fireEvent.click(screen.getByRole('checkbox', { name: 'Inherit from parent folder' }));
@@ -56,7 +64,7 @@ describe('FolderSettingsDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Add' }));
     expect(screen.getByText('Sam')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-    expect(onSave).toHaveBeenCalledWith(['Sam'], false);
+    expect(onSave).toHaveBeenCalledWith(['Sam'], false, '');
   });
 
   it('removes roster names and saves the remaining people', () => {
@@ -64,7 +72,7 @@ describe('FolderSettingsDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Remove Piet from this folder' }));
     expect(screen.queryByText('Piet')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-    expect(onSave).toHaveBeenCalledWith(['Anna'], false);
+    expect(onSave).toHaveBeenCalledWith(['Anna'], false, '');
   });
 
   it('closes without saving on Cancel', () => {

@@ -7,9 +7,10 @@ export function suggestFolderOnDemand(
   meetingId: string,
   meetingFolders: Record<string, string | null>,
   loadVectors: SuggestionInput['loadVectors'],
+  contextVectors: Record<string, Float32Array> = {},
 ): FolderSuggestion | null {
   const centroidOf = centroidLoader(loadVectors);
-  const centroids = centroidsByFolder(meetingFolders, centroidOf);
+  const centroids = centroidsByFolder(meetingFolders, centroidOf, contextVectors);
   const current = meetingFolders[meetingId];
   return suggestFolder(centroidOf(meetingId), centroids, current ? [current] : []);
 }

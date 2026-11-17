@@ -59,6 +59,7 @@ export interface FolderRow {
   updatedAt: number;
   roster: string[];
   inheritRoster: boolean;
+  context: string;
 }
 
 export type FolderErrorCode = 'not-found' | 'bad-name' | 'bad-parent' | 'cycle';
