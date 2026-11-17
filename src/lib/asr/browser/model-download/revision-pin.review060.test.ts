@@ -20,6 +20,7 @@ const POINTER_KEY = `revision-pin--${BASE_KEY}`;
 const pinnedKey = (sha: string) => cacheKey(REPO, `${REVISION}-sha-${sha.slice(0, 16)}`, FILE);
 const manifest = { modelRepo: REPO, files: [FILE], fileUrlOverrides: { [FILE]: URL_OVERRIDE } };
 const load = () => downloadHfFileResumable(REPO, FILE, REVISION, { urlOverride: URL_OVERRIDE });
+const realFetch = globalThis.fetch;
 const hfKeys = async () => (await readAllKeys(FILE_STORE)).filter((k) => k.startsWith('hf-'));
 
 interface Server {
@@ -85,7 +86,7 @@ function freshServer(overrides: Partial<Server> = {}): Server {
 }
 
 async function firstByte(url: string): Promise<number> {
-  return new Uint8Array(await (await fetch(url)).arrayBuffer())[0];
+  return new Uint8Array(await (await realFetch(url)).arrayBuffer())[0];
 }
 
 describe('encoder cache key derived from the .sha256 sidecar', () => {
@@ -152,9 +153,6 @@ describe('stale record removal when the sha changes', () => {
     expect((await areModelFilesCached(manifest)).complete).toBe(true);
   });
 
-  // BUG (suspected): the old pinned record is deleted before the new body is fetched.
-  // If the new download then fails, the old model is gone and the pointer already names the
-  // new sha, so an offline start cannot use anything.
   it('keeps the old model usable offline when the download of the new sha fails', async () => {
     const server = freshServer();
     serve(server);
@@ -175,8 +173,6 @@ describe('stale record removal when the sha changes', () => {
 describe('corrupt and partial records', () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  // BUG (suspected): a pointer record without a usable sha makes resolveCacheKey throw
-  // (`pinnedRevision` calls `.slice` on undefined), so every later start fails, offline too.
   it('does not break the model load when the pointer record has no sha', async () => {
     const server = freshServer();
     serve(server);
@@ -199,8 +195,6 @@ describe('corrupt and partial records', () => {
 describe('sidecar fetch failures', () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  // BUG (suspected): a 5xx sidecar is classed as "missing" rather than "offline", so the
-  // pinned copy on disk is ignored and the whole model is downloaded again.
   it('keeps using the pinned copy when the sidecar answers 503', async () => {
     const server = freshServer();
     serve(server);
@@ -258,7 +252,7 @@ describe('concurrent calls', () => {
     expect(await hfKeys()).toEqual([pinnedKey(SHA_A)]);
   });
 
-  it('three overlapping resolutions of a changed sha settle on one key and one pointer', async () => {
+  it('three overlapping resolutions of a changed sha settle on one key and keep the old pointer until the download finishes', async () => {
     const server = freshServer();
     serve(server);
     await load();
@@ -269,7 +263,8 @@ describe('concurrent calls', () => {
       resolveCacheKey(REPO, REVISION, FILE, URL_OVERRIDE),
     ]);
     expect(new Set(keys)).toEqual(new Set([pinnedKey(SHA_B)]));
-    expect((await getMetaRecord<{ sha: string }>(FILE_STORE, POINTER_KEY))?.sha).toBe(SHA_B);
+    expect((await getMetaRecord<{ sha: string }>(FILE_STORE, POINTER_KEY))?.sha).toBe(SHA_A);
+    expect(await hfKeys()).toEqual([pinnedKey(SHA_A)]);
   });
 });
 
