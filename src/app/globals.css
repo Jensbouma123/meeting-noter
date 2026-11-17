@@ -243,3 +243,14 @@ body {
   text-align: center;
   line-height: 1.25;
 }
+
+/* Dialog selects: acciva-ui's Select picks its side from room in the viewport, so a
+   field in the lower half of a centred dialog opens upward over the fields above it.
+   Inside a dialog panel always open below; the list's block size is clamped to the
+   space below and scrolls inside. */
+@supports (anchor-name: --a) {
+  .dialog-panel .select-list[data-side="top"] {
+    margin-block: var(--spacing) var(--overlay-gutter);
+    position-area: block-end span-all;
+  }
+}
