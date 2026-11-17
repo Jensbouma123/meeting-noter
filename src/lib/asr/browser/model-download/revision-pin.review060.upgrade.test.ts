@@ -5,7 +5,6 @@ import { FILE_STORE } from './constants';
 import { resolveCacheKey } from './revision-pin';
 import { installCacheHooks } from '../resumable-download.cache-fixtures';
 import * as S from './revision-pin.review060.support';
-import type { Server } from './revision-pin.review060.types';
 const { REPO, FILE, REVISION, URL_OVERRIDE, SHA_A, SHA_B, BASE_KEY, POINTER_KEY, pinnedKey, load, hfKeys, serve, freshServer, firstByte } = S;
 
 installCacheHooks();

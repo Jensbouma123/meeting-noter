@@ -5,7 +5,6 @@ import { getMetaRecord, putMetaRecord } from './cache-primitives';
 import { FILE_STORE } from './constants';
 import { installCacheHooks } from '../resumable-download.cache-fixtures';
 import * as S from './revision-pin.review060.support';
-import type { Server } from './revision-pin.review060.types';
 const { SHA_A, SHA_B, POINTER_KEY, pinnedKey, manifest, load, hfKeys, serve, freshServer, bytesOf, firstByte } = S;
 
 installCacheHooks();
