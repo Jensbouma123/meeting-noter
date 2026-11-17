@@ -3,6 +3,7 @@ export const DOWNLOAD_STALL_MS = 60_000;
 export const PROGRESS_BROADCAST_INTERVAL_MS = 250;
 export const REPO_TREE_TIMEOUT_MS = 15_000;
 export const CACHED_META_DEADLINE_MS = 3_000;
+export const REVISION_PIN_TIMEOUT_MS = 3_000;
 
 export const CACHE_DB_NAME = 'mn-model-cache-db';
 export const CACHE_DB_VERSION = 1;

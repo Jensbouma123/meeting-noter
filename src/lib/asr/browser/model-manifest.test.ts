@@ -83,7 +83,7 @@ describe('backend/quant contract', () => {
     expect(PARAKEET_TDT_V3_WEBGPU.files).toContain('encoder-model.q4f16.onnx');
     expect(PARAKEET_TDT_V3_WEBGPU.files.some((f) => f.endsWith('.data'))).toBe(false);
     expect(PARAKEET_TDT_V3_WEBGPU.fileUrlOverrides?.['encoder-model.q4f16.onnx']).toBeTruthy();
-    expect(PARAKEET_TDT_V3_WEBGPU.fallbackSizeBytes).toBe(534_052_753);
+    expect(PARAKEET_TDT_V3_WEBGPU.fallbackSizeBytes).toBe(534_052_663);
   });
 
   it('keeps fp16 as the WebGPU fallback rung, not as the default', () => {

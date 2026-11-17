@@ -1,7 +1,7 @@
 import type { BroadcastMsg } from '../types/download-lead';
 import type { DownloadFileOptions } from '../types/download-progress';
 import { blobUrlFor } from './blob-url';
-import { cacheKey, readCachedFile } from './cached-files';
+import { readCachedFile } from './cached-files';
 import { CACHED_META_DEADLINE_MS } from './constants';
 import { currentAbortGeneration, downloadCancelError } from './download-cancellation';
 import { openChannel, withDownloadLock } from './download-lock';
@@ -9,6 +9,7 @@ import { followDownload } from './follow-download';
 import { getRepoFileMeta, headFileMeta } from './hf-repo-meta';
 import { leadDownload } from './lead-download';
 import { isSizeValid } from './resume-decision';
+import { resolveCacheKey } from './revision-pin';
 import { settleWithin } from './timing';
 
 export async function acquireHfFile(
@@ -19,7 +20,7 @@ export async function acquireHfFile(
   wantBytes: boolean,
 ): Promise<string | null> {
   const { onProgress } = options;
-  const key = cacheKey(repoId, revision, filename);
+  const key = await resolveCacheKey(repoId, revision, filename, options.urlOverride);
   const abortGeneration = currentAbortGeneration();
   const channel = openChannel();
 

@@ -34,11 +34,11 @@ export const PARAKEET_TDT_V3_WEBGPU: AsrModelManifest = Object.freeze({
     'encoder-model.q4f16.onnx': Q4F16_ENCODER_URL,
   }),
   fileSizes: Object.freeze({
-    'encoder-model.q4f16.onnx': 515_756_810,
+    'encoder-model.q4f16.onnx': 515_756_720,
     'decoder_joint-model.int8.onnx': DECODER_INT8_BYTES,
     'vocab.txt': VOCAB_BYTES,
   }),
-  fallbackSizeBytes: 515_756_810 + DECODER_INT8_BYTES + VOCAB_BYTES,
+  fallbackSizeBytes: 515_756_720 + DECODER_INT8_BYTES + VOCAB_BYTES,
 });
 
 export const PARAKEET_TDT_V3_WEBGPU_FP16: AsrModelManifest = Object.freeze({

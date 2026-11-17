@@ -13,7 +13,7 @@ describe('declared file sizes', () => {
   });
 
   it('quotes the q4f16 encoder at the size the file on disk actually has', async () => {
-    expect(PARAKEET_TDT_V3_WEBGPU.fileSizes['encoder-model.q4f16.onnx']).toBe(515_756_810);
+    expect(PARAKEET_TDT_V3_WEBGPU.fileSizes['encoder-model.q4f16.onnx']).toBe(515_756_720);
   });
 
   it('probes the q4f16 override, so the measured total is the q4f16 one', async () => {
@@ -36,7 +36,7 @@ describe('declared file sizes', () => {
         heads.push(url);
         return new Response(null, {
           status: 200,
-          headers: { 'content-length': String(515_756_810) },
+          headers: { 'content-length': String(515_756_720) },
         });
       }
       return new Response(null, { status: 200 });
@@ -44,7 +44,7 @@ describe('declared file sizes', () => {
     vi.stubGlobal('fetch', stub);
     try {
       const total = await probeModelSize(PARAKEET_TDT_V3_WEBGPU);
-      expect(total).toBe(534_052_753);
+      expect(total).toBe(534_052_663);
       expect(heads).toEqual([PARAKEET_TDT_V3_WEBGPU.fileUrlOverrides?.['encoder-model.q4f16.onnx']]);
     } finally {
       vi.unstubAllGlobals();
