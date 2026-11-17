@@ -10,7 +10,7 @@ import { COLUMN_WITHOUT_LINE_RULE } from './transcriptItems';
 import { useSpeakerStyle } from './useSpeakerStyle';
 import type { TranscriptOverlapRowProps } from './LiveTranscript.types';
 
-export function TranscriptOverlapRow({ item, index, isLast, rowClass, sessionId, speakers }: TranscriptOverlapRowProps) {
+export function TranscriptOverlapRow({ item, index, isLast, rowClass, sessionId, speakers, flash }: TranscriptOverlapRowProps) {
   const t = useT('transcript');
   const speakerStyle = useSpeakerStyle(speakers);
   const { start, columns } = item;
@@ -18,7 +18,7 @@ export function TranscriptOverlapRow({ item, index, isLast, rowClass, sessionId,
   const groupLabel = t('overlap').replace('{names}', names.join(t('and')));
 
   return (
-    <div className={`mn-vrow px-4 md:px-8 ${index === 0 ? 'pt-6' : ''} ${isLast ? 'pb-40' : ''}`}>
+    <div ref={flash?.ref} className={`mn-vrow px-4 md:px-8 ${index === 0 ? 'pt-6' : ''} ${isLast ? 'pb-40' : ''} ${flash?.className ?? ''}`}>
       <div className="mx-auto w-full max-w-[calc(72ch+10rem)]">
         <div
           role="group"

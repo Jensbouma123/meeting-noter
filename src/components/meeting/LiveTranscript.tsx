@@ -13,6 +13,7 @@ import { TranscriptSearch } from './TranscriptSearch';
 import { meeting } from './store';
 import { buildTranscriptItems, estimateItemHeight, itemKey, turnGridClass } from './transcriptItems';
 import { useLiveEdge } from './useLiveEdge';
+import { useRevealSegment } from './useRevealSegment';
 import { useSeekFromQuery } from './useSeekFromQuery';
 import { useTranscriptSearchJump } from './useTranscriptSearchJump';
 import type { LiveTranscriptProps, TranscriptItem } from './LiveTranscript.types';
@@ -53,6 +54,7 @@ export function LiveTranscript({
   });
 
   useSeekFromQuery(listRef, lines);
+  const rowFlash = useRevealSegment(listRef, lines);
 
   const pastHour = segments.some((seg) => seg.start >= 3600);
   const rowClass = turnGridClass(pastHour);
@@ -62,7 +64,7 @@ export function LiveTranscript({
   }, [pastHour]);
 
   const renderItem = (item: TranscriptItem, index: number) => {
-    const rowProps = { index, isLast: index === lines.length - 1, rowClass, sessionId, speakers };
+    const rowProps = { index, isLast: index === lines.length - 1, rowClass, sessionId, speakers, flash: rowFlash(itemKey(item)) };
     return item.kind === 'line' ? (
       <TranscriptLineRow item={item} {...rowProps} />
     ) : (
