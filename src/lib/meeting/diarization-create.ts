@@ -35,7 +35,11 @@ export function createDiarizers(sources: readonly Source[], stopSource: (source:
         downloadWait.redownloadedThisSession = true;
         if (first) markNotCached(DIARIZATION_REGISTRY_KEY, message);
         waitForDownload([source], (ready) => createDiarizers(ready, stopSource));
-        if (first) void retryDownload(DIARIZATION_REGISTRY_KEY).catch(() => {});
+        if (first) {
+          void retryDownload(DIARIZATION_REGISTRY_KEY).catch((err) =>
+            console.warn('[diarization] Retry download failed', err),
+          );
+        }
         return;
       }
       setState({ warning: `Speaker detection unavailable: ${message}` });
