@@ -3,16 +3,17 @@
 # publishes it as a GitHub release asset, so install.sh downloads it instead of
 # converting it on every user's Mac. Run by hand by a maintainer; no CI.
 #
-#   scripts/installer/publish-model.sh [--build-only] [--outdir DIR]
+#   scripts/installer/publish-model.sh N [--build-only] [--outdir DIR]
 #
 # Builds with the bundled convert-parakeet-v3.py and the same pinned uv run as
 # install.sh's local fallback (CONVERT_DEPS, Python 3.12), writes
-# encoder-model.q4f16.onnx.sha256 next to it and uploads both to the fixed
-# prerelease MODEL_TAG (created when missing; a prerelease never becomes
-# "latest", so releases/latest keeps pointing at the app). --build-only stops
-# before the upload. Afterwards set MODEL_SHA256 in install.sh to the printed
-# hash: the output bytes vary with library versions, so the pin follows the
-# uploaded file, never the other way round.
+# encoder-model.q4f16.onnx.sha256 next to it and uploads both to the
+# prerelease model-parakeet-v3-webgpu-N (created when missing; a prerelease
+# never becomes "latest", so releases/latest keeps pointing at the app).
+# --build-only stops before the upload. Afterwards set MODEL_VERSION=N and
+# MODEL_SHA256 in install.sh to the printed values: the output bytes vary with
+# library versions, so the pin follows the uploaded file, never the other way
+# round. Every install then replaces an older model on its next run.
 #
 # Needs uv on PATH (or UV=/path/to/uv), gh logged in for the upload, ~6 GB free
 # disk and ~8 GB RAM. The source model is parakeet-tdt-0.6b-v3 by NVIDIA
@@ -23,6 +24,10 @@ here=$(cd "$(dirname "$0")" && pwd)
 # install.sh is the single source of the tag, URL, repo and converter pins.
 MEETING_NOTER_SOURCE_ONLY=1 source "$here/install.sh"
 
+version=${1:-}
+[[ "$version" =~ ^[1-9][0-9]*$ ]] || { printf 'Usage: %s N [--build-only] [--outdir DIR]\n' "$0" >&2; exit 2; }
+shift
+tag=$MODEL_TAG_PREFIX-$version
 build_only=
 outdir=
 while [ $# -gt 0 ]; do
@@ -56,11 +61,11 @@ if [ -n "$build_only" ]; then
   exit 0
 fi
 
-if ! gh release view "$MODEL_TAG" -R "$REPO" >/dev/null 2>&1; then
-  gh release create "$MODEL_TAG" -R "$REPO" --prerelease --latest=false \
+if ! gh release view "$tag" -R "$REPO" >/dev/null 2>&1; then
+  gh release create "$tag" -R "$REPO" --prerelease --latest=false \
     --title "WebGPU speech model (parakeet-tdt-0.6b-v3)" \
     --notes "Prebuilt WebGPU encoder downloaded by install.sh. Converted from parakeet-tdt-0.6b-v3 by NVIDIA (https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3), licensed CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/); 4-bit weight quantization applied."
 fi
-gh release upload "$MODEL_TAG" -R "$REPO" --clobber "$outdir/$asset" "$outdir/$asset.sha256"
-printf 'Uploaded to %s\n' "$MODEL_URL"
-[ "$sha" = "$MODEL_SHA256" ] || printf 'Now set MODEL_SHA256=%s in install.sh.\n' "$sha"
+gh release upload "$tag" -R "$REPO" --clobber "$outdir/$asset" "$outdir/$asset.sha256"
+printf 'Uploaded to https://github.com/%s/releases/download/%s/%s\n' "$REPO" "$tag" "$asset"
+printf 'Now set MODEL_VERSION=%s and MODEL_SHA256=%s in install.sh.\n' "$version" "$sha"

@@ -58,9 +58,13 @@ UV_BASE=${MEETING_NOTER_UV_BASE:-https://github.com/astral-sh/uv/releases/downlo
 # Pinned: the combination verified to convert the encoder (ORT >= 1.22 dropped
 # the matmul_4bits_quantizer module the script uses).
 CONVERT_DEPS=(--with numpy==1.26.4 --with onnx==1.17.0 --with onnxconverter-common==1.14.0 --with onnxruntime==1.20.1 --with truststore==0.10.4)
-# The prebuilt model on its own prerelease (publish-model.sh); a new build gets
-# a new sha here, and only this pin decides whether a download is accepted.
-MODEL_TAG=model-parakeet-v3-webgpu-1
+# The prebuilt model on its own prerelease (publish-model.sh N publishes
+# MODEL_TAG_PREFIX-N); a new model bumps MODEL_VERSION and MODEL_SHA256 here,
+# and only this pin decides whether a download is accepted. Installs whose
+# model marker differs pick the new model up on their next install or update.
+MODEL_TAG_PREFIX=model-parakeet-v3-webgpu
+MODEL_VERSION=1
+MODEL_TAG=$MODEL_TAG_PREFIX-$MODEL_VERSION
 MODEL_URL=${MEETING_NOTER_MODEL_URL:-https://github.com/$REPO/releases/download/$MODEL_TAG/encoder-model.q4f16.onnx}
 MODEL_SHA256=${MEETING_NOTER_MODEL_SHA256:-49e96bd6f4c900bf16fb1d47338a517c7d8bef45b9013abfa2a7c3e93d434e9e}
 ROOT=${MEETING_NOTER_ROOT:-"$HOME/Library/Application Support/Meeting Noter"}
@@ -79,6 +83,8 @@ HELPER_LABEL=nl.jensbouma.meeting-noter.audio-helper
 tmp=
 # Set while app.old holds the previous version and the new app has not started yet.
 swapped=
+# Set by build_model when it put a new model file in place (the server restarts).
+model_changed=
 say() { printf '%s\n' "$*"; }
 fail() {
   printf '\n❌ %s\n' "$1" >&2
@@ -186,26 +192,39 @@ agent_start() {
 # Puts models/<dir>/encoder-model.q4f16.onnx in place: the prebuilt release
 # asset when its sha256 matches MODEL_SHA256, else a build on this Mac. Returns
 # 1 (with a friendly message) on any problem; the app then keeps the CPU model.
+# The marker <model>.sha256 holds the installed model's hash: when it differs
+# from MODEL_SHA256 (a new pinned model, a local build, or an install from before
+# the marker) the pinned model is downloaded over it; when that fails the
+# installed model stays. Sets model_changed when a new model file is in place.
 build_model() {
   local out="$ROOT/models/$MODEL_DIR_NAME/encoder-model.q4f16.onnx"
-  [ -f "$out" ] && { say "✓ Snel GPU-spraakmodel is al aanwezig"; return 0; }
+  if [ -f "$out" ]; then
+    [ "$(cat "$out.sha256" 2>/dev/null)" = "$MODEL_SHA256" ] && { say "✓ Snel GPU-spraakmodel is al aanwezig"; return 0; }
+    download_model "$out" "Nieuwe versie van het GPU-spraakmodel downloaden (ca. 520 MB)" && return 0
+    say "   Het huidige GPU-spraakmodel blijft in gebruik."
+    return 0
+  fi
   mkdir -p "$(dirname "$out")"
-  download_model "$out" || convert_model "$out"
+  download_model "$out" "Snel GPU-spraakmodel downloaden (eenmalig, ca. 520 MB)" && return 0
+  say "   Het model wordt op deze Mac gebouwd."
+  convert_model "$out"
 }
 
 # Downloads the prebuilt model and accepts it only when its sha256 matches the
-# pin. Returns 1 on any failure, leaving nothing behind.
+# pin; the replace is one rename. Returns 1 on any failure, leaving nothing behind.
 download_model() {
   local out=$1 part="$ROOT/model-download.part"
   say
-  say "Snel GPU-spraakmodel downloaden (eenmalig, ca. 520 MB)"
+  say "$2"
   if ! curl -fL --connect-timeout 30 --progress-bar "$MODEL_URL" -o "$part"; then
-    rm -f "$part"; say "⚠️  Download van het GPU-spraakmodel mislukt; het wordt op deze Mac gebouwd."; return 1
+    rm -f "$part"; say "⚠️  Download van het GPU-spraakmodel mislukt."; return 1
   fi
   if [ "$(shasum -a 256 "$part" | awk '{print $1}')" != "$MODEL_SHA256" ]; then
-    rm -f "$part"; say "⚠️  Controlesom van het GPU-spraakmodel klopt niet; het wordt op deze Mac gebouwd."; return 1
+    rm -f "$part"; say "⚠️  Controlesom van het GPU-spraakmodel klopt niet."; return 1
   fi
   mv "$part" "$out"
+  printf '%s\n' "$MODEL_SHA256" > "$out.sha256"
+  model_changed=1
   say "✓ GPU-spraakmodel gedownload"
 }
 
@@ -251,6 +270,8 @@ convert_model() {
   # The output hash varies with library versions, so no hash check: the script
   # validates the result against the fp32 model itself and fails otherwise.
   mv "$work/out/encoder-model.q4f16.onnx" "$out"
+  shasum -a 256 "$out" | awk '{print $1}' > "$out.sha256"
+  model_changed=1
   rm -rf "$work"
   say "✓ GPU-spraakmodel gebouwd"
 }
@@ -377,9 +398,8 @@ EOF
   say "✓ App aangemaakt: $APP"
 
   if [ -z "${MEETING_NOTER_SKIP_GPU_MODEL:-}" ]; then
-    local had_model=
-    [ -f "$ROOT/models/$MODEL_DIR_NAME/encoder-model.q4f16.onnx" ] && had_model=1
-    if build_model && [ -z "$had_model" ]; then
+    build_model || true
+    if [ -n "$model_changed" ]; then
       server_halt
       server_start || fail "Meeting Noter startte niet. Logbestand: $ROOT/logs/server.log"
     fi
