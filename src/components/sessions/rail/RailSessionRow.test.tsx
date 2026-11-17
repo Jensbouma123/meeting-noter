@@ -12,7 +12,16 @@ import { draft, recorded } from './test-support/draftSession';
 const noop = () => {};
 
 function row(session: SessionMetadata, props: { isActive?: boolean; pathLabel?: string } = {}) {
-  return <RailSessionRow session={session} isActive={props.isActive ?? true} onOpen={noop} onClear={noop} onDelete={noop} pathLabel={props.pathLabel} />;
+  return (
+    <RailSessionRow
+      session={session}
+      isActive={props.isActive ?? true}
+      onOpen={noop}
+      onClear={noop}
+      onDelete={noop}
+      pathLabel={props.pathLabel}
+    />
+  );
 }
 
 beforeEach(() => {
@@ -33,7 +42,8 @@ afterEach(() => {
 });
 
 describe('RailSessionRow more menu', () => {
-  const openMenu = (sessionTitle: string) => fireEvent.click(screen.getByRole('button', { name: `More actions for “${sessionTitle}”` }));
+  const openMenu = (sessionTitle: string) =>
+    fireEvent.click(screen.getByRole('button', { name: `More actions for “${sessionTitle}”` }));
 
   it('hides "Open" for the meeting that is currently open', () => {
     render(row(draft()));
@@ -134,7 +144,16 @@ describe('RailSessionRow folder suggestion', () => {
   it('shows the chip next to the meeting row and runs accept and decline', () => {
     const onAccept = vi.fn();
     const onDecline = vi.fn();
-    render(<RailSessionRow session={draft()} isActive={false} onOpen={noop} onClear={noop} onDelete={noop} suggestion={{ folderLabel: 'Clients / Acme', onAccept, onDecline }} />);
+    render(
+      <RailSessionRow
+        session={draft()}
+        isActive={false}
+        onOpen={noop}
+        onClear={noop}
+        onDelete={noop}
+        suggestion={{ folderLabel: 'Clients / Acme', onAccept, onDecline }}
+      />,
+    );
     expect(screen.getByText('Standup')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Move' }));
     fireEvent.click(screen.getByRole('button', { name: 'No thanks' }));

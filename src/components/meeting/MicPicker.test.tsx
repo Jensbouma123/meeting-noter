@@ -1,73 +1,11 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { MicPicker } from './MicPicker';
-import { LanguageContext } from '@/lib/i18n/LanguageContext';
 import { loadSettings, saveSettings, DEFAULT_SETTINGS } from './settingsStorage';
-
-const DEVICES = [
-  { deviceId: 'default', kind: 'audioinput', label: 'Default - Built-in' },
-  { deviceId: 'a1', kind: 'audioinput', label: 'AirPods' },
-  { deviceId: 'b2', kind: 'audioinput', label: '' },
-];
-
-function stubDevices(list: unknown[]) {
-  const listeners: Array<() => void> = [];
-  vi.stubGlobal('navigator', {
-    mediaDevices: {
-      enumerateDevices: vi.fn(async () => list),
-      addEventListener: (_: string, cb: () => void) => listeners.push(cb),
-      removeEventListener: () => {},
-    },
-  });
-  return listeners;
-}
-
-afterEach(() => {
-  cleanup();
-  localStorage.clear();
-  vi.unstubAllGlobals();
-});
-
-const ui = (value: string, onChange = vi.fn(), locked = false) => (
-  <LanguageContext.Provider value="en">
-    <MicPicker value={value} onChange={onChange} locked={locked} mode="both" active={false} />
-  </LanguageContext.Provider>
-);
-
-describe('MicPicker level bars', () => {
-  const withMode = (mode: 'mic' | 'both') => (
-    <LanguageContext.Provider value="en">
-      <MicPicker value="default" onChange={vi.fn()} locked={false} mode={mode} active={false} />
-    </LanguageContext.Provider>
-  );
-
-  it('shows a vertical mic bar and a call bar in both mode, filling by height rather than width', () => {
-    stubDevices(DEVICES);
-    render(withMode('both'));
-    const meters = screen.getAllByRole('meter', { hidden: true });
-    expect(meters.map((m) => m.getAttribute('aria-label'))).toEqual(['Mic level', 'Call audio level']);
-    for (const m of meters) {
-      expect(m).toHaveAttribute('aria-valuemin', '0');
-      expect(m).toHaveAttribute('aria-valuemax', '100');
-      expect((m.firstElementChild as HTMLElement).style.height).toBe('8%');
-    }
-  });
-
-  it('shows only the mic bar in mic-only mode', () => {
-    stubDevices(DEVICES);
-    render(withMode('mic'));
-    expect(screen.getAllByRole('meter', { hidden: true })).toHaveLength(1);
-  });
-});
-
-async function open() {
-  const btn = screen.getByRole('button', { name: 'Choose microphone' });
-  await waitFor(() => expect(navigator.mediaDevices.enumerateDevices).toHaveBeenCalled());
-  await act(async () => {});
-  fireEvent.click(btn);
-}
+import { DEVICES, micPicker, open, stubDevices, ui } from './MicPicker.testSupport';
+import { LanguageContext } from '@/lib/i18n/LanguageContext';
 
 describe('MicPicker', () => {
   it('lists Default plus devices with generic names for unlabeled ones, current checked', async () => {
@@ -101,17 +39,12 @@ describe('MicPicker', () => {
 
   it('shows one icon per recorded source plus a menu chevron, and drops the chevron while locked', () => {
     stubDevices(DEVICES);
-    const picker = (mode: 'mic' | 'both', locked: boolean) => (
-      <LanguageContext.Provider value="en">
-        <MicPicker value="default" onChange={vi.fn()} locked={locked} mode={mode} active={false} />
-      </LanguageContext.Provider>
-    );
     const icons = () => screen.getByRole('button', { name: 'Choose microphone' }).querySelectorAll('svg');
-    const { rerender } = render(picker('both', false));
+    const { rerender } = render(micPicker('both', false));
     expect(icons()).toHaveLength(3);
-    rerender(picker('mic', false));
+    rerender(micPicker('mic', false));
     expect(icons()).toHaveLength(2);
-    rerender(picker('mic', true));
+    rerender(micPicker('mic', true));
     expect(icons()).toHaveLength(1);
   });
 
@@ -122,7 +55,9 @@ describe('MicPicker', () => {
         <MicPicker value="default" onChange={vi.fn()} locked mode="both" active callMissing />
       </LanguageContext.Provider>,
     );
-    expect(screen.getAllByRole('meter', { hidden: true }).map((m) => m.getAttribute('aria-label'))).toEqual(['Mic level']);
+    expect(screen.getAllByRole('meter', { hidden: true }).map((m) => m.getAttribute('aria-label'))).toEqual([
+      'Mic level',
+    ]);
     expect(screen.getByRole('img', { name: 'Call audio level: none', hidden: true })).toBeInTheDocument();
   });
 
@@ -133,7 +68,9 @@ describe('MicPicker', () => {
     (navigator.mediaDevices.enumerateDevices as ReturnType<typeof vi.fn>).mockResolvedValue(DEVICES);
     await act(async () => listeners.forEach((l) => l()));
     await open();
-    expect((await screen.findAllByRole('menuitem', { hidden: true })).map((i) => i.textContent)).toContain('Microphone 2');
+    expect((await screen.findAllByRole('menuitem', { hidden: true })).map((i) => i.textContent)).toContain(
+      'Microphone 2',
+    );
   });
 
   it('is disabled with an explanatory tooltip while recording', async () => {
