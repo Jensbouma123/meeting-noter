@@ -6,9 +6,11 @@
 # Test-only overrides (install.sh passes them on): MEETING_NOTER_ROOT,
 # MEETING_NOTER_PORT, MEETING_NOTER_NO_LAUNCHD=1 (touch no LaunchAgent). A
 # different port is a different browser origin, with none of the user's data.
+# 47823, not 3000: developers keep 3000 for next dev (install.sh explains the
+# one-time hand-over of browser data from the old port).
 ROOT=${MEETING_NOTER_ROOT:-"$HOME/Library/Application Support/Meeting Noter"}
 APP_DIR="$ROOT/app"
-PORT=${MEETING_NOTER_PORT:-3000}
+PORT=${MEETING_NOTER_PORT:-47823}
 URL="http://localhost:$PORT"
 STATUS_URL="http://127.0.0.1:$PORT/api/app/status"
 NO_OPEN=
@@ -55,11 +57,11 @@ port_busy() {
   local title body retry close
   if [ "$LANG_UI" = nl ]; then
     title="Meeting Noter kan niet starten"
-    body="Een ander programma gebruikt poort $PORT, die Meeting Noter nodig heeft. Sluit dat programma (bijvoorbeeld een oudere Meeting Noter die nog via 'Start Meeting Noter' draait) en probeer het opnieuw. Je opnames blijven bewaard."
+    body="Een ander programma gebruikt poort $PORT, die Meeting Noter nodig heeft. Sluit dat programma en probeer het opnieuw. Je opnames blijven bewaard."
     close=Sluiten; retry="Opnieuw proberen"
   else
     title="Meeting Noter can't start"
-    body="Another program is using port $PORT, which Meeting Noter needs. Close that program (for example an older Meeting Noter still running via 'Start Meeting Noter') and try again. Your recordings are kept."
+    body="Another program is using port $PORT, which Meeting Noter needs. Close that program and try again. Your recordings are kept."
     close=Close; retry="Try again"
   fi
   local answer
