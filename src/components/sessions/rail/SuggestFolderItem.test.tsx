@@ -21,7 +21,7 @@ vi.mock('@/lib/folders/folders-api', () => ({ moveMeeting: vi.fn(), declineFolde
 const noop = () => {};
 const v = (...n: number[]) => new Float32Array(n);
 const win = (x: number, y: number) => [v(x, y), v(x, y), v(x, y)];
-const folder = (id: string): FolderRow => ({ id, name: id, parentId: null, sortIndex: 0 }) as unknown as FolderRow;
+const folder = (id: string): FolderRow => ({ id, name: id, parentId: null, sortIndex: 0, context: '' }) as unknown as FolderRow;
 
 afterEach(() => {
   cleanup();
