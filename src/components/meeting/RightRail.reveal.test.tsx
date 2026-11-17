@@ -15,10 +15,6 @@ afterEach(cleanup);
 
 describe('RightRail drawer on narrow screens', () => {
   it('closes when a transcript segment is revealed', async () => {
-    window.matchMedia = ((q: string) => ({
-      matches: false, media: q, addEventListener() {}, removeEventListener() {},
-      addListener() {}, removeListener() {}, onchange: null, dispatchEvent: () => false,
-    })) as unknown as typeof window.matchMedia;
     HTMLDialogElement.prototype.showModal = function showModal(this: HTMLDialogElement) { this.setAttribute('open', ''); };
     HTMLDialogElement.prototype.close = function close(this: HTMLDialogElement) { this.removeAttribute('open'); };
     render(<LanguageContext.Provider value="en"><ToastProvider><RightRail sessionId="s1" /></ToastProvider></LanguageContext.Provider>);

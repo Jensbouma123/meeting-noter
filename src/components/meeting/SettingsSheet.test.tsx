@@ -7,6 +7,8 @@ import { resetVocabularyForTests } from '@/lib/vocabulary/store';
 import { SettingsSheet } from './SettingsSheet';
 import { DEFAULT_SETTINGS } from './settingsStorage';
 
+const baseMatchMedia = window.matchMedia;
+
 vi.mock('@/components/models', () => ({ useAnyModelFailed: () => false }));
 vi.mock('@/components/settings/GeneralSection', () => ({ GeneralSection: () => <div>general</div> }));
 vi.mock('@/components/settings/AdvancedSection', () => ({ AdvancedSection: () => <div>advanced</div> }));
@@ -22,9 +24,7 @@ beforeEach(() => {
   HTMLDialogElement.prototype.close ??= function (this: HTMLDialogElement) {
     this.removeAttribute('open');
   };
-  window.matchMedia = window.matchMedia ?? ((() => ({
-    matches: true, addEventListener() {}, removeEventListener() {},
-  })) as unknown as typeof window.matchMedia);
+  window.matchMedia = ((query: string) => ({ ...baseMatchMedia(query), matches: true })) as typeof window.matchMedia;
 });
 afterEach(cleanup);
 
