@@ -58,6 +58,6 @@ export function speakerNear(source: Source, start: number, end: number): string 
   }
   if (!before) return after?.speaker ?? null;
   if (!after) return before.speaker;
-  // Sortformer opens a turn late, so a word in the gap belongs to the incoming speaker unless the outgoing one is clearly closer.
-  return after.gap <= before.gap + ONSET_LAG_SECONDS ? after.speaker : before.speaker;
+  const incomingWins = after.gap <= before.gap + ONSET_LAG_SECONDS;
+  return incomingWins ? after.speaker : before.speaker;
 }
