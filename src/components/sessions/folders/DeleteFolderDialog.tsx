@@ -11,7 +11,7 @@ export function DeleteFolderDialog({ folder, folders, meetingFolders, onClose, o
     <Modal
       open={folder !== null}
       onClose={onClose}
-      title={t('deleteTitle')}
+      title={t('deleteTitle').replace('{name}', folder?.name ?? '')}
       footer={
         <HStack spacing="sm" wrap>
           <Button variant="outline" onClick={onClose}>{t('cancel')}</Button>
