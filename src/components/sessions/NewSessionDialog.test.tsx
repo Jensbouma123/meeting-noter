@@ -56,6 +56,20 @@ describe('NewSessionDialog', () => {
     expect(onCreate).toHaveBeenCalledWith('', expect.stringMatching(/^Meeting \w{3}, \w{3} \d{1,2}, \d{2}:\d{2}$/));
   });
 
+  it('submits the typed name when Enter is pressed in the name input', () => {
+    const onCreate = vi.fn();
+    render(
+      <LanguageContext.Provider value="en">
+        <NewSessionDialog open onClose={() => {}} onCreate={onCreate} />
+      </LanguageContext.Provider>,
+    );
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: 'Sprint planning' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onCreate).toHaveBeenCalledTimes(1);
+    expect(onCreate).toHaveBeenCalledWith('', 'Sprint planning');
+  });
+
   it('names the meeting in the interface language, not the browser language', () => {
     vi.stubGlobal('navigator', { language: 'en-US' });
     const onCreate = start('nl');
