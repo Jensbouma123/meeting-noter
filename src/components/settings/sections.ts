@@ -15,16 +15,19 @@ export const DEFAULT_SETTINGS_SECTION: SettingsSectionId = 'general';
 
 const SECTION_STORAGE_KEY = 'mn.settings.section';
 
+export function resolveSettingsSection(raw: string | null): SettingsSectionId {
+  if (raw === 'speech-model') return 'advanced';
+  if (raw && SETTINGS_SECTIONS.some((s) => s.id === raw)) return raw as SettingsSectionId;
+  return DEFAULT_SETTINGS_SECTION;
+}
+
 export function loadLastSettingsSection(): SettingsSectionId {
   if (typeof window === 'undefined') return DEFAULT_SETTINGS_SECTION;
   try {
-    const raw = localStorage.getItem(SECTION_STORAGE_KEY);
-    if (raw === 'speech-model') return 'advanced';
-    if (raw && SETTINGS_SECTIONS.some((s) => s.id === raw)) return raw as SettingsSectionId;
+    return resolveSettingsSection(localStorage.getItem(SECTION_STORAGE_KEY));
   } catch {
     return DEFAULT_SETTINGS_SECTION;
   }
-  return DEFAULT_SETTINGS_SECTION;
 }
 
 export function saveLastSettingsSection(section: SettingsSectionId): void {
