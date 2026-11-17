@@ -6,13 +6,16 @@ import { InsightRow } from './InsightRow';
 import type { InsightSuggestionsProps } from './InsightSuggestions.types';
 import { useInsights } from './useInsights';
 
-export function InsightSuggestions({ sessionId, speakers, t }: InsightSuggestionsProps) {
+export function InsightSuggestions({ sessionId, speakers, t, onAdded }: InsightSuggestionsProps) {
   const { visible, dismiss } = useInsights(sessionId);
   if (visible.length === 0) return null;
   const labelFor = (id: string) => speakers.find((s) => s.id === id)?.label ?? id;
-  const accept = (i: Insight) => i.kind === 'action'
-    ? addAction(sessionId, i.text, { sourceSegmentId: i.segmentId })
-    : addDecision(sessionId, i.text, i.segmentId);
+  const accept = (i: Insight) => {
+    const added = i.kind === 'action'
+      ? addAction(sessionId, i.text, { sourceSegmentId: i.segmentId })
+      : addDecision(sessionId, i.text, i.segmentId);
+    onAdded?.(added.id);
+  };
   const groups = [['decision', t('suggestedDecisions')], ['action', t('suggestedActions')]] as const;
   return <>
     {groups.map(([kind, title]) => {

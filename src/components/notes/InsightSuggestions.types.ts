@@ -6,6 +6,7 @@ export interface InsightSuggestionsProps {
   sessionId: string;
   speakers: Speaker[];
   t: NotesTranslate;
+  onAdded?: (id: string) => void;
 }
 
 export interface InsightRowProps {

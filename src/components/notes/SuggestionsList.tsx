@@ -4,7 +4,7 @@ import { ChevronDown, ChevronRight, Plus, X } from 'lucide-react';
 import { addAction, addDecision } from '@/lib/meeting/notes';
 import type { SuggestionsListProps } from './NotesPanel.types';
 
-export function SuggestionsList({ suggestions, sessionId, t, onDismiss }: SuggestionsListProps) {
+export function SuggestionsList({ suggestions, sessionId, t, onDismiss, onAdded }: SuggestionsListProps) {
   const [open, setOpen] = useState(false);
   return <section aria-label={t('suggestions')} className="w-full min-w-0">
     <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)}
@@ -17,9 +17,12 @@ export function SuggestionsList({ suggestions, sessionId, t, onDismiss }: Sugges
         <Text size="xs" className="min-w-0 flex-1 truncate" title={suggestion.text}>{suggestion.text}</Text>
         <Button iconOnly size="sm" variant="ghost" tooltip={t('addSuggestion')} aria-label={`${t('addSuggestion')}: ${suggestion.text}`}
           leadingIcon={<Plus aria-hidden="true" className="size-4" />}
-          onClick={() => suggestion.kind === 'action'
-            ? addAction(sessionId, suggestion.text, { sourceSegmentId: suggestion.sourceSegmentId })
-            : addDecision(sessionId, suggestion.text, suggestion.sourceSegmentId)} />
+          onClick={() => {
+            const added = suggestion.kind === 'action'
+              ? addAction(sessionId, suggestion.text, { sourceSegmentId: suggestion.sourceSegmentId })
+              : addDecision(sessionId, suggestion.text, suggestion.sourceSegmentId);
+            onAdded?.(added.id);
+          }} />
         <Button iconOnly size="sm" variant="ghost" tooltip={t('dismissSuggestion')} aria-label={`${t('dismissSuggestion')}: ${suggestion.text}`}
           leadingIcon={<X aria-hidden="true" className="size-4" />}
           onClick={() => onDismiss(suggestion.sourceSegmentId)} />
