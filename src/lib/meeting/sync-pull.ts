@@ -1,6 +1,6 @@
 import type { MeetingSummaryRow, StoredMeeting } from '@/lib/meeting-db/types';
 import { evictSynced, isOpen } from './meeting-loader';
-import { adoptMeetingSummary, adoptStoredMeeting, evictMeetingContent } from './session-server-adopt';
+import { adoptMeetingSummaries, adoptStoredMeeting, evictMeetingContent } from './session-server-adopt';
 import { getSessionMetadataMap } from './session-open';
 import { listSessions } from './session-crud';
 import { getTranscriptSessionId, isCaptureActive } from './transcript-session';
@@ -52,6 +52,7 @@ export async function pullFromServer(): Promise<number> {
   const synced = readSynced();
   const localById = getSessionMetadataMap();
   let adopted = 0;
+  const summaries: MeetingSummaryRow[] = [];
   for (const row of list) {
     if (pending.save.includes(row.id) || pending.remove.includes(row.id)) continue;
     if (isCaptureActive() && getTranscriptSessionId() === row.id) continue;
@@ -61,13 +62,13 @@ export async function pullFromServer(): Promise<number> {
       if (!(await adoptOpenMeeting(row.id))) continue;
     } else {
       evictMeetingContent(row.id);
-      adoptMeetingSummary(row);
+      summaries.push(row);
     }
     synced[row.id] = row.updatedAt;
     adopted += 1;
   }
+  adoptMeetingSummaries(summaries);
   if (adopted > 0) writeSynced(synced);
   evictSynced();
-  if (adopted > 0 && typeof window !== 'undefined') window.dispatchEvent(new Event('mn:sessions-changed'));
   return adopted;
 }
