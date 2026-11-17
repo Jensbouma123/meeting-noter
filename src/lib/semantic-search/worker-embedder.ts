@@ -1,5 +1,6 @@
 import { reportEmbedFailed, reportEmbedProgress, reportEmbedReady } from './embed-progress';
-import { EMBEDDING_DIM, type EmbedWorkerLike, type WorkerEmbedder } from './types';
+import type { EncodedIndex, WorkerReply as Reply } from './encoded-index.types';
+import { EMBEDDING_DIM, type EmbedWorkerIn, type EmbedWorkerLike, type WorkerEmbedder } from './types';
 
 export function createWorkerEmbedder(
   spawn: () => EmbedWorkerLike = () =>
@@ -9,10 +10,7 @@ export function createWorkerEmbedder(
 ): WorkerEmbedder {
   let worker: EmbedWorkerLike | null = null;
   let nextId = 0;
-  const pending = new Map<
-    number,
-    { resolve: (v: Float32Array[]) => void; reject: (e: Error) => void }
-  >();
+  const pending = new Map<number, { resolve: (v: Reply) => void; reject: (e: Error) => void }>();
 
   const failAll = (message: string) => {
     reportEmbedFailed(message);
@@ -39,7 +37,7 @@ export function createWorkerEmbedder(
         p.reject(new Error(data.error));
       } else {
         reportEmbedReady();
-        p.resolve(data.vectors);
+        p.resolve('record' in data ? data.record : data.vectors);
       }
     };
     w.onerror = (e) => failAll(e.message ?? 'embedding worker crashed');
@@ -47,14 +45,25 @@ export function createWorkerEmbedder(
     return w;
   };
 
+  const request = <T extends Reply>(build: (id: number) => EmbedWorkerIn): Promise<T> =>
+    new Promise<T>((resolve, reject) => {
+      const id = nextId++;
+      pending.set(id, { resolve: (v) => resolve(v as T), reject });
+      ensure().postMessage(build(id));
+    });
+
   return {
     dim: EMBEDDING_DIM,
     embed(texts, role = 'document') {
-      return new Promise((resolve, reject) => {
-        const id = nextId++;
-        pending.set(id, { resolve, reject });
-        ensure().postMessage({ id, texts, role });
-      });
+      return request<Float32Array[]>((id) => ({ id, texts, role }));
+    },
+    indexMeeting(meetingId, lines) {
+      return request<EncodedIndex | null>((id) => ({
+        id,
+        kind: 'index',
+        meetingId,
+        lines,
+      }));
     },
     terminate() {
       failAll('embedding worker terminated');

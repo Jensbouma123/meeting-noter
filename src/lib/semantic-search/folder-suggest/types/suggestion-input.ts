@@ -4,4 +4,5 @@ export interface SuggestionInput {
   declined: Record<string, string[]>;
   contextVectors?: Record<string, Float32Array>;
   loadVectors: (meetingId: string) => Float32Array[] | null;
+  loadCentroid?: (meetingId: string) => Float32Array | null;
 }

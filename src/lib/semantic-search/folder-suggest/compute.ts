@@ -3,7 +3,11 @@ import { meetingCentroid } from './centroid';
 import { folderCentroids, suggestFolder } from './suggest';
 import type { FolderSuggestion } from './types/folder-suggestion';
 
-export function centroidLoader(loadVectors: SuggestionInput['loadVectors']): (id: string) => Float32Array | null {
+export function centroidLoader(
+  loadVectors: SuggestionInput['loadVectors'],
+  loadCentroid?: SuggestionInput['loadCentroid'],
+): (id: string) => Float32Array | null {
+  if (loadCentroid) return loadCentroid;
   const cache = new Map<string, Float32Array | null>();
   return (id) => {
     if (!cache.has(id)) {
@@ -28,8 +32,8 @@ export function centroidsByFolder(
 }
 
 export function computeFolderSuggestions(input: SuggestionInput): Record<string, FolderSuggestion> {
-  const { sessionIds, meetingFolders, declined, loadVectors, contextVectors } = input;
-  const centroidOf = centroidLoader(loadVectors);
+  const { sessionIds, meetingFolders, declined, loadVectors, loadCentroid, contextVectors } = input;
+  const centroidOf = centroidLoader(loadVectors, loadCentroid);
   const centroids = centroidsByFolder(meetingFolders, centroidOf, contextVectors);
   const out: Record<string, FolderSuggestion> = {};
   if (centroids.size === 0) return out;

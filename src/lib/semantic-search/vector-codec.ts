@@ -13,3 +13,19 @@ export function decodeVector(s: string): Float32Array {
   for (let i = 0; i < bin.length; i++) out[i] = ((bin.charCodeAt(i) << 24) >> 24) / 127;
   return out;
 }
+
+export function decodeUnitVector(s: string): Float32Array {
+  const bin = atob(s);
+  const out = new Float32Array(bin.length);
+  let sumSq = 0;
+  for (let i = 0; i < bin.length; i++) {
+    const q = (bin.charCodeAt(i) << 24) >> 24;
+    out[i] = q;
+    sumSq += q * q;
+  }
+  if (sumSq > 0) {
+    const scale = 1 / Math.sqrt(sumSq);
+    for (let i = 0; i < out.length; i++) out[i] *= scale;
+  }
+  return out;
+}
