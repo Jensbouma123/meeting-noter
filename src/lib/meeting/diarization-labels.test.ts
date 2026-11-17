@@ -1,6 +1,15 @@
-import { describe, expect, it } from 'vitest';
-import { consentedAndCached, fakes } from './diarization-bridge-fakes';
-import './diarization-labels.testSupport';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { consentedAndCached, fakes, resetBridge, resetFakesAndRegistry } from './diarization-bridge-fakes';
+
+vi.mock('@/lib/asr/browser', async (importOriginal) =>
+  (await import('./diarization-bridge-fakes')).mockAsrBrowser(importOriginal),
+);
+
+vi.mock('@/lib/diarization/browser', async () => (await import('./diarization-bridge-fakes')).mockDiarizationBrowser());
+
+beforeEach(resetFakesAndRegistry);
+
+afterEach(resetBridge);
 
 describe('diarization bridge — provisional labels', () => {
   const words = (text: string, start: number) =>

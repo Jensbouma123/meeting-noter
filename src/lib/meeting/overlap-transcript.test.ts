@@ -1,23 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { groupTurns } from './group-turns';
-import { toMarkdown, toPlainText, toSrt } from './export-writers';
+import { toPlainText } from './export-writers';
 import { splitTranscript } from './split-transcript';
 import { seg } from './export.testUtils';
+import { overlap, speakers, transcript, words } from './overlap-transcript.testSupport';
 
 describe('overlapping speech', () => {
-  const overlap = { start: 4, end: 6, speakers: ['mic:0', 'mic:1'] };
-  const speakers = {
-    'mic:0': { id: 'mic:0', source: 'mic' as const, label: 'Ann', colorIndex: 0 },
-    'mic:1': { id: 'mic:1', source: 'mic' as const, label: 'Bo', colorIndex: 1 },
-    'mic:2': { id: 'mic:2', source: 'mic' as const, label: 'Cy', colorIndex: 2 },
-  };
-  const transcript = [
-    seg({ id: 'a', speaker: 'mic:0', start: 0, end: 4, text: 'so I think' }),
-    seg({ id: 'b', speaker: 'mic:0', start: 4.1, end: 5, text: 'we should', overlap }),
-    seg({ id: 'c', speaker: 'mic:1', start: 4.5, end: 5.8, text: 'no wait', overlap }),
-    seg({ id: 'd', speaker: 'mic:1', start: 6, end: 8, text: 'hear me out' }),
-  ];
-
   it('splitTranscript makes the overlap one block between turns, speakers with words first', () => {
     const blocks = splitTranscript(transcript);
     expect(blocks.map((b) => [b.kind, b.segments.map((s) => s.id)])).toEqual([
@@ -68,8 +56,6 @@ describe('overlapping speech', () => {
   });
 
   it('makes an overlap ordinary lines when one column is a back-channel: under 2 words and 0.8 s', () => {
-    const words = (text: string, start: number, each: number) =>
-      text.split(' ').map((w, i) => ({ text: w, start: start + i * each, end: start + (i + 1) * each }));
     const noise = [
       seg({
         id: 'a',
@@ -94,8 +80,6 @@ describe('overlapping speech', () => {
   });
 
   it('makes the mic and the call talking at once one overlap block, under the same column rule', () => {
-    const words = (text: string, start: number, each = 0.3) =>
-      text.split(' ').map((w, i) => ({ text: w, start: start + i * each, end: start + (i + 1) * each }));
     const line = (id: string, source: 'mic' | 'system', speaker: string, start: number, text: string) => {
       const ws = words(text, start);
       return seg({ id, source, speaker, start, end: ws[ws.length - 1].end, text, words: ws });
@@ -104,53 +88,24 @@ describe('overlapping speech', () => {
       ...speakers,
       'system:0': { id: 'system:0', source: 'system' as const, label: 'Caller', colorIndex: 3 },
     };
-    const transcript = [
+    const crossSource = [
       line('m1', 'mic', 'mic:0', 0, 'so I think'),
       line('m2', 'mic', 'mic:0', 10, 'we should really ship it'),
       line('s1', 'system', 'system:0', 10.6, 'no wait hear me out'),
       line('s2', 'system', 'system:0', 20, 'right then'),
     ];
-    const blocks = splitTranscript(transcript);
+    const blocks = splitTranscript(crossSource);
     expect(blocks.map((b) => [b.kind, b.segments.map((s) => s.id)])).toEqual([
       ['turn', ['m1']],
       ['overlap', ['m2', 's1']],
       ['turn', ['s2']],
     ]);
     expect(blocks[1]).toMatchObject({ speakers: ['mic:0', 'system:0'] });
-    expect(toPlainText(transcript, both, 'T')).toContain(
+    expect(toPlainText(crossSource, both, 'T')).toContain(
       '[00:10] [overlap] Ann: we should really ship it\n[00:10] [overlap] Caller: no wait hear me out',
     );
-    const backChannel = [transcript[1], line('s1', 'system', 'system:0', 10.6, 'yeah')];
+    const backChannel = [crossSource[1], line('s1', 'system', 'system:0', 10.6, 'yeah')];
     expect(splitTranscript(backChannel).map((b) => b.kind)).toEqual(['turn', 'turn']);
-    expect(splitTranscript([transcript[0], transcript[3]]).map((b) => b.kind)).toEqual(['turn', 'turn']);
-  });
-
-  it('writes overlap as consecutive lines marked [overlap], each with its speaker', () => {
-    const md = toMarkdown(transcript, speakers, 'T');
-    expect(md).toContain(
-      '**Ann**\n\n[00:00] so I think\n\n' +
-        '[00:04] [overlap] **Ann:** we should  \n[00:04] [overlap] **Bo:** no wait\n\n' +
-        '**Bo**\n\n[00:06] hear me out\n',
-    );
-    expect(md).toContain('**Participants:** Ann, Bo');
-
-    const txt = toPlainText(transcript, speakers, 'T');
-    expect(txt).toContain(
-      'Ann\n[00:00] so I think\n\n[00:04] [overlap] Ann: we should\n[00:04] [overlap] Bo: no wait\n\nBo\n',
-    );
-
-    const srt = toSrt(transcript, speakers);
-    expect(srt).toContain('[overlap] Bo: no wait');
-    expect(srt).toContain('\nAnn: so I think');
-  });
-
-  it('exports a transcript saved before overlaps as before', () => {
-    const legacy = transcript.map((s) => {
-      const rest = { ...s };
-      delete rest.overlap;
-      return rest;
-    });
-    expect(toPlainText(legacy, speakers, 'T')).not.toContain('[overlap]');
-    expect(groupTurns(legacy, speakers).map((t) => t.label)).toEqual(['Ann', 'Bo']);
+    expect(splitTranscript([crossSource[0], crossSource[3]]).map((b) => b.kind)).toEqual(['turn', 'turn']);
   });
 });

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { RETRANSCRIBE_PAD_SECONDS } from './overlap-clip-pass';
 import { isOverlapPassSegment } from './overlap-pass-segments';
 import {
@@ -7,10 +7,12 @@ import {
   noteOverlapTurns,
   setOverlapTranscriber,
 } from './overlap-retranscribe';
-import { SR, pushSeconds, tick, turns } from './overlap-retranscribe.testSupport';
 import * as storeSegmentStore from './segment-store';
 import * as storeStoreCore from './store-core';
 import type { TranscribeClip } from './types/overlap-retranscribe';
+import { SR, pushSeconds, resetOverlapState, tick, turns } from './overlap-retranscribe.testSupport';
+
+afterEach(resetOverlapState);
 
 describe('the live second pass', () => {
   it('transcribes a settled overlap once and adds its missed words as a segment of the quieter speaker', async () => {
@@ -101,18 +103,5 @@ describe('the live second pass', () => {
     });
     pushSeconds(7, 1);
     expect(pass()).toEqual([]);
-  });
-
-  it('ignores open turns, and on Stop transcribes what has not settled yet', async () => {
-    const transcribe = vi.fn<TranscribeClip>(async () => []);
-    setOverlapTranscriber(transcribe);
-    pushSeconds(0, 6);
-    noteOverlapTurns('mic', [turns[0], { ...turns[1], final: false }]);
-    await flushOverlapRetranscribe();
-    expect(transcribe).not.toHaveBeenCalled();
-
-    noteOverlapTurns('mic', turns);
-    await flushOverlapRetranscribe();
-    expect(transcribe).toHaveBeenCalledTimes(1);
   });
 });

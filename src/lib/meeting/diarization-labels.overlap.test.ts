@@ -1,7 +1,16 @@
-import { describe, expect, it, vi } from 'vitest';
-import { consentedAndCached, fakes } from './diarization-bridge-fakes';
-import './diarization-labels.testSupport';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { consentedAndCached, fakes, resetBridge, resetFakesAndRegistry } from './diarization-bridge-fakes';
 import { OVERLAP_SEGMENT_PREFIX } from './overlap-pass-segments';
+
+vi.mock('@/lib/asr/browser', async (importOriginal) =>
+  (await import('./diarization-bridge-fakes')).mockAsrBrowser(importOriginal),
+);
+
+vi.mock('@/lib/diarization/browser', async () => (await import('./diarization-bridge-fakes')).mockDiarizationBrowser());
+
+beforeEach(resetFakesAndRegistry);
+
+afterEach(resetBridge);
 
 describe('diarization bridge — overlap second pass', () => {
   it('hands each source its turns, and leaves the speaker of the words the pass added alone', async () => {

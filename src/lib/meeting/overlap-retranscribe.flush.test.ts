@@ -1,15 +1,30 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   flushOverlapRetranscribe,
   noteOverlapTurns,
   resetOverlapRetranscribe,
   setOverlapTranscriber,
 } from './overlap-retranscribe';
-import { pushSeconds, tick, turns } from './overlap-retranscribe.testSupport';
 import * as storeStoreCore from './store-core';
 import type { TranscribeClip } from './types/overlap-retranscribe';
+import { pushSeconds, resetOverlapState, tick, turns } from './overlap-retranscribe.testSupport';
+
+afterEach(resetOverlapState);
 
 describe('the live second pass', () => {
+  it('ignores open turns, and on Stop transcribes what has not settled yet', async () => {
+    const transcribe = vi.fn<TranscribeClip>(async () => []);
+    setOverlapTranscriber(transcribe);
+    pushSeconds(0, 6);
+    noteOverlapTurns('mic', [turns[0], { ...turns[1], final: false }]);
+    await flushOverlapRetranscribe();
+    expect(transcribe).not.toHaveBeenCalled();
+
+    noteOverlapTurns('mic', turns);
+    await flushOverlapRetranscribe();
+    expect(transcribe).toHaveBeenCalledTimes(1);
+  });
+
   it('holds no audio and transcribes nothing without a transcriber', async () => {
     pushSeconds(0, 6);
     const transcribe = vi.fn<TranscribeClip>(async () => []);
