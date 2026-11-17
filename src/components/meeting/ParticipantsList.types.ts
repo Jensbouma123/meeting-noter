@@ -1,3 +1,5 @@
+import type { ParticipantPlacement } from './ParticipantPlacement.types';
+
 export interface ParticipantsListProps {
   people: string[];
   roster: string[];
@@ -5,4 +7,5 @@ export interface ParticipantsListProps {
   selected: string[];
   onChange: (names: string[]) => void;
   onCreate: (name: string) => void;
+  placement?: ParticipantPlacement;
 }

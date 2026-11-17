@@ -8,7 +8,7 @@ import { pickerSections } from './participantPickerOptions';
 import type { ParticipantOption } from './ParticipantOption.types';
 import type { ParticipantPickerProps } from './ParticipantPicker.types';
 
-export function ParticipantPicker({ people, roster, folderName, selected, onToggle, onCreate }: ParticipantPickerProps) {
+export function ParticipantPicker({ people, roster, folderName, selected, onToggle, onCreate, placement = 'overlay' }: ParticipantPickerProps) {
   const t = useT('participants');
   const [query, setQuery] = useState('');
   const [hidden, setHidden] = useState(false);
@@ -93,6 +93,7 @@ export function ParticipantPicker({ people, roster, folderName, selected, onTogg
       {!hidden && (
         <ParticipantOptionList
           listId={listId}
+          placement={placement}
           usual={usual}
           others={others}
           fresh={fresh}

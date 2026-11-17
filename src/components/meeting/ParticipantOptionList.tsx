@@ -7,9 +7,14 @@ import type { ParticipantOptionListProps } from './ParticipantOptionList.types';
 const ROW = 'flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-2 text-sm';
 const CHECKED = 'border-primary-500 bg-primary-500 text-on-primary';
 const UNCHECKED = 'border-border-subtle';
+const LIST = 'z-50 mt-1 flex w-full flex-col gap-1 overflow-y-auto rounded-md border border-border-subtle bg-surface p-1 shadow-lg';
+const PLACEMENT = {
+  overlay: 'absolute left-0 right-0 top-full max-h-72',
+  inline: 'relative max-h-40 shrink-0',
+};
 
 export function ParticipantOptionList(props: ParticipantOptionListProps) {
-  const { listId, usual, others, fresh, usualLabel, othersLabel, emptyLabel, listLabel } = props;
+  const { listId, placement, usual, others, fresh, usualLabel, othersLabel, emptyLabel, listLabel } = props;
   const { addLabel, selected, activeIndex, onToggle, onCreate, onHover } = props;
   const freshIndex = usual.length + others.length;
   const renderRow = (option: ParticipantOption, index: number) => {
@@ -46,7 +51,7 @@ export function ParticipantOptionList(props: ParticipantOptionListProps) {
       role="listbox"
       aria-multiselectable="true"
       aria-label={listLabel}
-      className="absolute left-0 right-0 top-full z-50 mt-1 flex max-h-72 w-full flex-col gap-1 overflow-y-auto rounded-md border border-border-subtle bg-surface p-1 shadow-lg"
+      className={`${LIST} ${PLACEMENT[placement]}`}
     >
       {usual.length > 0 && (
         <div role="group" aria-label={usualLabel}>

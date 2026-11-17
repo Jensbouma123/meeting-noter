@@ -116,4 +116,19 @@ describe('ParticipantsDialog', () => {
     fireEvent.keyDown(window, { key: 'r' });
     expect(onStart).toHaveBeenCalledWith(['Jens'], false);
   });
+
+  it('renders the list inline and keeps footer buttons reachable while the input has focus', () => {
+    show();
+    search().focus();
+    const list = screen.getByRole('listbox');
+    expect(list.className).not.toContain('absolute');
+    expect(list.className).toContain('max-h-');
+    expect(search()).toHaveFocus();
+    const start = screen.getByRole('button', { name: 'Start' });
+    const skip = screen.getByRole('button', { name: 'Skip' });
+    expect(start).toBeInTheDocument();
+    skip.focus();
+    expect(skip).toHaveFocus();
+    expect(list.contains(start)).toBe(false);
+  });
 });

@@ -71,6 +71,7 @@ export function ParticipantsDialog({
           selected={names}
           onChange={setNames}
           onCreate={create}
+          placement="inline"
         />
         {folderName && (
           <Checkbox
