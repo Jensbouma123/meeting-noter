@@ -2,7 +2,7 @@
    to its trigger (`position-anchor` inline). Without anchor positioning it docks to the bottom
    edge like a sheet. `--select-list-cap` is the tallest it gets on a roomy screen (Select: 60
    spacing steps; SearchableSelect sets `100%` and caps its virtual list itself).
-   Side: `data-side` from `useOpenSide` (JS), the side with more room as the UA `::picker(select)`.
+   Side: `data-side` from `useOpenSide` (JS), below when the list fits there, else the roomier side.
    Not `position-try-order: most-block-size`: WebKit ignores it and, since the clamp below always
    fits, never flips, so engines opened on opposite sides. Block size: the percentage resolves
    against the `position-area` containing block, so the list never outgrows the side it opened,
@@ -14,6 +14,7 @@
   inset-inline: calc(var(--spacing) * 2);
   inset-block: auto calc(var(--spacing) * 4 + var(--safe-bottom));
   width: auto;
+  --open-side-cap: var(--select-list-cap, calc(var(--spacing) * 60));
   max-block-size: min(
     var(--select-list-cap, calc(var(--spacing) * 60)),
     calc(100dvh - var(--spacing) * 8 - var(--safe-top) - var(--safe-bottom))
