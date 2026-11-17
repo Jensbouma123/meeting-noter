@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getState, initRegistry } from '@/lib/asr/browser';
+import { getState, initRegistry, markCached } from '@/lib/asr/browser';
 import { EG2_MODEL_ID } from '../embeddinggemma2/constants';
 import { reportEmbedFailed, reportEmbedProgress, reportEmbedReady } from './embed-progress';
 import { SEARCH_REGISTRY_KEY, registerSearchModel, syncFromCache } from './model-registry';
@@ -52,5 +52,20 @@ describe('search model registry entry', () => {
     reportEmbedFailed('network down');
     expect(status()).toBe('failed');
     expect(getState().entries[SEARCH_REGISTRY_KEY].error).toBe('network down');
+  });
+
+  it('keeps a cached model cached, never flipping to downloading, when a cached load reports progress', () => {
+    registerSearchModel();
+    markCached(SEARCH_REGISTRY_KEY);
+    reportEmbedProgress('onnx/model_q4.onnx', 200, 200);
+    expect(status()).toBe('cached');
+    reportEmbedReady();
+    expect(status()).toBe('cached');
+  });
+
+  it('shows the dialog once when the model is uncached and never consented', () => {
+    registerSearchModel();
+    expect(status()).toBe('not-downloaded');
+    expect(getState().dialogVisible).toBe(true);
   });
 });
