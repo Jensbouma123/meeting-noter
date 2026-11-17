@@ -26,6 +26,7 @@ function bridgeWorkerProgress(): void {
   bridged = true;
   subscribeEmbedProgress((event) => {
     if (event.kind === 'progress') {
+      if (getState().entries[SEARCH_REGISTRY_KEY]?.status === 'cached') return;
       if (getState().entries[SEARCH_REGISTRY_KEY]?.status !== 'downloading') {
         loadedByFile.clear();
         totalByFile.clear();
