@@ -7,23 +7,24 @@ import {
   LANGID_SAMPLE_RATE,
 } from './manifest';
 import { buildMelFilterbank } from './mel-filterbank';
-import { buildDftTables, hannWindow, reflectPad } from './stft-tables';
+import { MixedRadixFft } from './mixed-radix-fft';
+import { hannWindow, reflectPad } from './stft-tables';
 
 const N_FREQ_BINS = LANGID_N_FFT / 2 + 1;
 
-let dftTables: { cos: Float64Array; sin: Float64Array } | null = null;
+let fft: MixedRadixFft | null = null;
 let melFilters: Float64Array | null = null;
 let hann: Float64Array | null = null;
 
 function ensureTables(): void {
-  if (!dftTables) dftTables = buildDftTables(LANGID_N_FFT, N_FREQ_BINS);
+  if (!fft) fft = new MixedRadixFft(LANGID_N_FFT);
   if (!melFilters) melFilters = buildMelFilterbank(LANGID_SAMPLE_RATE, LANGID_N_FFT, LANGID_N_MELS, N_FREQ_BINS);
   if (!hann) hann = hannWindow(LANGID_N_FFT);
 }
 
 export function computeLogMelSpectrogram(waveform: Float32Array): Float32Array {
   ensureTables();
-  const { cos, sin } = dftTables as { cos: Float64Array; sin: Float64Array };
+  const transform = fft as MixedRadixFft;
   const filters = melFilters as Float64Array;
   const window = hann as Float64Array;
   const fixed = new Float32Array(LANGID_N_SAMPLES);
@@ -32,22 +33,23 @@ export function computeLogMelSpectrogram(waveform: Float32Array): Float32Array {
 
   const power = new Float64Array(N_FREQ_BINS);
   const framed = new Float64Array(LANGID_N_FFT);
+  const zeros = new Float64Array(LANGID_N_FFT);
+  const outRe = new Float64Array(LANGID_N_FFT);
+  const outIm = new Float64Array(LANGID_N_FFT);
   const melEnergies = new Float32Array(LANGID_N_MELS * LANGID_N_FRAMES);
 
   for (let t = 0; t < LANGID_N_FRAMES; t++) {
     const start = t * LANGID_HOP_LENGTH;
-    for (let n = 0; n < LANGID_N_FFT; n++) framed[n] = padded[start + n] * window[n];
-
-    for (let k = 0; k < N_FREQ_BINS; k++) {
-      let re = 0;
-      let im = 0;
-      const base = k * LANGID_N_FFT;
-      for (let n = 0; n < LANGID_N_FFT; n++) {
-        const x = framed[n];
-        re += x * cos[base + n];
-        im -= x * sin[base + n];
-      }
-      power[k] = re * re + im * im;
+    let silent = true;
+    for (let n = 0; n < LANGID_N_FFT; n++) {
+      const x = padded[start + n];
+      if (x !== 0) silent = false;
+      framed[n] = x * window[n];
+    }
+    if (silent) power.fill(0);
+    else {
+      transform.transform(framed, zeros, outRe, outIm);
+      for (let k = 0; k < N_FREQ_BINS; k++) power[k] = outRe[k] * outRe[k] + outIm[k] * outIm[k];
     }
 
     for (let m = 0; m < LANGID_N_MELS; m++) {
