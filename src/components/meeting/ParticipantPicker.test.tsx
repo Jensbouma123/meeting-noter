@@ -120,4 +120,25 @@ describe('ParticipantPicker', () => {
     fireEvent.click(option('Add Bram'));
     expect(onCreate).toHaveBeenCalledWith('Bram');
   });
+  it('overlays the list absolutely so it does not push layout', () => {
+    show();
+    expect(screen.getByRole('listbox').className).toContain('absolute');
+    expect(screen.getByRole('listbox').className).toContain('top-full');
+  });
+
+  it('closes on outside click and blur, reopens on focus', () => {
+    show();
+    box().focus();
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    fireEvent.blur(box(), { relatedTarget: document.body });
+    expect(screen.queryByRole('listbox')).toBeNull();
+    fireEvent.focus(box());
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+  });
+
+  it('stays open when focus moves within the picker', () => {
+    show();
+    fireEvent.blur(box(), { relatedTarget: screen.getByRole('listbox') });
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+  });
 });
