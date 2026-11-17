@@ -27,7 +27,7 @@ async function createFolder(name: string): Promise<string> {
   const res = await post(req('POST', '/folders', { name }));
   return ((await res.json()) as { folder: { id: string } }).folder.id;
 }
-async function setContext(id: string, body: unknown, headers = LOCAL) {
+async function setContext(id: string, body: unknown, headers: Record<string, string> = LOCAL) {
   const res = await patch(req('PATCH', `/folders/${id}`, body, headers), ctx(id));
   return { status: res.status, json: (await res.json()) as { ok: boolean; error?: string; folder?: { context: string } } };
 }
