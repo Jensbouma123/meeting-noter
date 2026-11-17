@@ -20,12 +20,12 @@ describe.skipIf(process.platform !== 'darwin')('install.sh speech model', () => 
 
   it('builds the speech model on this Mac, keeps it across updates and links it into public/models', () => {
     publishRelease('0.2.1');
-    const uv = fakeUv('mkdir -p "$out"; echo "$all" >> "$HOME/uv-calls"; printf fake-encoder > "$out/encoder-model.q4f16.onnx"');
+    const uv = fakeUv('mkdir -p "$out"; echo "$UV_PYTHON_PREFERENCE $all" >> "$HOME/uv-calls"; printf fake-encoder > "$out/encoder-model.q4f16.onnx"');
     const env = { MEETING_NOTER_UV: uv, MEETING_NOTER_SKIP_GPU_MODEL: '' };
     const first = runScript(INSTALL, env);
     expect(first.code, first.out).toBe(0);
     expect(readFileSync(modelFile(), 'utf8')).toBe('fake-encoder');
-    expect(readFileSync(path.join(sandbox.home, 'uv-calls'), 'utf8')).toMatch(/--python 3\.12 --with numpy==.* --with onnx==.* --with onnxruntime==.*convert-parakeet-v3\.py/);
+    expect(readFileSync(path.join(sandbox.home, 'uv-calls'), 'utf8')).toMatch(/^only-managed run --python 3\.12 --with numpy==.* --with onnx==.* --with onnxruntime==.* --with truststore==\d.*convert-parakeet-v3\.py/);
     expect(existsSync(path.join(installRoot(), 'model-build'))).toBe(false);
     expect(readFileSync(servedModelFile(), 'utf8')).toBe('fake-encoder');
     publishRelease('0.2.2');
