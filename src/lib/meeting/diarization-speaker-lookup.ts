@@ -3,6 +3,7 @@ import type { SpeakerTurn } from '@/lib/diarization/browser';
 import type { Source } from './types';
 
 const TIE_SECONDS = 1e-6;
+const ONSET_LAG_SECONDS = 0.5;
 
 function pausedWithin(turn: SpeakerTurn, start: number, end: number): number {
   let paused = 0;
@@ -44,14 +45,19 @@ export function speakerFor(source: Source, start: number, end: number): string |
 export function speakerNear(source: Source, start: number, end: number): string | null {
   const found = speakerFor(source, start, end);
   if (found) return found;
-  let best: string | null = null;
-  let bestGap = Infinity;
+  let before: { speaker: string; gap: number } | null = null;
+  let after: { speaker: string; gap: number } | null = null;
   for (const turn of turnsOf(source)) {
-    const gap = turn.start >= end ? turn.start - end : start - turn.end;
-    if (gap < bestGap) {
-      best = turn.speaker;
-      bestGap = gap;
+    if (turn.start >= end) {
+      const gap = turn.start - end;
+      if (!after || gap < after.gap) after = { speaker: turn.speaker, gap };
+    } else {
+      const gap = start - turn.end;
+      if (!before || gap < before.gap) before = { speaker: turn.speaker, gap };
     }
   }
-  return best;
+  if (!before) return after?.speaker ?? null;
+  if (!after) return before.speaker;
+  // Sortformer opens a turn late, so a word in the gap belongs to the incoming speaker unless the outgoing one is clearly closer.
+  return after.gap <= before.gap + ONSET_LAG_SECONDS ? after.speaker : before.speaker;
 }
