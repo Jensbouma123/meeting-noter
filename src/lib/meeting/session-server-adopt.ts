@@ -6,9 +6,8 @@ import { SESSION_INDEX_VERSION, notifySessionsChanged, readSessionIndex, writeSe
 import { loadSessionTranscript, removeSessionTranscript, saveSessionTranscript } from './session-transcript-storage';
 import type { SessionEntry } from './types/session-store';
 
-export function adoptMeetingSummary(row: MeetingSummaryRow): void {
-  const index = readSessionIndex();
-  const entry: SessionEntry = {
+function summaryEntry(row: MeetingSummaryRow): SessionEntry {
+  return {
     version: SESSION_INDEX_VERSION,
     sessionId: row.id,
     title: row.title,
@@ -19,11 +18,24 @@ export function adoptMeetingSummary(row: MeetingSummaryRow): void {
     isDraft: row.isDraft,
     ...(row.captureMode ? { captureMode: row.captureMode } : {}),
   };
-  const existingIdx = index.sessions.findIndex((s) => s.sessionId === row.id);
-  if (existingIdx >= 0) index.sessions[existingIdx] = entry;
-  else index.sessions.push(entry);
+}
+
+export function adoptMeetingSummaries(rows: MeetingSummaryRow[]): void {
+  if (rows.length === 0) return;
+  const index = readSessionIndex();
+  const positions = new Map(index.sessions.map((s, i) => [s.sessionId, i]));
+  for (const row of rows) {
+    const entry = summaryEntry(row);
+    const at = positions.get(row.id);
+    if (at !== undefined) index.sessions[at] = entry;
+    else positions.set(row.id, index.sessions.push(entry) - 1);
+  }
   writeSessionIndex(index);
   notifySessionsChanged();
+}
+
+export function adoptMeetingSummary(row: MeetingSummaryRow): void {
+  adoptMeetingSummaries([row]);
 }
 
 export function cacheMeetingContent(meeting: StoredMeeting, opts: { replace?: boolean } = {}): void {
