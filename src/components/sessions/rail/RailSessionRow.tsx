@@ -1,5 +1,5 @@
 import { useState, useSyncExternalStore, type MouseEvent } from 'react';
-import { Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, ListItem, Text } from '@jensbouma123/acciva-ui';
+import { Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, ListItem, Text, Tooltip } from '@jensbouma123/acciva-ui';
 import { ArrowRight, Eraser, FolderInput, Loader2, MoreHorizontal, Pencil, Sparkles, Trash2 } from 'lucide-react';
 import { isSessionRecording } from '@/lib/meeting/session-delete';
 import { subscribe as subscribeMeetingStore } from '@/lib/meeting/store-core';
@@ -41,19 +41,16 @@ export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete, o
         subtitle={subtitle}
         selected={isActive}
         onClick={onOpen}
-        leading={
-          session.isDraft ? (
-            <span aria-hidden="true" className="text-muted-foreground">
-              <Pencil className="size-4" />
-            </span>
-          ) : undefined
-        }
         trailing={<>
           {count > 0 && <Badge variant="neutral" size="xs">{t('openCount').replace('{n}', String(count))}</Badge>}
           {badgeState === 'recording' ? (
             <Badge variant="danger" className="mn-chip-danger" size="xs" dot>{t('recording')}</Badge>
           ) : badgeState === 'draft' ? (
-            <Badge variant="warning" className="mn-chip-warning" size="xs">{t('notRecorded')}</Badge>
+            <Tooltip content={t('notRecorded')}>
+              <span role="img" aria-label={t('notRecorded')} className="inline-flex text-muted-foreground">
+                <Pencil className="size-4" aria-hidden="true" />
+              </span>
+            </Tooltip>
           ) : undefined}
         </>}
         className="w-full pr-10"
