@@ -7,7 +7,7 @@ import { attributeSpeakers } from './speaker-attribution';
 import { mergeFamily, segmentFamilyRoot } from './speaker-family';
 import { captureSpanOf } from './append-mode';
 import { getState } from './store-core';
-import { inSegmentFamily, replaceSegmentFamily } from './segment-store';
+import { replaceSegmentFamilies } from './segment-store';
 import type { Segment, Source } from './types';
 
 const RELABEL_LOOKBACK_SEGMENTS = 200;
@@ -39,11 +39,10 @@ function familyRootsToRelabel(turn: SpeakerTurn, from: number): Set<string> {
   return roots;
 }
 
-export function relabelFamily(source: Source, root: string): void {
-  const family = getState().segments.filter((s) => inSegmentFamily(s.id, root));
+function relabeledParts(source: Source, family: readonly Segment[]): Segment[] | null {
   const merged = mergeFamily(family);
   const span = captureSpanOf(merged);
-  if (!span) return;
+  if (!span) return null;
   const offset = merged.start - span.start;
   const parts = attributeSpeakers(
     merged,
@@ -56,18 +55,35 @@ export function relabelFamily(source: Source, root: string): void {
         end: o.end + offset,
       })),
   );
-  if (!sameParts(parts, family)) replaceSegmentFamily(root, parts);
+  return sameParts(parts, family) ? null : parts;
+}
+
+function relabelFamilies(source: Source, families: Iterable<readonly [string, readonly Segment[]]>): void {
+  const changes: Array<[string, Segment[]]> = [];
+  for (const [root, family] of families) {
+    const parts = relabeledParts(source, family);
+    if (parts) changes.push([root, parts]);
+  }
+  replaceSegmentFamilies(changes);
 }
 
 export function relabelSegments(turn: SpeakerTurn): void {
-  for (const root of familyRootsToRelabel(turn, previousTurnEnd(turn))) relabelFamily(turn.source, root);
+  const roots = familyRootsToRelabel(turn, previousTurnEnd(turn));
+  const families = new Map<string, Segment[]>();
+  for (const seg of getState().segments) {
+    const root = segmentFamilyRoot(seg.id);
+    if (roots.has(root)) families.set(root, [...(families.get(root) ?? []), seg]);
+  }
+  relabelFamilies(turn.source, families);
 }
 
 export function relabelSource(source: Source): void {
-  const roots = new Set<string>();
+  const families = new Map<string, Segment[]>();
+  const eligible = new Set<string>();
   for (const seg of getState().segments) {
-    if (seg.source !== source || isOverlapPassSegment(seg.id) || !captureSpanOf(seg)) continue;
-    roots.add(segmentFamilyRoot(seg.id));
+    const root = segmentFamilyRoot(seg.id);
+    families.set(root, [...(families.get(root) ?? []), seg]);
+    if (seg.source === source && !isOverlapPassSegment(seg.id) && captureSpanOf(seg)) eligible.add(root);
   }
-  for (const root of roots) relabelFamily(source, root);
+  relabelFamilies(source, [...families].filter(([root]) => eligible.has(root)));
 }
