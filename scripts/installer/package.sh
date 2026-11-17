@@ -21,6 +21,7 @@ asset="meeting-noter-macos-$arch.tar.gz"
 # The WebGPU encoders are not in the tarball: install.sh builds the q4f16 one on
 # the user's Mac and links it into the server's public/models, so the app fetches
 # it same-origin.
+node src/lib/ort-paths/copy-ort-wasm.mjs
 if [ -z "${SKIP_BUILD:-}" ]; then
   STANDALONE=1 \
     NEXT_PUBLIC_Q4F16_ENCODER_URL=/models/parakeet-tdt-0.6b-v3-webgpu/encoder-model.q4f16.onnx \
@@ -35,6 +36,7 @@ mkdir -p "$stage/node/bin" "$stage/helper" "$stage/launcher" "$cache"
 # 1. Web app: standalone server plus the static files it does not copy itself.
 cp -R .next/standalone "$stage/server"
 cp -R public "$stage/server/public"
+[ -f public/ort/web/ort-wasm-simd-threaded.wasm ] && [ -f public/ort/transformers/ort-wasm-simd-threaded.wasm ] || { echo "ONNX Runtime wasm files missing from public/ort" >&2; exit 1; }
 rm -rf "$stage/server/public/models"   # dev-only conversion output; install.sh links the real one
 cp -R .next/static "$stage/server/.next/static"
 

@@ -1,7 +1,6 @@
 import * as ort from 'onnxruntime-web';
+import { applyOrtWasmPaths } from '@/lib/ort-paths';
 import type { ExternalDataFile, SessionBackend } from './types';
-
-const ORT_VERSION = '1.24.1';
 
 let wasmPathsConfigured = false;
 
@@ -17,9 +16,7 @@ function ensureWasmPaths(): void {
   if (wasmPathsConfigured) return;
   wasmPathsConfigured = true;
   silenceBenignOrtWarnings();
-  if (!ort.env.wasm.wasmPaths) {
-    ort.env.wasm.wasmPaths = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VERSION}/dist/`;
-  }
+  applyOrtWasmPaths(ort.env);
   ort.env.wasm.numThreads = 1;
   ort.env.wasm.proxy = false;
 }

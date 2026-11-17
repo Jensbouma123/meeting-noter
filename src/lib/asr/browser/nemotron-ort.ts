@@ -1,4 +1,5 @@
 import type * as Ort from 'onnxruntime-web';
+import { applyOrtWasmPaths } from '@/lib/ort-paths';
 import { takeBlobUrlBytes } from './resumable-download';
 import { isSafariBrowser } from './engine-load';
 import { NEMOTRON_GRAPHS } from './nemotron-graphs';
@@ -17,10 +18,7 @@ function configureOrt(ort: typeof Ort, config: BrowserASRConfig): void {
   } catch {
     void 0;
   }
-  if (!ort.env.wasm.wasmPaths) {
-    const version = ort.env.versions?.common ?? '1.24.1';
-    ort.env.wasm.wasmPaths = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${version}/dist/`;
-  }
+  applyOrtWasmPaths(ort.env);
   const threaded = typeof SharedArrayBuffer !== 'undefined';
   const wanted = config.cpuThreads ?? (isSafariBrowser() ? 1 : Math.min(4, globalThis.navigator?.hardwareConcurrency ?? 4));
   ort.env.wasm.numThreads = threaded ? wanted : 1;
