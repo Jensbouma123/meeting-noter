@@ -60,6 +60,7 @@ export async function acquireHfFile(
           urlOverride: options.urlOverride,
           abortGeneration,
         });
+        await resolveCacheKey(repoId, revision, filename, options.urlOverride).catch(() => key);
         channel?.postMessage({ type: 'done', key } satisfies BroadcastMsg);
         return fileUrl;
       } catch (err) {

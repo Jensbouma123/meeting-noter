@@ -1,6 +1,6 @@
 import type { RevisionPinRecord, ShaLookup } from '../types/download-cache-records';
 import { deleteMetaRecord, getMetaRecord, putMetaRecord } from './cache-primitives';
-import { cacheKey, deleteCachedFile } from './cached-files';
+import { cacheKey, deleteCachedFile, isModelFileCachedByKey } from './cached-files';
 import { FILE_STORE, REVISION_PIN_TIMEOUT_MS } from './constants';
 
 const SHA_PATTERN = /^[0-9a-f]{64}$/i;
@@ -10,6 +10,7 @@ async function lookupSha(url: string): Promise<ShaLookup> {
   const timer = setTimeout(() => controller.abort(), REVISION_PIN_TIMEOUT_MS);
   try {
     const res = await fetch(`${url}.sha256`, { cache: 'no-store', signal: controller.signal });
+    if (res.status >= 500) return { kind: 'offline' };
     if (!res.ok) return { kind: 'missing' };
     const sha = (await res.text()).trim().split(/\s+/)[0] ?? '';
     return SHA_PATTERN.test(sha) ? { kind: 'sha', sha: sha.toLowerCase() } : { kind: 'missing' };
@@ -29,7 +30,8 @@ function pointerKey(baseKey: string): string {
 }
 
 async function readPointer(baseKey: string): Promise<RevisionPinRecord | undefined> {
-  return getMetaRecord<RevisionPinRecord>(FILE_STORE, pointerKey(baseKey)).catch(() => undefined);
+  const record = await getMetaRecord<RevisionPinRecord>(FILE_STORE, pointerKey(baseKey)).catch(() => undefined);
+  return typeof record?.sha === 'string' && SHA_PATTERN.test(record.sha) ? record : undefined;
 }
 
 export async function resolveCacheKey(
@@ -50,6 +52,7 @@ export async function resolveCacheKey(
 
   const pinnedKey = cacheKey(repoId, pinnedRevision(revision, found.sha), filename);
   if (pointer?.sha === found.sha) return pinnedKey;
+  if (!(await isModelFileCachedByKey(pinnedKey).catch(() => false))) return pinnedKey;
 
   const staleKey = pointer
     ? cacheKey(repoId, pinnedRevision(revision, pointer.sha), filename)
