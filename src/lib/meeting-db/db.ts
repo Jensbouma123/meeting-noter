@@ -1,17 +1,23 @@
 import { DatabaseSync } from 'node:sqlite';
 import { randomUUID } from 'node:crypto';
-import { cleanFolderName } from './folder-name';
+import {
+  writeCreateFolder,
+  writeDeleteFolder,
+  writeFolderContext,
+  writeFolderRoster,
+  writeMoveFolder,
+  writeMoveMeeting,
+  writeRenameFolder,
+  writeReorderFolder,
+} from './db-folder-ops';
+import { readDeletedIds, readMarkdownFile, readMeta, writeInsights, writeMeta, writeMetaOnce } from './db-meta-ops';
+import { writeDeleteAllMeetings, writeDeleteMeeting, writeUpsertMeeting } from './db-write-ops';
 import { readAllFolders } from './folder-queries';
-import { fileMeetingInFolder, insertFolder, renumberSiblings, reparentFolder, updateFolderContext, updateFolderName, updateFolderRoster } from './folder-writes';
-import { deleteAllMeetingRows, deleteFolderRows, deleteMeetingRows } from './meeting-delete';
 import { declineFolderSuggestionRow } from './folder-suggestions';
 import { listMeetingRows, searchMeetingRows } from './meeting-queries';
 import { readMeeting } from './meeting-read';
-import { upsertMeetingRows } from './meeting-upsert';
 import type { InsightSet } from '../semantic-search/insights/types/insight-set';
-import { scrubDeletedText } from './scrub';
 import { prepareWritableDatabase } from './schema-migration';
-import { runInTransaction } from './transaction';
 import type {
   DeleteAllResult,
   FolderDeleteMode,
@@ -40,24 +46,12 @@ export class MeetingsDb {
     this.db.close();
   }
 
-  private transaction<T>(body: () => T): T {
-    return runInTransaction(this.db, body);
-  }
-
-  private scrub(vacuum: boolean): void {
-    scrubDeletedText(this.db, vacuum);
-  }
-
   upsert(meeting: StoredMeeting, opts: UpsertOptions = {}): UpsertResult {
-    const { result, shrunk } = this.transaction(() => upsertMeetingRows(this.db, meeting, opts));
-    if (result === 'written' && shrunk) this.scrub(false);
-    return result;
+    return writeUpsertMeeting(this.db, meeting, opts);
   }
 
   delete(id: string, now = Date.now()): MeetingDeleteResult {
-    const result = this.transaction(() => deleteMeetingRows(this.db, id, now));
-    this.scrub(result.deleted);
-    return result;
+    return writeDeleteMeeting(this.db, id, now);
   }
 
   listFolders(): FolderRow[] {
@@ -65,66 +59,59 @@ export class MeetingsDb {
   }
 
   createFolder(name: string, parentId: string | null = null, now = Date.now(), id = randomUUID()): FolderRow {
-    const clean = cleanFolderName(name);
-    return this.transaction(() => insertFolder(this.db, id, clean, parentId, now));
+    return writeCreateFolder(this.db, id, name, parentId, now);
   }
 
   renameFolder(id: string, name: string, now = Date.now()): FolderRow {
-    const clean = cleanFolderName(name);
-    return this.transaction(() => updateFolderName(this.db, id, clean, now));
+    return writeRenameFolder(this.db, id, name, now);
   }
 
   moveFolder(id: string, parentId: string | null, now = Date.now()): FolderRow {
-    return this.transaction(() => reparentFolder(this.db, id, parentId, now));
+    return writeMoveFolder(this.db, id, parentId, now);
   }
 
   reorderFolder(id: string, index: number, now = Date.now()): FolderRow {
-    return this.transaction(() => renumberSiblings(this.db, id, index, now));
+    return writeReorderFolder(this.db, id, index, now);
   }
 
   moveMeeting(meetingId: string, folderId: string | null, now = Date.now()): void {
-    this.transaction(() => fileMeetingInFolder(this.db, meetingId, folderId, now));
+    writeMoveMeeting(this.db, meetingId, folderId, now);
   }
 
   setFolderRoster(id: string, roster: readonly string[], inheritRoster: boolean, now = Date.now()): FolderRow {
-    return this.transaction(() => updateFolderRoster(this.db, id, roster, inheritRoster, now));
+    return writeFolderRoster(this.db, id, roster, inheritRoster, now);
   }
 
   setFolderContext(id: string, context: string, now = Date.now()): FolderRow {
-    return this.transaction(() => updateFolderContext(this.db, id, context, now));
+    return writeFolderContext(this.db, id, context, now);
   }
+
   deleteFolder(id: string, mode: FolderDeleteMode, now = Date.now()): FolderDeleteResult {
-    const out = this.transaction(() => deleteFolderRows(this.db, id, mode, now));
-    this.scrub(out.meetings > 0);
-    return out;
+    return writeDeleteFolder(this.db, id, mode, now);
   }
 
   deleteAll(now = Date.now()): DeleteAllResult {
-    const out = this.transaction(() => deleteAllMeetingRows(this.db, now));
-    this.scrub(true);
-    return out;
+    return writeDeleteAllMeetings(this.db, now);
   }
 
   deletedIds(): string[] {
-    return this.db.prepare('SELECT id FROM deleted_meetings').all().map((row) => String(row.id));
+    return readDeletedIds(this.db);
   }
 
   getMeta(key: string): string | null {
-    const row = this.db.prepare('SELECT value FROM meta WHERE key = ?').get(key);
-    return row ? String(row.value) : null;
+    return readMeta(this.db, key);
   }
 
   setMeta(key: string, value: string): void {
-    this.db.prepare('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)').run(key, value);
+    writeMeta(this.db, key, value);
   }
 
   setMetaOnce(key: string, value: string): boolean {
-    return Number(this.db.prepare('INSERT OR IGNORE INTO meta (key, value) VALUES (?, ?)').run(key, value).changes) > 0;
+    return writeMetaOnce(this.db, key, value);
   }
 
   setInsights(id: string, insights: InsightSet | null): boolean {
-    const json = insights === null ? null : JSON.stringify(insights);
-    return Number(this.db.prepare('UPDATE meetings SET insights = ? WHERE id = ?').run(json, id).changes) > 0;
+    return writeInsights(this.db, id, insights);
   }
 
   declineFolderSuggestion(meetingId: string, folderId: string): boolean {
@@ -132,8 +119,7 @@ export class MeetingsDb {
   }
 
   markdownFile(id: string): string | null {
-    const row = this.db.prepare('SELECT markdown_file FROM meetings WHERE id = ?').get(id);
-    return row && row.markdown_file !== null ? String(row.markdown_file) : null;
+    return readMarkdownFile(this.db, id);
   }
 
   list(opts: ListOptions = {}): MeetingSummaryRow[] {

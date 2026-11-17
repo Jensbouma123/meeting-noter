@@ -1,10 +1,11 @@
-import { nemotronLangId } from './nemotron-constants';
 import type { NemotronRecognizer } from './nemotron-recognizer';
-import { loadNemotronRecognizer } from './nemotron-loader';
+import { loadNemotronEngineModel } from './nemotron-engine-load';
 import { buildNemotronLanguageInfo, resetNemotronSegmentIds } from './nemotron-segments';
 import { NemotronSegmenter } from './nemotron-segmenter';
 import { recognizeSafely } from './nemotron-recognize';
 import { SerialQueue } from './serial-queue';
+import { NemotronSerialRecognizer } from './nemotron-serial-recognizer';
+import { transcribeNemotronChunk } from './nemotron-chunk-transcribe';
 import type {
   BrowserASRConfig,
   BrowserASREvents,
@@ -26,11 +27,14 @@ export class NemotronASREngine {
   private readonly loading = new SingleFlight();
   private readonly segmenter = new NemotronSegmenter();
   private languageLocked = false;
-  private languageHint: string | null = null;
   private readonly queue = new SerialQueue();
   private readonly vocabulary = new BiaserSlot();
+  private readonly serial = new NemotronSerialRecognizer(this.queue, this.vocabulary);
 
-  constructor(config: Partial<BrowserASRConfig> = {}, private readonly events: BrowserASREvents) {
+  constructor(
+    config: Partial<BrowserASRConfig> = {},
+    private readonly events: BrowserASREvents,
+  ) {
     this.config = { ...DEFAULT_BROWSER_ASR_CONFIG, ...config };
   }
 
@@ -48,25 +52,19 @@ export class NemotronASREngine {
   }
 
   private async _loadModel(): Promise<void> {
-    this.status = 'loading';
-    this.events.onStatusChange('loading');
-    try {
-      await loadNemotronRecognizer(
-        this.config,
-        this.vocabulary,
-        (fn) => this.queue.run(fn),
-        (progress) => this.events.onLoadProgress?.(progress),
-        (recognizer) => (this.recognizer = recognizer),
-      );
-      this.status = 'ready';
-      this.events.onStatusChange('ready');
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      this.status = 'error';
-      this.events.onStatusChange('error');
-      this.events.onError(`Could not start the model on this device: ${message}`);
-      throw err;
-    }
+    await loadNemotronEngineModel({
+      config: this.config,
+      vocabulary: this.vocabulary,
+      queue: this.queue,
+      events: this.events,
+      setStatus: (status) => this._setStatus(status),
+      setRecognizer: (recognizer) => (this.recognizer = recognizer),
+    });
+  }
+
+  private _setStatus(status: BrowserASRStatus): void {
+    this.status = status;
+    this.events.onStatusChange(status);
   }
 
   async transcribe(
@@ -80,21 +78,21 @@ export class NemotronASREngine {
     if (!recognizer || this.status !== 'ready') {
       return { segments: [], language: null, error: 'Model not ready' };
     }
-    this.status = 'transcribing';
-    this.events.onStatusChange('transcribing');
+    this._setStatus('transcribing');
     try {
-      const result = await this._recognizeSerial(recognizer, audio);
-      const segments = this.segmenter.build(result.text, result.words, audio.length, source, speakerLabel, isFinal);
-      segments.forEach((seg) => this.events.onSegment(seg));
-      const language = buildNemotronLanguageInfo(this.config.language, this.languageLocked);
-      return { segments, language, error: null };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      this.events.onError(`Browser ASR transcription error: ${message}`);
-      return { segments: [], language: null, error: message };
+      const result = await transcribeNemotronChunk(
+        { audio, source, speakerLabel, isFinal },
+        {
+          segmenter: this.segmenter,
+          recognize: () => this.serial.run(recognizer, audio),
+          language: () => buildNemotronLanguageInfo(this.config.language, this.languageLocked),
+          onError: (message) => this.events.onError(message),
+        },
+      );
+      result.segments.forEach((seg) => this.events.onSegment(seg));
+      return result;
     } finally {
-      this.status = 'ready';
-      this.events.onStatusChange('ready');
+      this._setStatus('ready');
     }
   }
 
@@ -103,7 +101,7 @@ export class NemotronASREngine {
     const recognizer = this.recognizer;
     if (!recognizer || !this.isReady) return { text: '', words: [], error: 'Model not ready' };
     return recognizeSafely(
-      () => this._recognizeSerial(recognizer, audio),
+      () => this.serial.run(recognizer, audio),
       (message) => this.events.onError(message),
     );
   }
@@ -111,8 +109,7 @@ export class NemotronASREngine {
   async stop(): Promise<void> {
     this.segmenter.reset();
     resetNemotronSegmentIds();
-    this.status = this.recognizer ? 'ready' : 'idle';
-    this.events.onStatusChange(this.status);
+    this._setStatus(this.recognizer ? 'ready' : 'idle');
   }
 
   setVocabulary(config: VocabularyBiasConfig): void {
@@ -122,19 +119,12 @@ export class NemotronASREngine {
   disable(): void {
     this.recognizer = null;
     this.vocabulary.setVocab(null);
-    this.status = 'disabled';
     this.loading.clear();
-    this.events.onStatusChange('disabled');
+    this._setStatus('disabled');
   }
 
   setLanguageHint(code: string | null): void {
-    this.languageHint = code;
-  }
-
-  private _recognizeSerial(recognizer: NemotronRecognizer, audio: Float32Array) {
-    const run = () =>
-      recognizer.recognize(audio, { langId: nemotronLangId(this.languageHint ?? 'auto'), biaser: this.vocabulary.get() });
-    return this.queue.run(run);
+    this.serial.setLanguageHint(code);
   }
 
   lockLanguage(): void {
