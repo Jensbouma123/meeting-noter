@@ -1,4 +1,7 @@
 import { useSyncExternalStore } from 'react';
+import { readAutoCloseAck, writeAutoCloseAck } from './autoclose-ack';
+
+export { AUTOCLOSE_STORAGE_KEY } from './autoclose-ack';
 
 export const ONBOARDING_STORAGE_KEY = 'mn.onboarding.done';
 
@@ -57,9 +60,18 @@ export function setAckAccepted(value: boolean): void {
   emit();
 }
 
+export function isAutoCloseAccepted(): boolean {
+  return readAutoCloseAck();
+}
+
+export function setAutoCloseAccepted(value: boolean): void {
+  writeAutoCloseAck(value);
+  emit();
+}
+
 export function shouldShowAckOnboarding(): boolean {
   if (typeof window === 'undefined') return false;
-  return !shouldShowOnboarding() && !isAckAccepted();
+  return !shouldShowOnboarding() && (!isAckAccepted() || !isAutoCloseAccepted());
 }
 
 export function shouldShowAssistantOnboarding(): boolean {
@@ -110,6 +122,7 @@ export function resetOnboardingForTests(): void {
   finished = false;
   assistantSeen = false;
   ackAccepted = false;
+  writeAutoCloseAck(false);
   emit();
 }
 

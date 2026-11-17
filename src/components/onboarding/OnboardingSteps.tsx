@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Modal, Text, VStack } from '@jensbouma123/acciva-ui';
 import { useAssistantState } from '@/components/settings/AssistantState';
 import { useT } from '@/lib/i18n/useT';
-import { finishOnboarding, isAckAccepted, setAckAccepted } from '@/lib/onboarding/store';
+import { finishOnboarding, isAckAccepted, isAutoCloseAccepted, setAckAccepted, setAutoCloseAccepted } from '@/lib/onboarding/store';
 import { STEPS } from './constants';
 import { fillTemplate } from './fillTemplate';
 import { AckStep } from './AckStep';
@@ -19,6 +19,7 @@ export function OnboardingSteps() {
   const t = useT('onboarding');
   const [stepId, setStepId] = useState<StepId>('welcome');
   const [ackChecked, setAckChecked] = useState(isAckAccepted);
+  const [autoCloseChecked, setAutoCloseChecked] = useState(isAutoCloseAccepted);
   const models = useOnboardingModels();
   const assistants = useAssistantState();
   const detecting = assistants.assistants === null && !assistants.loadFailed;
@@ -27,6 +28,7 @@ export function OnboardingSteps() {
 
   const move = (delta: 1 | -1) => {
     if (delta === 1 && stepId === 'ack') setAckAccepted(true);
+    if (delta === 1 && stepId === 'autoclose') setAutoCloseAccepted(true);
     let i = STEPS.indexOf(stepId) + delta;
     if (STEPS[i] === 'models' && models.modelsReady) i += delta;
     setStepId(STEPS[i]);
@@ -43,7 +45,10 @@ export function OnboardingSteps() {
         <OnboardingFooter
           step={step}
           isLast={isLast}
-          nextDisabled={(stepId === 'assistant' && detecting) || (stepId === 'ack' && !ackChecked)}
+          nextDisabled={
+            (stepId === 'assistant' && detecting) || (stepId === 'ack' && !ackChecked) ||
+            (stepId === 'autoclose' && !autoCloseChecked)
+          }
           onSkip={finishOnboarding}
           onBack={() => move(-1)}
           onNext={() => move(1)}
@@ -63,7 +68,7 @@ export function OnboardingSteps() {
           />
         )}
         {stepId === 'words' && <WordsStep />}
-        {stepId === 'autoclose' && <AutoCloseStep />}
+        {stepId === 'autoclose' && <AutoCloseStep checked={autoCloseChecked} onChange={setAutoCloseChecked} />}
         {stepId === 'done' && (
           <VStack spacing="sm" className="w-full">
             <Text size="sm">{t('done.body')}</Text>

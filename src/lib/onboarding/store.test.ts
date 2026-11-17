@@ -5,6 +5,7 @@ import {
   ACK_STORAGE_KEY,
   ASSISTANT_SEEN_STORAGE_KEY,
   setAckAccepted,
+  setAutoCloseAccepted,
   shouldShowAckOnboarding,
   ONBOARDING_STORAGE_KEY,
   finishAssistantOnboarding,
@@ -116,6 +117,18 @@ describe('acknowledgement', () => {
     expect(shouldShowAckOnboarding()).toBe(true);
     setAckAccepted(true);
     expect(localStorage.getItem(ACK_STORAGE_KEY)).toBe('1');
+    setAutoCloseAccepted(true);
+    expect(shouldShowAckOnboarding()).toBe(false);
+  });
+});
+
+describe('auto-close acknowledgement', () => {
+  it('keeps a finished user in the dialog until accepted, then persists', () => {
+    localStorage.setItem(ONBOARDING_STORAGE_KEY, '1');
+    setAckAccepted(true);
+    expect(shouldShowAckOnboarding()).toBe(true);
+    setAutoCloseAccepted(true);
+    expect(localStorage.getItem('mn.onboarding.autoclose.v1')).toBe('1');
     expect(shouldShowAckOnboarding()).toBe(false);
   });
 });
