@@ -65,7 +65,7 @@ export function useKeyboardShortcuts({
         return;
       }
 
-      if ((e.key === 'r' || e.key === 'R') && !e.repeat) {
+      if ((e.key === 'r' || e.key === 'R') && !e.repeat && !helpOpen && !settingsOpen) {
         if (status === 'idle' || status === 'error') {
           if (modelReady) void startRecording();
         } else if (status === 'live' || status === 'paused') {

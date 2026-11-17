@@ -5,6 +5,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { RightRail } from './RightRail';
 import { LanguageContext } from '@/lib/i18n/LanguageContext';
 import { ToastProvider } from '@jensbouma123/acciva-ui';
+import { installViewport } from '@/test/viewport';
 import { getParticipants, setParticipants } from '@/lib/meeting/participants';
 
 const renameSpeaker = vi.fn();
@@ -18,14 +19,20 @@ const MIXED_ROWS = [
   { id: '2', label: 'Speaker 2', time: 10, percentage: 50, colorIndex: 1, source: 'system' },
 ];
 
+let restoreViewport = () => {};
+
 beforeEach(() => {
+  restoreViewport = installViewport();
   window.localStorage.clear();
   renameSpeaker.mockClear();
   useSpeakerStats.mockReset();
   useSpeakerStats.mockReturnValue(MIXED_ROWS);
   setParticipants('s1', ['Anna', 'Jan']);
 });
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  restoreViewport();
+});
 
 function view() {
   render(

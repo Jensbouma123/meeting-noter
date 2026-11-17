@@ -5,6 +5,7 @@ import { useT } from '@/lib/i18n/useT';
 import { addNameToVocabulary } from '@/lib/vocabulary/names';
 import { SetLanguageContext } from '@/lib/i18n/LanguageContext';
 import type { Language } from '@/lib/i18n/types';
+import { getDefaultLanguage } from '@/lib/i18n/useLanguage';
 import { useContext } from 'react';
 import { AudioCaptureSection } from './AudioCaptureSection';
 import type { SettingsSectionProps } from './types';
@@ -14,12 +15,10 @@ import { SettingsRow } from './SettingsRow';
 export function GeneralSection({ settings, onSettingsChange }: SettingsSectionProps) {
   const t = useT('settings');
   const setLanguage = useContext(SetLanguageContext);
-  const language =
+  const language: Language =
     settings.language === 'nl' || settings.language === 'en'
       ? settings.language
-      : typeof navigator !== 'undefined' && navigator.language.toLowerCase().startsWith('nl')
-        ? 'nl'
-        : 'en';
+      : getDefaultLanguage(typeof navigator === 'undefined' ? undefined : navigator.language);
   return (
     <>
       <SettingsGroup>
