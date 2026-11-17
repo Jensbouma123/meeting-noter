@@ -1,10 +1,4 @@
 #!/usr/bin/env node
-// End-to-end check of install.sh's prebuilt speech model download: a real
-// `curl install.sh | bash` against a local fake GitHub release and a local model
-// host, with the real server started. MODEL_E2E_FILE=<built encoder> serves that
-// file and checks it against the sha256 pinned in install.sh (no override);
-// without it a small stand-in file and a matching MEETING_NOTER_MODEL_SHA256 are
-// used. The local build fallback runs a fake uv (the real one takes minutes).
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -15,7 +9,7 @@ import { check, failureCount } from './e2e/reporter.mjs';
 import { createCommandRunner } from './e2e/run-command.mjs';
 import { createReleaseBuilder } from './e2e/make-release.mjs';
 import { findFreePort, startFakeGithub } from './e2e/fake-github.mjs';
-import { startFakeModelHost } from './e2e/fake-model-host.mjs';
+import { MODEL_HOST_MODES, startFakeReleaseModelHost } from './e2e/fake-model-host.mjs';
 import { createAppClient } from './e2e/app-client.mjs';
 import { stopTestServer } from './e2e/stop-server.mjs';
 
@@ -38,9 +32,9 @@ writeFileSync(uv, '#!/bin/bash\nwhile [ $# -gt 0 ]; do [ "$1" = --outdir ] && ou
 const run = createCommandRunner(tmp);
 const makeRelease = createReleaseBuilder({ tmp, repo, installerDir, run });
 let latest = null;
-let mode = 'ok';
+let mode = MODEL_HOST_MODES.ok;
 const { github, base } = await startFakeGithub(() => latest);
-const host = await startFakeModelHost(modelSource, () => mode);
+const host = await startFakeReleaseModelHost(modelSource, () => mode);
 const port = await findFreePort();
 const client = createAppClient(`http://127.0.0.1:${port}`);
 const env = {
@@ -84,14 +78,14 @@ try {
   check(again.code === 0 && again.out.includes('al aanwezig'), 'keeps the present model', again.out);
   check(host.requests === requests && uvRuns() === 0, 'no download, no build');
 
-  await expectFallback('3. Cut-off download', 'cut');
-  await expectFallback('4. sha256 mismatch', 'bad');
-  await expectFallback('5. Missing asset (404)', 'missing');
-  await expectFallback('6. No network (connection refused)', 'ok', { MEETING_NOTER_MODEL_URL: `http://127.0.0.1:${await findFreePort()}/x` });
+  await expectFallback('3. Cut-off download', MODEL_HOST_MODES.cutHalfway);
+  await expectFallback('4. sha256 mismatch', MODEL_HOST_MODES.wrongBytes);
+  await expectFallback('5. Missing asset (404)', MODEL_HOST_MODES.missing);
+  await expectFallback('6. No network (connection refused)', MODEL_HOST_MODES.ok, { MEETING_NOTER_MODEL_URL: `http://127.0.0.1:${await findFreePort()}/x` });
 
   console.log('\n7. MEETING_NOTER_SKIP_GPU_MODEL=1');
   rmSync(installed, { force: true });
-  mode = 'ok';
+  mode = MODEL_HOST_MODES.ok;
   const [reqs, builds] = [host.requests, uvRuns()];
   const skip = await install({ MEETING_NOTER_SKIP_GPU_MODEL: '1' });
   check(skip.code === 0 && !existsSync(installed), 'installs without a model', skip.out);

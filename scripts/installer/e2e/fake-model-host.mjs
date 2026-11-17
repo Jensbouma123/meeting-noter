@@ -1,18 +1,18 @@
 import { createReadStream, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 
-// Serves the prebuilt model like a GitHub release asset. mode(): 'ok', 'missing'
-// (404), 'cut' (half the bytes, then the connection drops) or 'bad' (other bytes).
-export async function startFakeModelHost(file, mode) {
+export const MODEL_HOST_MODES = Object.freeze({ ok: 'ok', missing: 'missing', cutHalfway: 'cut', wrongBytes: 'bad' });
+
+export async function startFakeReleaseModelHost(file, currentMode) {
   const state = { requests: 0 };
   const server = createServer((req, res) => {
     state.requests++;
-    const m = mode();
-    if (m === 'missing' || !req.url.endsWith('/encoder-model.q4f16.onnx')) { res.writeHead(404); return res.end(); }
-    if (m === 'bad') return res.end('not the pinned model');
+    const mode = currentMode();
+    if (mode === MODEL_HOST_MODES.missing || !req.url.endsWith('/encoder-model.q4f16.onnx')) { res.writeHead(404); return res.end(); }
+    if (mode === MODEL_HOST_MODES.wrongBytes) return res.end('not the pinned model');
     const size = statSync(file).size;
     res.writeHead(200, { 'content-length': size });
-    if (m === 'cut') {
+    if (mode === MODEL_HOST_MODES.cutHalfway) {
       createReadStream(file, { end: Math.floor(size / 2) }).on('end', () => setTimeout(() => res.socket.destroy(), 50)).pipe(res, { end: false });
       return;
     }
