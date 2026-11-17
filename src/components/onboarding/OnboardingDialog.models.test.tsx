@@ -1,13 +1,12 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   DIARIZATION_REGISTRY_KEY,
   LANGID_REGISTRY_KEY,
   SEARCH_REGISTRY_KEY,
 } from '@/lib/asr/browser/model-registry-known-keys';
-import { registryState } from '@/lib/asr/browser/model-registry-state';
 import { entry, initiateDownloads, recordConsent, registerOnboardingTestEnv, setEntries } from './OnboardingDialog.testSupport';
 import { OnboardingDialog } from './OnboardingDialog';
 
@@ -29,26 +28,40 @@ function openModelsStep() {
   fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
 }
 
+const ALL = [...CORE, SEARCH_REGISTRY_KEY];
+
 describe('OnboardingDialog models step', () => {
-  it('asks consent for speech, speaker detection and language ID, but not for search', async () => {
+  it('lists search with the others and records one consent for all four', async () => {
     allModels('not-downloaded');
     openModelsStep();
-    fireEvent.click(await screen.findByRole('button', { name: 'Download 2 GB' }));
-    expect(recordConsent).toHaveBeenCalledWith('accepted', CORE);
+    expect(await screen.findByText(/search/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Download 2 GB' }));
+    expect(recordConsent).toHaveBeenCalledWith('accepted', ALL);
     expect(initiateDownloads).toHaveBeenCalled();
   });
 
-  it('keeps an earlier consent for search when the core models are accepted', async () => {
-    registryState.persistedConsent = { decidedAt: 1, choice: 'accepted', acceptedModels: [SEARCH_REGISTRY_KEY] };
+  it('includes search in the total size and keeps the step open while it is missing', async () => {
+    allModels('not-downloaded', 'cached');
+    openModelsStep();
+    expect(await screen.findByRole('button', { name: 'Download 2 GB' })).toBeInTheDocument();
+    expect(screen.queryByText('Step 4 of 6')).not.toBeInTheDocument();
+  });
+
+  it('accepting in onboarding grants search consent, so no separate dialog is needed', async () => {
+    const real = await vi.importActual<typeof import('@/lib/asr/browser/model-registry-consent')>(
+      '@/lib/asr/browser/model-registry-consent',
+    );
     allModels('not-downloaded');
     openModelsStep();
     fireEvent.click(await screen.findByRole('button', { name: 'Download 2 GB' }));
-    expect(recordConsent).toHaveBeenCalledWith('accepted', [...CORE, SEARCH_REGISTRY_KEY]);
-    registryState.persistedConsent = null;
+    const [choice, keys] = recordConsent.mock.calls[0] as [ 'accepted', string[] ];
+    real.recordConsent(choice, keys);
+    expect(real.isConsentGiven(SEARCH_REGISTRY_KEY)).toBe(true);
+    real.resetConsent();
   });
 
-  it('treats the models as ready when only the optional search model is missing', () => {
-    allModels('not-downloaded', 'cached');
+  it('moves on without downloading when every model, search included, is cached', () => {
+    allModels('cached', 'cached');
     openModelsStep();
     expect(screen.getByText('Step 4 of 6')).toBeInTheDocument();
     expect(initiateDownloads).not.toHaveBeenCalled();
