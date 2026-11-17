@@ -6,6 +6,7 @@ import { folderPath } from '@/lib/folders/folder-tree';
 import { suggestFolderOnDemand } from '@/lib/semantic-search/folder-suggest/on-demand';
 import { isSearchModelReady } from '@/lib/semantic-search/model-gate';
 import { openDialog } from '@/lib/asr/browser/model-registry-dialog';
+import { loadFolderContextVectors } from '@/lib/semantic-search/folder-suggest/context-vector';
 import { loadIndex } from '@/lib/semantic-search/store';
 import { useFoldersT } from '../folders/useFoldersT';
 import type { OnDemandSuggestions } from './on-demand-suggestion.types';
@@ -32,8 +33,9 @@ export function useOnDemandSuggestion(
         return;
       }
       setPendingId(id);
+      const contextVectors = await loadFolderContextVectors(folders);
       await new Promise((resolve) => setTimeout(resolve, 0));
-      const result = suggestFolderOnDemand(id, meetingFolders, (mid) => loadIndex(mid)?.vectors ?? null);
+      const result = suggestFolderOnDemand(id, meetingFolders, (mid) => loadIndex(mid)?.vectors ?? null, contextVectors);
       setPendingId(null);
       if (!result) {
         toast.info(t('suggestNoMatch'));

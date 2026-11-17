@@ -115,4 +115,17 @@ describe('folders', () => {
     db.upsert(sampleMeeting());
     expect(db.get('meeting-1')!.folderId).toBeNull();
   });
+
+  it('migrates a folders table without a context column and stores context', () => {
+    const file = path.join(tmpDir(), 'context-v8.db');
+    const first = new MeetingsDb(file);
+    const created = first.createFolder('Design');
+    first.db.exec('ALTER TABLE folders DROP COLUMN context; PRAGMA user_version = 8');
+    first.close();
+    const db = new MeetingsDb(file);
+    expect(db.listFolders().find((f) => f.id === created.id)!.context).toBe('');
+    expect(db.setFolderContext(created.id, 'weekly syncs').context).toBe('weekly syncs');
+    expect(db.listFolders()[0].context).toBe('weekly syncs');
+    db.close();
+  });
 });

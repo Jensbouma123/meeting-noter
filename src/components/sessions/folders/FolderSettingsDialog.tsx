@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Checkbox, Modal, Textarea } from '@jensbouma123/acciva-ui';
+import { Button, Checkbox, Modal } from '@jensbouma123/acciva-ui';
 import { ParticipantChips } from '@/components/meeting/ParticipantChips';
 import { resolveFolderRoster } from '@/lib/folders/roster';
 import { FolderRosterEditor } from './FolderRosterEditor';
@@ -29,7 +29,8 @@ export function FolderSettingsDialog({ folder, folders, onClose, onSave }: Folde
       <div className="flex w-full flex-col gap-3">
         <h3 className="text-sm font-semibold text-foreground">{t('contextTitle')}</h3>
         <p className="text-xs text-muted-foreground">{t('contextHint')}</p>
-        <Textarea
+        <textarea
+          className="w-full rounded-md border border-border bg-background p-2 text-sm text-foreground"
           value={context}
           rows={3}
           maxLength={1000}

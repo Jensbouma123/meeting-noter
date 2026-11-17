@@ -17,19 +17,20 @@ export function centroidLoader(loadVectors: SuggestionInput['loadVectors']): (id
 export function centroidsByFolder(
   meetingFolders: Record<string, string | null>,
   centroidOf: (id: string) => Float32Array | null,
+  contextVectors: Record<string, Float32Array> = {},
 ): Map<string, Float32Array> {
   const byFolder = new Map<string, Float32Array[]>();
   for (const [meetingId, folderId] of Object.entries(meetingFolders)) {
     const c = folderId ? centroidOf(meetingId) : null;
     if (folderId && c) byFolder.set(folderId, [...(byFolder.get(folderId) ?? []), c]);
   }
-  return folderCentroids(byFolder);
+  return folderCentroids(byFolder, contextVectors);
 }
 
 export function computeFolderSuggestions(input: SuggestionInput): Record<string, FolderSuggestion> {
-  const { sessionIds, meetingFolders, declined, loadVectors } = input;
+  const { sessionIds, meetingFolders, declined, loadVectors, contextVectors } = input;
   const centroidOf = centroidLoader(loadVectors);
-  const centroids = centroidsByFolder(meetingFolders, centroidOf);
+  const centroids = centroidsByFolder(meetingFolders, centroidOf, contextVectors);
   const out: Record<string, FolderSuggestion> = {};
   if (centroids.size === 0) return out;
   for (const id of sessionIds) {
