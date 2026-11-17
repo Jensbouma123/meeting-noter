@@ -1,4 +1,4 @@
-import { cleanup } from '@testing-library/react';
+import { cleanup, fireEvent, screen } from '@testing-library/react';
 import { afterEach, beforeEach, vi } from 'vitest';
 import { resetOnboardingForTests } from '@/lib/onboarding/store';
 import { resetVocabularyForTests } from '@/lib/vocabulary/store';
@@ -74,4 +74,9 @@ export function registerOnboardingTestEnv() {
     };
   });
   afterEach(cleanup);
+}
+
+export function acceptAck() {
+  fireEvent.click(screen.getByRole('checkbox', { name: /I understand: all data is processed locally/ }));
+  fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
 }

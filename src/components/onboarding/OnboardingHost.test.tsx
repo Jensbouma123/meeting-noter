@@ -18,14 +18,14 @@ const source = (path: string) => readFileSync(join(process.cwd(), path), 'utf8')
 describe('OnboardingHost', () => {
   it('shows onboarding on a fresh start at / and registers the models it offers', () => {
     render(<OnboardingHost />);
-    expect(screen.getByText('Step 1 of 6')).toBeInTheDocument();
+    expect(screen.getByText('Step 1 of 8')).toBeInTheDocument();
     expect(registerModelsOnce).toHaveBeenCalled();
   });
 
   it('stays closed once onboarding was finished', () => {
     localStorage.setItem(ONBOARDING_STORAGE_KEY, '1');
     render(<OnboardingHost />);
-    expect(screen.queryByText('Step 1 of 6')).not.toBeInTheDocument();
+    expect(screen.queryByText('Step 1 of 8')).not.toBeInTheDocument();
   });
 
   it('is mounted once in the root layout and not again by the meeting page', () => {

@@ -4,9 +4,12 @@ export const ONBOARDING_STORAGE_KEY = 'mn.onboarding.done';
 
 export const ASSISTANT_SEEN_STORAGE_KEY = 'mn.onboarding.assistant.seen';
 
+export const ACK_STORAGE_KEY = 'mn.onboarding.ack.v1';
+
 let reopened = false;
 let finished = false;
 let assistantSeen = false;
+let ackAccepted = false;
 const listeners = new Set<() => void>();
 
 function emit(): void {
@@ -35,6 +38,28 @@ function isAssistantSeen(): boolean {
   } catch {
     return assistantSeen;
   }
+}
+
+export function isAckAccepted(): boolean {
+  try {
+    return localStorage.getItem(ACK_STORAGE_KEY) === '1';
+  } catch {
+    return ackAccepted;
+  }
+}
+
+export function setAckAccepted(value: boolean): void {
+  ackAccepted = value;
+  try {
+    if (value) localStorage.setItem(ACK_STORAGE_KEY, '1');
+    else localStorage.removeItem(ACK_STORAGE_KEY);
+  } catch {}
+  emit();
+}
+
+export function shouldShowAckOnboarding(): boolean {
+  if (typeof window === 'undefined') return false;
+  return !shouldShowOnboarding() && !isAckAccepted();
 }
 
 export function shouldShowAssistantOnboarding(): boolean {
@@ -84,6 +109,7 @@ export function resetOnboardingForTests(): void {
   reopened = false;
   finished = false;
   assistantSeen = false;
+  ackAccepted = false;
   emit();
 }
 
