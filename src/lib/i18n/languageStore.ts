@@ -39,7 +39,7 @@ export function getLanguageSnapshot(): Language {
 }
 
 export function getServerLanguageSnapshot(): Language {
-  return 'en';
+  return 'nl';
 }
 
 export function setLanguage(language: Language) {

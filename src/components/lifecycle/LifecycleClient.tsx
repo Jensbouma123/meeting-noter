@@ -4,6 +4,7 @@ import { useContext, useEffect, useState, useSyncExternalStore } from 'react';
 import { Alert } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { LanguageContext } from '@/lib/i18n/LanguageContext';
+import { getLanguageSnapshot, getServerLanguageSnapshot, subscribeLanguage } from '@/lib/i18n/languageStore';
 import { useMeeting } from '@/components/meeting/store';
 import { purgeLegacyD1Storage } from '@/lib/legacy-purge/purge-legacy-d1';
 import { useServerHeartbeat } from '@/lib/lifecycle/useServerHeartbeat';
@@ -55,26 +56,6 @@ export function LifecycleClient() {
 
 function useLanguage(): 'en' | 'nl' {
   const contextLanguage = useContext(LanguageContext);
-  const storedLanguage = useSyncExternalStore(subscribeSettings, readStoredLanguage, serverLanguage);
+  const storedLanguage = useSyncExternalStore(subscribeLanguage, getLanguageSnapshot, getServerLanguageSnapshot);
   return contextLanguage ?? storedLanguage;
-}
-
-function serverLanguage(): 'en' | 'nl' {
-  return 'nl';
-}
-
-function readStoredLanguage(): 'en' | 'nl' {
-  try {
-    const settings = JSON.parse(localStorage.getItem('mn.settings') ?? '{}');
-    if (settings.language === 'en' || settings.language === 'nl') return settings.language;
-  } catch {}
-  return navigator.language.toLowerCase().startsWith('nl') ? 'nl' : 'en';
-}
-
-function subscribeSettings(onChange: () => void) {
-  const sync = (event: StorageEvent) => {
-    if (event.key === 'mn.settings') onChange();
-  };
-  window.addEventListener('storage', sync);
-  return () => window.removeEventListener('storage', sync);
 }
