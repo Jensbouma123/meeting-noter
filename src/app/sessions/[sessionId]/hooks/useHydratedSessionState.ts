@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useOnChange } from '@/hooks/useOnChange';
-import { DEFAULT_SETTINGS, loadSettings, loadSavedTitle, type AppSettings } from '@/components/meeting';
+import { loadSavedTitle } from '@/components/meeting';
+import { setAppSettings, useAppSettings } from '@/components/meeting/settingsStore';
 import { getSessionMetadata } from '@/lib/meeting/session-open';
 import { loadAutosavedSession } from '@/lib/meeting/autosave';
 import { type AutosavedSession } from '@/lib/meeting/types/autosave';
 
 export function useHydratedSessionState(initialSessionId?: string) {
   const [title, setTitle] = useState('Untitled meeting');
-  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+  const settings = useAppSettings();
   const [resumeCandidate, setResumeCandidate] = useState<AutosavedSession | null>(null);
 
   useOnChange(initialSessionId, () => {
@@ -16,7 +17,6 @@ export function useHydratedSessionState(initialSessionId?: string) {
         ? (getSessionMetadata(initialSessionId)?.title ?? 'Untitled meeting')
         : loadSavedTitle(),
     );
-    setSettings(loadSettings());
     try {
       const candidate = loadAutosavedSession();
       setResumeCandidate(
@@ -27,5 +27,5 @@ export function useHydratedSessionState(initialSessionId?: string) {
     }
   });
 
-  return { title, setTitle, settings, setSettings, resumeCandidate, setResumeCandidate };
+  return { title, setTitle, settings, setSettings: setAppSettings, resumeCandidate, setResumeCandidate };
 }

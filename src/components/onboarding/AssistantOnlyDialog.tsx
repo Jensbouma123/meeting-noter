@@ -1,6 +1,5 @@
 import { Button, Modal } from '@jensbouma123/acciva-ui';
 import { useAssistantState } from '@/components/settings/AssistantState';
-import { SEARCH_REGISTRY_KEY } from '@/lib/asr/browser/model-registry-known-keys';
 import { useT } from '@/lib/i18n/useT';
 import { finishAssistantOnboarding } from '@/lib/onboarding/store';
 import { AssistantStep } from './AssistantStep';
@@ -10,7 +9,6 @@ export function AssistantOnlyDialog() {
   const t = useT('onboarding');
   const models = useOnboardingModels();
   const assistants = useAssistantState();
-  const searchEntry = models.list.find((e) => e.key === SEARCH_REGISTRY_KEY);
   const detecting = assistants.assistants === null && !assistants.loadFailed;
   return (
     <Modal
@@ -34,7 +32,7 @@ export function AssistantOnlyDialog() {
     >
       <AssistantStep
         state={assistants}
-        searchMissing={!!searchEntry && searchEntry.status !== 'cached'}
+        searchMissing={models.searchMissing}
         onSkip={finishAssistantOnboarding}
       />
     </Modal>

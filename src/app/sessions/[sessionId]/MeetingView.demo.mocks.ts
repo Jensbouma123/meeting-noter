@@ -100,7 +100,6 @@ vi.mock('@/lib/meeting/participants', () => ({
   setParticipants: vi.fn(),
   skipParticipants: vi.fn(),
 }));
-vi.mock('@/components/onboarding/OnboardingDialog', () => ({ OnboardingDialog: () => null }));
 vi.mock('@/components/meeting/RecordTargetDialog', () => ({ RecordTargetDialog: () => null }));
 vi.mock('@/components/meeting/ParticipantsDialog', () => ({ ParticipantsDialog: () => null }));
 vi.mock('@/components/meeting/CaptureDiagnostics', () => ({ CaptureDiagnostics: () => null }));
