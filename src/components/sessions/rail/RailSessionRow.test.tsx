@@ -75,20 +75,19 @@ describe('RailSessionRow recording badge', () => {
       setState({ status: 'live' });
     });
 
-  it('shows a single "Not recorded" icon for a draft that is not recording', () => {
+  it('shows the "Not recorded" label for a draft that is not recording', () => {
     render(row(draft()));
-    expect(screen.getByRole('img', { name: 'Not recorded' })).toBeInTheDocument();
-    expect(screen.queryByText('Not recorded')).toBeNull();
+    expect(screen.getByText('Not recorded')).toBeInTheDocument();
     expect(screen.queryByText('Recording')).toBeNull();
   });
 
   it('shows a recording state while the session is being recorded', () => {
     const { rerender } = render(row(draft()));
-    expect(screen.getByRole('img', { name: 'Not recorded' })).toBeInTheDocument();
+    expect(screen.getByText('Not recorded')).toBeInTheDocument();
     startRecording();
     rerender(row(draft()));
     expect(screen.getByText('Recording')).toBeInTheDocument();
-    expect(screen.queryByRole('img', { name: 'Not recorded' })).toBeNull();
+    expect(screen.queryByText('Not recorded')).toBeNull();
   });
 
   it('shows the duration like other rows after stopping', () => {
@@ -101,7 +100,7 @@ describe('RailSessionRow recording badge', () => {
     });
     rerender(row(recorded()));
     expect(screen.queryByText('Recording')).toBeNull();
-    expect(screen.queryByRole('img', { name: 'Not recorded' })).toBeNull();
+    expect(screen.queryByText('Not recorded')).toBeNull();
     expect(screen.getByText(/· 01:05$/)).toBeInTheDocument();
   });
 });
@@ -121,7 +120,7 @@ describe('RailSessionRow folder path in search', () => {
 describe('RailSessionRow leading icon', () => {
   it('renders no leading icon for drafts and no audio icon for recorded sessions', () => {
     const { container, rerender } = render(row(draft({ isDraft: true }), { isActive: false }));
-    expect(container.querySelectorAll('.text-muted-foreground svg')).toHaveLength(1);
+    expect(container.querySelectorAll('.text-muted-foreground svg')).toHaveLength(0);
     expect(container.querySelector('.text-primary-600')).toBeNull();
 
     rerender(row(recorded({ captureMode: 'mic' }), { isActive: false }));
