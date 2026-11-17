@@ -2,7 +2,7 @@
 import '@testing-library/jest-dom/vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { entry, registerOnboardingTestEnv, setEntries } from './OnboardingDialog.testSupport';
+import { acceptAck, entry, registerOnboardingTestEnv, setEntries } from './OnboardingDialog.testSupport';
 import { OnboardingDialog } from './OnboardingDialog';
 
 registerOnboardingTestEnv();
@@ -30,7 +30,8 @@ function openAssistantStep() {
   render(<OnboardingDialog />);
   fireEvent.click(next());
   fireEvent.click(next());
-  expect(screen.getByText('Step 4 of 6')).toBeInTheDocument();
+  acceptAck();
+  expect(screen.getByText('Step 5 of 8')).toBeInTheDocument();
 }
 
 describe('assistant onboarding step', () => {
@@ -52,7 +53,7 @@ describe('assistant onboarding step', () => {
     stubFetch(Promise.resolve(LIST));
     openAssistantStep();
     fireEvent.click(screen.getByRole('button', { name: /Skip, I'll do this later/ }));
-    expect(screen.getByText('Step 5 of 6')).toBeInTheDocument();
+    expect(screen.getByText('Step 6 of 8')).toBeInTheDocument();
   });
 
   it('does not block when detection fails', async () => {
@@ -61,7 +62,7 @@ describe('assistant onboarding step', () => {
     expect(await screen.findByText(/Could not check your assistants/)).toBeInTheDocument();
     expect(next()).toBeEnabled();
     fireEvent.click(next());
-    expect(screen.getByText('Step 5 of 6')).toBeInTheDocument();
+    expect(screen.getByText('Step 6 of 8')).toBeInTheDocument();
   });
 
   it('mentions the search model when it is not downloaded', async () => {
@@ -70,6 +71,7 @@ describe('assistant onboarding step', () => {
     render(<OnboardingDialog />);
     fireEvent.click(next());
     fireEvent.click(next());
+    acceptAck();
     fireEvent.click(next());
     expect(await screen.findByText(/Search & insights model/)).toBeInTheDocument();
   });

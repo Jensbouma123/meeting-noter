@@ -7,7 +7,7 @@ import {
   LANGID_REGISTRY_KEY,
   SEARCH_REGISTRY_KEY,
 } from '@/lib/asr/browser/model-registry-known-keys';
-import { entry, initiateDownloads, recordConsent, registerOnboardingTestEnv, setEntries } from './OnboardingDialog.testSupport';
+import { acceptAck, entry, initiateDownloads, recordConsent, registerOnboardingTestEnv, setEntries } from './OnboardingDialog.testSupport';
 import { OnboardingDialog } from './OnboardingDialog';
 
 registerOnboardingTestEnv();
@@ -26,6 +26,7 @@ function openModelsStep() {
   render(<OnboardingDialog />);
   fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
   fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+  acceptAck();
 }
 
 const ALL = [...CORE, SEARCH_REGISTRY_KEY];
@@ -44,7 +45,7 @@ describe('OnboardingDialog models step', () => {
     allModels('not-downloaded', 'cached');
     openModelsStep();
     expect(await screen.findByRole('button', { name: 'Download 2 GB' })).toBeInTheDocument();
-    expect(screen.queryByText('Step 4 of 6')).not.toBeInTheDocument();
+    expect(screen.queryByText('Step 5 of 8')).not.toBeInTheDocument();
   });
 
   it('accepting in onboarding grants search consent, so no separate dialog is needed', async () => {
@@ -63,7 +64,7 @@ describe('OnboardingDialog models step', () => {
   it('moves on without downloading when every model, search included, is cached', () => {
     allModels('cached', 'cached');
     openModelsStep();
-    expect(screen.getByText('Step 4 of 6')).toBeInTheDocument();
+    expect(screen.getByText('Step 5 of 8')).toBeInTheDocument();
     expect(initiateDownloads).not.toHaveBeenCalled();
   });
 });

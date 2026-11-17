@@ -2,7 +2,10 @@
 import { renderHook, act } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  ACK_STORAGE_KEY,
   ASSISTANT_SEEN_STORAGE_KEY,
+  setAckAccepted,
+  shouldShowAckOnboarding,
   ONBOARDING_STORAGE_KEY,
   finishAssistantOnboarding,
   finishOnboarding,
@@ -104,5 +107,15 @@ describe('onboarding store', () => {
     expect(shouldShowAssistantOnboarding()).toBe(false);
     finishOnboarding();
     expect(shouldShowAssistantOnboarding()).toBe(false);
+  });
+});
+
+describe('acknowledgement', () => {
+  it('is asked of a finished user until accepted, then persisted', () => {
+    localStorage.setItem(ONBOARDING_STORAGE_KEY, '1');
+    expect(shouldShowAckOnboarding()).toBe(true);
+    setAckAccepted(true);
+    expect(localStorage.getItem(ACK_STORAGE_KEY)).toBe('1');
+    expect(shouldShowAckOnboarding()).toBe(false);
   });
 });
