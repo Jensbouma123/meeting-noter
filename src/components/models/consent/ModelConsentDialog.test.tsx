@@ -17,8 +17,12 @@ const MB = 1_000_000;
 describe('model consent dialog', () => {
   beforeEach(() => {
     vi.stubGlobal('caches', undefined);
-    HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
-    HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
+    HTMLDialogElement.prototype.showModal = function () {
+      this.setAttribute('open', '');
+    };
+    HTMLDialogElement.prototype.close = function () {
+      this.removeAttribute('open');
+    };
     localStorage.clear();
     initRegistry();
     for (const [key, name, bytes] of [
@@ -26,7 +30,14 @@ describe('model consent dialog', () => {
       ['diarization-turns', 'Speaker detection', 30 * MB],
       ['langid-whisper-tiny', 'Language detection', 40 * MB],
     ] as const) {
-      registerModel({ key, modelRepo: key, displayName: name, estimatedSizeBytes: bytes, backend: 'wasm', description: '' });
+      registerModel({
+        key,
+        modelRepo: key,
+        displayName: name,
+        estimatedSizeBytes: bytes,
+        backend: 'wasm',
+        description: '',
+      });
     }
     registerSearchModel();
     setDialogVisible(true);
@@ -50,6 +61,8 @@ describe('model consent dialog', () => {
     render(<ModelConsentDialog />);
     fireEvent.click(screen.getByRole('button', { name: /Download/ }));
     expect(isConsentGiven('search-embeddinggemma2')).toBe(true);
-    await vi.waitFor(() => expect(vi.mocked(downloadEntryFiles).mock.calls.map((c) => c[0])).toContain('search-embeddinggemma2'));
+    await vi.waitFor(() =>
+      expect(vi.mocked(downloadEntryFiles).mock.calls.map((c) => c[0])).toContain('search-embeddinggemma2'),
+    );
   });
 });

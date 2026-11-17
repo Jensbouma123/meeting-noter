@@ -52,7 +52,9 @@ export function renameVocabularyEntry(word: string, next: string): VocabularyEdi
   save({
     ...getVocabulary(),
     entries: entries.map((e) =>
-      e.word === word ? { ...e, word: text, variants: e.variants.filter((v) => v.toLowerCase() !== text.toLowerCase()) } : e,
+      e.word === word
+        ? { ...e, word: text, variants: e.variants.filter((v) => v.toLowerCase() !== text.toLowerCase()) }
+        : e,
     ),
   });
   return 'ok';

@@ -6,7 +6,10 @@ const v = (...n: number[]) => new Float32Array(n);
 const windows = (x: number, y: number) => [v(x, y), v(x, y), v(x, y)];
 
 describe('suggestFolder', () => {
-  const centroids = new Map([['a', v(1, 0)], ['b', v(0, 1)]]);
+  const centroids = new Map([
+    ['a', v(1, 0)],
+    ['b', v(0, 1)],
+  ]);
 
   it('picks the nearest folder above the threshold', () => {
     expect(suggestFolder(v(1, 0.1), centroids, [])?.folderId).toBe('a');
@@ -26,14 +29,25 @@ describe('suggestFolder', () => {
   });
 
   it('ignores folders with fewer than 2 meetings', () => {
-    expect(folderCentroids(new Map([['a', [v(1, 0)]], ['b', [v(0, 1), v(0, 1)]]])).has('a')).toBe(false);
+    expect(
+      folderCentroids(
+        new Map([
+          ['a', [v(1, 0)]],
+          ['b', [v(0, 1), v(0, 1)]],
+        ]),
+      ).has('a'),
+    ).toBe(false);
   });
 });
 
 describe('computeFolderSuggestions', () => {
   const vectors: Record<string, Float32Array[]> = {
-    f1: windows(1, 0), f2: windows(1, 0.05), g1: windows(0, 1), g2: windows(0.05, 1),
-    new: windows(1, 0.1), tiny: [v(1, 0)],
+    f1: windows(1, 0),
+    f2: windows(1, 0.05),
+    g1: windows(0, 1),
+    g2: windows(0.05, 1),
+    new: windows(1, 0.1),
+    tiny: [v(1, 0)],
   };
   const base = {
     sessionIds: ['f1', 'f2', 'g1', 'g2', 'new', 'tiny'],

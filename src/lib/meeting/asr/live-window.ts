@@ -8,11 +8,7 @@ import { asrState } from './state';
 import { liveFeedOf } from './live-feed';
 import { liveChunker, liveCounters, liveGateOpenAt, liveShowing } from './live-state';
 
-export async function recognizeLiveWindow(
-  engine: AsrEngine,
-  source: Source,
-  req: LiveWindowRequest,
-): Promise<boolean> {
+export async function recognizeLiveWindow(engine: AsrEngine, source: Source, req: LiveWindowRequest): Promise<boolean> {
   const chunker = liveChunker(source);
   const generation = liveCounters.generation;
   asrState.transcribeInFlight = true;

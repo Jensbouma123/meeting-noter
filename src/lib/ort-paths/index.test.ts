@@ -38,7 +38,11 @@ describe('ort-paths', () => {
   it('copies the runtime files for both onnxruntime-web copies', () => {
     execFileSync('node', [path.join(root, 'src/lib/ort-paths/copy-ort-wasm.mjs')]);
     for (const dir of ['web', 'transformers']) {
-      for (const f of ['ort-wasm-simd-threaded.wasm', 'ort-wasm-simd-threaded.mjs', 'ort-wasm-simd-threaded.jsep.wasm']) {
+      for (const f of [
+        'ort-wasm-simd-threaded.wasm',
+        'ort-wasm-simd-threaded.mjs',
+        'ort-wasm-simd-threaded.jsep.wasm',
+      ]) {
         expect(existsSync(path.join(root, 'public/ort', dir, f))).toBe(true);
       }
     }

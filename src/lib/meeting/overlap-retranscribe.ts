@@ -1,11 +1,7 @@
 import { retranscribeOverlap } from './overlap-clip-pass';
 import { clearHeldAudio, heldAudio, holdFrame } from './overlap-held-audio';
 import { missedWords } from './overlap-missed-words';
-import {
-  OVERLAP_SEGMENT_PREFIX,
-  firstPassWords,
-  pruneDuplicatedPassWords,
-} from './overlap-pass-segments';
+import { OVERLAP_SEGMENT_PREFIX, firstPassWords, pruneDuplicatedPassWords } from './overlap-pass-segments';
 import { overlapSpans } from './overlap-spans';
 import { CAPTURE_SAMPLE_RATE } from './pcm';
 import { upsertSegment } from './segment-store';
@@ -37,7 +33,10 @@ export function pushOverlapAudio(source: Source, pcm: ArrayBuffer, at: number): 
 }
 
 export function noteOverlapTurns(source: Source, turns: readonly (OverlapTurn & { final?: boolean })[]): void {
-  closedTurns.set(source, turns.filter((t) => t.final !== false));
+  closedTurns.set(
+    source,
+    turns.filter((t) => t.final !== false),
+  );
   schedule(source, false);
 }
 
@@ -57,7 +56,13 @@ function schedule(source: Source, all: boolean): void {
     queue = queue.then(async () => {
       if (run !== epoch) return;
       try {
-        const heard = await retranscribeOverlap(span, firstPassWords(source, span), turns, heldAudio(source), transcribe);
+        const heard = await retranscribeOverlap(
+          span,
+          firstPassWords(source, span),
+          turns,
+          heldAudio(source),
+          transcribe,
+        );
         const added = missedWords(firstPassWords(source, span), heard, span);
         if (run !== epoch || added.length === 0) return;
         upsertSegment({

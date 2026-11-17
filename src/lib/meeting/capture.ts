@@ -1,4 +1,10 @@
-import { closeAudioContext, createAudioContext, prepareAudioContext, resumeAudioContext, suspendAudioContext } from './audio-context';
+import {
+  closeAudioContext,
+  createAudioContext,
+  prepareAudioContext,
+  resumeAudioContext,
+  suspendAudioContext,
+} from './audio-context';
 import { readSources } from './capture-diagnostics';
 import { reopenMicWithoutEchoCancellation } from './mic-reopen';
 import { requestSources } from './request-sources';
@@ -66,10 +72,7 @@ export class Capture {
     this.ctx = ctx;
     const { micP, systemP } = requestSources(this.acquirer, run, mode, micDeviceId);
     try {
-      const [micR, sysR] = await Promise.allSettled([
-        micP ?? Promise.resolve(null),
-        systemP ?? Promise.resolve(null),
-      ]);
+      const [micR, sysR] = await Promise.allSettled([micP ?? Promise.resolve(null), systemP ?? Promise.resolve(null)]);
       if (this.acquirer.isStale(run)) return;
       const { mic, system } = settleSources(mode, micR, sysR, (message) => {
         this.shareError = message;

@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { deferred, flush, installLocalStorage, load, registerTestModel } from './browser-asr-download-manager.test-support';
+import {
+  deferred,
+  flush,
+  installLocalStorage,
+  load,
+  registerTestModel,
+} from './browser-asr-download-manager.test-support';
 import type { DownloadProgressEvent } from './types';
 
 vi.mock('./resumable-download', () => ({
@@ -9,7 +15,6 @@ vi.mock('./resumable-download', () => ({
   abortInFlightDownloads: vi.fn(),
   isDownloadCancelled: (err: unknown) => err instanceof Error && err.name === 'AbortError',
 }));
-
 
 beforeEach(() => {
   vi.resetModules();
@@ -142,4 +147,3 @@ describe('progress across files', () => {
     expect(registry.getState().entries.a.progress.loadedBytes).toBe(1_000);
   });
 });
-

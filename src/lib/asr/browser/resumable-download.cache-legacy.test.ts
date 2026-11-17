@@ -1,18 +1,8 @@
 import 'fake-indexeddb/auto';
 import { describe, expect, it, vi } from 'vitest';
-import {
-  areModelFilesCached,
-  closeModelCacheConnections,
-} from './resumable-download';
-import {
-  installCacheHooks,
-  databaseExists,
-} from './resumable-download.cache-fixtures';
-import {
-  REVISION,
-  content,
-  stubRepo,
-} from './resumable-download.stub-repo';
+import { areModelFilesCached, closeModelCacheConnections } from './resumable-download';
+import { installCacheHooks, databaseExists } from './resumable-download.cache-fixtures';
+import { REVISION, content, stubRepo } from './resumable-download.stub-repo';
 
 installCacheHooks();
 

@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SerializedSpeakerState } from '@/lib/diarization/browser/types';
-import { MAX_SPEAKER_STATES, loadSpeakerState, removeSpeakerState, saveSpeakerState, speakerStateKey } from './speaker-state-storage';
+import {
+  MAX_SPEAKER_STATES,
+  loadSpeakerState,
+  removeSpeakerState,
+  saveSpeakerState,
+  speakerStateKey,
+} from './speaker-state-storage';
 import { saveSessionTranscript, sessionTranscriptKey } from './session-transcript-storage';
 
 function memoryStorage(quotaChars = Infinity) {
@@ -59,9 +65,15 @@ describe('speaker state persistence', () => {
   it('ignores a corrupted or foreign entry', () => {
     storage.setItem(speakerStateKey('s1'), '{not json');
     expect(loadSpeakerState('s1')).toBeNull();
-    storage.setItem(speakerStateKey('s1'), JSON.stringify({ version: 1, sessionId: 's2', savedAt: 1, sources: { mic: state() } }));
+    storage.setItem(
+      speakerStateKey('s1'),
+      JSON.stringify({ version: 1, sessionId: 's2', savedAt: 1, sources: { mic: state() } }),
+    );
     expect(loadSpeakerState('s1')).toBeNull();
-    storage.setItem(speakerStateKey('s1'), JSON.stringify({ version: 1, sessionId: 's1', savedAt: 1, sources: { mic: { embeds: 3 } } }));
+    storage.setItem(
+      speakerStateKey('s1'),
+      JSON.stringify({ version: 1, sessionId: 's1', savedAt: 1, sources: { mic: { embeds: 3 } } }),
+    );
     expect(loadSpeakerState('s1')).toBeNull();
   });
 
@@ -81,7 +93,7 @@ describe('speaker state persistence', () => {
     for (let i = 1; i <= MAX_SPEAKER_STATES; i += 1) expect(loadSpeakerState(`s${i}`)).not.toBeNull();
   });
 
-  it('drops other sessions\' states, never transcripts, when the quota is full', () => {
+  it("drops other sessions' states, never transcripts, when the quota is full", () => {
     install(3000);
     saveSessionTranscript({
       sessionId: 't',

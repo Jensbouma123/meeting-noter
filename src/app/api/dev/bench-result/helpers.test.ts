@@ -46,7 +46,9 @@ describe('variant + file naming', () => {
     const name = resultFileName({ variant: 'webgpu-fp16', userAgent: SAFARI_UA }, new Date('2026-09-28T13:45:01.5Z'));
     expect(name).toBe('webgpu-fp16-safari-2026-09-28T13-45-01-500Z.json');
     expect(fileTimestamp(new Date('2026-09-28T13:45:01.5Z'))).toBe('2026-09-28T13-45-01-500Z');
-    expect(fileTimestamp(new Date('2026-09-28T13:45:02Z')) > fileTimestamp(new Date('2026-09-28T13:45:01Z'))).toBe(true);
+    expect(fileTimestamp(new Date('2026-09-28T13:45:02Z')) > fileTimestamp(new Date('2026-09-28T13:45:01Z'))).toBe(
+      true,
+    );
   });
 });
 

@@ -31,7 +31,13 @@ function mergeRows(rows: LinkageRows, n: number, alive: Uint8Array, size: Float6
   }
 }
 
-export function averageLinkage(embs: Float32Array, n: number, tau: number, cap: number, d = EMBEDDING_SIZE): Int32Array {
+export function averageLinkage(
+  embs: Float32Array,
+  n: number,
+  tau: number,
+  cap: number,
+  d = EMBEDDING_SIZE,
+): Int32Array {
   const alive = new Uint8Array(n).fill(1);
   const size = new Float64Array(n).fill(1);
   const label = Int32Array.from({ length: n }, (_, i) => i);

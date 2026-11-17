@@ -32,7 +32,12 @@ export async function loadFolderContextVectors(
   }
   if (stale.length === 0) return out;
   try {
-    const vectors = await deps.run((embedder) => embedder.embed(stale.map((s) => s.text), 'document'));
+    const vectors = await deps.run((embedder) =>
+      embedder.embed(
+        stale.map((s) => s.text),
+        'document',
+      ),
+    );
     stale.forEach(({ id, text }, i) => {
       if (!vectors[i]) return;
       const vector = normalizedCopy(vectors[i]);

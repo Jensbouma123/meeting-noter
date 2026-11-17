@@ -1,8 +1,25 @@
 import { describe, expect, it } from 'vitest';
 import type { FolderRow } from '@/lib/meeting-db/types';
-import { buildFolderTree, canMoveFolder, countByFolder, folderPath, folderPickerOptions, folderSubtreeIds } from './folder-tree';
+import {
+  buildFolderTree,
+  canMoveFolder,
+  countByFolder,
+  folderPath,
+  folderPickerOptions,
+  folderSubtreeIds,
+} from './folder-tree';
 
-const f = (id: string, parentId: string | null, name = id): FolderRow => ({ id, parentId, name, sort: 0, createdAt: 0, updatedAt: 0, roster: [], inheritRoster: true, context: '' });
+const f = (id: string, parentId: string | null, name = id): FolderRow => ({
+  id,
+  parentId,
+  name,
+  sort: 0,
+  createdAt: 0,
+  updatedAt: 0,
+  roster: [],
+  inheritRoster: true,
+  context: '',
+});
 const rows = [f('a', null, 'Work'), f('b', 'a', 'Q1'), f('c', 'b', 'Retro'), f('d', null, 'Home')];
 
 describe('folder tree helpers', () => {

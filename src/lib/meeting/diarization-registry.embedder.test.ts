@@ -34,8 +34,6 @@ describe('speaker detection download', () => {
   it('counts the embedder in the size shown before the download', async () => {
     const { registerDiarizationModel } = await import('./diarization-registry');
     registerDiarizationModel('webgpu');
-    expect(m.registered.at(-1)?.estimatedSizeBytes).toBe(
-      DIARIZATION_TOTAL_SIZE_BYTES + SPEAKER_EMBEDDER.sizeBytes,
-    );
+    expect(m.registered.at(-1)?.estimatedSizeBytes).toBe(DIARIZATION_TOTAL_SIZE_BYTES + SPEAKER_EMBEDDER.sizeBytes);
   });
 });

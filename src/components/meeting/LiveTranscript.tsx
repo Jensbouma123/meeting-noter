@@ -64,7 +64,14 @@ export function LiveTranscript({
   }, [pastHour]);
 
   const renderItem = (item: TranscriptItem, index: number) => {
-    const rowProps = { index, isLast: index === lines.length - 1, rowClass, sessionId, speakers, flash: rowFlash(itemKey(item)) };
+    const rowProps = {
+      index,
+      isLast: index === lines.length - 1,
+      rowClass,
+      sessionId,
+      speakers,
+      flash: rowFlash(itemKey(item)),
+    };
     return item.kind === 'line' ? (
       <TranscriptLineRow item={item} {...rowProps} />
     ) : (

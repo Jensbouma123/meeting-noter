@@ -3,11 +3,7 @@ import { finalSegments, resolveSpeakerLabel, tidyText } from './transcript-forma
 import type { Segment, Speaker } from './types';
 import type { Turn } from './types/export';
 
-export function groupTurns(
-  segments: Segment[],
-  speakers: Record<string, Speaker>,
-  callAudioMissing = false,
-): Turn[] {
+export function groupTurns(segments: Segment[], speakers: Record<string, Speaker>, callAudioMissing = false): Turn[] {
   const tidy = finalSegments(segments)
     .map((seg) => ({ ...seg, text: tidyText(seg.text) }))
     .filter((seg) => seg.text.length > 0);
@@ -22,7 +18,9 @@ export function groupTurns(
       lines: segs.map((seg) => ({ start: seg.start, end: seg.end, text: seg.text })),
     };
     if (block.kind === 'turn') return turn;
-    const labels = block.speakers.map((id) => label({ ...(segs.find((seg) => seg.speaker === id) ?? segs[0]), speaker: id }));
+    const labels = block.speakers.map((id) =>
+      label({ ...(segs.find((seg) => seg.speaker === id) ?? segs[0]), speaker: id }),
+    );
     return {
       ...turn,
       label: labels.join(' + '),

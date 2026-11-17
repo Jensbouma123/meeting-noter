@@ -10,7 +10,13 @@ afterEach(() => vi.unstubAllGlobals());
 
 const LIST = {
   assistants: [
-    { id: 'claude-desktop', status: 'not-connected', canAutoConnect: true, manualCommand: null, configPath: '/cfg.json' },
+    {
+      id: 'claude-desktop',
+      status: 'not-connected',
+      canAutoConnect: true,
+      manualCommand: null,
+      configPath: '/cfg.json',
+    },
     { id: 'claude-code', status: 'not-found', canAutoConnect: false, manualCommand: null, configPath: null },
     { id: 'codex', status: 'connected', canAutoConnect: false, manualCommand: null, configPath: null },
   ],
@@ -57,7 +63,10 @@ describe('assistant onboarding step', () => {
   });
 
   it('does not block when detection fails', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, json: async () => ({}) })));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: false, json: async () => ({}) })),
+    );
     openAssistantStep();
     expect(await screen.findByText(/Could not check your assistants/)).toBeInTheDocument();
     expect(next()).toBeEnabled();

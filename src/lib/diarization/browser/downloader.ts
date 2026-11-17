@@ -45,9 +45,7 @@ export async function ensureDiarizationModelsCached(
   }
 }
 
-export async function ensureSpeakerEmbedderCached(
-  onProgress?: (progress: DownloadProgress) => void,
-): Promise<void> {
+export async function ensureSpeakerEmbedderCached(onProgress?: (progress: DownloadProgress) => void): Promise<void> {
   await ensureHfFileCached(SPEAKER_EMBEDDER.repo, SPEAKER_EMBEDDER.filename, 'main', { onProgress });
 }
 

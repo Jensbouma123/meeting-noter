@@ -13,7 +13,9 @@ export function AssistantExamples() {
   return (
     <SettingsGroup>
       <div className="p-4">
-        <Text size="sm" weight="medium">{t('examplesTitle')}</Text>
+        <Text size="sm" weight="medium">
+          {t('examplesTitle')}
+        </Text>
       </div>
       {EXAMPLES.map((key) => (
         <SettingsRow key={key} label={t(key)} control={<AssistantCopyIcon text={t(key)} />} />

@@ -29,7 +29,9 @@ describe('RightRail header tabs', () => {
     expect(tabs.map((t) => t.textContent)).toEqual(['Participants0', 'Summary']);
     expect(screen.queryByRole('heading', { level: 2 })).toBeNull();
     expect(tabs[0].getAttribute('aria-selected')).toBe('true');
-    expect(document.getElementById(tabs[0].getAttribute('aria-controls')!)?.getAttribute('aria-labelledby')).toBe(tabs[0].id);
+    expect(document.getElementById(tabs[0].getAttribute('aria-controls')!)?.getAttribute('aria-labelledby')).toBe(
+      tabs[0].id,
+    );
   });
 
   it('switches tab by click and with arrow keys through the tabs primitive', () => {
@@ -101,7 +103,7 @@ describe('RightRail tab keyboard model', () => {
     view();
     const tabs = screen.getAllByRole('tab');
     const panel = document.getElementById(tabs[0].getAttribute('aria-controls')!);
-    expect(panel?.id).toBe(tabs[0].getAttribute('aria-controls')); 
+    expect(panel?.id).toBe(tabs[0].getAttribute('aria-controls'));
     fireEvent.click(tabs[1]);
     const selectedPanel = document.getElementById(tabs[1].getAttribute('aria-controls')!);
     expect(selectedPanel?.id).toBe(tabs[1].getAttribute('aria-controls'));

@@ -39,7 +39,6 @@ describe('helper lifetime', () => {
   });
 });
 
-
 describe('Chrome', () => {
   it('keeps the share path when no probe has found the helper, and probes for the next session', async () => {
     stubBrowser(CHROME);

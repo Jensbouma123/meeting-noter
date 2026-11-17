@@ -30,10 +30,7 @@ async function headContentLength(url: string, signal?: AbortSignal): Promise<num
   return Number.isFinite(length) && length > 0 ? length : null;
 }
 
-export async function probeModelSize(
-  manifest: AsrModelManifest,
-  signal?: AbortSignal,
-): Promise<number | null> {
+export async function probeModelSize(manifest: AsrModelManifest, signal?: AbortSignal): Promise<number | null> {
   try {
     const treeSizes = await treeSizesFor(manifest.modelRepo, signal);
     let total = 0;

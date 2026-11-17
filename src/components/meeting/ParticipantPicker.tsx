@@ -8,7 +8,15 @@ import { pickerSections } from './participantPickerOptions';
 import type { ParticipantOption } from './ParticipantOption.types';
 import type { ParticipantPickerProps } from './ParticipantPicker.types';
 
-export function ParticipantPicker({ people, roster, folderName, selected, onToggle, onCreate, placement = 'overlay' }: ParticipantPickerProps) {
+export function ParticipantPicker({
+  people,
+  roster,
+  folderName,
+  selected,
+  onToggle,
+  onCreate,
+  placement = 'overlay',
+}: ParticipantPickerProps) {
   const t = useT('participants');
   const [query, setQuery] = useState('');
   const [hidden, setHidden] = useState(false);
@@ -113,7 +121,10 @@ export function ParticipantPicker({ people, roster, folderName, selected, onTogg
           activeIndex={activeIndex}
           onToggle={onToggle}
           onCreate={addNew}
-          onHover={(index) => { setKeyboardActive(false); setActiveIndex(index); }}
+          onHover={(index) => {
+            setKeyboardActive(false);
+            setActiveIndex(index);
+          }}
         />
       )}
     </div>

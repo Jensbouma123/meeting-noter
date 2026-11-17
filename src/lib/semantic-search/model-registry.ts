@@ -1,4 +1,13 @@
-import { registerModel, registerDownloadHandler, markCached, markFailed, updateProgress, setEstimatedSize, getState, type AsrBackend } from '@/lib/asr/browser';
+import {
+  registerModel,
+  registerDownloadHandler,
+  markCached,
+  markFailed,
+  updateProgress,
+  setEstimatedSize,
+  getState,
+  type AsrBackend,
+} from '@/lib/asr/browser';
 import { SEARCH_REGISTRY_KEY } from '@/lib/asr/browser/model-registry-known-keys';
 import { markDownloading, markNotCached } from '@/lib/asr/browser/model-registry-status';
 import { EG2_MODEL_ID } from '../embeddinggemma2/constants';

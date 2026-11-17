@@ -1,8 +1,6 @@
 import 'fake-indexeddb/auto';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import {
-  ensureHfFileCached,
-} from './resumable-download';
+import { ensureHfFileCached } from './resumable-download';
 import {
   REVISION,
   FILE,

@@ -12,15 +12,34 @@ const speakers = [{ id: 'mic:0', label: 'Jens', colorIndex: 0, source: 'mic' as 
 const set = {
   version: 2,
   items: [
-    { id: 'decision:s1:0', kind: 'decision' as const, text: 'We ship on Friday.', segmentId: 's1', speakerId: 'mic:0', start: 65, score: 0.7 },
-    { id: 'action:s2:0', kind: 'action' as const, text: 'I will send the notes.', segmentId: 's2', speakerId: 'mic:0', start: 90, score: 0.7 },
+    {
+      id: 'decision:s1:0',
+      kind: 'decision' as const,
+      text: 'We ship on Friday.',
+      segmentId: 's1',
+      speakerId: 'mic:0',
+      start: 65,
+      score: 0.7,
+    },
+    {
+      id: 'action:s2:0',
+      kind: 'action' as const,
+      text: 'I will send the notes.',
+      segmentId: 's2',
+      speakerId: 'mic:0',
+      start: 90,
+      score: 0.7,
+    },
   ],
   dismissed: [],
 };
 
 beforeEach(() => {
   localStorage.clear();
-  vi.stubGlobal('fetch', vi.fn(async () => new Response('{"ok":true}')));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => new Response('{"ok":true}')),
+  );
   saveInsights('m1', set);
 });
 afterEach(() => {

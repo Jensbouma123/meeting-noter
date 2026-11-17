@@ -27,7 +27,12 @@ describe('groupSessionsByDay', () => {
 
   it('uses weekday+date within a week and months beyond', () => {
     const g = groupSessionsByDay(
-      [s('w', new Date(2026, 10, 4, 12)), s('o1', new Date(2026, 9, 20)), s('o2', new Date(2026, 9, 2)), s('y', new Date(2025, 9, 2))],
+      [
+        s('w', new Date(2026, 10, 4, 12)),
+        s('o1', new Date(2026, 9, 20)),
+        s('o2', new Date(2026, 9, 2)),
+        s('y', new Date(2025, 9, 2)),
+      ],
       TUESDAY_10_NOV_00_30_LOCAL,
       'nl',
     );
@@ -43,12 +48,18 @@ describe('groupSessionsByDay', () => {
   });
 
   it('labels today/yesterday in English by default', () => {
-    const g = groupSessionsByDay([s('a', new Date(2026, 10, 10, 0, 5)), s('b', new Date(2026, 10, 9, 12))], TUESDAY_10_NOV_00_30_LOCAL);
+    const g = groupSessionsByDay(
+      [s('a', new Date(2026, 10, 10, 0, 5)), s('b', new Date(2026, 10, 9, 12))],
+      TUESDAY_10_NOV_00_30_LOCAL,
+    );
     expect(g.map((x) => x.label)).toEqual(['Today', 'Yesterday']);
   });
 
   it('sorts newest first and returns nothing for no sessions', () => {
-    const g = groupSessionsByDay([s('old', new Date(2026, 10, 9, 8)), s('new', new Date(2026, 10, 9, 20))], TUESDAY_10_NOV_00_30_LOCAL);
+    const g = groupSessionsByDay(
+      [s('old', new Date(2026, 10, 9, 8)), s('new', new Date(2026, 10, 9, 20))],
+      TUESDAY_10_NOV_00_30_LOCAL,
+    );
     expect(g[0].sessions.map((x) => x.sessionId)).toEqual(['new', 'old']);
     expect(groupSessionsByDay([], TUESDAY_10_NOV_00_30_LOCAL)).toEqual([]);
   });

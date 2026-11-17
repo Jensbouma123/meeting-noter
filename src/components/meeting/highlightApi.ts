@@ -1,8 +1,4 @@
-import type {
-  HighlightApi,
-  HighlightConstructor,
-  HighlightRegistryLike,
-} from './highlightApi.types';
+import type { HighlightApi, HighlightConstructor, HighlightRegistryLike } from './highlightApi.types';
 
 export function getHighlightApi(): HighlightApi | null {
   try {

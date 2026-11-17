@@ -24,15 +24,12 @@ describe('a file that is not cached yet', () => {
     const fetches = progress.filter((p) => p.stage === 'fetch');
 
     expect(fetches.map((p) => p.loadedBytes)).toEqual([400, 900]);
-    expect(fetches.every((p) => p.totalBytes === 900 && p.file === 'encoder-model.int8.onnx')).toBe(
-      true,
-    );
+    expect(fetches.every((p) => p.totalBytes === 900 && p.file === 'encoder-model.int8.onnx')).toBe(true);
 
     expect(progress.filter((p) => p.stage === 'files').map((p) => p.done)).toEqual([0, 1, 2, 3]);
   });
 
   it('says nothing about fetching when the cache served the files', async () => {
-
     const { BrowserASREngine } = await import('./parakeet');
     const { progress, events } = recorder();
 
@@ -57,7 +54,6 @@ describe('a file that is not cached yet', () => {
   });
 
   it('fails the load with an actionable message when session creation hangs', async () => {
-
     loadState.hangCreate = true;
     const { BrowserASREngine } = await import('./parakeet');
     const { SESSION_STALL_MS } = await import('./engine-load');
@@ -72,13 +68,10 @@ describe('a file that is not cached yet', () => {
 
     expect(progress.map((p) => p.stage)).toEqual(['files', 'files', 'files', 'files']);
 
-    expect(new Set(loadState.revoked)).toEqual(
-      new Set([...WASM.files].map((file) => `blob:fake/${file}`)),
-    );
+    expect(new Set(loadState.revoked)).toEqual(new Set([...WASM.files].map((file) => `blob:fake/${file}`)));
   });
 
   it('does not cut off a transfer that is still moving', async () => {
-
     loadState.files = 'bytes';
     const { BrowserASREngine } = await import('./parakeet');
     const { events } = recorder();
@@ -99,7 +92,6 @@ describe('a file that is not cached yet', () => {
 
 describe('BrowserASREngine readiness during an inference', () => {
   it('stays ready while an inference runs, so a frame arriving mid-inference loads nothing', async () => {
-
     const { BrowserASREngine } = await import('./parakeet');
     const { events } = recorder();
     const engine = new BrowserASREngine({ ...WASM }, events);

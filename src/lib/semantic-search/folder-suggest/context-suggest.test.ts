@@ -10,7 +10,15 @@ import type { ContextVectorDeps } from './types/context-vector-deps';
 const v = (...n: number[]) => new Float32Array(n);
 const windows = (x: number, y: number) => [v(x, y), v(x, y), v(x, y)];
 const folder = (id: string, name: string, context: string): FolderRow => ({
-  id, parentId: null, name, sort: 0, createdAt: 0, updatedAt: 0, roster: [], inheritRoster: true, context,
+  id,
+  parentId: null,
+  name,
+  sort: 0,
+  createdAt: 0,
+  updatedAt: 0,
+  roster: [],
+  inheritRoster: true,
+  context,
 });
 const embedderDeps = (): ContextVectorDeps => {
   const embedder = createFakeEmbedder();
@@ -33,14 +41,19 @@ describe('folder context vector', () => {
   });
 
   it('skips folders without context and silently skips when the model is not loaded', async () => {
-    const run = vi.fn(async () => { throw new SearchModelNotReadyError(); });
+    const run = vi.fn(async () => {
+      throw new SearchModelNotReadyError();
+    });
     expect(await loadFolderContextVectors([folder('a', 'A', '  ')], { run })).toEqual({});
     expect(run).not.toHaveBeenCalled();
     expect(await loadFolderContextVectors([folder('b', 'B', 'ctx')], { run })).toEqual({});
   });
 
   it('real embedder: related text is closer than unrelated text', async () => {
-    const out = await loadFolderContextVectors([folder('a', 'Budget', 'quarterly budget forecast finance')], embedderDeps());
+    const out = await loadFolderContextVectors(
+      [folder('a', 'Budget', 'quarterly budget forecast finance')],
+      embedderDeps(),
+    );
     expect(out.a.length).toBeGreaterThan(0);
   });
 });

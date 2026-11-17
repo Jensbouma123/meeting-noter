@@ -15,7 +15,10 @@ import { stopTestServer } from './e2e/stop-server.mjs';
 
 const installerDir = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(installerDir, '../..');
-if (process.platform !== 'darwin') { console.log('model-e2e: skipped, install.sh runs on macOS only'); process.exit(0); }
+if (process.platform !== 'darwin') {
+  console.log('model-e2e: skipped, install.sh runs on macOS only');
+  process.exit(0);
+}
 
 const tmp = mkdtempSync(path.join(realpathSync(tmpdir()), 'mn-model-e2e-'));
 const home = path.join(tmp, 'home');
@@ -27,7 +30,11 @@ const realModel = process.env.MODEL_E2E_FILE;
 const modelSource = realModel ?? path.join(tmp, 'encoder-model.q4f16.onnx');
 if (!realModel) writeFileSync(modelSource, 'stand-in prebuilt encoder');
 const uv = path.join(tmp, 'fake-uv');
-writeFileSync(uv, '#!/bin/bash\nwhile [ $# -gt 0 ]; do [ "$1" = --outdir ] && out=$2; shift; done\necho run >> "$HOME/uv-calls"\nmkdir -p "$out"; printf converted > "$out/encoder-model.q4f16.onnx"\n', { mode: 0o755 });
+writeFileSync(
+  uv,
+  '#!/bin/bash\nwhile [ $# -gt 0 ]; do [ "$1" = --outdir ] && out=$2; shift; done\necho run >> "$HOME/uv-calls"\nmkdir -p "$out"; printf converted > "$out/encoder-model.q4f16.onnx"\n',
+  { mode: 0o755 },
+);
 
 const run = createCommandRunner(tmp);
 const makeRelease = createReleaseBuilder({ tmp, repo, installerDir, run });
@@ -38,16 +45,28 @@ const host = await startFakeReleaseModelHost(modelSource, () => mode);
 const port = await findFreePort();
 const client = createAppClient(`http://127.0.0.1:${port}`);
 const env = {
-  PATH: '/usr/bin:/bin:/usr/sbin:/sbin', HOME: home, USER: process.env.USER ?? '', TMPDIR: tmp,
-  MEETING_NOTER_ROOT: root, MEETING_NOTER_PORT: String(port),
-  MEETING_NOTER_DOWNLOAD_BASE: `${base}/latest/download`, MEETING_NOTER_INSTALL_URL: `${base}/latest/download/install.sh`,
-  MEETING_NOTER_NO_LAUNCHD: '1', MEETING_NOTER_RUN_SERVER: '1', MEETING_NOTER_NO_OPEN: '1',
-  MEETING_NOTER_MODEL_URL: host.url, MEETING_NOTER_UV: uv,
+  PATH: '/usr/bin:/bin:/usr/sbin:/sbin',
+  HOME: home,
+  USER: process.env.USER ?? '',
+  TMPDIR: tmp,
+  MEETING_NOTER_ROOT: root,
+  MEETING_NOTER_PORT: String(port),
+  MEETING_NOTER_DOWNLOAD_BASE: `${base}/latest/download`,
+  MEETING_NOTER_INSTALL_URL: `${base}/latest/download/install.sh`,
+  MEETING_NOTER_NO_LAUNCHD: '1',
+  MEETING_NOTER_RUN_SERVER: '1',
+  MEETING_NOTER_NO_OPEN: '1',
+  MEETING_NOTER_MODEL_URL: host.url,
+  MEETING_NOTER_UV: uv,
   ...(realModel ? {} : { MEETING_NOTER_MODEL_SHA256: sha(modelSource) }),
 };
 const installed = path.join(root, MODEL);
-const uvRuns = () => (existsSync(path.join(home, 'uv-calls')) ? readFileSync(path.join(home, 'uv-calls'), 'utf8').trim().split('\n').length : 0);
-const install = (extra = {}) => run('/bin/bash', ['-c', 'curl -fsSL "$MEETING_NOTER_INSTALL_URL" | bash -s -- --gpu-model'], { ...env, ...extra });
+const uvRuns = () =>
+  existsSync(path.join(home, 'uv-calls'))
+    ? readFileSync(path.join(home, 'uv-calls'), 'utf8').trim().split('\n').length
+    : 0;
+const install = (extra = {}) =>
+  run('/bin/bash', ['-c', 'curl -fsSL "$MEETING_NOTER_INSTALL_URL" | bash -s -- --gpu-model'], { ...env, ...extra });
 
 async function expectFallback(what, m, extra = {}) {
   console.log(`\n${what}`);
@@ -56,7 +75,11 @@ async function expectFallback(what, m, extra = {}) {
   const before = uvRuns();
   const r = await install(extra);
   check(r.code === 0, 'install.sh succeeds', r.out);
-  check(existsSync(installed) && readFileSync(installed, 'utf8') === 'converted', 'falls back to the local build', r.out);
+  check(
+    existsSync(installed) && readFileSync(installed, 'utf8') === 'converted',
+    'falls back to the local build',
+    r.out,
+  );
   check(uvRuns() === before + 1, 'local build ran once');
   check(!existsSync(path.join(root, 'model-download.part')), 'no partial download left behind');
 }
@@ -67,7 +90,11 @@ try {
   latest = await makeRelease('1.0.0');
   const first = await install();
   check(first.code === 0, 'install.sh installs 1.0.0', first.out);
-  check(existsSync(installed) && sha(installed) === sha(modelSource), 'installed model is byte-identical to the release asset', first.out);
+  check(
+    existsSync(installed) && sha(installed) === sha(modelSource),
+    'installed model is byte-identical to the release asset',
+    first.out,
+  );
   check(uvRuns() === 0, 'no local build');
   check(existsSync(path.join(root, 'app/server/public', MODEL)), 'served under public/models');
   check((await client.appStatus())?.version === '1.0.0', 'server runs after the model restart');
@@ -81,7 +108,9 @@ try {
   await expectFallback('3. Cut-off download', MODEL_HOST_MODES.cutHalfway);
   await expectFallback('4. sha256 mismatch', MODEL_HOST_MODES.wrongBytes);
   await expectFallback('5. Missing asset (404)', MODEL_HOST_MODES.missing);
-  await expectFallback('6. No network (connection refused)', MODEL_HOST_MODES.ok, { MEETING_NOTER_MODEL_URL: `http://127.0.0.1:${await findFreePort()}/x` });
+  await expectFallback('6. No network (connection refused)', MODEL_HOST_MODES.ok, {
+    MEETING_NOTER_MODEL_URL: `http://127.0.0.1:${await findFreePort()}/x`,
+  });
 
   console.log('\n7. MEETING_NOTER_SKIP_GPU_MODEL=1');
   rmSync(installed, { force: true });

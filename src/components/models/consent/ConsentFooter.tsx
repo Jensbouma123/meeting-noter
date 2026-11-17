@@ -6,7 +6,13 @@ import { setDialogVisible } from '@/lib/asr/browser/model-registry-dialog';
 import { useT } from '@/lib/i18n/useT';
 import type { ConsentFooterProps } from './types';
 
-export function ConsentFooter({ preparing, userDeclined, primaryLabel, onStartDownloads, onDismiss }: ConsentFooterProps) {
+export function ConsentFooter({
+  preparing,
+  userDeclined,
+  primaryLabel,
+  onStartDownloads,
+  onDismiss,
+}: ConsentFooterProps) {
   const t = useT('models');
   const hideDialog = () => {
     setDialogVisible(false);

@@ -18,11 +18,7 @@ export function readSessionIndex(): SessionIndex {
     return {
       version: SESSION_INDEX_VERSION,
       sessions: parsed.sessions.filter(
-        (s) =>
-          s &&
-          typeof s.sessionId === 'string' &&
-          typeof s.title === 'string' &&
-          typeof s.createdAt === 'number'
+        (s) => s && typeof s.sessionId === 'string' && typeof s.title === 'string' && typeof s.createdAt === 'number',
       ),
     };
   } catch {

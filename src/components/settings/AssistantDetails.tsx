@@ -4,7 +4,13 @@ import { ChevronRight } from 'lucide-react';
 import { Text } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 
-export function AssistantDetails({ configPath, manualCommand }: { configPath: string | null; manualCommand: string | null }) {
+export function AssistantDetails({
+  configPath,
+  manualCommand,
+}: {
+  configPath: string | null;
+  manualCommand: string | null;
+}) {
   const t = useT('assistant');
   return (
     <details className="group pt-1">
@@ -13,8 +19,16 @@ export function AssistantDetails({ configPath, manualCommand }: { configPath: st
         {t('details')}
       </summary>
       <div className="mt-2 flex flex-col gap-1">
-        {configPath && <Text size="xs" variant="muted" font="mono" className="break-all">{configPath}</Text>}
-        {manualCommand && <Text size="xs" variant="muted" font="mono" className="break-all">{manualCommand}</Text>}
+        {configPath && (
+          <Text size="xs" variant="muted" font="mono" className="break-all">
+            {configPath}
+          </Text>
+        )}
+        {manualCommand && (
+          <Text size="xs" variant="muted" font="mono" className="break-all">
+            {manualCommand}
+          </Text>
+        )}
       </div>
     </details>
   );

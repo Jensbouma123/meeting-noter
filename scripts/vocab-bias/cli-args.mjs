@@ -11,7 +11,10 @@ export function parseCliArgs(argv) {
   return {
     wavs: positional.filter((a, i, all) => !a.startsWith('--') && !VALUE_FLAGS.has(all[i - 1] ?? '')),
     modelsDir: path.resolve(flagValue('models-dir')),
-    words: (flagValue('words', '') ?? '').split(',').map((w) => w.trim()).filter(Boolean),
+    words: (flagValue('words', '') ?? '')
+      .split(',')
+      .map((w) => w.trim())
+      .filter(Boolean),
     variants: JSON.parse(flagValue('variants', '{}')),
     strengthArg: flagValue('strength'),
     refs: (flagValue('ref', '') ?? '').split(',').filter(Boolean),

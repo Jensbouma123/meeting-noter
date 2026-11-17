@@ -13,7 +13,11 @@ function parseSpeakerId(id: string): { source: Source; index: number } | null {
   return { source, index };
 }
 
-function isLocalUser(parsed: { source: Source; index: number } | null, mode: CaptureMode, callAudioMissing: boolean): boolean {
+function isLocalUser(
+  parsed: { source: Source; index: number } | null,
+  mode: CaptureMode,
+  callAudioMissing: boolean,
+): boolean {
   return parsed?.source === 'mic' && parsed.index === 0 && mode === 'both' && !callAudioMissing;
 }
 

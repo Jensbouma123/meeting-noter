@@ -19,7 +19,8 @@ export function firstPassWords(source: Source, span: OverlapSpan, skip?: string)
     const placed = captureSpanOf(seg);
     if (!placed || placed.end < span.start - reach || placed.start > span.end + reach) continue;
     const offset = seg.start - placed.start;
-    for (const w of seg.words) words.push({ text: w.text, start: w.start - offset, end: w.end - offset, speaker: seg.speaker });
+    for (const w of seg.words)
+      words.push({ text: w.text, start: w.start - offset, end: w.end - offset, speaker: seg.speaker });
   }
   return words;
 }

@@ -66,11 +66,10 @@ export function initProgressPercent(
   if (progress.sessionsCreated && progress.warmedUp) return 100;
 
   const sessionAndWarmup =
-    weights.session * (progress.sessionsCreated ? 1 : 0) +
-    weights.warmup * (progress.warmedUp ? 1 : 0);
+    weights.session * (progress.sessionsCreated ? 1 : 0) + weights.warmup * (progress.warmedUp ? 1 : 0);
 
   if (progress.filesTotal <= 0) {
-    if (progress.sessionsCreated) return clampToNotReady((sessionAndWarmup) * 100);
+    if (progress.sessionsCreated) return clampToNotReady(sessionAndWarmup * 100);
     return null;
   }
 

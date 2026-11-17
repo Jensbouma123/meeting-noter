@@ -16,7 +16,9 @@ import type { CreateSessionInput, SessionEntry, SessionMetadata } from './types/
 let persistRequested = false;
 
 export function listSessions(): SessionMetadata[] {
-  return readSessionIndex().sessions.slice().sort((a, b) => b.createdAt - a.createdAt);
+  return readSessionIndex()
+    .sessions.slice()
+    .sort((a, b) => b.createdAt - a.createdAt);
 }
 
 function transcriptDuration(segments: Segment[]): number {
@@ -36,11 +38,8 @@ export function persistSession(input: CreateSessionInput): string {
   const sessionId = input.sessionId ?? generateSessionId();
   const existingIdx = index.sessions.findIndex((s) => s.sessionId === sessionId);
   const existing = existingIdx >= 0 ? index.sessions[existingIdx] : null;
-  const finalTitle =
-    typeof input.title === 'string' ? input.title : existing?.title ?? 'Untitled meeting';
-  const segments = Array.isArray(input.segments)
-    ? input.segments.filter((s) => s && s.final === true)
-    : [];
+  const finalTitle = typeof input.title === 'string' ? input.title : (existing?.title ?? 'Untitled meeting');
+  const segments = Array.isArray(input.segments) ? input.segments.filter((s) => s && s.final === true) : [];
   const startedAt = typeof input.startedAt === 'number' ? input.startedAt : null;
 
   let segmentCount = existing?.segmentCount ?? 0;
@@ -58,7 +57,7 @@ export function persistSession(input: CreateSessionInput): string {
     durationSeconds,
     createdAt: existing?.createdAt ?? startedAt ?? now,
     updatedAt: now,
-    isDraft: segmentCount > 0 ? false : existing?.isDraft ?? true,
+    isDraft: segmentCount > 0 ? false : (existing?.isDraft ?? true),
     ...(existing?.captureMode ? { captureMode: existing.captureMode } : {}),
   };
 

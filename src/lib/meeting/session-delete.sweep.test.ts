@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { installMemoryStorage } from './session-store.testUtils';
 
-const lines = Array.from({ length: 6 }, (_, i) => ({ start: i * 30, end: i * 30 + 10, text: 'budget forecast revenue' }));
+const lines = Array.from({ length: 6 }, (_, i) => ({
+  start: i * 30,
+  end: i * 30 + 10,
+  text: 'budget forecast revenue',
+}));
 
 async function modules() {
   const { createFakeEmbedder } = await import('@/lib/semantic-search/fake-embedder');

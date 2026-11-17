@@ -18,7 +18,9 @@ export function pickSelection(container: HTMLElement, segments: readonly Segment
   const segment = segments.find((s) => s.id === line.dataset.segId);
   if (!segment?.final) return null;
   const r = selection.getRangeAt(0).getBoundingClientRect?.();
-  const rect = r ? { top: r.top, bottom: r.bottom, left: r.left, right: r.right } : { top: 0, bottom: 0, left: 0, right: 0 };
+  const rect = r
+    ? { top: r.top, bottom: r.bottom, left: r.left, right: r.right }
+    : { top: 0, bottom: 0, left: 0, right: 0 };
   const b = container.getBoundingClientRect();
   return { heard, rect, bounds: { top: b.top, bottom: b.bottom, left: b.left, right: b.right } };
 }

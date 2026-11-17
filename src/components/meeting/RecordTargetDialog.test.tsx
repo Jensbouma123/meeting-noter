@@ -5,8 +5,12 @@ import { RecordTargetDialog } from './RecordTargetDialog';
 
 describe('RecordTargetDialog', () => {
   beforeAll(() => {
-    HTMLDialogElement.prototype.showModal ||= function (this: HTMLDialogElement) { this.setAttribute('open', ''); };
-    HTMLDialogElement.prototype.close ||= function (this: HTMLDialogElement) { this.removeAttribute('open'); };
+    HTMLDialogElement.prototype.showModal ||= function (this: HTMLDialogElement) {
+      this.setAttribute('open', '');
+    };
+    HTMLDialogElement.prototype.close ||= function (this: HTMLDialogElement) {
+      this.removeAttribute('open');
+    };
   });
   it('shows plain copy with the recorded duration and three actions', () => {
     render(

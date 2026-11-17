@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { NEMOTRON_ASR_WEBGPU } from './model-manifest-nemotron';
 import { PARAKEET_TDT_V3_WEBGPU, PARAKEET_TDT_V3_WEBGPU_FP16, PARAKEET_TDT_V3_WASM } from './model-manifest-parakeet';
-import { WEBGPU_ENCODER_FALLBACKS, asrManifestFallbackOrder, manifestForBackend, nextWebgpuEncoder, webgpuEncoderOf, webgpuManifestForEncoder } from './model-manifest-selection';
+import {
+  WEBGPU_ENCODER_FALLBACKS,
+  asrManifestFallbackOrder,
+  manifestForBackend,
+  nextWebgpuEncoder,
+  webgpuEncoderOf,
+  webgpuManifestForEncoder,
+} from './model-manifest-selection';
 import type { AsrModelManifest } from './types/model-manifest';
 describe.each([
   ['webgpu', PARAKEET_TDT_V3_WEBGPU],
@@ -113,11 +120,7 @@ describe('backend/quant contract', () => {
 
 describe('the WebGPU fallback order', () => {
   it('is q4f16, then fp16, then the CPU model', () => {
-    expect(asrManifestFallbackOrder().map((m) => m.variant)).toEqual([
-      'webgpu-q4f16',
-      'webgpu-fp16',
-      'wasm-int8',
-    ]);
+    expect(asrManifestFallbackOrder().map((m) => m.variant)).toEqual(['webgpu-q4f16', 'webgpu-fp16', 'wasm-int8']);
     expect(WEBGPU_ENCODER_FALLBACKS).toEqual(['q4f16', 'fp16']);
   });
 

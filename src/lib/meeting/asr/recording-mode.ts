@@ -1,8 +1,4 @@
-import {
-  appendPostStopAudio,
-  beginPostStopCapture,
-  clearPostStopCapture,
-} from '../post-stop-buffer';
+import { appendPostStopAudio, beginPostStopCapture, clearPostStopCapture } from '../post-stop-buffer';
 import type { RecordingMode } from '../types/asr-state';
 import type { Source } from '../types/basics';
 import { MAX_UNDECIDED_SAMPLES } from './constants';

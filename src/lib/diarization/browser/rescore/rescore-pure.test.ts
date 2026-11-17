@@ -12,8 +12,10 @@ describe('exclusive windows', () => {
     expect(runWindows(0, 0, 49)).toEqual([]);
     expect(runWindows(2, 10, 160)).toEqual([{ channel: 2, start: 10, end: 160 }]);
     expect(runWindows(1, 0, 400)).toEqual([
-      { channel: 1, start: 0, end: 150 }, { channel: 1, start: 75, end: 225 },
-      { channel: 1, start: 150, end: 300 }, { channel: 1, start: 225, end: 375 },
+      { channel: 1, start: 0, end: 150 },
+      { channel: 1, start: 75, end: 225 },
+      { channel: 1, start: 150, end: 300 },
+      { channel: 1, start: 225, end: 375 },
       { channel: 1, start: 250, end: 400 },
     ]);
   });
@@ -43,14 +45,23 @@ describe('AHC', () => {
 describe('relabelProbs', () => {
   it('maps each frame to its nearest window label and maxes per label', () => {
     const probs = Float32Array.from([0.9, 0, 0.9, 0, 0.8, 0.6, 0, 0.7]);
-    const windows = [{ channel: 0, start: 0, end: 1 }, { channel: 0, start: 2, end: 3 }, { channel: 1, start: 3, end: 4 }];
+    const windows = [
+      { channel: 0, start: 0, end: 1 },
+      { channel: 0, start: 2, end: 3 },
+      { channel: 1, start: 3, end: 4 },
+    ];
     const out = relabelProbs(probs, 2, windows, Int32Array.from([0, 1, 0]));
     expect(out.numSpeakers).toBe(2);
     expect(Array.from(out.probs)).toEqual([0.9, 0, 0.9, 0, 0.6, 0.8, 0.7, 0].map(Math.fround));
   });
 
   it('gives a channel without windows its own label', () => {
-    const out = relabelProbs(Float32Array.from([0.9, 0.5]), 2, [{ channel: 0, start: 0, end: 1 }], Int32Array.from([0]));
+    const out = relabelProbs(
+      Float32Array.from([0.9, 0.5]),
+      2,
+      [{ channel: 0, start: 0, end: 1 }],
+      Int32Array.from([0]),
+    );
     expect(out.numSpeakers).toBe(2);
   });
 });

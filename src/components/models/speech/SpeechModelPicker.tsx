@@ -17,16 +17,8 @@ export function SpeechModelPicker() {
   return (
     <VStack spacing="xs" className="w-full">
       <RadioGroup value={family} onChange={(v) => choose(v as AsrModelFamily)} orientation="vertical">
-        <Radio
-          value="parakeet"
-          label="Parakeet TDT 0.6B v3"
-          description={t('model.parakeet.description')}
-        />
-        <Radio
-          value="nemotron"
-          label="Nemotron 3.5 ASR Streaming 0.6B"
-          description={t('model.nemotron.description')}
-        />
+        <Radio value="parakeet" label="Parakeet TDT 0.6B v3" description={t('model.parakeet.description')} />
+        <Radio value="nemotron" label="Nemotron 3.5 ASR Streaming 0.6B" description={t('model.nemotron.description')} />
       </RadioGroup>
       {refused && (
         <Alert variant="warning" layout="inline">

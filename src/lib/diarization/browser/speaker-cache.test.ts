@@ -90,9 +90,19 @@ describe('SpeakerCache snapshot / restore', () => {
 
   it('refuses a snapshot that does not fit', () => {
     const c = cache();
-    const tooLong = { numFrames: 9, compressed: false, embeds: new Float32Array(9 * HIDDEN), probs: new Float32Array(9 * SPEAKERS) };
+    const tooLong = {
+      numFrames: 9,
+      compressed: false,
+      embeds: new Float32Array(9 * HIDDEN),
+      probs: new Float32Array(9 * SPEAKERS),
+    };
     expect(c.restore(tooLong)).toBe(false);
-    const wrongShape = { numFrames: 1, compressed: false, embeds: new Float32Array(3), probs: new Float32Array(SPEAKERS) };
+    const wrongShape = {
+      numFrames: 1,
+      compressed: false,
+      embeds: new Float32Array(3),
+      probs: new Float32Array(SPEAKERS),
+    };
     expect(c.restore(wrongShape)).toBe(false);
     expect(c.numCachedFrames).toBe(0);
   });

@@ -5,7 +5,9 @@ import type { AsrEngineTestState } from './types/asr-test';
 import { resetEngineState } from './asr-test-engine-state';
 import { clearModelCache, seedManifestCache, stubWebgpuAdapter } from './asr-test-cache';
 
-export function installAsrTestLifecycle(state: AsrEngineTestState): { consoleError: () => ReturnType<typeof vi.spyOn> } {
+export function installAsrTestLifecycle(state: AsrEngineTestState): {
+  consoleError: () => ReturnType<typeof vi.spyOn>;
+} {
   let consoleError: ReturnType<typeof vi.spyOn>;
 
   beforeEach(async () => {
@@ -35,7 +37,10 @@ export async function loadWebgpuAsr(): Promise<Awaited<ReturnType<typeof importA
   await seedManifestCache(PARAKEET_TDT_V3_WEBGPU);
   const mod = await importAsrModules();
   mod.registerDefaultModels('webgpu');
-  const registry = { ...(await import('@/lib/asr/browser/model-registry-status')), ...(await import('@/lib/asr/browser/model-registry-consent')) };
+  const registry = {
+    ...(await import('@/lib/asr/browser/model-registry-status')),
+    ...(await import('@/lib/asr/browser/model-registry-consent')),
+  };
   registry.markCached('parakeet-ttd');
   registry.recordConsent('accepted', ['parakeet-ttd']);
   return mod;

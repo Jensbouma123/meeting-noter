@@ -33,7 +33,7 @@ function addSharedSpeech(column: OverlapColumn, seg: Segment, others: Segment[])
   }
   const shared = others.reduce((m, o) => Math.max(m, Math.min(seg.end, o.end) - Math.max(seg.start, o.start)), 0);
   column.seconds += shared;
-  column.words += Math.round(wordCount(seg) * shared / (seg.end - seg.start));
+  column.words += Math.round((wordCount(seg) * shared) / (seg.end - seg.start));
 }
 
 function groupColumns<T extends Segment>(members: T[]): Map<string, OverlapColumn> {

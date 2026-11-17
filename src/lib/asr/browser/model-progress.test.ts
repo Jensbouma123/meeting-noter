@@ -33,9 +33,7 @@ describe('downloadProgressPercent', () => {
   });
 
   it('is indeterminate while a resume is still setting up — the bar is not moving yet', () => {
-    expect(
-      downloadProgressPercent({ loadedBytes: 512, totalBytes: 1024, resuming: true }),
-    ).toBeNull();
+    expect(downloadProgressPercent({ loadedBytes: 512, totalBytes: 1024, resuming: true })).toBeNull();
   });
 
   it('is indeterminate with no total, no progress, or a nonsense total', () => {
@@ -86,9 +84,7 @@ describe('initProgressPercent', () => {
 
   it('reports the remainder once the session exists, even with an unmeasured file stage', () => {
     expect(initProgressPercent({ ...emptyInitProgress(), sessionsCreated: true })).toBe(45);
-    expect(
-      initProgressPercent({ ...emptyInitProgress(), sessionsCreated: true, warmedUp: true }),
-    ).toBe(100);
+    expect(initProgressPercent({ ...emptyInitProgress(), sessionsCreated: true, warmedUp: true })).toBe(100);
   });
 
   it('does not go backwards when a warm-up is reported without a session', () => {
@@ -110,12 +106,8 @@ describe('currentInitStage / describeInitStage', () => {
 
   it('counts the files while they are being read', () => {
     expect(describeInitStage(init({ filesDone: 2 }))).toBe('2/4 files');
-    expect(describeInitStage(init({ filesDone: 4, sessionsCreated: true }))).toBe(
-      'Warming up the model',
-    );
-    expect(
-      describeInitStage(init({ filesDone: 4, sessionsCreated: true, warmedUp: true })),
-    ).toBeNull();
+    expect(describeInitStage(init({ filesDone: 4, sessionsCreated: true }))).toBe('Warming up the model');
+    expect(describeInitStage(init({ filesDone: 4, sessionsCreated: true, warmedUp: true }))).toBeNull();
   });
 
   it('names the session stage when there is no file list to count', () => {

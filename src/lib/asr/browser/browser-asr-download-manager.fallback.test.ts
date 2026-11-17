@@ -9,7 +9,6 @@ vi.mock('./resumable-download', () => ({
   isDownloadCancelled: (err: unknown) => err instanceof Error && err.name === 'AbortError',
 }));
 
-
 beforeEach(() => {
   vi.resetModules();
   installLocalStorage();
@@ -37,7 +36,10 @@ describe('a missing WebGPU encoder', () => {
         throw new Error(`Failed to download ${m.files[0]}: 404 Not Found (/x)`);
       }
     });
-    vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 500 })));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('', { status: 500 })),
+    );
 
     await manager.initiateDownloads();
 
@@ -58,7 +60,10 @@ describe('a missing WebGPU encoder', () => {
     vi.mocked(downloader.downloadParakeetModelResumable).mockRejectedValue(
       new Error('Failed to download encoder-model.q4f16.onnx: 503 Service Unavailable (/x)'),
     );
-    vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 500 })));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('', { status: 500 })),
+    );
 
     await expect(manager.initiateDownloads()).rejects.toThrow(/503/);
     expect(registry.getState().entries[PARAKEET_TDT_V3_WEBGPU.key].variant).toBe('webgpu-q4f16');
@@ -74,7 +79,10 @@ describe('saved choice migration', () => {
     const first = await load();
     const { PARAKEET_TDT_V3_WEBGPU } = await import('./model-manifest-parakeet');
     first.registry.registerManifest(PARAKEET_TDT_V3_WEBGPU);
-    first.registry.markFailed(PARAKEET_TDT_V3_WEBGPU.key, 'Download failed: Failed to download encoder-model.q4f16.onnx: 404');
+    first.registry.markFailed(
+      PARAKEET_TDT_V3_WEBGPU.key,
+      'Download failed: Failed to download encoder-model.q4f16.onnx: 404',
+    );
     first.registry.recordConsent('accepted', [PARAKEET_TDT_V3_WEBGPU.key]);
 
     vi.resetModules();

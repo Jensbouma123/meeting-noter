@@ -2,14 +2,7 @@ export type Source = 'mic' | 'system';
 export type CaptureMode = 'mic' | 'system' | 'both';
 export type SystemVia = 'native' | 'browser';
 
-export type Status =
-  | 'idle'
-  | 'requesting'
-  | 'connecting'
-  | 'live'
-  | 'paused'
-  | 'stopping'
-  | 'error';
+export type Status = 'idle' | 'requesting' | 'connecting' | 'live' | 'paused' | 'stopping' | 'error';
 
 export interface Levels {
   mic: number;

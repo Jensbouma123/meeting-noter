@@ -25,7 +25,10 @@ describe.skipIf(process.platform === 'win32')('startUpdate', () => {
   it('runs the downloaded install.sh detached and records its outcome', async () => {
     const root = makeInstallerRoot(dir);
     const script = path.join(dir, 'install.sh');
-    writeFileSync(script, 'echo "Downloaden: x"\necho "✓ Versie 0.3.0 uitgepakt"\necho "no-open=$MEETING_NOTER_NO_OPEN"\necho "✅ klaar"\n');
+    writeFileSync(
+      script,
+      'echo "Downloaden: x"\necho "✓ Versie 0.3.0 uitgepakt"\necho "no-open=$MEETING_NOTER_NO_OPEN"\necho "✅ klaar"\n',
+    );
     vi.stubEnv('MEETING_NOTER_INSTALL_URL', `file://${script}`);
     const info = detectInstall({ cwd: '/', env: { NODE_ENV: 'production', MEETING_NOTER_ROOT: root } });
     const started = startUpdate(info, '0.3.0');

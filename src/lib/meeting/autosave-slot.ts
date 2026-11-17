@@ -48,9 +48,7 @@ function readSlot(inlineOnly: boolean): AutosavedSession | null {
       title: typeof parsed.title === 'string' ? parsed.title : 'Untitled meeting',
       segments: parsed.segments.filter((s) => s && s.final === true),
       speakers:
-        parsed.speakers && typeof parsed.speakers === 'object'
-          ? (parsed.speakers as Record<string, Speaker>)
-          : {},
+        parsed.speakers && typeof parsed.speakers === 'object' ? (parsed.speakers as Record<string, Speaker>) : {},
       startedAt: typeof parsed.startedAt === 'number' ? parsed.startedAt : null,
     };
   } catch {

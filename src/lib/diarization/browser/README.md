@@ -12,9 +12,9 @@ NVIDIA **Nemotron-3-Diarization** (Streaming Sortformer: 31-layer Transformer
 encoder with RoPE, 100M params, up to 8 speakers ordered by first arrival),
 ONNX export `onnx-community/Nemotron-3-Diarization-ONNX`, q4f16 variant:
 
-| File | Size |
-|---|---|
-| `onnx/model_q4f16.onnx` | 408,120 bytes |
+| File                         | Size             |
+| ---------------------------- | ---------------- |
+| `onnx/model_q4f16.onnx`      | 408,120 bytes    |
 | `onnx/model_q4f16.onnx_data` | 73,076,608 bytes |
 
 The same file set serves WebGPU and the WASM fallback (see `manifest.ts`).
@@ -29,7 +29,7 @@ size/hash validation before anything is cached.
 
 The ONNX graph is stateless: `input_features` (log-mel) + `cached_embeds` in,
 `logits` + `chunk_embeds` + `silence_embeds` out. Everything that makes it
-*streaming* runs here:
+_streaming_ runs here:
 
 1. **Features** (`mel.ts`): 128-bin log-mel at 10 ms, matching the model's
    `NemotronAsrStreamingFeatureExtractor` (pre-emphasis, 400-tap Hann in a

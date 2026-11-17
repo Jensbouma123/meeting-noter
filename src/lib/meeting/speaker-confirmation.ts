@@ -10,7 +10,8 @@ export function diarizedAt(t: number, covered: SpeakerAt): boolean {
 export function withConfirmation(parts: Segment[], covered: SpeakerAt): Segment[] {
   return parts.map((part) => {
     const last = part.words?.[part.words.length - 1]?.start ?? part.start;
-    const unconfirmed = !diarizedAt(last, covered) ||
+    const unconfirmed =
+      !diarizedAt(last, covered) ||
       (covered(part.start, part.end) === null && !diarizedAt(part.end + UNCOVERED_CONFIRM_SECONDS, covered));
     if (!!part.unconfirmed === unconfirmed) return part;
     const rest = { ...part };

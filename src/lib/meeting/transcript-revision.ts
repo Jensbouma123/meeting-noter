@@ -22,14 +22,14 @@ function matchesStored(previous: AutosavedSession | null, input: AutosaveInput):
   if (!previous) return false;
   return (
     JSON.stringify([previous.segments, previous.speakers]) ===
-    JSON.stringify([finals(input.segments).map((s) => (s.words ? { ...s, words: undefined } : s)), input.speakers ?? {}])
+    JSON.stringify([
+      finals(input.segments).map((s) => (s.words ? { ...s, words: undefined } : s)),
+      input.speakers ?? {},
+    ])
   );
 }
 
-export function transcriptChanged(
-  input: AutosaveInput,
-  loadPrevious: () => AutosavedSession | null,
-): boolean {
+export function transcriptChanged(input: AutosaveInput, loadPrevious: () => AutosavedSession | null): boolean {
   const known = tracked.get(input.sessionId);
   if (!known) return !matchesStored(loadPrevious(), input);
   return !sameRefs(known.segments, finals(input.segments)) || !sameSpeakers(known.speakers, input.speakers ?? {});

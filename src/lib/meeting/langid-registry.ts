@@ -11,7 +11,9 @@ import { LANGID_REGISTRY_KEY } from '@/lib/asr/browser/model-registry-known-keys
 
 export { LANGID_REGISTRY_KEY };
 
-async function downloadLangIdFiles(onProgress: Parameters<Parameters<typeof registerDownloadHandler>[1]>[0]): Promise<void> {
+async function downloadLangIdFiles(
+  onProgress: Parameters<Parameters<typeof registerDownloadHandler>[1]>[0],
+): Promise<void> {
   const files = [LANGID_MODEL_FILES.encoder, LANGID_MODEL_FILES.decoder];
   const urls = await Promise.all(
     files.map((file) =>

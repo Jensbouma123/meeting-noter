@@ -10,7 +10,14 @@ const CHIP_CLASS =
 const COMPACT_CHIP_CLASS =
   'inline-flex min-h-7 items-center gap-1 rounded-full border border-border-subtle bg-surface pl-2.5 pr-1 text-xs text-foreground';
 
-export function ParticipantChips({ names, compact, readOnly, listLabel, removeLabel, onChange }: ParticipantChipsProps) {
+export function ParticipantChips({
+  names,
+  compact,
+  readOnly,
+  listLabel,
+  removeLabel,
+  onChange,
+}: ParticipantChipsProps) {
   const t = useT('participants');
   return (
     <ul

@@ -1,7 +1,20 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from 'vitest';
 import { getVocabulary, resetVocabularyForTests } from '@/lib/vocabulary/store';
-import { MAX_RECENT_PARTICIPANTS, RECENT_PARTICIPANTS_KEY, adoptParticipants, getParticipants, getRecentParticipants, getStoredParticipants, hasAskedParticipants, isSessionParticipantsKey, removeParticipants, sessionParticipantsKey, setParticipants, skipParticipants } from './participants';
+import {
+  MAX_RECENT_PARTICIPANTS,
+  RECENT_PARTICIPANTS_KEY,
+  adoptParticipants,
+  getParticipants,
+  getRecentParticipants,
+  getStoredParticipants,
+  hasAskedParticipants,
+  isSessionParticipantsKey,
+  removeParticipants,
+  sessionParticipantsKey,
+  setParticipants,
+  skipParticipants,
+} from './participants';
 import { isUnnamedSpeakerLabel, parseParticipantNames, uniqueNames, unassignedParticipants } from './participant-names';
 
 beforeEach(() => {

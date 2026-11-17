@@ -4,14 +4,10 @@ import { postStopState, releaseBufferedAudio } from './post-stop-state';
 import { chunkWindowsFromChunks } from './post-stop-windows';
 import type { ChunkTranscriber } from './types/post-stop';
 
-export async function transcribeRecordedAudio(
-  transcribe: ChunkTranscriber,
-): Promise<boolean> {
+export async function transcribeRecordedAudio(transcribe: ChunkTranscriber): Promise<boolean> {
   if (postStopState.running) return false;
   const sources = [...postStopState.buffers.entries()];
-  const sizes = new Map(
-    sources.map(([source, chunks]) => [source, chunks.reduce((sum, c) => sum + c.length, 0)]),
-  );
+  const sizes = new Map(sources.map(([source, chunks]) => [source, chunks.reduce((sum, c) => sum + c.length, 0)]));
   const offsets = new Map(postStopState.droppedSamples);
   releaseBufferedAudio();
   const droppedSeconds = postStopState.progress.droppedSeconds;
@@ -23,10 +19,7 @@ export async function transcribeRecordedAudio(
     return true;
   }
 
-  const total = work.reduce(
-    (sum, entry) => sum + Math.max(1, Math.ceil(entry.length / CHUNK_SAMPLES)),
-    0,
-  );
+  const total = work.reduce((sum, entry) => sum + Math.max(1, Math.ceil(entry.length / CHUNK_SAMPLES)), 0);
   postStopState.running = true;
   setProgress({
     phase: 'transcribing',

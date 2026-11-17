@@ -1,8 +1,4 @@
-import {
-  categorizeManifestFile,
-  downloadHfFileResumable,
-  type DownloadProgress,
-} from './resumable-download';
+import { categorizeManifestFile, downloadHfFileResumable, type DownloadProgress } from './resumable-download';
 import type { BrowserASRConfig, ModelFileUrls } from './types';
 
 export async function resolveModelFileUrls(
@@ -56,9 +52,7 @@ export async function resolveModelFileUrls(
     );
   }
   if (!urls.encoderUrl || !urls.decoderUrl || !urls.tokenizerUrl) {
-    throw new Error(
-      `The model manifest is missing required files (have: ${config.files.join(', ')}).`,
-    );
+    throw new Error(`The model manifest is missing required files (have: ${config.files.join(', ')}).`);
   }
   return urls as ModelFileUrls;
 }

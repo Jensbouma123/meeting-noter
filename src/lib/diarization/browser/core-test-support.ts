@@ -21,7 +21,7 @@ export class FakeModel implements SortformerRunner {
       const high = Math.max(...row.subarray(90, MEL));
       if (Math.max(low, high) < -8) continue;
       const speaker = low > high ? 0 : 1;
-      logits[((numCachedFrames * 8) + f) * 8 + speaker] = 10;
+      logits[(numCachedFrames * 8 + f) * 8 + speaker] = 10;
     }
     const out: SortformerOutput = {
       logits,

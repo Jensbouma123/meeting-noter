@@ -30,7 +30,12 @@ describe('server sync pulling', () => {
   it('loads every saved meeting back from the DB after the browser data is cleared', async () => {
     let sync = await loadSync();
     await sync.startServerSync();
-    const store = { ...(await import('./session-crud')), ...(await import('./session-open')), ...(await import('./session-delete')), ...(await import('./session-recording')) };
+    const store = {
+      ...(await import('./session-crud')),
+      ...(await import('./session-open')),
+      ...(await import('./session-delete')),
+      ...(await import('./session-recording')),
+    };
     const { addDecision } = await import('./notes');
     const id = store.persistSession({ title: 'Budget', segments: [line('a', 'cut the travel line', 0)], speakers: {} });
     addDecision(id, 'No travel in Q1');
@@ -50,7 +55,12 @@ describe('server sync pulling', () => {
   it('a cleared transcript stays gone: no refetch of the old copy, no append prompt, DB emptied', async () => {
     const sync = await loadSync();
     await sync.startServerSync();
-    const store = { ...(await import('./session-crud')), ...(await import('./session-open')), ...(await import('./session-delete')), ...(await import('./session-recording')) };
+    const store = {
+      ...(await import('./session-crud')),
+      ...(await import('./session-open')),
+      ...(await import('./session-delete')),
+      ...(await import('./session-recording')),
+    };
     const id = store.persistSession({ title: 'Standup', segments: [line('a', 'delete me please', 0)], speakers: {} });
     await sync.flushServerSync();
     await sync.ensureMeetingLoaded(id);
@@ -79,7 +89,6 @@ describe('server sync pulling', () => {
     store.renameSession(a, 'Standup Monday');
     await sync.flushServerSync();
 
-
     await reload();
     sync = await loadSync();
     await sync.startServerSync();
@@ -92,14 +101,29 @@ describe('server sync pulling', () => {
     await vi.waitFor(() => expect(JSON.parse(localStorage.getItem('mn.sync.pending.v1')!).save).toEqual([]));
     await sync.flushServerSync();
     const db = readDb();
-    expect(db.list().map((m) => [m.id, m.title]).sort()).toEqual([[a, 'Standup Monday'], [b, 'Planning Q1']].sort());
+    expect(
+      db
+        .list()
+        .map((m) => [m.id, m.title])
+        .sort(),
+    ).toEqual(
+      [
+        [a, 'Standup Monday'],
+        [b, 'Planning Q1'],
+      ].sort(),
+    );
     db.close();
   });
 
   it('sends a meeting the server lacks even when its queue entry was lost', async () => {
     const sync = await loadSync();
     await sync.startServerSync();
-    const store = { ...(await import('./session-crud')), ...(await import('./session-open')), ...(await import('./session-delete')), ...(await import('./session-recording')) };
+    const store = {
+      ...(await import('./session-crud')),
+      ...(await import('./session-open')),
+      ...(await import('./session-delete')),
+      ...(await import('./session-recording')),
+    };
     harness.online = false;
     const id = store.persistSession({ title: 'Orphan', segments: [line('a', 'only here', 0)], speakers: {} });
     localStorage.removeItem('mn.sync.pending.v1');

@@ -1,9 +1,4 @@
-const NOISE: readonly RegExp[] = [
-  /^\[Parakeet(\.js)?\]/,
-  /^Parakeet\.js:/,
-  /\[W:onnxruntime/,
-  /\[I:onnxruntime/,
-];
+const NOISE: readonly RegExp[] = [/^\[Parakeet(\.js)?\]/, /^Parakeet\.js:/, /\[W:onnxruntime/, /\[I:onnxruntime/];
 
 let installed = false;
 
@@ -28,7 +23,10 @@ export function setQuietAsrConsoleDebug(on: boolean): void {
 }
 
 function isBrowserContext(): boolean {
-  return typeof window !== 'undefined' || typeof (globalThis as { WorkerGlobalScope?: unknown }).WorkerGlobalScope !== 'undefined';
+  return (
+    typeof window !== 'undefined' ||
+    typeof (globalThis as { WorkerGlobalScope?: unknown }).WorkerGlobalScope !== 'undefined'
+  );
 }
 
 export function installQuietAsrConsole(): void {

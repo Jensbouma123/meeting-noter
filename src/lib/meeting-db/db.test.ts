@@ -102,9 +102,25 @@ describe('MeetingsDb', () => {
   it('round-trips lowConfSpans per segment; segments without them read back without the field', () => {
     const db = openDb();
     const base = sampleMeeting();
-    db.upsert(sampleMeeting({ segments: [{ ...base.segments[0], lowConfSpans: [[3, 9, 0.41], [12, 15, 0.5]] }, base.segments[1]] }));
+    db.upsert(
+      sampleMeeting({
+        segments: [
+          {
+            ...base.segments[0],
+            lowConfSpans: [
+              [3, 9, 0.41],
+              [12, 15, 0.5],
+            ],
+          },
+          base.segments[1],
+        ],
+      }),
+    );
     const got = db.get('meeting-1')!;
-    expect(got.segments.find((s) => s.id === 's2')?.lowConfSpans).toEqual([[3, 9, 0.41], [12, 15, 0.5]]);
+    expect(got.segments.find((s) => s.id === 's2')?.lowConfSpans).toEqual([
+      [3, 9, 0.41],
+      [12, 15, 0.5],
+    ]);
     expect('lowConfSpans' in got.segments.find((s) => s.id === 's1')!).toBe(false);
   });
 

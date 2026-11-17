@@ -28,7 +28,11 @@ export function parseMarkdown(source: string): MarkdownBlock[] {
     const item = LIST_ITEM.exec(line);
     if (heading) {
       flush();
-      blocks.push({ kind: 'heading', level: Math.min(4, Math.max(2, heading[1].length + 1)) as 2 | 3 | 4, text: heading[2] });
+      blocks.push({
+        kind: 'heading',
+        level: Math.min(4, Math.max(2, heading[1].length + 1)) as 2 | 3 | 4,
+        text: heading[2],
+      });
     } else if (item) {
       if (paragraph.length) flush();
       items.push(item[1]);

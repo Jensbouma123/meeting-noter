@@ -1,4 +1,4 @@
-import { pinThemeSeedScript } from "./theme-seed";
+import { pinThemeSeedScript } from './theme-seed';
 
 export function PinThemeSeed() {
   return <script dangerouslySetInnerHTML={{ __html: pinThemeSeedScript }} />;

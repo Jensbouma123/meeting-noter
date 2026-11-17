@@ -35,9 +35,7 @@ export function useCrashRecovery({
   }, [resumeCandidate, initialSessionId, setTitle, setResumeCandidate]);
 
   const candidateOnScreen =
-    resumeCandidate !== null &&
-    segmentCount > 0 &&
-    getTranscriptSessionId() === resumeCandidate.sessionId;
+    resumeCandidate !== null && segmentCount > 0 && getTranscriptSessionId() === resumeCandidate.sessionId;
   const showResume = resumeCandidate !== null && status === 'idle' && !candidateOnScreen;
 
   useEffect(() => {

@@ -45,9 +45,7 @@ describe('nextHref', () => {
     expect(nextHref('/dev/asr-bench?backend=wasm&autostart=1', Q4F16_URL, DEFAULT)).toBe(
       '/dev/asr-bench?backend=wasm&autostart=1',
     );
-    expect(nextHref('https://example.test/bench', Q4F16_URL, DEFAULT)).toBe(
-      'https://example.test/bench',
-    );
+    expect(nextHref('https://example.test/bench', Q4F16_URL, DEFAULT)).toBe('https://example.test/bench');
     expect(nextHref('', Q4F16_URL, DEFAULT)).toBeNull();
     expect(nextHref('   ', Q4F16_URL, DEFAULT)).toBeNull();
     expect(nextHref('fp32', Q4F16_URL, DEFAULT)).toBeNull();

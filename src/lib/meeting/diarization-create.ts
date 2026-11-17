@@ -3,12 +3,7 @@ import { createDiarizer } from '@/lib/diarization/browser';
 import { setSpeakerLabeler, setSpeakerTimeline } from './asr/speaker';
 import { waitForDownload } from './diarization-download-wait';
 import { DIARIZATION_REGISTRY_KEY } from './diarization-registry';
-import {
-  activeDiarizers,
-  downloadWait,
-  labelFor,
-  setDiarizationStatus,
-} from './diarization-session';
+import { activeDiarizers, downloadWait, labelFor, setDiarizationStatus } from './diarization-session';
 import { diarizationTimeline } from './diarization-timeline';
 import { overlapsIn } from './diarization-overlaps';
 import { rescoreHandler } from './diarization-rescore';

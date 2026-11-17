@@ -39,11 +39,7 @@ describe('chunkTranscript', () => {
 
 describe('tokenize', () => {
   it('drops English and Dutch function words and folds diacritics', () => {
-    expect(tokenize('The budget, and de Coördinatie van het team!')).toEqual([
-      'budget',
-      'coordinatie',
-      'team',
-    ]);
+    expect(tokenize('The budget, and de Coördinatie van het team!')).toEqual(['budget', 'coordinatie', 'team']);
   });
 
   it('keeps Dutch compounds whole', () => {
@@ -69,11 +65,7 @@ describe('createFakeEmbedder', () => {
   });
 
   it('scores a Dutch compound closer to its part than to unrelated text', async () => {
-    const [q, compound, other] = await embedder.embed([
-      'strand',
-      'strandhuis',
-      'budget forecast',
-    ]);
+    const [q, compound, other] = await embedder.embed(['strand', 'strandhuis', 'budget forecast']);
     const dot = (a: Float32Array, b: Float32Array) => a.reduce((s, x, i) => s + x * b[i], 0);
     expect(dot(q, compound)).toBeGreaterThan(dot(q, other));
   });

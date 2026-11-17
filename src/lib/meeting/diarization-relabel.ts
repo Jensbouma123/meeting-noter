@@ -18,12 +18,23 @@ function overlapKey(seg: Segment): string {
 }
 
 function sameParts(a: readonly Segment[], b: readonly Segment[]): boolean {
-  return a.length === b.length && a.every((s, i) => s.id === b[i].id && s.speaker === b[i].speaker && !!s.unconfirmed === !!b[i].unconfirmed && s.text === b[i].text && overlapKey(s) === overlapKey(b[i]));
+  return (
+    a.length === b.length &&
+    a.every(
+      (s, i) =>
+        s.id === b[i].id &&
+        s.speaker === b[i].speaker &&
+        !!s.unconfirmed === !!b[i].unconfirmed &&
+        s.text === b[i].text &&
+        overlapKey(s) === overlapKey(b[i]),
+    )
+  );
 }
 
 function previousTurnEnd(turn: SpeakerTurn): number {
   let from = -Infinity;
-  for (const other of turnsOf(turn.source)) if (other !== turn && other.start <= turn.start) from = Math.max(from, other.end);
+  for (const other of turnsOf(turn.source))
+    if (other !== turn && other.start <= turn.start) from = Math.max(from, other.end);
   return Math.min(from, turn.start);
 }
 
@@ -85,5 +96,8 @@ export function relabelSource(source: Source): void {
     families.set(root, [...(families.get(root) ?? []), seg]);
     if (seg.source === source && !isOverlapPassSegment(seg.id) && captureSpanOf(seg)) eligible.add(root);
   }
-  relabelFamilies(source, [...families].filter(([root]) => eligible.has(root)));
+  relabelFamilies(
+    source,
+    [...families].filter(([root]) => eligible.has(root)),
+  );
 }

@@ -5,8 +5,12 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { ShareDialog } from './ShareDialog';
 
 beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
-  HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
+  HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute('open', '');
+  };
+  HTMLDialogElement.prototype.close = function () {
+    this.removeAttribute('open');
+  };
 });
 
 vi.mock('@/lib/meeting/export-browser', async (load) => {
@@ -60,26 +64,34 @@ describe('ShareDialog', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Copying did not work');
   });
 
-  it.each(['live', 'reopened saved'])('copies only the transcript with speakers and timestamps (%s session)', async () => {
-    const exp = await import('@/lib/meeting/export-browser');
-    const segs = [
-      { ...seg, id: 'a', text: 'We should ship on Friday', start: 5, end: 8 },
-      { ...seg, id: 'b', speaker: 'sp2', text: 'Agreed, Friday works', start: 65, end: 68 },
-      { ...seg, id: 'c', text: 'interim words', start: 70, end: 71, final: false },
-    ];
-    const speakers = { sp1: { id: 'sp1', label: 'Anna' }, sp2: { id: 'sp2', label: 'Ben' } } as never;
-    render(<ShareDialog {...base} segments={segs} speakers={speakers} />);
-    const expected = (await import('@/lib/meeting/export-formats')).formatExport('txt', segs.filter((s) => s.final), speakers, 'Planning');
-    fireEvent.click(screen.getByRole('button', { name: 'Copy transcript' }));
-    await screen.findByRole('status');
-    const text = vi.mocked(exp.copyToClipboard).mock.calls.at(-1)![0];
-    expect(text).toBe(expected);
-    expect(text).toContain('Anna');
-    expect(text).toContain('[00:05] We should ship on Friday');
-    expect(text).toContain('Ben');
-    expect(text).toContain('Agreed, Friday works');
-    expect(text).not.toContain('interim words');
-    expect(text).not.toContain('Ship Friday');
-    expect(text).not.toContain('interim words');
-  });
+  it.each(['live', 'reopened saved'])(
+    'copies only the transcript with speakers and timestamps (%s session)',
+    async () => {
+      const exp = await import('@/lib/meeting/export-browser');
+      const segs = [
+        { ...seg, id: 'a', text: 'We should ship on Friday', start: 5, end: 8 },
+        { ...seg, id: 'b', speaker: 'sp2', text: 'Agreed, Friday works', start: 65, end: 68 },
+        { ...seg, id: 'c', text: 'interim words', start: 70, end: 71, final: false },
+      ];
+      const speakers = { sp1: { id: 'sp1', label: 'Anna' }, sp2: { id: 'sp2', label: 'Ben' } } as never;
+      render(<ShareDialog {...base} segments={segs} speakers={speakers} />);
+      const expected = (await import('@/lib/meeting/export-formats')).formatExport(
+        'txt',
+        segs.filter((s) => s.final),
+        speakers,
+        'Planning',
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Copy transcript' }));
+      await screen.findByRole('status');
+      const text = vi.mocked(exp.copyToClipboard).mock.calls.at(-1)![0];
+      expect(text).toBe(expected);
+      expect(text).toContain('Anna');
+      expect(text).toContain('[00:05] We should ship on Friday');
+      expect(text).toContain('Ben');
+      expect(text).toContain('Agreed, Friday works');
+      expect(text).not.toContain('interim words');
+      expect(text).not.toContain('Ship Friday');
+      expect(text).not.toContain('interim words');
+    },
+  );
 });

@@ -12,7 +12,7 @@ function toHalf(value: number): number {
   if (exp >= 31) return sign | 0x7c00;
   if (exp <= 0) {
     if (exp < -10) return sign;
-    return sign | (((mant | 0x800000) >> (1 - exp)) + 0x1000) >> 13;
+    return sign | ((((mant | 0x800000) >> (1 - exp)) + 0x1000) >> 13);
   }
   return (sign | (exp << 10) | (mant >> 13)) + ((mant >> 12) & 1);
 }

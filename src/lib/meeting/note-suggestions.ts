@@ -2,9 +2,7 @@ import type { Segment } from './types';
 import type { NoteSuggestion } from './types/notes';
 
 const MIN_SUGGESTION_WORDS = 5;
-const ACTION_CUES = [
-  'actiepunt', 'ik pak', 'wie doet', 'graag', 'deadline', 'action item', "i'll",
-];
+const ACTION_CUES = ['actiepunt', 'ik pak', 'wie doet', 'graag', 'deadline', 'action item', "i'll"];
 const DECISION_CUES = ['we besluiten', 'afgesproken', 'decided', 'agreed'];
 
 export function suggestFromSegments(segments: readonly Segment[], lang?: string): NoteSuggestion[] {
@@ -18,7 +16,9 @@ export function suggestFromSegments(segments: readonly Segment[], lang?: string)
     const normalized = text.toLocaleLowerCase();
     const kind = DECISION_CUES.some((cue) => normalized.includes(cue))
       ? 'decision'
-      : ACTION_CUES.some((cue) => normalized.includes(cue)) ? 'action' : null;
+      : ACTION_CUES.some((cue) => normalized.includes(cue))
+        ? 'action'
+        : null;
     if (kind && !seen.has(normalized)) {
       seen.add(normalized);
       suggestions.push({ text, sourceSegmentId: segment.id, kind });

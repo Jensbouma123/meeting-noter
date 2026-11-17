@@ -30,11 +30,7 @@ export function AssistantOnlyDialog() {
         </div>
       }
     >
-      <AssistantStep
-        state={assistants}
-        searchMissing={models.searchMissing}
-        onSkip={finishAssistantOnboarding}
-      />
+      <AssistantStep state={assistants} searchMissing={models.searchMissing} onSkip={finishAssistantOnboarding} />
     </OnboardingModal>
   );
 }

@@ -48,7 +48,7 @@ export function getFullSession(
   sessionId: string,
   segments?: Segment[],
   speakers?: Record<string, Speaker>,
-  startedAt: number | null = null
+  startedAt: number | null = null,
 ): SessionWithMetadata | null {
   const entry = readSessionIndex().sessions.find((s) => s.sessionId === sessionId);
   if (!entry) return null;

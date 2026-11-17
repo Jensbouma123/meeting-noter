@@ -1,6 +1,6 @@
-import { RuleTester, type Rule } from "eslint";
-import tsParser from "@typescript-eslint/parser";
-import { describe, it } from "vitest";
+import { RuleTester, type Rule } from 'eslint';
+import tsParser from '@typescript-eslint/parser';
+import { describe, it } from 'vitest';
 
 RuleTester.describe = describe;
 RuleTester.it = it;
@@ -12,6 +12,6 @@ const tester = new RuleTester({
   },
 });
 
-export function runRuleTests(name: string, rule: unknown, cases: Parameters<RuleTester["run"]>[2]) {
+export function runRuleTests(name: string, rule: unknown, cases: Parameters<RuleTester['run']>[2]) {
   tester.run(name, rule as Rule.RuleModule, cases);
 }

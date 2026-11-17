@@ -15,12 +15,14 @@ function backfill(meetingId: string, store: KeyValueStore): Float32Array | null 
   if (!index) return null;
   try {
     writeCentroid(meetingId, index.indexedAt, index.vectors, store);
-  } catch {
-  }
+  } catch {}
   return meetingCentroid(index.vectors);
 }
 
-export function cachedCentroid(meetingId: string, store: KeyValueStore | null = defaultKeyValueStore()): Float32Array | null {
+export function cachedCentroid(
+  meetingId: string,
+  store: KeyValueStore | null = defaultKeyValueStore(),
+): Float32Array | null {
   if (!store) return null;
   const stored = readCentroid(meetingId, store);
   if (!stored) return backfill(meetingId, store);

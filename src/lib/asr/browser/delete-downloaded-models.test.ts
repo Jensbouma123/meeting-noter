@@ -1,14 +1,7 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  areModelFilesCached,
-  deleteModelCache,
-  isDownloadCancelled,
-} from './resumable-download';
-import {
-  deleteDownloadedModels,
-  initiateDownloads,
-} from './browser-asr-download-manager';
+import { areModelFilesCached, deleteModelCache, isDownloadCancelled } from './resumable-download';
+import { deleteDownloadedModels, initiateDownloads } from './browser-asr-download-manager';
 import { getState } from './model-registry-snapshot';
 import { recordConsent } from './model-registry-consent';
 import { registerModel } from './model-registry-register';
@@ -24,10 +17,10 @@ function stubHangingDownload(): void {
     vi.fn(async (input: string | URL, init?: RequestInit) => {
       const url = String(input);
       if (url.includes('/api/models/')) {
-        return new Response(
-          JSON.stringify(PARAKEET_TDT_V3_WASM.files.map((path) => ({ path, size: FILE_SIZE }))),
-          { status: 200, headers: { 'content-type': 'application/json' } },
-        );
+        return new Response(JSON.stringify(PARAKEET_TDT_V3_WASM.files.map((path) => ({ path, size: FILE_SIZE }))), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        });
       }
       if (init?.method === 'HEAD') {
         return new Response(null, {
@@ -40,8 +33,7 @@ function stubHangingDownload(): void {
           start(controller) {
             controller.enqueue(new Uint8Array(128));
           },
-          pull() {
-          },
+          pull() {},
         }),
         { status: 200, headers: { 'content-length': String(FILE_SIZE) } },
       );

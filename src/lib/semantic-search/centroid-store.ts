@@ -34,10 +34,7 @@ export function storeCentroid(
   centroid: Float32Array | null,
   store: KeyValueStore,
 ): void {
-  store.setItem(
-    centroidKey(meetingId),
-    JSON.stringify({ indexedAt, centroid: centroid ? toBase64(centroid) : null }),
-  );
+  store.setItem(centroidKey(meetingId), JSON.stringify({ indexedAt, centroid: centroid ? toBase64(centroid) : null }));
 }
 
 export function readCentroid(

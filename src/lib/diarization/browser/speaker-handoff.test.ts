@@ -1,10 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import {
-  reportSpeakerState,
-  seedSpeakerStates,
-  speakerSeedFor,
-  takeReportedSpeakerStates,
-} from './speaker-handoff';
+import { reportSpeakerState, seedSpeakerStates, speakerSeedFor, takeReportedSpeakerStates } from './speaker-handoff';
 import { serializeSpeakerState } from './speaker-state';
 
 const SHAPE = { hiddenSize: 4, numSpeakers: 2 };
@@ -29,7 +24,7 @@ describe('speaker state hand-off', () => {
     expect(speakerSeedFor('mic')).toBeUndefined();
   });
 
-  it('hands over reported states once, and forgets an earlier recording\'s', () => {
+  it("hands over reported states once, and forgets an earlier recording's", () => {
     const state = serializedState();
     reportSpeakerState('system', state);
     expect(takeReportedSpeakerStates()).toEqual({ system: state });

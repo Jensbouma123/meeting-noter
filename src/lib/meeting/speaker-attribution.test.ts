@@ -56,7 +56,10 @@ describe('publishLiveUpdate', () => {
     words: ['a', 'b', 'c', 'd'].map((text, i) => ({ text, start: i * 16000, end: (i + 0.8) * 16000 })),
   });
   const speakerAt = (_source: 'mic' | 'system', start: number, end: number) =>
-    turnsAt([['mic:0', 0, 1.9], ['mic:1', 2, 4]])(start, end);
+    turnsAt([
+      ['mic:0', 0, 1.9],
+      ['mic:1', 2, 4],
+    ])(start, end);
   const timeline = {
     speakerFor: speakerAt,
     speakerNear: speakerAt,
@@ -82,7 +85,9 @@ describe('publishLiveUpdate', () => {
   it('without a timeline, stores the line whole under the fallback speaker', () => {
     storeSessionReset.resetSession('mic');
     publishLiveUpdate('mic', update(true), null, () => 'mic:0');
-    expect(storeStoreCore.getState().segments.map((s) => [s.id, s.speaker, s.text])).toEqual([['live-1', 'mic:0', 'a b c d']]);
+    expect(storeStoreCore.getState().segments.map((s) => [s.id, s.speaker, s.text])).toEqual([
+      ['live-1', 'mic:0', 'a b c d'],
+    ]);
     expect(storeStoreCore.getState().segments[0].words![3]).toEqual({ text: 'd', start: 3, end: 3.8 });
   });
 });

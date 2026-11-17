@@ -15,10 +15,19 @@ describe('no transcript text stays in the browser after delete or clear', () => 
     const { scheduleAutosave } = await import('./autosave');
     const { addDecision } = await import('./notes');
     const { saveIndex } = await import('@/lib/semantic-search/store');
-    const id = store.persistSession({ title: 'Secret plans', segments: snapshot('x').segments as never, speakers: {}, startedAt: 1 });
+    const id = store.persistSession({
+      title: 'Secret plans',
+      segments: snapshot('x').segments as never,
+      speakers: {},
+      startedAt: 1,
+    });
     addDecision(id, 'Decision about hello there');
     saveSpeakerState(id, { mic: { speakers: [{ label: 'Hello there person' }] } } as never);
-    saveIndex(id, { windows: [{ text: SECRET }] as never, vectors: [new Float32Array([0.1])], chapters: [{ title: SECRET }] as never });
+    saveIndex(id, {
+      windows: [{ text: SECRET }] as never,
+      vectors: [new Float32Array([0.1])],
+      chapters: [{ title: SECRET }] as never,
+    });
     scheduleAutosave(snapshot(id) as never);
     return { store, id };
   }
@@ -57,7 +66,9 @@ describe('no transcript text stays in the browser after delete or clear', () => 
   it('createDraftSessionInFolder flushes server sync before moving the draft into the folder', async () => {
     const order: string[] = [];
     vi.doMock('./sync-flush', () => ({
-      flushServerSync: vi.fn(async () => { order.push('flush'); }),
+      flushServerSync: vi.fn(async () => {
+        order.push('flush');
+      }),
     }));
     vi.doMock('./sync-queue', () => ({
       queueMeetingDelete: vi.fn(),

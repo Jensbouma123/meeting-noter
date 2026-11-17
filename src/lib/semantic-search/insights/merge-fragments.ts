@@ -10,14 +10,20 @@ export function mergeFragments(segments: readonly Segment[]): Turn[] {
   for (const seg of finals) {
     const text = seg.text.trim();
     const last = turns.at(-1);
-    const joinable = last && last.speakerId === seg.speaker && !TERMINAL.test(last.text) && seg.start - last.end <= MAX_GAP_S;
+    const joinable =
+      last && last.speakerId === seg.speaker && !TERMINAL.test(last.text) && seg.start - last.end <= MAX_GAP_S;
     if (last && joinable) {
       last.parts.push({ segmentId: seg.id, start: seg.start, offset: last.text.length + 1 });
       last.text = `${last.text} ${text}`;
       last.end = Math.max(last.end, seg.end);
       continue;
     }
-    turns.push({ speakerId: seg.speaker, text, end: seg.end, parts: [{ segmentId: seg.id, start: seg.start, offset: 0 }] });
+    turns.push({
+      speakerId: seg.speaker,
+      text,
+      end: seg.end,
+      parts: [{ segmentId: seg.id, start: seg.start, offset: 0 }],
+    });
   }
   return turns;
 }

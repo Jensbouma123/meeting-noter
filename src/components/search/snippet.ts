@@ -4,7 +4,10 @@ export function makeSnippet(text: string, query: string, max = SNIPPET_MAX_CHARS
   const flat = text.replace(/\s+/g, ' ').trim();
   if (flat.length <= max) return flat;
   const lower = flat.toLowerCase();
-  const terms = query.toLowerCase().split(/\s+/).filter((t) => t.length > 1);
+  const terms = query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((t) => t.length > 1);
   let at = -1;
   for (const term of terms) {
     const idx = lower.indexOf(term);

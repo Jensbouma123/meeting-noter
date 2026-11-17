@@ -1,8 +1,4 @@
-import {
-  PARAKEET_TDT_V3_WEBGPU,
-  PARAKEET_TDT_V3_WEBGPU_FP16,
-  type AsrModelManifest,
-} from '@/lib/asr/browser';
+import { PARAKEET_TDT_V3_WEBGPU, PARAKEET_TDT_V3_WEBGPU_FP16, type AsrModelManifest } from '@/lib/asr/browser';
 
 export function manifestWithEncoder(base: AsrModelManifest, encoder: string | null): AsrModelManifest {
   if (base.asrBackend !== 'webgpu' || encoder === null) return base;

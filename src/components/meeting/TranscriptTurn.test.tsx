@@ -8,7 +8,15 @@ import { NotesPanel } from '@/components/notes/NotesPanel';
 import { LiveTranscript } from './LiveTranscript';
 import { TranscriptTurn } from './TranscriptTurn';
 
-const seg: Segment = { id: 's1', source: 'mic', speaker: 'sp1', text: 'We ship on Friday', start: 3, end: 5, final: true };
+const seg: Segment = {
+  id: 's1',
+  source: 'mic',
+  speaker: 'sp1',
+  text: 'We ship on Friday',
+  start: 3,
+  end: 5,
+  final: true,
+};
 const sessionId = 'turn-actions-test';
 
 afterEach(() => {
@@ -23,7 +31,12 @@ describe('TranscriptTurn note actions', () => {
     const createAction = vi.fn();
     const markDecision = vi.fn();
     render(
-      <TranscriptTurn segment={seg} speakerLabel="Ann" speakerColorIndex={0} actions={{ createAction, markDecision }} />,
+      <TranscriptTurn
+        segment={seg}
+        speakerLabel="Ann"
+        speakerColorIndex={0}
+        actions={{ createAction, markDecision }}
+      />,
     );
 
     expect(screen.queryByText('Create action item')).toBeNull();

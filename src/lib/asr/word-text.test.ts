@@ -17,7 +17,9 @@ describe('word helpers', () => {
   });
 
   it('agrees on words regardless of case and punctuation', () => {
-    expect(agreedPrefix([{ text: 'Hello,' }, { text: 'there' }], [{ text: 'hello' }, { text: 'there.' }, { text: 'x' }])).toBe(2);
+    expect(
+      agreedPrefix([{ text: 'Hello,' }, { text: 'there' }], [{ text: 'hello' }, { text: 'there.' }, { text: 'x' }]),
+    ).toBe(2);
     expect(agreedPrefix([{ text: 'a' }, { text: 'b' }], [{ text: 'a' }, { text: 'c' }])).toBe(1);
   });
 });

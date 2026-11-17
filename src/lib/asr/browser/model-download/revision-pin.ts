@@ -54,9 +54,7 @@ export async function resolveCacheKey(
   if (pointer?.sha === found.sha) return pinnedKey;
   if (!(await isModelFileCachedByKey(pinnedKey).catch(() => false))) return pinnedKey;
 
-  const staleKey = pointer
-    ? cacheKey(repoId, pinnedRevision(revision, pointer.sha), filename)
-    : baseKey;
+  const staleKey = pointer ? cacheKey(repoId, pinnedRevision(revision, pointer.sha), filename) : baseKey;
   await deleteCachedFile(staleKey).catch(() => {});
   if (pointer) await deleteMetaRecord(FILE_STORE, pointerKey(baseKey)).catch(() => {});
   await putMetaRecord(FILE_STORE, pointerKey(baseKey), {

@@ -36,11 +36,12 @@ async function transcribeWindowBySpeaker(
   isFinal: boolean,
   startSample: number,
 ): Promise<void> {
-  const cuts = asrState.speakerTimeline?.changePoints(
-    source,
-    startSample / CAPTURE_SAMPLE_RATE,
-    (startSample + audio.length) / CAPTURE_SAMPLE_RATE,
-  ) ?? [];
+  const cuts =
+    asrState.speakerTimeline?.changePoints(
+      source,
+      startSample / CAPTURE_SAMPLE_RATE,
+      (startSample + audio.length) / CAPTURE_SAMPLE_RATE,
+    ) ?? [];
   let from = 0;
   for (const cut of cuts) {
     const at = Math.round(cut * CAPTURE_SAMPLE_RATE) - startSample;

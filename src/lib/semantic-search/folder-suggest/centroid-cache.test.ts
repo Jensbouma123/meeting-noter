@@ -16,7 +16,11 @@ function memoryStore(): KeyValueStore & { map: Map<string, string> } {
 }
 
 const vectors = [0, 1, 2].map(() => new Float32Array([1, 0.5, 0]));
-const data = { windows: vectors.map((_, i) => ({ meetingId: 'm', index: i, start: i, end: i + 1, text: 't' })), vectors, chapters: [] };
+const data = {
+  windows: vectors.map((_, i) => ({ meetingId: 'm', index: i, start: i, end: i + 1, text: 't' })),
+  vectors,
+  chapters: [],
+};
 
 describe('cachedCentroid', () => {
   beforeEach(() => clearCentroidCache());

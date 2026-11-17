@@ -6,7 +6,6 @@ import { readAllKeys } from '../resumable-download.cache-fixtures';
 import { cacheKey } from './cached-files';
 import { FILE_STORE } from './constants';
 
-
 export const REPO = 'test/review060-repo';
 export const FILE = 'encoder-model.q4f16.onnx';
 export const REVISION = 'main';
@@ -40,15 +39,11 @@ export function serve(server: Server): void {
         return Promise.resolve(new Response(text, { status: server.sidecarStatus }));
       }
       if (init?.method === 'HEAD') {
-        return Promise.resolve(
-          new Response(null, { headers: { 'content-length': String(server.body.length) } }),
-        );
+        return Promise.resolve(new Response(null, { headers: { 'content-length': String(server.body.length) } }));
       }
       server.bodyFetches += 1;
       if (server.bodyStatus !== 200) return Promise.resolve(new Response('boom', { status: server.bodyStatus }));
-      return Promise.resolve(
-        new Response(server.body, { headers: { 'content-length': String(server.body.length) } }),
-      );
+      return Promise.resolve(new Response(server.body, { headers: { 'content-length': String(server.body.length) } }));
     }),
   );
 }

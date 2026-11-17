@@ -6,6 +6,7 @@ export function formatDuration(seconds: number | null): string {
 }
 
 export function formatTime(timestamp: number): string {
-  const locale = typeof navigator !== 'undefined' && navigator.language.toLowerCase().startsWith('nl') ? 'nl-NL' : 'en-US';
+  const locale =
+    typeof navigator !== 'undefined' && navigator.language.toLowerCase().startsWith('nl') ? 'nl-NL' : 'en-US';
   return new Date(timestamp).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
 }

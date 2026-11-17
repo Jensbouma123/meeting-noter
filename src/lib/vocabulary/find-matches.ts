@@ -27,7 +27,11 @@ function matchAt(chunks: readonly Chunk[], from: number, vocab: Prepared): Match
       const to = from + spelling.length;
       if (to > chunks.length || (best && to <= best.to)) continue;
       if (!joinable(chunks, from, to) || !sameWords(chunks, from, spelling)) continue;
-      if (spelling === entry.spellings[0] && !(chunks[from].lead.includes(entry.edge.lead) && chunks[to - 1].trail.includes(entry.edge.trail))) continue;
+      if (
+        spelling === entry.spellings[0] &&
+        !(chunks[from].lead.includes(entry.edge.lead) && chunks[to - 1].trail.includes(entry.edge.trail))
+      )
+        continue;
       best = { from, to, word: entry.word };
     }
   }
@@ -36,7 +40,12 @@ function matchAt(chunks: readonly Chunk[], from: number, vocab: Prepared): Match
     if (entry.maxEdits === 0) continue;
     const to = from + entry.size;
     if (to > chunks.length || !joinable(chunks, from, to)) continue;
-    const heard = lettersOf(chunks.slice(from, to).map((c) => c.core).join(''));
+    const heard = lettersOf(
+      chunks
+        .slice(from, to)
+        .map((c) => c.core)
+        .join(''),
+    );
     if (heard.length < 4 || soundKey(heard) !== entry.key || isFrequentWord(heard)) continue;
     if (editDistance(heard, entry.letters, entry.maxEdits) <= entry.maxEdits) return { from, to, word: entry.word };
   }

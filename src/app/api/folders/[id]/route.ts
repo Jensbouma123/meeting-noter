@@ -23,14 +23,23 @@ export async function PATCH(request: Request, { params }: IdRouteContext): Promi
   const { name, parentId, index } = body as { name?: unknown; parentId?: unknown; index?: unknown };
   const { roster, inheritRoster } = body as { roster?: unknown; inheritRoster?: unknown };
   const { context } = body as { context?: unknown };
-  if (name === undefined && parentId === undefined && index === undefined && roster === undefined && inheritRoster === undefined && context === undefined) {
+  if (
+    name === undefined &&
+    parentId === undefined &&
+    index === undefined &&
+    roster === undefined &&
+    inheritRoster === undefined &&
+    context === undefined
+  ) {
     return failure('bad-folder', 400);
   }
   if (name !== undefined && typeof name !== 'string') return failure('bad-name', 400);
   if (parentId !== undefined && parentId !== null && !isMeetingId(parentId)) return failure('bad-parent', 400);
-  if (index !== undefined && (typeof index !== 'number' || !Number.isInteger(index) || index < 0)) return failure('bad-folder', 400);
+  if (index !== undefined && (typeof index !== 'number' || !Number.isInteger(index) || index < 0))
+    return failure('bad-folder', 400);
   if (inheritRoster !== undefined && typeof inheritRoster !== 'boolean') return failure('bad-roster', 400);
-  if (context !== undefined && (typeof context !== 'string' || context.length > MAX_CONTEXT_LENGTH)) return failure('bad-context', 400);
+  if (context !== undefined && (typeof context !== 'string' || context.length > MAX_CONTEXT_LENGTH))
+    return failure('bad-context', 400);
   const cleanRoster = roster === undefined ? undefined : normalizeRoster(roster);
   if (cleanRoster === null) return failure('bad-roster', 400);
   try {
@@ -42,7 +51,11 @@ export async function PATCH(request: Request, { params }: IdRouteContext): Promi
     if (parentId !== undefined) folder = store.moveFolder(id, parentId as string | null);
     if (index !== undefined) folder = store.reorderFolder(id, index as number);
     if (cleanRoster !== undefined || inheritRoster !== undefined) {
-      folder = store.setFolderRoster(id, cleanRoster ?? folder.roster, (inheritRoster as boolean | undefined) ?? folder.inheritRoster);
+      folder = store.setFolderRoster(
+        id,
+        cleanRoster ?? folder.roster,
+        (inheritRoster as boolean | undefined) ?? folder.inheritRoster,
+      );
     }
     if (context !== undefined) folder = store.setFolderContext(id, (context as string).trim());
     return Response.json({ ok: true, folder });

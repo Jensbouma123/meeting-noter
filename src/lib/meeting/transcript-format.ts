@@ -1,16 +1,10 @@
 import type { Segment, Speaker } from './types';
 
 export function finalSegments(segments: Segment[]): Segment[] {
-  return segments
-    .filter((seg) => seg.final && seg.text.trim().length > 0)
-    .sort((a, b) => a.start - b.start);
+  return segments.filter((seg) => seg.final && seg.text.trim().length > 0).sort((a, b) => a.start - b.start);
 }
 
-export function resolveSpeakerLabel(
-  seg: Segment,
-  speakers: Record<string, Speaker>,
-  callAudioMissing = false,
-): string {
+export function resolveSpeakerLabel(seg: Segment, speakers: Record<string, Speaker>, callAudioMissing = false): string {
   return speakers[seg.speaker]?.label ?? (seg.source === 'mic' && !callAudioMissing ? 'You' : 'Speaker');
 }
 

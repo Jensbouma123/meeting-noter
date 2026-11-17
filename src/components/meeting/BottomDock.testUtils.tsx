@@ -29,7 +29,11 @@ export function dockElement(
   );
 }
 
-export function renderDock(mode: CaptureMode, onModeChange: (m: CaptureMode) => void = () => {}, onOpenAdvanced: () => void = () => {}) {
+export function renderDock(
+  mode: CaptureMode,
+  onModeChange: (m: CaptureMode) => void = () => {},
+  onOpenAdvanced: () => void = () => {},
+) {
   render(dockElement('idle', mode, onModeChange, onOpenAdvanced));
 }
 

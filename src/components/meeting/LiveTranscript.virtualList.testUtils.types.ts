@@ -1,3 +1,1 @@
-export type ROCallback = (
-  entries: { target: Element; borderBoxSize?: { blockSize: number }[] }[],
-) => void;
+export type ROCallback = (entries: { target: Element; borderBoxSize?: { blockSize: number }[] }[]) => void;

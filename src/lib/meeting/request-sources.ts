@@ -80,7 +80,9 @@ export function requestSources(
   const micP: Promise<MediaStream | HelperSource> | null = !wantMic
     ? null
     : safari
-      ? mode === 'mic' ? requestSafariMic(acquirer, run) : null
+      ? mode === 'mic'
+        ? requestSafariMic(acquirer, run)
+        : null
       : requestMicAfterShare(acquirer, run, micDeviceId, systemP).catch(prefixed('Microphone'));
   return { micP, systemP };
 }

@@ -5,23 +5,29 @@ import type { CaptureMode } from '@/lib/meeting';
 import type { SessionEditsParams } from '../types';
 
 export function useSessionEdits({ initialSessionId, settings, setTitle, setSettings }: SessionEditsParams) {
-  const changeTitle = useCallback((newTitle: string) => {
-    setTitle(newTitle);
-    if (initialSessionId) {
-      try {
-        renameSession(initialSessionId, newTitle);
-      } catch {
-        return;
+  const changeTitle = useCallback(
+    (newTitle: string) => {
+      setTitle(newTitle);
+      if (initialSessionId) {
+        try {
+          renameSession(initialSessionId, newTitle);
+        } catch {
+          return;
+        }
+      } else {
+        saveTitle(newTitle);
       }
-    } else {
-      saveTitle(newTitle);
-    }
-  }, [initialSessionId, setTitle]);
+    },
+    [initialSessionId, setTitle],
+  );
 
-  const changeSettings = useCallback((newSettings: AppSettings) => {
-    setSettings(newSettings);
-    saveSettings(newSettings);
-  }, [setSettings]);
+  const changeSettings = useCallback(
+    (newSettings: AppSettings) => {
+      setSettings(newSettings);
+      saveSettings(newSettings);
+    },
+    [setSettings],
+  );
 
   const changeMode = useCallback(
     (newMode: CaptureMode) => {
@@ -29,7 +35,7 @@ export function useSessionEdits({ initialSessionId, settings, setTitle, setSetti
       setSettings(updated);
       saveSettings(updated);
     },
-    [settings, setSettings]
+    [settings, setSettings],
   );
 
   return { changeTitle, changeSettings, changeMode };

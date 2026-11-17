@@ -22,12 +22,24 @@ export const publishModelAtDefaultTestUrl = (body = PREBUILT) =>
 
 function writeFakeUv({ buildFails }: { buildFails: boolean }) {
   const uv = path.join(sandbox.dir, 'fake-uv');
-  const build = buildFails ? 'echo boom >&2; exit 1' : 'mkdir -p "$out"; printf converted > "$out/encoder-model.q4f16.onnx"';
-  writeExecutable(uv, `#!/bin/bash\nwhile [ $# -gt 0 ]; do [ "$1" = --outdir ] && out=$2; shift; done\necho run >> "$HOME/uv-calls"\n${build}\n`);
+  const build = buildFails
+    ? 'echo boom >&2; exit 1'
+    : 'mkdir -p "$out"; printf converted > "$out/encoder-model.q4f16.onnx"';
+  writeExecutable(
+    uv,
+    `#!/bin/bash\nwhile [ $# -gt 0 ]; do [ "$1" = --outdir ] && out=$2; shift; done\necho run >> "$HOME/uv-calls"\n${build}\n`,
+  );
   return uv;
 }
 
-export function installWithGpuModelPinnedToPrebuilt(env: Record<string, string> = {}, { uvFails = false, args = [] as string[] } = {}) {
+export function installWithGpuModelPinnedToPrebuilt(
+  env: Record<string, string> = {},
+  { uvFails = false, args = [] as string[] } = {},
+) {
   const uv = writeFakeUv({ buildFails: uvFails });
-  return runScript(INSTALL, { MEETING_NOTER_UV: uv, MEETING_NOTER_SKIP_GPU_MODEL: '', MEETING_NOTER_MODEL_SHA256: sha256(PREBUILT), ...env }, args);
+  return runScript(
+    INSTALL,
+    { MEETING_NOTER_UV: uv, MEETING_NOTER_SKIP_GPU_MODEL: '', MEETING_NOTER_MODEL_SHA256: sha256(PREBUILT), ...env },
+    args,
+  );
 }

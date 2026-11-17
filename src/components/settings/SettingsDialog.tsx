@@ -22,7 +22,11 @@ export function SettingsDialog({
     const Icon = section.icon;
     const hasAlert = alertSections.includes(section.id);
     return (
-      <Tab key={section.id} value={section.id} className="touch-target-44 shrink-0 gap-2.5 sm:w-full sm:justify-start sm:px-3 sm:py-2 [&_svg]:!size-4 [&_svg]:shrink-0">
+      <Tab
+        key={section.id}
+        value={section.id}
+        className="touch-target-44 shrink-0 gap-2.5 sm:w-full sm:justify-start sm:px-3 sm:py-2 [&_svg]:!size-4 [&_svg]:shrink-0"
+      >
         <Icon className="size-4 shrink-0" aria-hidden="true" />
         <span className="whitespace-nowrap">{t(`section.${section.id}`)}</span>
         {hasAlert && (

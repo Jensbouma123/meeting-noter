@@ -1,11 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import {
-  env,
-  expectAllReleased,
-  flush,
-  tracks,
-  registerLifecycleEnv,
-} from './capture-lifecycle.testUtils';
+import { env, expectAllReleased, flush, tracks, registerLifecycleEnv } from './capture-lifecycle.testUtils';
 import { FakeAudioWorkletNode } from './fake-audio-worklet-node.testUtils';
 
 registerLifecycleEnv();

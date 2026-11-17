@@ -1,6 +1,12 @@
 import { getAsrModelFamily } from './model-family';
 import { probeAsrBackend } from './backend-probe';
-import { manifestForBackend, manifestForFamily, webgpuManifestForEncoder, WEBGPU_ENCODER_FALLBACKS, webgpuEncodersAvailable } from './model-manifest-selection';
+import {
+  manifestForBackend,
+  manifestForFamily,
+  webgpuManifestForEncoder,
+  WEBGPU_ENCODER_FALLBACKS,
+  webgpuEncodersAvailable,
+} from './model-manifest-selection';
 import type { AsrBackend, AsrModelManifest, WebgpuEncoderQuant } from './types/model-manifest';
 
 let cachedBackend: Promise<AsrBackend> | null = null;

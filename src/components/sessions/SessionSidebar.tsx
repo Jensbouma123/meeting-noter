@@ -44,7 +44,7 @@ export function SessionSidebar({ activeSessionId, onOpenSession, onNewSession, o
       onOpenSession(sessionId);
       setMobileOpen(false);
     },
-    [onOpenSession]
+    [onOpenSession],
   );
 
   const renderRow = (session: SessionMetadata, pathLabel?: string) => (
@@ -54,7 +54,9 @@ export function SessionSidebar({ activeSessionId, onOpenSession, onNewSession, o
       isActive={activeSessionId === session.sessionId}
       pathLabel={pathLabel}
       suggestion={onDemand.views[session.sessionId] ?? suggestions[session.sessionId]}
-      onSuggest={folderCtl.meetingFolders[session.sessionId] == null ? () => void onDemand.suggest(session.sessionId) : undefined}
+      onSuggest={
+        folderCtl.meetingFolders[session.sessionId] == null ? () => void onDemand.suggest(session.sessionId) : undefined
+      }
       suggesting={onDemand.pendingId === session.sessionId}
       onOpen={() => openSession(session.sessionId)}
       onClear={() => setClearTarget(session)}
@@ -67,7 +69,14 @@ export function SessionSidebar({ activeSessionId, onOpenSession, onNewSession, o
     <VStack spacing="none" fill className="h-full bg-surface">
       <RailHeader sessionCount={sessions.length} open={open} onNewSession={() => onNewSession()} onToggle={onToggle} />
       {sessions.length > 0 && <RailSearch query={query} onChange={setQuery} />}
-      <RailBody sessions={sessions} groups={groups} searching={searching} folderCtl={folderCtl} renderRow={renderRow} onNewSession={onNewSession} />
+      <RailBody
+        sessions={sessions}
+        groups={groups}
+        searching={searching}
+        folderCtl={folderCtl}
+        renderRow={renderRow}
+        onNewSession={onNewSession}
+      />
     </VStack>
   );
 

@@ -15,8 +15,7 @@ export function DeleteDownloadedModels({ models, preparation }: DeleteDownloaded
 
   const downloading = models.some((e) => e.status === 'downloading') || isPreparing(preparation);
   const anyCached = models.some((entry) => entry.status === 'cached');
-  const anyPartialBytes =
-    models.some((entry) => entry.progress.loadedBytes > 0) || preparation.downloadLoadedBytes > 0;
+  const anyPartialBytes = models.some((entry) => entry.progress.loadedBytes > 0) || preparation.downloadLoadedBytes > 0;
 
   const deleteModels = () => {
     setConfirmOpen(false);

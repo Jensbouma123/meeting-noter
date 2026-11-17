@@ -27,10 +27,14 @@ export function parseHelperMessage(data: unknown): HelperMessage | null {
 export function checkHello(msg: HelperMessage): HelperHello {
   const hello = msg as unknown as HelperHello;
   if (hello.version !== HELPER_PROTOCOL_VERSION) {
-    throw new Error(`System audio helper speaks protocol ${String(hello.version)}, this page ${HELPER_PROTOCOL_VERSION}: rebuild it (npm run helper)`);
+    throw new Error(
+      `System audio helper speaks protocol ${String(hello.version)}, this page ${HELPER_PROTOCOL_VERSION}: rebuild it (npm run helper)`,
+    );
   }
   if (hello.format !== 'pcm16' || hello.sampleRate !== HELPER_SAMPLE_RATE) {
-    throw new Error(`System audio helper sends ${String(hello.format)} at ${String(hello.sampleRate)} Hz, not pcm16 at 16 kHz`);
+    throw new Error(
+      `System audio helper sends ${String(hello.format)} at ${String(hello.sampleRate)} Hz, not pcm16 at 16 kHz`,
+    );
   }
   return hello;
 }
@@ -42,7 +46,8 @@ export function parseMic(msg: HelperMessage): HelperMic {
     mic.permission = msg.micPermission;
   }
   if (typeof msg.micError === 'string') mic.error = msg.micError;
-  else if (msg.mic === undefined) mic.error = 'this helper version does not record the microphone: rebuild it (npm run helper)';
+  else if (msg.mic === undefined)
+    mic.error = 'this helper version does not record the microphone: rebuild it (npm run helper)';
   return mic;
 }
 

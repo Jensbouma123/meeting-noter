@@ -5,14 +5,7 @@ import { DEFAULT_ENCODER } from '../defaultEncoder';
 import { errorMessage } from '../errorMessage';
 import type { BenchResultSinkParams } from '../types';
 
-export function useBenchResultSink({
-  autostart,
-  phase,
-  benchResult,
-  variant,
-  next,
-  appendLog,
-}: BenchResultSinkParams) {
+export function useBenchResultSink({ autostart, phase, benchResult, variant, next, appendLog }: BenchResultSinkParams) {
   const posted = useRef(false);
   useOnChange(phase, () => {
     if (!autostart || posted.current) return;

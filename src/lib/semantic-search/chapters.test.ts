@@ -51,7 +51,10 @@ describe('findChapters', () => {
   it('keeps one chapter for a single-topic meeting', async () => {
     const windows = chunkTranscript('m', linesOf(BUDGET));
     const embedder = createFakeEmbedder();
-    const vectors = await embedder.embed(windows.map((w) => w.text), 'document');
+    const vectors = await embedder.embed(
+      windows.map((w) => w.text),
+      'document',
+    );
     const chapters = findChapters('m', windows, vectors, { minChapterWindows: 3 });
     expect(chapters).toHaveLength(1);
     expect(chapters[0].title).not.toBe('');
@@ -60,7 +63,10 @@ describe('findChapters', () => {
   it('never makes a chapter shorter than the minimum', async () => {
     const texts = [...BUDGET.slice(0, 2), ...HOLIDAY.slice(0, 2), ...BUDGET.slice(2)];
     const windows = chunkTranscript('m', linesOf(texts));
-    const vectors = await createFakeEmbedder().embed(windows.map((w) => w.text), 'document');
+    const vectors = await createFakeEmbedder().embed(
+      windows.map((w) => w.text),
+      'document',
+    );
     const chapters = findChapters('m', windows, vectors, { minChapterWindows: 4 });
     for (const c of chapters) expect(c.windowEnd - c.windowStart).toBeGreaterThanOrEqual(4);
   });

@@ -5,7 +5,12 @@ const MEL = 128;
 export const HIDDEN = 512;
 export const SPEAKERS = 8;
 export class ArrivalOrderModel implements SortformerRunner {
-  async run(features: Float32Array, numMelFrames: number, cached: Float32Array, numCached: number): Promise<SortformerOutput> {
+  async run(
+    features: Float32Array,
+    numMelFrames: number,
+    cached: Float32Array,
+    numCached: number,
+  ): Promise<SortformerOutput> {
     const voiceOfMel = (f: number): number => {
       const row = features.subarray(f * MEL, (f + 1) * MEL);
       const low = Math.max(...row.subarray(0, 40));

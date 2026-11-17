@@ -18,7 +18,10 @@ export function OverlapColumn({ speakerId, segs, speakers, sessionId, style }: O
         className={`absolute inset-y-0.5 left-0 hidden w-0.5 rounded-full sm:block ${color.dotClass}`}
       />
       <span className="flex min-w-0 items-baseline gap-1.5 select-none">
-        <span className={`inline-block size-2 shrink-0 self-center rounded-full ${color.dotClass}`} aria-hidden="true" />
+        <span
+          className={`inline-block size-2 shrink-0 self-center rounded-full ${color.dotClass}`}
+          aria-hidden="true"
+        />
         {sessionId ? (
           <SpeakerAssign
             sessionId={sessionId}

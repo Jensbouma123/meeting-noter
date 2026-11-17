@@ -8,7 +8,11 @@ const state = vi.hoisted(() => ({
 
 vi.mock('../onnx-session', () => {
   class Tensor {
-    constructor(public type: string, public data: Float32Array, public dims: number[]) {}
+    constructor(
+      public type: string,
+      public data: Float32Array,
+      public dims: number[],
+    ) {}
   }
   const session = {
     inputNames: ['feats'],
@@ -50,8 +54,15 @@ describe('SpeakerEmbedder', () => {
     const e = new SpeakerEmbedder(load);
     expect(load).not.toHaveBeenCalled();
     const frames = [4, 6, 4, 4, 4, 4, 4, 4, 4, 4];
-    const out = await e.embed(frames.map((f, i) => feat(f, i + 1)), frames);
-    expect(state.shapes).toEqual([[8, 4, 80], [1, 4, 80], [1, 6, 80]]);
+    const out = await e.embed(
+      frames.map((f, i) => feat(f, i + 1)),
+      frames,
+    );
+    expect(state.shapes).toEqual([
+      [8, 4, 80],
+      [1, 4, 80],
+      [1, 6, 80],
+    ]);
     expect(out.length).toBe(10 * 256);
     for (let i = 0; i < 10; i += 1) expect(out[i * 256 + 255]).toBe(i + 1);
     await e.embed([feat(2, 1)], [2]);

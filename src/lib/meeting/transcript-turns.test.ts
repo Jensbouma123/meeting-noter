@@ -25,11 +25,7 @@ describe('splitTurns', () => {
   });
 
   it('starts a turn after a pause over 30 s, even for the same speaker', () => {
-    const turns = splitTurns([
-      line('a', 'mic:0', 0, 4),
-      line('b', 'mic:0', 34, 36),
-      line('c', 'mic:0', 66.5, 68),
-    ]);
+    const turns = splitTurns([line('a', 'mic:0', 0, 4), line('b', 'mic:0', 34, 36), line('c', 'mic:0', 66.5, 68)]);
     expect(ids(turns)).toEqual([['a', 'b'], ['c']]);
   });
 

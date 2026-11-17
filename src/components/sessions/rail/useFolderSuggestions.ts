@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FolderRow } from '@/lib/meeting-db/types';
 import type { SessionMetadata } from '@/lib/meeting/types/session-store';
-import { FOLDERS_CHANGED_EVENT, declineFolderSuggestion, fetchDeclinedSuggestions, moveMeeting } from '@/lib/folders/folders-api';
+import {
+  FOLDERS_CHANGED_EVENT,
+  declineFolderSuggestion,
+  fetchDeclinedSuggestions,
+  moveMeeting,
+} from '@/lib/folders/folders-api';
 import { folderPath } from '@/lib/folders/folder-tree';
 import { computeFolderSuggestions } from '@/lib/semantic-search/folder-suggest/compute';
 import { loadIndex } from '@/lib/semantic-search/store';

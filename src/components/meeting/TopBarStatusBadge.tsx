@@ -7,7 +7,7 @@ import type { TopBarStatusBadgeProps } from './TopBarStatusBadge.types';
 function modelPillLabel(
   t: (key: string) => string,
   modelReadiness: ModelReadiness,
-  modelProgress: ModelProgressView
+  modelProgress: ModelProgressView,
 ): string {
   if (modelReadiness === 'failed') return t('modelFailed');
   if (modelProgress.stage) return modelProgress.label;
@@ -75,9 +75,7 @@ export function TopBarStatusBadge({
       size="xs"
       onClick={() => onOpenSettings('advanced')}
       tooltip={t('openAdvanced')}
-      leadingIcon={
-        failed ? <TriangleAlert className="size-3.5" /> : <Download className="size-3.5" />
-      }
+      leadingIcon={failed ? <TriangleAlert className="size-3.5" /> : <Download className="size-3.5" />}
     >
       {modelPillLabel(t, modelReadiness, modelProgress)}
     </Button>

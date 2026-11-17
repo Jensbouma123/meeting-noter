@@ -8,7 +8,10 @@ export async function transcribeInOverlappingWindows(model, audio) {
   for (let from = 0; from < audio.length; from += HOP) {
     const to = Math.min(audio.length, from + WINDOW);
     const t0 = performance.now();
-    const result = await model.transcribe(audio.subarray(from, to), SAMPLE_RATE, { returnTimestamps: true, enableProfiling: false });
+    const result = await model.transcribe(audio.subarray(from, to), SAMPLE_RATE, {
+      returnTimestamps: true,
+      enableProfiling: false,
+    });
     ms += performance.now() - t0;
     const keepFrom = from === 0 ? -Infinity : (from + (WINDOW - HOP) / 2) / SAMPLE_RATE;
     const keepTo = to >= audio.length ? Infinity : (from + HOP + (WINDOW - HOP) / 2) / SAMPLE_RATE;

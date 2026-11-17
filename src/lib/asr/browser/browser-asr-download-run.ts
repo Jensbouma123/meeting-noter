@@ -1,8 +1,4 @@
-import {
-  downloadParakeetModelResumable,
-  isDownloadCancelled,
-  type ModelDownloadProgress,
-} from './resumable-download';
+import { downloadParakeetModelResumable, isDownloadCancelled, type ModelDownloadProgress } from './resumable-download';
 import { markCached, markCancelled, markDownloading, markFailed, markNotCached } from './model-registry-status';
 import { updateProgress } from './model-registry-progress';
 import type { ModelEntry } from './types/model-registry';

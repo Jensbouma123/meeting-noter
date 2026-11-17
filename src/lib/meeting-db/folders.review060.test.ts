@@ -64,7 +64,7 @@ describe('folder context migration v8 -> v9 (review060)', () => {
     db.close();
   });
 
-  it('stores context exactly as given by the db layer (trimming is the route\'s job)', () => {
+  it("stores context exactly as given by the db layer (trimming is the route's job)", () => {
     const db = new MeetingsDb(path.join(tmpDir(), 'raw.db'));
     const folder = db.createFolder('Raw');
     expect(db.setFolderContext(folder.id, '  padded  ').context).toBe('  padded  ');

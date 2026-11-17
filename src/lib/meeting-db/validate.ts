@@ -23,7 +23,10 @@ function parseOverlap(v: unknown): SegmentOverlap | undefined {
 function parseLowConfSpans(v: unknown): LowConfSpan[] | undefined {
   if (!Array.isArray(v)) return undefined;
   const spans = v
-    .filter((s): s is [number, number, number] => Array.isArray(s) && s.length === 3 && s.every(isNum) && s[0] >= 0 && s[1] > s[0])
+    .filter(
+      (s): s is [number, number, number] =>
+        Array.isArray(s) && s.length === 3 && s.every(isNum) && s[0] >= 0 && s[1] > s[0],
+    )
     .slice(0, 200)
     .map(([a, b, c]): LowConfSpan => [a, b, c]);
   return spans.length > 0 ? spans : undefined;

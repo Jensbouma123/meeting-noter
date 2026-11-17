@@ -4,7 +4,15 @@ import { parseInsightSet } from './insights-validate';
 import { renderMeetingMarkdown } from './markdown';
 import { sampleMeeting } from './test-meeting';
 
-const item = { id: 'decision:s2:0', kind: 'decision', text: 'We ship the café export on Friday.', segmentId: 's2', speakerId: 'system:1', start: 40, score: 0.8 };
+const item = {
+  id: 'decision:s2:0',
+  kind: 'decision',
+  text: 'We ship the café export on Friday.',
+  segmentId: 's2',
+  speakerId: 'system:1',
+  start: 40,
+  score: 0.8,
+};
 
 describe('suggested insights and the markdown export', () => {
   it('leaves unaccepted suggestions out of the export', () => {
@@ -15,7 +23,10 @@ describe('suggested insights and the markdown export', () => {
   });
 
   it('exports a suggestion once it is accepted as a decision', () => {
-    const md = renderMeetingMarkdown({ ...sampleMeeting(), notes: { actions: [], decisions: [{ id: 'd', text: item.text, sourceSegmentId: 's2' }] } });
+    const md = renderMeetingMarkdown({
+      ...sampleMeeting(),
+      notes: { actions: [], decisions: [{ id: 'd', text: item.text, sourceSegmentId: 's2' }] },
+    });
     expect(md).toContain('Decisions:\n- We ship the café export on Friday.');
   });
 });
@@ -25,6 +36,8 @@ describe('parseInsightSet', () => {
     expect(parseInsightSet({ version: INSIGHTS_VERSION, items: 'x' })).toBeNull();
     expect(parseInsightSet({ items: [item], dismissed: [] })).toBeNull();
     expect(parseInsightSet({ version: 1, items: [item], dismissed: [] })).toBeNull();
-    expect(parseInsightSet({ version: INSIGHTS_VERSION, items: [{ ...item, kind: 'other' }, item] })?.items).toHaveLength(1);
+    expect(
+      parseInsightSet({ version: INSIGHTS_VERSION, items: [{ ...item, kind: 'other' }, item] })?.items,
+    ).toHaveLength(1);
   });
 });

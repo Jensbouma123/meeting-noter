@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { LANGID_TOKEN_IDS, LANGID_LANGUAGE_NAMES, LANGID_ID_TO_TOKEN, languageNameFor } from './languages';
 
 describe('language token table', () => {
-  it('has exactly 99 languages, matching Whisper\'s multilingual token set', () => {
+  it("has exactly 99 languages, matching Whisper's multilingual token set", () => {
     expect(Object.keys(LANGID_TOKEN_IDS)).toHaveLength(99);
   });
 

@@ -51,7 +51,9 @@ describe.skipIf(process.platform !== 'darwin')('install.sh prebuilt speech model
 
   it('3b. download fails without network (connection refused): builds on this Mac', () => {
     publishRelease('0.2.1');
-    const r = installWithGpuModelPinnedToPrebuilt({ MEETING_NOTER_MODEL_URL: 'http://127.0.0.1:9/encoder-model.q4f16.onnx' });
+    const r = installWithGpuModelPinnedToPrebuilt({
+      MEETING_NOTER_MODEL_URL: 'http://127.0.0.1:9/encoder-model.q4f16.onnx',
+    });
     expect(r.code, r.out).toBe(0);
     expect(r.out).toContain('Download van het GPU-spraakmodel mislukt');
     expect(readFileSync(modelFile(), 'utf8')).toBe('converted');
@@ -106,7 +108,10 @@ describe.skipIf(process.platform !== 'darwin')('install.sh prebuilt speech model
   it('8. download works with less than 8 GB RAM and less than 6 GB free disk', () => {
     publishRelease('0.2.1');
     publishModelAtDefaultTestUrl();
-    writeExecutable(path.join(sandbox.shims, 'sysctl'), '#!/bin/sh\ncase "$*" in *hw.memsize*) echo 4294967296 ;; *) echo 1 ;; esac\n');
+    writeExecutable(
+      path.join(sandbox.shims, 'sysctl'),
+      '#!/bin/sh\ncase "$*" in *hw.memsize*) echo 4294967296 ;; *) echo 1 ;; esac\n',
+    );
     const r = installWithGpuModelPinnedToPrebuilt({ MEETING_NOTER_MIN_DISK_KB: '99999999999' });
     expect(r.code, r.out).toBe(0);
     expect(r.out).not.toMatch(/werkgeheugen|schijfruimte/);

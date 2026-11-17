@@ -34,10 +34,10 @@ export function stubRepo(
     const url = String(input);
     const range = (init?.headers as Record<string, string> | undefined)?.Range ?? null;
     if (url.includes('/api/models/')) {
-      return new Response(
-        JSON.stringify([{ type: 'file', path: file, size: bytes.length, lfs: { oid: treeSha } }]),
-        { status: 200, headers: { 'content-type': 'application/json' } },
-      );
+      return new Response(JSON.stringify([{ type: 'file', path: file, size: bytes.length, lfs: { oid: treeSha } }]), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
     }
     if (init?.method === 'HEAD') {
       return new Response(null, {
@@ -94,7 +94,6 @@ export function corruptStoredChunk(key: string, index: number): Promise<void> {
     };
   });
 }
-
 
 export function installHashHooks(): void {
   vi.setConfig({ testTimeout: 60_000 });

@@ -42,10 +42,20 @@ export function TranscriptTurnActions({ actions }: TranscriptTurnActionsProps) {
           />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => { actions.createAction(); setAdded('action'); }}>
+          <DropdownMenuItem
+            onClick={() => {
+              actions.createAction();
+              setAdded('action');
+            }}
+          >
             {t('createAction')}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => { actions.markDecision(); setAdded('decision'); }}>
+          <DropdownMenuItem
+            onClick={() => {
+              actions.markDecision();
+              setAdded('decision');
+            }}
+          >
             {t('markDecision')}
           </DropdownMenuItem>
         </DropdownMenuContent>

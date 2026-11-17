@@ -19,7 +19,9 @@ describe('SpeakerStatusChip', () => {
 
   it('renders unavailable state and opens advanced settings', () => {
     const onOpen = vi.fn();
-    render(<SpeakerStatusChip status={{ phase: 'unavailable', reason: 'Model failed to load' }} onOpenSettings={onOpen} />);
+    render(
+      <SpeakerStatusChip status={{ phase: 'unavailable', reason: 'Model failed to load' }} onOpenSettings={onOpen} />,
+    );
     expect(screen.getByText('Speaker detection unavailable')).toBeInTheDocument();
     expect(screen.getByText('Model failed to load')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Speaker detection unavailable/ }));

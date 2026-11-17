@@ -17,11 +17,7 @@ function melToHzSlaney(mel: number): number {
     : SLANEY_LINEAR_HZ_PER_MEL * mel;
 }
 
-export function slaneyMelFilterbank(
-  sampleRate = SAMPLE_RATE,
-  nFft = N_FFT,
-  numMels = NUM_MEL_BINS,
-): Float32Array {
+export function slaneyMelFilterbank(sampleRate = SAMPLE_RATE, nFft = N_FFT, numMels = NUM_MEL_BINS): Float32Array {
   const bins = nFft / 2 + 1;
   const minMel = hzToMelSlaney(0);
   const maxMel = hzToMelSlaney(sampleRate / 2);

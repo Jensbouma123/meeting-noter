@@ -79,8 +79,19 @@ export function LevelMeter({ mode, active, callMissing = false }: LevelMeterProp
       {showMic && (
         <span className="flex items-center gap-1.5">
           <Mic className={iconTone('text-primary-600 dark:text-primary-400')} aria-hidden="true" />
-          <span role="meter" aria-label={t('micLevel')} aria-valuemin={0} aria-valuemax={100} aria-valuenow={0} className={track}>
-            <span ref={micBarRef} className="block w-full rounded-full bg-primary-500 dark:bg-primary-400" style={{ height: '8%', opacity: 0.2 }} />
+          <span
+            role="meter"
+            aria-label={t('micLevel')}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={0}
+            className={track}
+          >
+            <span
+              ref={micBarRef}
+              className="block w-full rounded-full bg-primary-500 dark:bg-primary-400"
+              style={{ height: '8%', opacity: 0.2 }}
+            />
           </span>
         </span>
       )}
@@ -90,8 +101,19 @@ export function LevelMeter({ mode, active, callMissing = false }: LevelMeterProp
       {showSystem && !callMissing && (
         <span className="flex items-center gap-1.5">
           <Volume2 className={iconTone('text-secondary-600 dark:text-secondary-400')} aria-hidden="true" />
-          <span role="meter" aria-label={t('callLevel')} aria-valuemin={0} aria-valuemax={100} aria-valuenow={0} className={track}>
-            <span ref={sysBarRef} className="block w-full rounded-full bg-secondary-500 dark:bg-secondary-400" style={{ height: '8%', opacity: 0.2 }} />
+          <span
+            role="meter"
+            aria-label={t('callLevel')}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={0}
+            className={track}
+          >
+            <span
+              ref={sysBarRef}
+              className="block w-full rounded-full bg-secondary-500 dark:bg-secondary-400"
+              style={{ height: '8%', opacity: 0.2 }}
+            />
           </span>
         </span>
       )}

@@ -116,7 +116,13 @@ export class TurnTracker {
   }
 
   private span(speaker: number, run: OpenRun, endFrame: number, final: boolean): TurnSpan {
-    const span: TurnSpan = { speaker, start: run.startFrame * this.frameSec, end: endFrame * this.frameSec, run: run.id, final };
+    const span: TurnSpan = {
+      speaker,
+      start: run.startFrame * this.frameSec,
+      end: endFrame * this.frameSec,
+      run: run.id,
+      final,
+    };
     if (run.pauses.length > 0) span.pauses = run.pauses.map(([a, b]) => [a * this.frameSec, b * this.frameSec]);
     return span;
   }

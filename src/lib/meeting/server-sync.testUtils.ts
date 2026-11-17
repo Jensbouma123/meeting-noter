@@ -13,7 +13,6 @@ export const calls: string[] = [];
 const env = process.env as Record<string, string | undefined>;
 const prevDir = env.MEETING_NOTER_DATA_DIR;
 
-
 async function fakeFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
   if (!harness.online) throw new TypeError('Failed to fetch');
   const url = new URL(String(input), 'http://localhost:3000');
@@ -64,9 +63,14 @@ export function setupServerSyncTest(): void {
   });
 }
 
-
 export const line = (id: string, text: string, start: number) => ({
-  id, source: 'mic' as const, speaker: 'mic:0', text, start, end: start + 2, final: true,
+  id,
+  source: 'mic' as const,
+  speaker: 'mic:0',
+  text,
+  start,
+  end: start + 2,
+  final: true,
 });
 
 export function readDb(): MeetingsDb {

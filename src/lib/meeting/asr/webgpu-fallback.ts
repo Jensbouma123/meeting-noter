@@ -18,10 +18,7 @@ export function stepDownAfterWebgpuFailure(failedEncoder: WebgpuEncoderQuant, er
     registerManifest(nextManifest);
     resetConsent();
     openDialog();
-    console.error(
-      `[asr] WebGPU ${failedEncoder} session creation failed, trying ${nextManifest.encoderQuant}`,
-      err,
-    );
+    console.error(`[asr] WebGPU ${failedEncoder} session creation failed, trying ${nextManifest.encoderQuant}`, err);
     recordFailure(
       'load',
       `Could not start the model on this device using WebGPU (${message}). ` +
@@ -37,10 +34,7 @@ export function stepDownAfterWebgpuFailure(failedEncoder: WebgpuEncoderQuant, er
   resetConsent();
   openDialog();
 
-  console.error(
-    '[asr] Every WebGPU encoder failed to create a session, falling back to CPU-only',
-    err,
-  );
+  console.error('[asr] Every WebGPU encoder failed to create a session, falling back to CPU-only', err);
   recordFailure(
     'load',
     `Could not start the model on this device using WebGPU (${message}). ` +

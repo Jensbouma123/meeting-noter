@@ -57,7 +57,12 @@ export const WASM: BrowserASRConfig = {
   files: ['encoder-model.int8.onnx', 'decoder_joint-model.int8.onnx', 'vocab.txt'],
 };
 
-export const WEBGPU: BrowserASRConfig = { ...WASM, backend: 'webgpu-hybrid', encoderQuant: 'fp16', asrBackend: 'webgpu' };
+export const WEBGPU: BrowserASRConfig = {
+  ...WASM,
+  backend: 'webgpu-hybrid',
+  encoderQuant: 'fp16',
+  asrBackend: 'webgpu',
+};
 
 export function recorder() {
   const log: string[] = [];

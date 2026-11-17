@@ -1,24 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  consentedAndCached,
-  fakes,
-  modules,
-  resetBridge,
-  resetFakesAndRegistry
-} from './diarization-bridge-fakes';
+import { consentedAndCached, fakes, modules, resetBridge, resetFakesAndRegistry } from './diarization-bridge-fakes';
 
 vi.mock('@/lib/asr/browser', async (importOriginal) =>
-  (await import('./diarization-bridge-fakes')).mockAsrBrowser(importOriginal));
+  (await import('./diarization-bridge-fakes')).mockAsrBrowser(importOriginal),
+);
 
-vi.mock('@/lib/diarization/browser', async () =>
-  (await import('./diarization-bridge-fakes')).mockDiarizationBrowser());
+vi.mock('@/lib/diarization/browser', async () => (await import('./diarization-bridge-fakes')).mockDiarizationBrowser());
 
 beforeEach(resetFakesAndRegistry);
 
 afterEach(resetBridge);
 
-const PYANNOTE_ERA_REPO =
-  'csukuangfj/sherpa-onnx-pyannote-segmentation-3-0+hbredin/wespeaker-voxceleb-resnet34-LM';
+const PYANNOTE_ERA_REPO = 'csukuangfj/sherpa-onnx-pyannote-segmentation-3-0+hbredin/wespeaker-voxceleb-resnet34-LM';
 
 describe('diarization bridge — registry identity', () => {
   it('drops a "cached" entry left by the pyannote-era model, so the Nemotron files get downloaded', async () => {
@@ -131,4 +124,3 @@ describe('diarization bridge — status', () => {
     expect(fakes.retried).toEqual([]);
   });
 });
-

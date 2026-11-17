@@ -3,10 +3,7 @@ import { uniqueNames } from '@/lib/meeting/participant-names';
 import type { FolderRoster } from './roster.types';
 import type { RosterPlan } from './roster-plan.types';
 
-export function resolveFolderRoster(
-  folders: readonly FolderRow[],
-  folderId: string | null | undefined,
-): FolderRoster {
+export function resolveFolderRoster(folders: readonly FolderRow[], folderId: string | null | undefined): FolderRoster {
   const byId = new Map(folders.map((folder) => [folder.id, folder]));
   const seen = new Set<string>();
   let current = folderId ? byId.get(folderId) : undefined;

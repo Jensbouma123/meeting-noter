@@ -35,30 +35,46 @@ describe('LiveTranscript overlapping speech', () => {
       ['Speaker 1', ['b']],
       ['Speaker 2', ['c']],
     ]);
-    for (const [id, name] of [['a', 'Speaker 1'], ['d', 'Speaker 2']]) {
+    for (const [id, name] of [
+      ['a', 'Speaker 1'],
+      ['d', 'Speaker 2'],
+    ]) {
       const row = rowOf(container, id);
       expect(row.hasAttribute('data-turn-start')).toBe(true);
       expect(speakerShown(row)).toBe(name);
     }
   });
 
-  it('shows an overlap whose words are all one speaker\'s as that speaker\'s lines', () => {
-    const { container } = render(view([
-      seg('a', 'mic:0', 0, 'name,'),
-      { ...seg('b', 'mic:0', 4, 'about the four'), overlap },
-      seg('c', 'mic:0', 7, 'galaxy thing'),
-    ]));
+  it("shows an overlap whose words are all one speaker's as that speaker's lines", () => {
+    const { container } = render(
+      view([
+        seg('a', 'mic:0', 0, 'name,'),
+        { ...seg('b', 'mic:0', 4, 'about the four'), overlap },
+        seg('c', 'mic:0', 7, 'galaxy thing'),
+      ]),
+    );
     expect(container.querySelector('[data-overlap]')).toBeNull();
     expect(container.textContent).not.toContain('…');
-    expect(timeline(container)).toEqual([['Speaker 1', [['00:00', 'a'], ['00:04', 'b'], ['00:07', 'c']]]]);
+    expect(timeline(container)).toEqual([
+      [
+        'Speaker 1',
+        [
+          ['00:00', 'a'],
+          ['00:04', 'b'],
+          ['00:07', 'c'],
+        ],
+      ],
+    ]);
   });
 
   it('leaves out the column of an overlapping speaker no words were caught of', () => {
     const three = { start: 4, end: 6, speakers: ['mic:0', 'mic:2', 'mic:1'] };
-    const { container } = render(view([
-      { ...seg('b', 'mic:0', 4, 'we should'), overlap: three },
-      { ...seg('c', 'mic:1', 4.5, 'no wait'), overlap: three },
-    ]));
+    const { container } = render(
+      view([
+        { ...seg('b', 'mic:0', 4, 'we should'), overlap: three },
+        { ...seg('c', 'mic:1', 4.5, 'no wait'), overlap: three },
+      ]),
+    );
     const split = container.querySelector('[data-overlap]')!;
     expect(columns(split)).toEqual([
       ['Speaker 1', ['b']],
@@ -68,7 +84,7 @@ describe('LiveTranscript overlapping speech', () => {
     expect(container.textContent).not.toContain('…');
   });
 
-  it('draws one bar per column: the speaker colour, not the line\'s grey rule too', () => {
+  it("draws one bar per column: the speaker colour, not the line's grey rule too", () => {
     const { container } = render(view(transcript));
     for (const col of container.querySelectorAll('[data-overlap-speaker]')) {
       const bar = col.querySelector(':scope > span[aria-hidden="true"]')!;

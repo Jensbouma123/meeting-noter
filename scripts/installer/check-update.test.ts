@@ -61,19 +61,30 @@ describe('check-update.mjs as run by launcher.sh', () => {
 
   const check = (url = `http://127.0.0.1:${(server.address() as AddressInfo).port}/`) =>
     new Promise<{ stdout: string; status: number }>((resolve) => {
-      execFile(process.execPath, [path.join(dir, 'installer/check-update.mjs')],
+      execFile(
+        process.execPath,
+        [path.join(dir, 'installer/check-update.mjs')],
         { env: { ...process.env, MEETING_NOTER_RELEASES_URL: url } },
-        (err, stdout) => resolve({ stdout, status: err ? ((err as { code?: number }).code ?? 1) : 0 }));
+        (err, stdout) => resolve({ stdout, status: err ? ((err as { code?: number }).code ?? 1) : 0 }),
+      );
     });
-  const release = (tag: string, names: string[]) =>
-    ({ status: 200, body: JSON.stringify({ tag_name: tag, assets: assets(...names) }) });
+  const release = (tag: string, names: string[]) => ({
+    status: 200,
+    body: JSON.stringify({ tag_name: tag, assets: assets(...names) }),
+  });
 
   it('prints the version only for a newer release that carries this arch', async () => {
-    reply = release('v1.1.0', full.map((a) => a.name));
+    reply = release(
+      'v1.1.0',
+      full.map((a) => a.name),
+    );
     expect((await check()).stdout).toBe('1.1.0\n');
     reply = release('v1.1.0', ['meeting-noter-macos-x64.tar.gz']);
     expect((await check()).stdout).toBe('');
-    reply = release('v1.0.0', full.map((a) => a.name));
+    reply = release(
+      'v1.0.0',
+      full.map((a) => a.name),
+    );
     expect((await check()).stdout).toBe('');
   });
 

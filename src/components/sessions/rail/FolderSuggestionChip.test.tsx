@@ -14,7 +14,10 @@ describe('FolderSuggestionChip', () => {
     );
     const chip = screen.getByTestId('folder-suggestion');
     expect(chip).toHaveTextContent('Suggested folder: Clients / Acme / Product Design');
-    expect(screen.getByText('Clients / Acme / Product Design').parentElement).toHaveClass('whitespace-normal', 'break-words');
+    expect(screen.getByText('Clients / Acme / Product Design').parentElement).toHaveClass(
+      'whitespace-normal',
+      'break-words',
+    );
     for (const label of ['Move', 'No thanks']) {
       const button = screen.getByRole('button', { name: label });
       expect(button).toHaveAttribute('aria-label', label);

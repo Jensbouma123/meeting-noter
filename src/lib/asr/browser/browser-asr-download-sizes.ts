@@ -29,6 +29,6 @@ export async function probeRegisteredModelSizes(): Promise<void> {
         });
       sizeProbes.set(entry.key, probe);
       return probe;
-    })
+    }),
   );
 }

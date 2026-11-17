@@ -24,7 +24,9 @@ export function FolderTree({ controller, sessions, renderSession, onNewSession }
         />
       </HStack>
       {tree.length === 0 ? (
-        <Text size="xs" variant="muted" className="px-3 py-1">{t('empty')}</Text>
+        <Text size="xs" variant="muted" className="px-3 py-1">
+          {t('empty')}
+        </Text>
       ) : (
         <ul aria-label={t('title')} className="px-1">
           {tree.map((node) => (

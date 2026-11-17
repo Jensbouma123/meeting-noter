@@ -16,7 +16,8 @@ const BATCH = 32;
 
 async function embedAll(embedder: Embedder, texts: string[]): Promise<Float32Array[]> {
   const out: Float32Array[] = [];
-  for (let i = 0; i < texts.length; i += BATCH) out.push(...(await embedder.embed(texts.slice(i, i + BATCH), 'document')));
+  for (let i = 0; i < texts.length; i += BATCH)
+    out.push(...(await embedder.embed(texts.slice(i, i + BATCH), 'document')));
   return out;
 }
 
@@ -33,17 +34,32 @@ export async function extractInsights(segments: readonly Segment[], embedder: Em
     .filter((c) => c.kinds.length > 0);
   if (candidates.length === 0) return [];
   const protos = await prototypeVectors(embedder);
-  const vectors = await embedAll(embedder, candidates.map((c) => c.sentence.text));
+  const vectors = await embedAll(
+    embedder,
+    candidates.map((c) => c.sentence.text),
+  );
   const kept: { insight: Insight; vector: Float32Array }[] = [];
   candidates.forEach(({ sentence: s, kinds }, i) => {
     const hit = classify(vectors[i], kinds, protos);
     if (!hit || kept.some((k) => cosine(k.vector, vectors[i]) >= DEDUPE_COSINE)) return;
     kept.push({
       vector: vectors[i],
-      insight: { id: `${hit.kind}:${s.id}`, kind: hit.kind, text: s.text, segmentId: s.segmentId, speakerId: s.speakerId, start: s.start, score: hit.score },
+      insight: {
+        id: `${hit.kind}:${s.id}`,
+        kind: hit.kind,
+        text: s.text,
+        segmentId: s.segmentId,
+        speakerId: s.speakerId,
+        start: s.start,
+        score: hit.score,
+      },
     });
   });
   const top = (kind: InsightKind) =>
-    kept.map((k) => k.insight).filter((i) => i.kind === kind).sort((a, b) => b.score - a.score).slice(0, MAX_PER_KIND);
+    kept
+      .map((k) => k.insight)
+      .filter((i) => i.kind === kind)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, MAX_PER_KIND);
   return [...top('decision'), ...top('action')].sort((a, b) => a.start - b.start);
 }

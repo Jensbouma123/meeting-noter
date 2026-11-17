@@ -22,7 +22,10 @@ export function registerGetActiveMeeting(server: McpServer, withDb: WithDb, acti
       if (!meetingId) return textResult(NONE);
       return withDb((db) => {
         const meeting = db.get(meetingId);
-        if (!meeting) return textResult(`The open meeting "${meetingId}" has no saved transcript yet. ${isLive ? 'Recording just started, try again in a few seconds.' : NONE}`);
+        if (!meeting)
+          return textResult(
+            `The open meeting "${meetingId}" has no saved transcript yet. ${isLive ? 'Recording just started, try again in a few seconds.' : NONE}`,
+          );
         return textResult(`is_live: ${isLive}\n\n${renderMeetingMarkdown(meeting)}`);
       });
     },

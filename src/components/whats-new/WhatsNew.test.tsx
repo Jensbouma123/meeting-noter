@@ -7,14 +7,24 @@ import { UpdateBanner } from '../UpdateBanner';
 import { WhatsNewDialog } from './WhatsNewDialog';
 
 beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
-  HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
+  HTMLDialogElement.prototype.showModal = function () {
+    this.setAttribute('open', '');
+  };
+  HTMLDialogElement.prototype.close = function () {
+    this.removeAttribute('open');
+  };
 });
 
 const ui = (node: React.ReactNode) => render(<ToastProvider>{node}</ToastProvider>);
 
-beforeEach(() => { vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false })); });
-afterEach(() => { cleanup(); vi.unstubAllGlobals(); window.history.replaceState({}, '', '/'); });
+beforeEach(() => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false }));
+});
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+  window.history.replaceState({}, '', '/');
+});
 
 describe('update banner preview', () => {
   it('shows a one-liner whose (i) button opens the notes dialog and Update now starts nothing', async () => {
@@ -41,11 +51,16 @@ describe('WhatsNewDialog', () => {
   });
 
   it('shows server notes once and records the close', async () => {
-    vi.mocked(fetch).mockResolvedValue({ ok: true, json: async () => ({ show: true, version: '2.0.0', notes: '- New thing', pageUrl: null }) } as Response);
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ show: true, version: '2.0.0', notes: '- New thing', pageUrl: null }),
+    } as Response);
     ui(<WhatsNewDialog />);
     expect(await screen.findByText('New thing')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));
-    await waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/app/whats-new', expect.objectContaining({ method: 'POST' })));
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith('/api/app/whats-new', expect.objectContaining({ method: 'POST' })),
+    );
   });
 
   it('renders nothing when the server says not to show', async () => {

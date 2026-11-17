@@ -64,7 +64,9 @@ describe('VocabularySection', () => {
     render(<VocabularySection />);
     const file = new File(['word,heard as\nFramna,from now; Fromna\n'], 'words.csv', { type: 'text/csv' });
     fireEvent.change(screen.getByLabelText(/import words from a/i), { target: { files: [file] } });
-    await waitFor(() => expect(getVocabulary().entries).toEqual([{ word: 'Framna', variants: ['from now', 'Fromna'] }]));
+    await waitFor(() =>
+      expect(getVocabulary().entries).toEqual([{ word: 'Framna', variants: ['from now', 'Fromna'] }]),
+    );
     expect(screen.getByRole('status')).toHaveTextContent('Added 1 word from words.csv.');
   });
 });

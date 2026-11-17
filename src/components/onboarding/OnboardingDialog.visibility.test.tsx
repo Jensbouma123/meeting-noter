@@ -4,12 +4,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { ONBOARDING_STORAGE_KEY, openOnboarding, restartOnboarding } from '@/lib/onboarding/store';
 import { addVocabularyEntries, getVocabulary } from '@/lib/vocabulary/store';
-import {
-  entry,
-  setEntries,
-  registerOnboardingTestEnv,
-  acceptAckPastModels,
-} from './OnboardingDialog.testSupport';
+import { entry, setEntries, registerOnboardingTestEnv, acceptAckPastModels } from './OnboardingDialog.testSupport';
 import { OnboardingDialog } from './OnboardingDialog';
 
 registerOnboardingTestEnv();

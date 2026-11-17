@@ -4,9 +4,7 @@ import type { TensorLike } from './types';
 export function toUnitRows(tensor: TensorLike, expectedRows: number): Float32Array[] {
   const [rows, dim] = [tensor.dims[0], tensor.dims[tensor.dims.length - 1]];
   if (dim !== EG2_DIM || rows !== expectedRows) {
-    throw new Error(
-      `EmbeddingGemma2: expected [${expectedRows}, ${EG2_DIM}] output, got [${tensor.dims.join(', ')}]`,
-    );
+    throw new Error(`EmbeddingGemma2: expected [${expectedRows}, ${EG2_DIM}] output, got [${tensor.dims.join(', ')}]`);
   }
   const out: Float32Array[] = [];
   for (let i = 0; i < rows; i++) {

@@ -6,7 +6,8 @@ export function runWindows(channel: number, start: number, end: number, p = RESC
   if (len < p.minRunFrames) return [];
   if (len <= p.windowFrames) return [{ channel, start, end }];
   const out: RescoreWindow[] = [];
-  for (let a = start; a <= end - p.windowFrames; a += p.hopFrames) out.push({ channel, start: a, end: a + p.windowFrames });
+  for (let a = start; a <= end - p.windowFrames; a += p.hopFrames)
+    out.push({ channel, start: a, end: a + p.windowFrames });
   if (out[out.length - 1].end < end) out.push({ channel, start: end - p.windowFrames, end });
   return out;
 }

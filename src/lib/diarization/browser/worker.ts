@@ -20,7 +20,11 @@ const flushedIds = new Set<string>();
 const disposedBeforeReady = new Set<string>();
 let loading = 0;
 
-function startDiarizer(msg: Extract<WorkerInMessage, { type: 'init' }>, model: SortformerModel, rescore: WorkerRescore | null): void {
+function startDiarizer(
+  msg: Extract<WorkerInMessage, { type: 'init' }>,
+  model: SortformerModel,
+  rescore: WorkerRescore | null,
+): void {
   const held = takeHeldAudio(msg.id);
   if (disposedBeforeReady.delete(msg.id)) {
     void rescore?.discard();

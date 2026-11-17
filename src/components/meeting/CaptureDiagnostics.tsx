@@ -50,7 +50,11 @@ export function CaptureDiagnostics() {
             mode={c.mode} · ctx={c.contextState} {c.contextSampleRate} Hz · surface={c.displaySurface ?? '—'} · micEC=
             {String(c.micCancelsEcho)} · micReopens={c.micReopens} · postStop={String(diag.postStop)}
           </div>
-          {c.shareError && <div className="text-warning-foreground">{t('diagnostics.shareFailed').replace('{error}', c.shareError)}</div>}
+          {c.shareError && (
+            <div className="text-warning-foreground">
+              {t('diagnostics.shareFailed').replace('{error}', c.shareError)}
+            </div>
+          )}
           {c.shareSilent && <div className="text-warning-foreground">{t('diagnostics.shareSilent')}</div>}
           <CaptureSourceReadout source="mic" diag={diag} />
           <CaptureSourceReadout source="system" diag={diag} />

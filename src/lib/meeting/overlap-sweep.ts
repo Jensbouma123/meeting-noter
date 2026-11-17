@@ -20,7 +20,8 @@ export function sweepOverlaps(
       open ??= { start: at, speakers: new Set() };
       for (const who of active.keys()) open.speakers.add(who);
     } else if (open) {
-      if (accept({ start: open.start, end: at })) found.push({ start: open.start, end: at, speakers: [...open.speakers] });
+      if (accept({ start: open.start, end: at }))
+        found.push({ start: open.start, end: at, speakers: [...open.speakers] });
       open = null;
     }
   }

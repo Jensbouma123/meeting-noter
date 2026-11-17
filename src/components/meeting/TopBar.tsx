@@ -44,9 +44,7 @@ export function TopBar({
   }, [status]);
 
   const elapsedSeconds =
-    (status === 'live' || status === 'paused') && startedAt
-      ? Math.max(0, Math.floor((now - startedAt) / 1000))
-      : 0;
+    (status === 'live' || status === 'paused') && startedAt ? Math.max(0, Math.floor((now - startedAt) / 1000)) : 0;
 
   return (
     <HStack
@@ -59,7 +57,12 @@ export function TopBar({
     >
       <TopBarTitle title={title} dateMs={meetingDate ?? startedAt} onTitleChange={onTitleChange} />
 
-      <HStack spacing="xs" align="center" data-testid="topbar-status" className="min-w-0 shrink gap-1.5 overflow-hidden sm:shrink-0 sm:gap-3">
+      <HStack
+        spacing="xs"
+        align="center"
+        data-testid="topbar-status"
+        className="min-w-0 shrink gap-1.5 overflow-hidden sm:shrink-0 sm:gap-3"
+      >
         {(status === 'live' || status === 'paused') && (
           <Badge variant="neutral" size="sm" className="hidden font-mono tabular-nums shadow-xs md:inline-flex">
             <span className="inline-block size-1.5 rounded-full bg-danger motion-safe:animate-pulse" />
@@ -78,11 +81,7 @@ export function TopBar({
         <SpeakerStatusChip status={diarization} onOpenSettings={onOpenSettings} />
 
         {language && (
-          <TopBarLanguagePicker
-            language={language}
-            selectedLang={selectedLang}
-            onPickLanguage={onPickLanguage}
-          />
+          <TopBarLanguagePicker language={language} selectedLang={selectedLang} onPickLanguage={onPickLanguage} />
         )}
       </HStack>
 

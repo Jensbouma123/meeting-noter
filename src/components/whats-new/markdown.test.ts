@@ -12,6 +12,8 @@ describe('markdown', () => {
   });
 
   it('only links http(s) and leaves raw html as text', () => {
-    expect(parseInline('<img src=x onerror=a> [x](javascript:alert(1)) [ok](https://a.test)').map((t) => t.kind)).toEqual(['text', 'link']);
+    expect(
+      parseInline('<img src=x onerror=a> [x](javascript:alert(1)) [ok](https://a.test)').map((t) => t.kind),
+    ).toEqual(['text', 'link']);
   });
 });

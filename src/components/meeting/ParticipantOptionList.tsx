@@ -7,7 +7,8 @@ import type { ParticipantOptionListProps } from './ParticipantOptionList.types';
 const ROW = 'flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-2 text-sm';
 const CHECKED = 'border-primary-500 bg-primary-500 text-on-primary';
 const UNCHECKED = 'border-border-subtle';
-const LIST = 'z-50 mt-1 flex w-full flex-col gap-1 overflow-y-auto rounded-md border border-border-subtle bg-surface p-1 shadow-lg';
+const LIST =
+  'z-50 mt-1 flex w-full flex-col gap-1 overflow-y-auto rounded-md border border-border-subtle bg-surface p-1 shadow-lg';
 const PLACEMENT = {
   overlay: 'absolute left-0 right-0 top-full max-h-72',
   inline: 'relative max-h-40 shrink-0',
@@ -55,14 +56,18 @@ export function ParticipantOptionList(props: ParticipantOptionListProps) {
     >
       {usual.length > 0 && (
         <div role="group" aria-label={usualLabel}>
-          <div aria-hidden="true" className="px-2 py-1 text-xs font-semibold text-muted-foreground">{usualLabel}</div>
+          <div aria-hidden="true" className="px-2 py-1 text-xs font-semibold text-muted-foreground">
+            {usualLabel}
+          </div>
           {usual.map((option, index) => renderRow(option, index))}
         </div>
       )}
       {(others.length > 0 || fresh) && (
         <div role="group" aria-label={othersLabel}>
           {usual.length > 0 && (
-            <div aria-hidden="true" className="px-2 py-1 text-xs font-semibold text-muted-foreground">{othersLabel}</div>
+            <div aria-hidden="true" className="px-2 py-1 text-xs font-semibold text-muted-foreground">
+              {othersLabel}
+            </div>
           )}
           {others.map((option, index) => renderRow(option, usual.length + index))}
           {fresh && renderRow({ name: fresh, addNew: true }, freshIndex)}

@@ -43,8 +43,7 @@ export const parakeetJsMock = () => ({
       };
     },
   },
-}
-);
+});
 
 export const resumableDownloadMock = async () => {
   const actual = await vi.importActual<typeof import('./resumable-download')>('./resumable-download');

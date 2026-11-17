@@ -46,7 +46,9 @@ describe('capture mode toggle', () => {
     fireEvent.mouseLeave(mic);
     await waitFor(() => expect(screen.queryByRole('tooltip', { hidden: true })).toBeNull());
     fireEvent.focus(both);
-    expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent('Neemt je microfoon en het geluid van je gesprek op (Teams, Zoom, Meet).');
+    expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent(
+      'Neemt je microfoon en het geluid van je gesprek op (Teams, Zoom, Meet).',
+    );
   });
 
   it('shows exactly one tooltip per option on hover, also while recording', () => {
@@ -71,7 +73,6 @@ describe('capture mode toggle', () => {
     expect(onModeChange).toHaveBeenCalledWith('mic');
   });
 });
-
 
 describe('recording controls semantics', () => {
   it('groups action controls without creating a navigation landmark', () => {

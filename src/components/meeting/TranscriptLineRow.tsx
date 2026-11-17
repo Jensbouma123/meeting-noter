@@ -9,7 +9,15 @@ import { buildTurnActions } from './buildTurnActions';
 import { useSpeakerStyle } from './useSpeakerStyle';
 import type { TranscriptLineRowProps } from './LiveTranscript.types';
 
-export function TranscriptLineRow({ item, index, isLast, rowClass, sessionId, speakers, flash }: TranscriptLineRowProps) {
+export function TranscriptLineRow({
+  item,
+  index,
+  isLast,
+  rowClass,
+  sessionId,
+  speakers,
+  flash,
+}: TranscriptLineRowProps) {
   const t = useT('transcript');
   const speakerStyle = useSpeakerStyle(speakers);
   const { seg, turnStart } = item;
@@ -17,7 +25,10 @@ export function TranscriptLineRow({ item, index, isLast, rowClass, sessionId, sp
   const sourceLabel = seg.source === 'mic' ? t('mic') : t('call');
 
   return (
-    <div ref={flash?.ref} className={`mn-vrow px-4 md:px-8 ${index === 0 ? 'pt-6' : ''} ${isLast ? 'pb-40' : ''} ${flash?.className ?? ''}`}>
+    <div
+      ref={flash?.ref}
+      className={`mn-vrow px-4 md:px-8 ${index === 0 ? 'pt-6' : ''} ${isLast ? 'pb-40' : ''} ${flash?.className ?? ''}`}
+    >
       <div className="mx-auto w-full max-w-[calc(72ch+10rem)]">
         <div
           data-speaker={seg.speaker}
@@ -53,7 +64,10 @@ export function TranscriptLineRow({ item, index, isLast, rowClass, sessionId, sp
               </Text>
             </span>
           ) : (
-            <span className="flex min-w-0 items-baseline gap-1.5 select-none" title={`${speakerLabel} · ${sourceLabel}`}>
+            <span
+              className="flex min-w-0 items-baseline gap-1.5 select-none"
+              title={`${speakerLabel} · ${sourceLabel}`}
+            >
               <span
                 className={`inline-block size-2 shrink-0 self-center rounded-full transition-colors duration-200 ${colorStyle.dotClass}`}
                 aria-hidden="true"
@@ -64,7 +78,9 @@ export function TranscriptLineRow({ item, index, isLast, rowClass, sessionId, sp
                   speakerId={seg.speaker}
                   label={speakerLabel}
                   source={seg.source}
-                  otherLabels={Object.values(speakers).filter((sp) => sp.id !== seg.speaker).map((sp) => sp.label)}
+                  otherLabels={Object.values(speakers)
+                    .filter((sp) => sp.id !== seg.speaker)
+                    .map((sp) => sp.label)}
                   textClassName={`text-sm font-semibold ${colorStyle.textClass}`}
                 />
               ) : (

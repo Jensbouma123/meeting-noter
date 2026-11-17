@@ -8,7 +8,10 @@ export async function startFakeReleaseModelHost(file, currentMode) {
   const server = createServer((req, res) => {
     state.requests++;
     const mode = currentMode();
-    if (mode === MODEL_HOST_MODES.missing || !req.url.endsWith('/encoder-model.q4f16.onnx')) { res.writeHead(404); return res.end(); }
+    if (mode === MODEL_HOST_MODES.missing || !req.url.endsWith('/encoder-model.q4f16.onnx')) {
+      res.writeHead(404);
+      return res.end();
+    }
     if (mode === MODEL_HOST_MODES.wrongBytes) return res.end('not the pinned model');
     const size = statSync(file).size;
     res.writeHead(200, { 'content-length': size });

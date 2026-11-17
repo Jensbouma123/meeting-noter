@@ -22,34 +22,24 @@ export function useModelStatus() {
   const modelRegistryState = useSyncExternalStore(
     subscribeRegistry,
     getModelRegistryState,
-    getModelRegistryServerSnapshot
+    getModelRegistryServerSnapshot,
   );
-  const modelEntries = useMemo(
-    () => Object.values(modelRegistryState.entries),
-    [modelRegistryState]
-  );
-  const browserASR = useSyncExternalStore(
-    subscribeBrowserASR,
-    getBrowserASRProgress,
-    getServerBrowserASRProgress
-  );
+  const modelEntries = useMemo(() => Object.values(modelRegistryState.entries), [modelRegistryState]);
+  const browserASR = useSyncExternalStore(subscribeBrowserASR, getBrowserASRProgress, getServerBrowserASRProgress);
   const asrEnabled = browserASR.enabled;
   const asrPhase: BrowserASRPhase = browserASR.phase;
 
   const postStop = useSyncExternalStore(
     subscribePostStopTranscription,
     getPostStopTranscriptionProgress,
-    getServerPostStopProgress
+    getServerPostStopProgress,
   );
 
   const modelReadiness = useMemo(
     () => deriveModelReadiness(modelEntries, { enabled: asrEnabled, phase: asrPhase }),
-    [modelEntries, asrEnabled, asrPhase]
+    [modelEntries, asrEnabled, asrPhase],
   );
-  const modelProgress = useMemo(
-    () => deriveModelProgress(modelEntries, browserASR),
-    [modelEntries, browserASR]
-  );
+  const modelProgress = useMemo(() => deriveModelProgress(modelEntries, browserASR), [modelEntries, browserASR]);
 
   useEffect(() => {
     enableBrowserASR();

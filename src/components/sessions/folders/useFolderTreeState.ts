@@ -29,7 +29,8 @@ export function useFolderTreeState(controller: FolderController, sessions: reado
     const hidden = new Set<string>();
     const byId = new Map(controller.folders.map((f) => [f.id, f]));
     for (let p = byId.get(controller.renamingId ?? '')?.parentId; p; p = byId.get(p)?.parentId) hidden.add(p);
-    if ([...hidden].some((id) => collapsed.has(id))) setCollapsed(new Set([...collapsed].filter((id) => !hidden.has(id))));
+    if ([...hidden].some((id) => collapsed.has(id)))
+      setCollapsed(new Set([...collapsed].filter((id) => !hidden.has(id))));
   }
   const toggle = useCallback((id: string) => {
     setCollapsed((prev) => {

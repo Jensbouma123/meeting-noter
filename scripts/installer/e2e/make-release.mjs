@@ -1,11 +1,4 @@
-import {
-  copyFileSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  symlinkSync,
-  writeFileSync,
-} from 'node:fs';
+import { copyFileSync, mkdirSync, readdirSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { ASSET } from './constants.mjs';
@@ -26,8 +19,7 @@ function inlineJsonImports(source, updateDir, serverDir) {
 function copyUpdateSources(repo, serverDir) {
   const updateDir = path.join(repo, 'src/lib/update');
   for (const file of readdirSync(updateDir).filter((n) => !UPDATE_SOURCE_EXCLUDED(n))) {
-    const source = readFileSync(path.join(updateDir, file), 'utf8')
-      .replace(/from '(\.\/[\w-]+)'/g, "from '$1.ts'");
+    const source = readFileSync(path.join(updateDir, file), 'utf8').replace(/from '(\.\/[\w-]+)'/g, "from '$1.ts'");
     writeFileSync(path.join(serverDir, file), inlineJsonImports(source, updateDir, serverDir));
   }
   copyFileSync(path.join(updateDir, 'version.mjs'), path.join(serverDir, 'version.mjs'));
@@ -43,11 +35,7 @@ function stageRelease(stage, { repo, installerDir, version, broken }) {
   copyUpdateSources(repo, path.join(stage, 'server'));
   copyFileSync(path.join(installerDir, 'launcher.sh'), path.join(stage, 'launcher/launcher.sh'));
   writeFileSync(path.join(stage, 'launcher/AppIcon.icns'), 'icns');
-  writeFileSync(
-    path.join(stage, 'helper/meeting-noter-audio-helper'),
-    '#!/bin/sh\n# fake helper\n',
-    { mode: 0o755 },
-  );
+  writeFileSync(path.join(stage, 'helper/meeting-noter-audio-helper'), '#!/bin/sh\n# fake helper\n', { mode: 0o755 });
   copyFileSync(path.join(installerDir, 'uninstall.sh'), path.join(stage, 'uninstall.sh'));
   writeFileSync(path.join(stage, 'VERSION'), `${version}\n`);
   writeFileSync(path.join(stage, 'ARCH'), 'arm64\n');
@@ -61,7 +49,9 @@ export function createReleaseBuilder({ tmp, repo, installerDir, run }) {
     const tarArgs = ['-czf', path.join(dir, ASSET), '-C', path.dirname(stage), 'meeting-noter'];
     const tar = await run('/usr/bin/tar', tarArgs, { ...process.env, COPYFILE_DISABLE: '1' });
     if (tar.code !== 0) throw new Error(tar.out);
-    const sum = createHash('sha256').update(readFileSync(path.join(dir, ASSET))).digest('hex');
+    const sum = createHash('sha256')
+      .update(readFileSync(path.join(dir, ASSET)))
+      .digest('hex');
     writeFileSync(path.join(dir, `${ASSET}.sha256`), `${sum}  ${ASSET}\n`);
     copyFileSync(path.join(installerDir, 'install.sh'), path.join(dir, 'install.sh'));
     return { version, dir, sum, cut: false };

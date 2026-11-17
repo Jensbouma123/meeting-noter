@@ -20,7 +20,16 @@ export function AdvancedSection() {
         <SettingsRow
           label={t('diagnosticsToggle')}
           description={t('diagnosticsToggleDescription')}
-          control={<Switch checked={diagnostics} onCheckedChange={(enabled) => { setCaptureDebug(enabled); setDiagnostics(enabled); }} aria-label={t('diagnosticsToggle')} />}
+          control={
+            <Switch
+              checked={diagnostics}
+              onCheckedChange={(enabled) => {
+                setCaptureDebug(enabled);
+                setDiagnostics(enabled);
+              }}
+              aria-label={t('diagnosticsToggle')}
+            />
+          }
         />
       </SettingsGroup>
       {diagnostics && <CaptureDiagnostics />}

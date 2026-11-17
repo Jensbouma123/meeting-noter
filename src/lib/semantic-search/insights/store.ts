@@ -17,9 +17,15 @@ export function loadInsights(meetingId: string): InsightSet {
   if (typeof window === 'undefined') return EMPTY;
   try {
     dropStale(meetingId);
-    const parsed = JSON.parse(window.localStorage.getItem(insightsKey(meetingId)) ?? 'null') as Partial<InsightSet> | null;
+    const parsed = JSON.parse(
+      window.localStorage.getItem(insightsKey(meetingId)) ?? 'null',
+    ) as Partial<InsightSet> | null;
     if (!parsed || parsed.version !== INSIGHTS_VERSION || !Array.isArray(parsed.items)) return EMPTY;
-    return { version: INSIGHTS_VERSION, items: parsed.items, dismissed: Array.isArray(parsed.dismissed) ? parsed.dismissed : [] };
+    return {
+      version: INSIGHTS_VERSION,
+      items: parsed.items,
+      dismissed: Array.isArray(parsed.dismissed) ? parsed.dismissed : [],
+    };
   } catch {
     return EMPTY;
   }

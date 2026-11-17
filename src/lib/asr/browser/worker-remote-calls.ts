@@ -12,10 +12,9 @@ export async function transcribeRemotely(
 ): Promise<BrowserTranscribeResult> {
   const copy = audio.slice();
   try {
-    const result = await channel.call(
-      { method: 'transcribe', args: { audio: copy, source, speakerLabel, isFinal } },
-      [copy.buffer],
-    );
+    const result = await channel.call({ method: 'transcribe', args: { audio: copy, source, speakerLabel, isFinal } }, [
+      copy.buffer,
+    ]);
     return (result as BrowserTranscribeResult | undefined) ?? NOT_READY_TRANSCRIBE;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

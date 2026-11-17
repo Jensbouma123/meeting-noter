@@ -4,11 +4,7 @@ import { useRef, useState, type ChangeEvent } from 'react';
 import { Select, Text, VStack } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { DEFAULT_BIAS_STRENGTH } from '@/lib/vocabulary/constants';
-import {
-  addVocabularyEntries,
-  setVocabularyStrength,
-  useVocabulary,
-} from '@/lib/vocabulary/store';
+import { addVocabularyEntries, setVocabularyStrength, useVocabulary } from '@/lib/vocabulary/store';
 import { parseWordFile } from '@/lib/vocabulary/parse-word-file';
 import { VocabularyAddField } from './VocabularyAddField';
 import { VocabularyFileMenu } from './VocabularyFileMenu';
@@ -95,7 +91,11 @@ export function VocabularySection() {
             <Select
               id="vocabulary-strength"
               options={strengthOptions}
-              value={strengthOptions.some((o) => Number(o.value) === strength) ? String(strength) : String(DEFAULT_BIAS_STRENGTH)}
+              value={
+                strengthOptions.some((o) => Number(o.value) === strength)
+                  ? String(strength)
+                  : String(DEFAULT_BIAS_STRENGTH)
+              }
               onChange={(value) => setVocabularyStrength(Number(value))}
               aria-label={t('vocab.strength')}
             />

@@ -6,9 +6,7 @@ export function createInstallState(root) {
   const read = (file) => readFileSync(path.join(root, file), 'utf8');
 
   function userFilesIntact() {
-    const bad = Object.entries(USER_FILES).filter(
-      ([f, body]) => !existsSync(path.join(root, f)) || read(f) !== body,
-    );
+    const bad = Object.entries(USER_FILES).filter(([f, body]) => !existsSync(path.join(root, f)) || read(f) !== body);
     return { ok: bad.length === 0, bad: bad.map(([f]) => f).join(', ') };
   }
 

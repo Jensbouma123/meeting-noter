@@ -21,8 +21,12 @@ export function FolderSettingsDialog({ folder, folders, onClose, onSave }: Folde
       title={t('settingsTitle').replace('{name}', folder.name)}
       footer={
         <div className="dialog-actions flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <Button variant="outline" onClick={onClose}>{t('cancel')}</Button>
-          <Button variant="primary" onClick={() => onSave(roster, inherit, context)}>{t('save')}</Button>
+          <Button variant="outline" onClick={onClose}>
+            {t('cancel')}
+          </Button>
+          <Button variant="primary" onClick={() => onSave(roster, inherit, context)}>
+            {t('save')}
+          </Button>
         </div>
       }
     >

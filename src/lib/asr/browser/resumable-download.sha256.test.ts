@@ -15,9 +15,7 @@ function nodeSha256(bytes: Uint8Array): string {
 
 describe('Sha256', () => {
   it('matches the published test vector for the empty message', () => {
-    expect(sha256Hex(new Uint8Array(0))).toBe(
-      'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-    );
+    expect(sha256Hex(new Uint8Array(0))).toBe('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
     expect(nodeSha256(new Uint8Array(0))).toBe(sha256Hex(new Uint8Array(0)));
   });
 
@@ -30,14 +28,7 @@ describe('Sha256', () => {
   });
 
   it('matches Node for the sizes this app actually stores', () => {
-    const sizes = [
-      93_939,
-      18_202_004,
-      CACHE_CHUNK_BYTES - 1,
-      CACHE_CHUNK_BYTES,
-      CACHE_CHUNK_BYTES + 1,
-      41_770_866,
-    ];
+    const sizes = [93_939, 18_202_004, CACHE_CHUNK_BYTES - 1, CACHE_CHUNK_BYTES, CACHE_CHUNK_BYTES + 1, 41_770_866];
     for (const size of sizes) {
       const bytes = content(size, size % 97);
       expect(sha256Hex(bytes), `size ${size}`).toBe(nodeSha256(bytes));

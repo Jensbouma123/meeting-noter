@@ -52,12 +52,7 @@ export function cachedFrameIds(cache: SpeakerCache): number[] {
   return out;
 }
 
-export function stepCache(
-  cache: SpeakerCache,
-  chunk: number[],
-  rows: number[][] = [],
-  lookahead: number[] = [],
-): void {
+export function stepCache(cache: SpeakerCache, chunk: number[], rows: number[][] = [], lookahead: number[] = []): void {
   const inputFrames = cache.numCachedFrames + chunk.length + lookahead.length;
   const probs = Array.from({ length: inputFrames }, (_, i) => rows[i] ?? QUIET);
   cache.update(embedsFromFrameIds([...chunk, ...lookahead]), logitsForPooledProbs(probs), silence, chunk.length);

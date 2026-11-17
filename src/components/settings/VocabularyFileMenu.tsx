@@ -1,4 +1,10 @@
-import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@jensbouma123/acciva-ui';
+import {
+  Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@jensbouma123/acciva-ui';
 import { Download, MoreHorizontal, Upload } from 'lucide-react';
 import { useT } from '@/lib/i18n/useT';
 import { downloadFile } from '@/lib/meeting/export-browser';

@@ -1,11 +1,5 @@
 import { missedWords, wordMidpoint } from './overlap-missed-words';
-import type {
-  AttributedWord,
-  AudioAt,
-  OverlapSpan,
-  OverlapTurn,
-  TranscribeClip,
-} from './types/overlap-retranscribe';
+import type { AttributedWord, AudioAt, OverlapSpan, OverlapTurn, TranscribeClip } from './types/overlap-retranscribe';
 
 export const RETRANSCRIBE_PAD_SECONDS = 0.3;
 

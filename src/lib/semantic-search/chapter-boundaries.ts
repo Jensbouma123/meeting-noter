@@ -20,7 +20,11 @@ export function chapterBoundaries(
 
   const candidates: number[] = [];
   for (let i = 1; i + 1 < gapSimilarity.length; i++) {
-    if (gapSimilarity[i] < threshold && gapSimilarity[i] <= gapSimilarity[i - 1] && gapSimilarity[i] < gapSimilarity[i + 1]) {
+    if (
+      gapSimilarity[i] < threshold &&
+      gapSimilarity[i] <= gapSimilarity[i - 1] &&
+      gapSimilarity[i] < gapSimilarity[i + 1]
+    ) {
       candidates.push(i + 1);
     }
   }
@@ -28,10 +32,7 @@ export function chapterBoundaries(
 
   const accepted: number[] = [];
   for (const cut of candidates) {
-    const fits =
-      cut >= minLen &&
-      n - cut >= minLen &&
-      accepted.every((other) => Math.abs(other - cut) >= minLen);
+    const fits = cut >= minLen && n - cut >= minLen && accepted.every((other) => Math.abs(other - cut) >= minLen);
     if (fits) accepted.push(cut);
   }
   return accepted.sort((a, b) => a - b);

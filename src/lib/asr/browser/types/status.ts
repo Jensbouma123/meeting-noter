@@ -1,7 +1,1 @@
-export type BrowserASRStatus =
-  | 'idle'
-  | 'loading'
-  | 'ready'
-  | 'transcribing'
-  | 'error'
-  | 'disabled';
+export type BrowserASRStatus = 'idle' | 'loading' | 'ready' | 'transcribing' | 'error' | 'disabled';

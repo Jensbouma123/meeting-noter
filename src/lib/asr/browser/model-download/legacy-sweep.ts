@@ -4,9 +4,7 @@ import { requestOnce } from './idb-request';
 
 async function readSweepFlag(db: IDBDatabase): Promise<{ done: boolean } | undefined> {
   const tx = db.transaction(FILE_STORE, 'readonly');
-  const value = await requestOnce<{ done: boolean } | undefined>(
-    tx.objectStore(FILE_STORE).get(LEGACY_SWEEP_DONE_KEY),
-  );
+  const value = await requestOnce<{ done: boolean } | undefined>(tx.objectStore(FILE_STORE).get(LEGACY_SWEEP_DONE_KEY));
   return value ?? undefined;
 }
 

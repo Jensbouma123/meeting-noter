@@ -2,7 +2,13 @@ import { useState } from 'react';
 import { Text, VStack } from '@jensbouma123/acciva-ui';
 import { useAssistantState } from '@/components/settings/AssistantState';
 import { useT } from '@/lib/i18n/useT';
-import { finishOnboarding, isAckAccepted, isAutoCloseAccepted, setAckAccepted, setAutoCloseAccepted } from '@/lib/onboarding/store';
+import {
+  finishOnboarding,
+  isAckAccepted,
+  isAutoCloseAccepted,
+  setAckAccepted,
+  setAutoCloseAccepted,
+} from '@/lib/onboarding/store';
 import { useOnboardingReopened } from '@/lib/onboarding/useOnboardingReopened';
 import { STEPS } from './constants';
 import { fillTemplate } from './fillTemplate';
@@ -48,8 +54,10 @@ export function OnboardingSteps() {
           step={step}
           isLast={isLast}
           nextDisabled={
-            (stepId === 'assistant' && detecting) || (stepId === 'ack' && !ackChecked) ||
-            (stepId === 'autoclose' && !autoCloseChecked) || (stepId === 'models' && !models.modelsReady)
+            (stepId === 'assistant' && detecting) ||
+            (stepId === 'ack' && !ackChecked) ||
+            (stepId === 'autoclose' && !autoCloseChecked) ||
+            (stepId === 'models' && !models.modelsReady)
           }
           nextDescribedBy={MODELS_REQUIRED_HINT_ID}
           onSkip={closable || isLast ? finishOnboarding : undefined}
@@ -64,11 +72,7 @@ export function OnboardingSteps() {
         {stepId === 'ack' && <AckStep checked={ackChecked} onChange={setAckChecked} />}
         {stepId === 'models' && <ModelsStep models={models} />}
         {stepId === 'assistant' && (
-          <AssistantStep
-            state={assistants}
-            searchMissing={models.searchMissing}
-            onSkip={() => move(1)}
-          />
+          <AssistantStep state={assistants} searchMissing={models.searchMissing} onSkip={() => move(1)} />
         )}
         {stepId === 'words' && <WordsStep />}
         {stepId === 'autoclose' && <AutoCloseStep checked={autoCloseChecked} onChange={setAutoCloseChecked} />}

@@ -21,7 +21,9 @@ export function SpeakerLabel({ label }: { label: string }) {
   }, [label]);
   return (
     <Text as="span" size="sm" variant="muted" truncate className="block min-w-0" title={truncated ? label : undefined}>
-      <span ref={ref} className="block min-w-0 truncate">{label}</span>
+      <span ref={ref} className="block min-w-0 truncate">
+        {label}
+      </span>
     </Text>
   );
 }

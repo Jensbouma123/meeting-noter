@@ -1,14 +1,7 @@
 import 'fake-indexeddb/auto';
 import { describe, expect, it } from 'vitest';
 import { CACHE_CHUNK_BYTES, downloadHfFileResumable } from './resumable-download';
-import {
-  installHashHooks,
-  REVISION,
-  content,
-  sha256,
-  bytesBehind,
-  stubRepo,
-} from './resumable-download.hash-fixtures';
+import { installHashHooks, REVISION, content, sha256, bytesBehind, stubRepo } from './resumable-download.hash-fixtures';
 
 installHashHooks();
 

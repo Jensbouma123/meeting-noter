@@ -11,7 +11,7 @@ function collectTurns(core: DiarizerCore): SpeakerTurn[] {
 }
 
 describe('DiarizerCore turns', () => {
-  it('reports each speaker\'s turns on the caller\'s capture clock', async () => {
+  it("reports each speaker's turns on the caller's capture clock", async () => {
     const audio = concat([tone(200, 2), new Float32Array(SR), tone(5000, 2), new Float32Array(SR)]);
     const core = new DiarizerCore({ source: 'system', model: new FakeModel(), mode: SMALL_MODE });
     const turns = collectTurns(core);
@@ -35,7 +35,12 @@ describe('DiarizerCore turns', () => {
   });
 
   it('marks a turn split for running long as one the speaker continues past', async () => {
-    const core = new DiarizerCore({ source: 'mic', model: new FakeModel(), mode: SMALL_MODE, turns: { maxOpenSec: 1 } });
+    const core = new DiarizerCore({
+      source: 'mic',
+      model: new FakeModel(),
+      mode: SMALL_MODE,
+      turns: { maxOpenSec: 1 },
+    });
     const turns = collectTurns(core);
     await stream(core, tone(200, 2.5));
     await core.flush();
@@ -81,7 +86,12 @@ describe('DiarizerCore turns', () => {
   });
 
   it('with provisional turns, names a speaker while they are still talking', async () => {
-    const core = new DiarizerCore({ source: 'mic', model: new FakeModel(), mode: SMALL_MODE, turns: { provisional: true } });
+    const core = new DiarizerCore({
+      source: 'mic',
+      model: new FakeModel(),
+      mode: SMALL_MODE,
+      turns: { provisional: true },
+    });
     const turns = collectTurns(core);
     await stream(core, tone(200, 3));
 
@@ -96,9 +106,14 @@ describe('DiarizerCore turns', () => {
     expect(last.end).toBeCloseTo(3, 1);
   });
 
-  it('ends a speaker\'s turn where the next speaker cuts in without a pause', async () => {
+  it("ends a speaker's turn where the next speaker cuts in without a pause", async () => {
     const mode = { chunkLength: 9, rightContext: 4, fifoLength: 30, updatePeriod: 20 };
-    const core = new DiarizerCore({ source: 'system', model: new ArrivalOrderModel(), mode, turns: { provisional: true } });
+    const core = new DiarizerCore({
+      source: 'system',
+      model: new ArrivalOrderModel(),
+      mode,
+      turns: { provisional: true },
+    });
     const turns = collectTurns(core);
     await stream(core, concat([A(8), B(6), quiet(2)]));
     await core.flush();

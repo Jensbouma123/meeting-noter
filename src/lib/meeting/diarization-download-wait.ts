@@ -4,7 +4,8 @@ import { downloadWait, setDiarizationStatus, waitingSources } from './diarizatio
 import type { Source } from './types';
 
 export function unavailableReason(status: string, error: string | null): string {
-  if (status === 'cancelled') return 'The speaker detection download was cancelled — download it in Settings to label speakers.';
+  if (status === 'cancelled')
+    return 'The speaker detection download was cancelled — download it in Settings to label speakers.';
   if (status === 'failed') return `The speaker detection download failed${error ? `: ${error}` : ''}.`;
   return 'Speaker detection is not available in this browser.';
 }

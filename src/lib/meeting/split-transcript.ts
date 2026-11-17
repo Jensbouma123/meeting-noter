@@ -41,7 +41,14 @@ function splitMarked<T extends Segment>(segments: readonly T[]): TranscriptBlock
       last.end = Math.max(last.end, o.end);
       for (const id of o.speakers) if (!last.speakers.includes(id)) last.speakers.push(id);
     } else {
-      blocks.push({ kind: 'overlap', start: o.start, end: o.end, source: seg.source, speakers: [...o.speakers], segments: [seg] });
+      blocks.push({
+        kind: 'overlap',
+        start: o.start,
+        end: o.end,
+        source: seg.source,
+        speakers: [...o.speakers],
+        segments: [seg],
+      });
     }
   }
   flushRun();
@@ -62,8 +69,10 @@ export function splitTranscript<T extends Segment>(segments: readonly T[]): Tran
   const kept = thin.size === 0 ? segments : segments.map((seg) => (thin.has(seg) ? withoutOverlap(seg) : seg));
   const cross = crossSourceOverlaps(kept);
   if (thin.size === 0 && cross.size === 0) return splitMarked(segments);
-  return splitMarked(kept.map((seg) => {
-    const overlap = cross.get(seg);
-    return overlap ? { ...seg, overlap } : seg;
-  }));
+  return splitMarked(
+    kept.map((seg) => {
+      const overlap = cross.get(seg);
+      return overlap ? { ...seg, overlap } : seg;
+    }),
+  );
 }

@@ -9,7 +9,9 @@ export function subscribeToUpdate(listener: () => void): () => void {
   if (listeners.size === 1) {
     publish({ ...getUpdateSnapshot(), dismissedVersion: readDismissedVersion() });
     void checkForUpdate();
-    refreshTimer = setInterval(() => { void checkForUpdate(); }, UPDATE_REFRESH_MS);
+    refreshTimer = setInterval(() => {
+      void checkForUpdate();
+    }, UPDATE_REFRESH_MS);
   }
   return () => {
     listeners.delete(listener);

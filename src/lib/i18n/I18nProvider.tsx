@@ -7,5 +7,9 @@ import { getLanguageSnapshot, getServerLanguageSnapshot, setLanguage, subscribeL
 export function I18nProvider({ children }: { children: ReactNode }) {
   const language = useSyncExternalStore(subscribeLanguage, getLanguageSnapshot, getServerLanguageSnapshot);
 
-  return <LanguageContext.Provider value={language}><SetLanguageContext.Provider value={setLanguage}>{children}</SetLanguageContext.Provider></LanguageContext.Provider>;
+  return (
+    <LanguageContext.Provider value={language}>
+      <SetLanguageContext.Provider value={setLanguage}>{children}</SetLanguageContext.Provider>
+    </LanguageContext.Provider>
+  );
 }

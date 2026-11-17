@@ -21,17 +21,34 @@ export function useWhatsNew() {
       try {
         const res = await fetch(URL_PATH);
         if (!res.ok) return;
-        const body = await res.json() as { show?: boolean; version?: string; notes?: string | null; pageUrl?: string | null };
-        if (active && body.show && body.version && body.notes) setData({ version: body.version, notes: body.notes, pageUrl: body.pageUrl ?? null });
-      } catch { void 0; }
+        const body = (await res.json()) as {
+          show?: boolean;
+          version?: string;
+          notes?: string | null;
+          pageUrl?: string | null;
+        };
+        if (active && body.show && body.version && body.notes)
+          setData({ version: body.version, notes: body.notes, pageUrl: body.pageUrl ?? null });
+      } catch {
+        void 0;
+      }
     })();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [preview]);
 
   const close = () => {
-    if (preview) { setPreviewClosed(true); return; }
+    if (preview) {
+      setPreviewClosed(true);
+      return;
+    }
     setData(null);
-    void fetch(URL_PATH, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Meeting-Noter': '1' }, body: '{}' }).catch(() => undefined);
+    void fetch(URL_PATH, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Meeting-Noter': '1' },
+      body: '{}',
+    }).catch(() => undefined);
   };
 
   return { data, close };

@@ -17,13 +17,17 @@ function inSamePhrase(first: readonly TimedWord[], second: readonly TimedWord[],
   return first.some((w, j) => {
     if (normalized(w.text) !== text || Math.abs(wordMidpoint(w) - at) > SAME_PHRASE_SECONDS) return false;
     const before = i > 0 && j > 0 && normalized(second[i - 1].text) === normalized(first[j - 1].text);
-    const after = i + 1 < second.length && j + 1 < first.length &&
-      normalized(second[i + 1].text) === normalized(first[j + 1].text);
+    const after =
+      i + 1 < second.length && j + 1 < first.length && normalized(second[i + 1].text) === normalized(first[j + 1].text);
     return before || after;
   });
 }
 
-export function missedWords<T extends TimedWord>(first: readonly TimedWord[], second: readonly T[], span: OverlapSpan): T[] {
+export function missedWords<T extends TimedWord>(
+  first: readonly TimedWord[],
+  second: readonly T[],
+  span: OverlapSpan,
+): T[] {
   const used = new Set<number>();
   const missed: T[] = [];
   const ordered = [...first].sort((a, b) => a.start - b.start);

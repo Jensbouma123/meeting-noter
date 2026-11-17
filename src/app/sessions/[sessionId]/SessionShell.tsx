@@ -33,25 +33,31 @@ function MeetingViewShell() {
     setNewDialogFolderId(null);
   }, []);
 
-  const openSessionOrStartNew = useCallback((sid: string) => {
-    if (!sid) {
-      openNewSession();
-      return;
-    }
-    router.push(sessionPath(sid));
-  }, [router, openNewSession]);
+  const openSessionOrStartNew = useCallback(
+    (sid: string) => {
+      if (!sid) {
+        openNewSession();
+        return;
+      }
+      router.push(sessionPath(sid));
+    },
+    [router, openNewSession],
+  );
 
-  const createDraftAndOpen = useCallback(async (_id: string, title: string) => {
-    const folderId = newDialogFolderId;
-    closeNewSession();
-    try {
-      const draftId = await createDraftSessionInFolder(title, folderId);
-      clearIdleSession();
-      router.push(sessionPath(draftId));
-    } catch {
-      toast.danger(t('createFailed'));
-    }
-  }, [router, toast, t, newDialogFolderId, closeNewSession]);
+  const createDraftAndOpen = useCallback(
+    async (_id: string, title: string) => {
+      const folderId = newDialogFolderId;
+      closeNewSession();
+      try {
+        const draftId = await createDraftSessionInFolder(title, folderId);
+        clearIdleSession();
+        router.push(sessionPath(draftId));
+      } catch {
+        toast.danger(t('createFailed'));
+      }
+    },
+    [router, toast, t, newDialogFolderId, closeNewSession],
+  );
 
   return (
     <>
@@ -65,11 +71,7 @@ function MeetingViewShell() {
         <MeetingView initialSessionId={sessionId} />
       </HomeLayout>
 
-      <NewSessionDialog
-        open={newDialogOpen}
-        onClose={closeNewSession}
-        onCreate={createDraftAndOpen}
-      />
+      <NewSessionDialog open={newDialogOpen} onClose={closeNewSession} onCreate={createDraftAndOpen} />
     </>
   );
 }
@@ -79,16 +81,16 @@ function ShellFallback() {
   return (
     <VStack fill align="center" justify="center" className="h-dvh">
       <Skeleton variant="rounded" width={240} height={20} />
-      <Text size="sm" variant="muted">{t('loading')}</Text>
+      <Text size="sm" variant="muted">
+        {t('loading')}
+      </Text>
     </VStack>
   );
 }
 
 export default function SessionShell() {
   return (
-    <Suspense
-      fallback={<ShellFallback />}
-    >
+    <Suspense fallback={<ShellFallback />}>
       <MeetingViewShell />
     </Suspense>
   );

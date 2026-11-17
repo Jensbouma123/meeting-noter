@@ -36,6 +36,8 @@ describe('/api/app guards', () => {
     const local = { host: 'localhost:3000' };
     expect((await heartbeat(make('POST', local, 'not json'))).status).toBe(400);
     expect((await heartbeat(make('POST', local, '{"clientId":"../../x"}'))).status).toBe(400);
-    expect((await heartbeat(make('POST', local, JSON.stringify({ clientId: 'abcdefgh', pad: 'x'.repeat(2000) })))).status).toBe(400);
+    expect(
+      (await heartbeat(make('POST', local, JSON.stringify({ clientId: 'abcdefgh', pad: 'x'.repeat(2000) })))).status,
+    ).toBe(400);
   });
 });

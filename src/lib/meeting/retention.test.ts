@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_RETENTION, expiredSessionIds, parseRetention, purgeExpiredSessions, retentionCutoff } from './retention';
+import {
+  DEFAULT_RETENTION,
+  expiredSessionIds,
+  parseRetention,
+  purgeExpiredSessions,
+  retentionCutoff,
+} from './retention';
 import { requestPersistentStorage } from './persistent-storage';
 import { createDraftSession, listSessions } from './session-crud';
 
@@ -42,8 +48,7 @@ describe('retention', () => {
     const oldId = createDraftSession('Old');
     const freshId = createDraftSession('Fresh');
     const idx = JSON.parse(localStorage.getItem('mn.sessions.v1')!);
-    idx.sessions.find((s: { sessionId: string }) => s.sessionId === oldId).createdAt =
-      new Date(2020, 0, 1).getTime();
+    idx.sessions.find((s: { sessionId: string }) => s.sessionId === oldId).createdAt = new Date(2020, 0, 1).getTime();
     localStorage.setItem('mn.sessions.v1', JSON.stringify(idx));
 
     expect(purgeExpiredSessions('never', NOW)).toBe(0);

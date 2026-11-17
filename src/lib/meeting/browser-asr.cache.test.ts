@@ -15,7 +15,12 @@ const lifecycle = installAsrTestLifecycle(engineState);
 describe('a cached claim the storage no longer backs', () => {
   it('re-downloads instead of silently loading a model that is not there', async () => {
     const asr = await loadBrowserAsr();
-    const registry = { ...(await import('@/lib/asr/browser/model-registry-register')), ...(await import('@/lib/asr/browser/model-registry-snapshot')), ...(await import('@/lib/asr/browser/model-registry-consent')), ...(await import('@/lib/asr/browser/model-registry-status')) };
+    const registry = {
+      ...(await import('@/lib/asr/browser/model-registry-register')),
+      ...(await import('@/lib/asr/browser/model-registry-snapshot')),
+      ...(await import('@/lib/asr/browser/model-registry-consent')),
+      ...(await import('@/lib/asr/browser/model-registry-status')),
+    };
     registry.recordConsent('accepted', ['parakeet-ttd']);
     registry.markCached('parakeet-ttd');
     expect(registry.getModelStatus('parakeet-ttd')!.status).toBe('cached');
@@ -55,7 +60,12 @@ describe('the encoder fallback chain', () => {
     engineState.failLoadForEncoder = 'q4f16';
     const asr = await loadWebgpuAsr();
     const { detectAsrBackend } = await import('@/lib/asr/browser');
-    const registry = { ...(await import('@/lib/asr/browser/model-registry-register')), ...(await import('@/lib/asr/browser/model-registry-snapshot')), ...(await import('@/lib/asr/browser/model-registry-consent')), ...(await import('@/lib/asr/browser/model-registry-status')) };
+    const registry = {
+      ...(await import('@/lib/asr/browser/model-registry-register')),
+      ...(await import('@/lib/asr/browser/model-registry-snapshot')),
+      ...(await import('@/lib/asr/browser/model-registry-consent')),
+      ...(await import('@/lib/asr/browser/model-registry-status')),
+    };
     await consentAndCache(PARAKEET_TDT_V3_WEBGPU);
 
     const ready1 = await asr.ensureBrowserASRReady();
@@ -79,7 +89,12 @@ describe('the encoder fallback chain', () => {
     engineState.failLoad = true;
     const asr = await loadWebgpuAsr();
     const { detectAsrBackend } = await import('@/lib/asr/browser');
-    const registry = { ...(await import('@/lib/asr/browser/model-registry-register')), ...(await import('@/lib/asr/browser/model-registry-snapshot')), ...(await import('@/lib/asr/browser/model-registry-consent')), ...(await import('@/lib/asr/browser/model-registry-status')) };
+    const registry = {
+      ...(await import('@/lib/asr/browser/model-registry-register')),
+      ...(await import('@/lib/asr/browser/model-registry-snapshot')),
+      ...(await import('@/lib/asr/browser/model-registry-consent')),
+      ...(await import('@/lib/asr/browser/model-registry-status')),
+    };
     await consentAndCache(PARAKEET_TDT_V3_WEBGPU);
 
     await asr.ensureBrowserASRReady();
@@ -111,5 +126,4 @@ describe('the encoder fallback chain', () => {
     expect(asr.shouldBufferForPostStop()).toBe(false);
     expect(asr.isPostStopTranscriptionOnly()).toBe(false);
   });
-
 });

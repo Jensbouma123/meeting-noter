@@ -4,7 +4,12 @@ import { ACTIVE_TURN_CLASS, cssEscape } from './transcriptItems';
 import { buildSearchRoot } from './buildSearchRoot';
 import type { UseTranscriptSearchJumpOptions } from './LiveTranscript.types';
 
-export function useTranscriptSearchJump({ listRef, getScrollElement, lines, segments }: UseTranscriptSearchJumpOptions) {
+export function useTranscriptSearchJump({
+  listRef,
+  getScrollElement,
+  lines,
+  segments,
+}: UseTranscriptSearchJumpOptions) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [windowVersion, setWindowVersion] = useState(0);
   const pendingSegRef = useRef<string | null>(null);
@@ -42,12 +47,15 @@ export function useTranscriptSearchJump({ listRef, getScrollElement, lines, segm
     });
   }, [getScrollElement, clearRing, lines, listRef]);
 
-  const onVisibleRangeChange = useCallback((range: VirtualListRange) => {
-    const last = lastRangeRef.current;
-    if (last.start === range.start && last.end === range.end) return;
-    lastRangeRef.current = range;
-    if (searchOpen) setWindowVersion((v) => v + 1);
-  }, [searchOpen]);
+  const onVisibleRangeChange = useCallback(
+    (range: VirtualListRange) => {
+      const last = lastRangeRef.current;
+      if (last.start === range.start && last.end === range.end) return;
+      lastRangeRef.current = range;
+      if (searchOpen) setWindowVersion((v) => v + 1);
+    },
+    [searchOpen],
+  );
 
   const ringPending = useEffectEvent(() => {
     const pending = pendingSegRef.current;
@@ -64,10 +72,7 @@ export function useTranscriptSearchJump({ listRef, getScrollElement, lines, segm
     ringPending();
   }, [windowVersion]);
 
-  const searchSegments = useMemo(
-    () => (windowVersion >= 0 ? [...segments] : segments),
-    [segments, windowVersion],
-  );
+  const searchSegments = useMemo(() => (windowVersion >= 0 ? [...segments] : segments), [segments, windowVersion]);
 
   return { searchOpen, closeSearch, getSearchRoot, onVisibleRangeChange, searchSegments };
 }

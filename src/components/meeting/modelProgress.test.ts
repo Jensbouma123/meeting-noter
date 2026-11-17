@@ -26,7 +26,7 @@ describe('deriveModelProgress', () => {
   it('passes the initialization percentage through with its own wording', () => {
     const progress = deriveModelProgress(
       [entry({ key: 'parakeet-ttd' })],
-      asrProgress('loading', { stage: 'initializing', percent: 60 })
+      asrProgress('loading', { stage: 'initializing', percent: 60 }),
     );
     expect(progress).toEqual({
       stage: 'initializing',
@@ -43,7 +43,7 @@ describe('deriveModelProgress', () => {
         stage: 'initializing',
         percent: null,
         detail: '2/4 files',
-      })
+      }),
     );
     expect(progress.percent).toBeNull();
     expect(progress.label).toBe('Initializing model');
@@ -58,7 +58,7 @@ describe('deriveModelProgress', () => {
 
     for (const phase of ['idle', 'blocked', 'failed', 'disabled'] as const) {
       expect(deriveModelProgress([entry({ key: 'parakeet-ttd' })], asrProgress(phase, { enabled: false }))).toBe(
-        NO_MODEL_PROGRESS
+        NO_MODEL_PROGRESS,
       );
     }
   });
@@ -66,7 +66,7 @@ describe('deriveModelProgress', () => {
   it('drops a stale download percentage the moment the entry is cached again', () => {
     const progress = deriveModelProgress(
       [entry({ key: 'parakeet-ttd' })],
-      asrProgress('loading', { stage: 'initializing', percent: 35 })
+      asrProgress('loading', { stage: 'initializing', percent: 35 }),
     );
     expect(progress.percent).toBe(35);
     expect(progress.label).toBe('Initializing model 35%');

@@ -33,7 +33,10 @@ function csvCells(line: string): string[] {
 
 export function parseWordCsv(text: string): VocabularyEntry[] {
   const entries: VocabularyEntry[] = [];
-  const lines = text.replace(/^﻿/, '').split(/\r?\n/).filter((l) => l.trim());
+  const lines = text
+    .replace(/^﻿/, '')
+    .split(/\r?\n/)
+    .filter((l) => l.trim());
   lines.forEach((line, i) => {
     const [first, ...rest] = csvCells(line);
     const word = cleanText(first ?? '');

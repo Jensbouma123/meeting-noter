@@ -9,7 +9,12 @@ import type { RailBodyProps } from './types';
 export function RailBody({ sessions, groups, searching, folderCtl, renderRow, onNewSession }: RailBodyProps) {
   const t = useT('sidebar');
   const folderTree = !searching && (
-    <FolderTree controller={folderCtl} sessions={sessions} renderSession={(session) => renderRow(session)} onNewSession={onNewSession} />
+    <FolderTree
+      controller={folderCtl}
+      sessions={sessions}
+      renderSession={(session) => renderRow(session)}
+      onNewSession={onNewSession}
+    />
   );
   return (
     <VStack spacing="none" fill className="flex-1 scroll-pt-10 overflow-y-auto">
@@ -22,7 +27,12 @@ export function RailBody({ sessions, groups, searching, folderCtl, renderRow, on
             title={t('empty')}
             description={t('emptyHint')}
             action={
-              <Button size="sm" variant="outline" leadingIcon={<Plus className="size-4" />} onClick={() => onNewSession()}>
+              <Button
+                size="sm"
+                variant="outline"
+                leadingIcon={<Plus className="size-4" />}
+                onClick={() => onNewSession()}
+              >
                 {t('new')}
               </Button>
             }
@@ -42,7 +52,10 @@ export function RailBody({ sessions, groups, searching, folderCtl, renderRow, on
               <VStack spacing="none" className="w-full px-3 pb-2 pt-1">
                 {group.sessions.map((session) =>
                   searching ? (
-                    renderRow(session, folderPath(folderCtl.folders, folderCtl.meetingFolders[session.sessionId]).join(' / '))
+                    renderRow(
+                      session,
+                      folderPath(folderCtl.folders, folderCtl.meetingFolders[session.sessionId]).join(' / '),
+                    )
                   ) : (
                     <DraggableMeeting key={session.sessionId} sessionId={session.sessionId}>
                       {renderRow(session)}

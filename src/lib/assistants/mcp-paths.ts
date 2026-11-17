@@ -18,7 +18,10 @@ export function isPackagedApp({ cwd = process.cwd(), exists = fs.existsSync }: M
   return exists(bundledNodePath(cwd));
 }
 
-export function mcpScriptPath(env: NodeJS.ProcessEnv, { cwd = process.cwd(), exists = fs.existsSync }: McpLocation = {}): string {
+export function mcpScriptPath(
+  env: NodeJS.ProcessEnv,
+  { cwd = process.cwd(), exists = fs.existsSync }: McpLocation = {},
+): string {
   if (env.MEETING_NOTER_MCP_PATH) return env.MEETING_NOTER_MCP_PATH;
   const packaged = packagedScriptPath(cwd);
   const dev = devScriptPath(cwd);

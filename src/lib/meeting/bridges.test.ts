@@ -2,10 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { clearFakes, expectConverted, fakes, frame, resetBridges } from './bridge-test-fakes';
 
 vi.mock('@/lib/asr/browser', async (importOriginal) =>
-  (await import('./bridge-test-fakes')).mockAsrBrowser(importOriginal));
+  (await import('./bridge-test-fakes')).mockAsrBrowser(importOriginal),
+);
 
-vi.mock('@/lib/diarization/browser', async () =>
-  (await import('./bridge-test-fakes')).mockDiarizationBrowser());
+vi.mock('@/lib/diarization/browser', async () => (await import('./bridge-test-fakes')).mockDiarizationBrowser());
 
 vi.mock('@/lib/langid', async () => (await import('./bridge-test-fakes')).mockLangid());
 
@@ -29,11 +29,31 @@ describe('diarization bridge', () => {
 
   it('relabels a segment once a turn covering it closes', async () => {
     const { startDiarization } = await import('./diarization-bridge');
-    const store = { ...(await import('./session-reset')), ...(await import('./segment-store')), ...(await import('./store-core')) };
+    const store = {
+      ...(await import('./session-reset')),
+      ...(await import('./segment-store')),
+      ...(await import('./store-core')),
+    };
     store.resetSession('system');
     startDiarization(['system']);
-    store.upsertSegment({ id: 'a', source: 'system', speaker: 'system:0', text: 'hi', start: 10, end: 12, final: true });
-    store.upsertSegment({ id: 'b', source: 'system', speaker: 'system:0', text: 'yo', start: 12, end: 16, final: true });
+    store.upsertSegment({
+      id: 'a',
+      source: 'system',
+      speaker: 'system:0',
+      text: 'hi',
+      start: 10,
+      end: 12,
+      final: true,
+    });
+    store.upsertSegment({
+      id: 'b',
+      source: 'system',
+      speaker: 'system:0',
+      text: 'yo',
+      start: 12,
+      end: 16,
+      final: true,
+    });
 
     const emit = fakes.turnListeners.get('system')!;
     emit({ speaker: 'system:0', source: 'system', start: 9.8, end: 12.1 });
@@ -57,4 +77,3 @@ describe('language-ID bridge', () => {
     expectConverted(fakes.langidPushes[0], pcm);
   });
 });
-

@@ -1,9 +1,4 @@
-import {
-  assertDiarizationModelsCached,
-  downloadDiarizationModels,
-  modelSource,
-  revokeModelUrls,
-} from './downloader';
+import { assertDiarizationModelsCached, downloadDiarizationModels, modelSource, revokeModelUrls } from './downloader';
 import { downloadHfFileResumable } from '../../asr/browser/resumable-download';
 import { SORTFORMER_GRAPH, SORTFORMER_WEIGHTS, SPEAKER_EMBEDDER, externalDataPath } from './manifest';
 import { SortformerModel } from './sortformer-model';

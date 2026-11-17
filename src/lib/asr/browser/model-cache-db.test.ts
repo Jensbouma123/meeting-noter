@@ -28,7 +28,6 @@ afterEach(() => {
 
 describe('the model cache database', () => {
   it('is created at version 1 with exactly the three stores it documents', async () => {
-
     const state = await areModelFilesCached({ modelRepo: REPO, files: FILES });
     expect(state).toEqual({ cached: 0, total: 3, complete: false });
 
@@ -105,7 +104,7 @@ describe('the model cache database', () => {
   });
 
   it('deletes the cache and reports it', async () => {
-      await writeCachedFile(FILES[0]);
+    await writeCachedFile(FILES[0]);
     await areModelFilesCached({ modelRepo: REPO, files: FILES });
     expect(await databaseExists(CACHE_DB)).toBe(true);
 
@@ -114,7 +113,7 @@ describe('the model cache database', () => {
   });
 
   it('reuses the same connection after a delete instead of handing out a dead one', async () => {
-      await writeCachedFile(FILES[0]);
+    await writeCachedFile(FILES[0]);
     expect((await areModelFilesCached({ modelRepo: REPO, files: FILES })).cached).toBe(1);
 
     await deleteModelCache();

@@ -15,10 +15,22 @@ afterEach(cleanup);
 
 describe('RightRail drawer on narrow screens', () => {
   it('closes when a transcript segment is revealed', async () => {
-    HTMLDialogElement.prototype.showModal = function showModal(this: HTMLDialogElement) { this.setAttribute('open', ''); };
-    HTMLDialogElement.prototype.close = function close(this: HTMLDialogElement) { this.removeAttribute('open'); };
-    render(<LanguageContext.Provider value="en"><ToastProvider><RightRail sessionId="s1" /></ToastProvider></LanguageContext.Provider>);
-    act(() => { window.dispatchEvent(new Event('mn:open-speakers')); });
+    HTMLDialogElement.prototype.showModal = function showModal(this: HTMLDialogElement) {
+      this.setAttribute('open', '');
+    };
+    HTMLDialogElement.prototype.close = function close(this: HTMLDialogElement) {
+      this.removeAttribute('open');
+    };
+    render(
+      <LanguageContext.Provider value="en">
+        <ToastProvider>
+          <RightRail sessionId="s1" />
+        </ToastProvider>
+      </LanguageContext.Provider>,
+    );
+    act(() => {
+      window.dispatchEvent(new Event('mn:open-speakers'));
+    });
     const dialog = () => document.querySelector('dialog')!;
     expect(dialog()).toHaveAttribute('open');
     act(() => requestReveal('s1'));

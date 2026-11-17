@@ -4,7 +4,12 @@ import path from 'node:path';
 import type { CliRunner } from './types';
 
 export function findCli(name: string, env: NodeJS.ProcessEnv = process.env): string | null {
-  const extra = ['/opt/homebrew/bin', '/usr/local/bin', `${env.HOME ?? ''}/.local/bin`, `${env.HOME ?? ''}/.claude/local`];
+  const extra = [
+    '/opt/homebrew/bin',
+    '/usr/local/bin',
+    `${env.HOME ?? ''}/.local/bin`,
+    `${env.HOME ?? ''}/.claude/local`,
+  ];
   const dirs = [...(env.PATH ?? '').split(path.delimiter), ...extra].filter(Boolean);
   for (const dir of dirs) {
     const file = path.join(dir, name);

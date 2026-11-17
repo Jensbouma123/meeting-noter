@@ -40,9 +40,7 @@ describe('SearchPanel', () => {
   });
 
   it('shows an empty state when nothing matches', async () => {
-    render(
-      <SearchPanel search={async () => []} sessionHref={() => '#'} debounceMs={0} />,
-    );
+    render(<SearchPanel search={async () => []} sessionHref={() => '#'} debounceMs={0} />);
     fireEvent.change(screen.getByLabelText('Search query'), { target: { value: 'nope' } });
     expect(await screen.findByText('No matches')).toBeInTheDocument();
   });
@@ -85,9 +83,7 @@ describe('SearchPanel', () => {
 
   it('drops a stale response when a newer query has been issued', async () => {
     const resolvers: Record<string, (h: Hit[]) => void> = {};
-    const search = vi.fn(
-      (q: string) => new Promise<Hit[]>((resolve) => (resolvers[q] = resolve)),
-    );
+    const search = vi.fn((q: string) => new Promise<Hit[]>((resolve) => (resolvers[q] = resolve)));
     render(<SearchPanel search={search} sessionHref={() => '#'} debounceMs={0} />);
     const input = screen.getByLabelText('Search query');
 

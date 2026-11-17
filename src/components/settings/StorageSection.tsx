@@ -16,10 +16,7 @@ import type { SettingsSectionProps } from './types';
 import { SettingsGroup } from './SettingsGroup';
 import { SettingsRow } from './SettingsRow';
 
-export function StorageSection({
-  settings,
-  onSettingsChange,
-}: SettingsSectionProps) {
+export function StorageSection({ settings, onSettingsChange }: SettingsSectionProps) {
   const t = useT('settings');
   const { toast } = useToast();
   const [sessionCount, setSessionCount] = useState(() => listSessions().length);
@@ -101,15 +98,16 @@ export function StorageSection({
         <SettingsRow
           label={t('browserStorage')}
           description={
-            persisted === null
-              ? t('browserStorageUnknown')
-              : persisted
-                ? t('browserStorageOn')
-                : t('browserStorageOff')
+            persisted === null ? t('browserStorageUnknown') : persisted ? t('browserStorageOn') : t('browserStorageOff')
           }
           control={
             persisted === false ? (
-              <Button variant="outline" size={{ base: 'md', md: 'sm' }} onClick={requestStorageProtection} className="max-sm:w-full">
+              <Button
+                variant="outline"
+                size={{ base: 'md', md: 'sm' }}
+                onClick={requestStorageProtection}
+                className="max-sm:w-full"
+              >
                 {t('protectNow')}
               </Button>
             ) : null

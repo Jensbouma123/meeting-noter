@@ -42,8 +42,7 @@ export function BottomDock({
     finishingPercent === null ? t('finishing') : t('finishingPercent').replace('{percent}', String(finishingPercent));
 
   const callAudioMissing = useCallAudioMissing();
-  const showCallAudioMissing =
-    isRecordingActive && callAudioMissing && (mode === 'system' || mode === 'both');
+  const showCallAudioMissing = isRecordingActive && callAudioMissing && (mode === 'system' || mode === 'both');
   const callAudioMissingReason = showCallAudioMissing ? callAudioHint(getMeetingDiagnostics()?.capture ?? null) : '';
   const modelReady = modelReadiness === 'ready';
   const modelPreparing = modelReadiness === 'downloading' || modelReadiness === 'loading';

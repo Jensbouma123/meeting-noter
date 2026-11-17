@@ -46,7 +46,11 @@ export function LifecycleClient() {
     };
   }, []);
 
-  return failed ? <Alert layout="banner" variant="warning" role="status">{t('connectionLost')}</Alert> : null;
+  return failed ? (
+    <Alert layout="banner" variant="warning" role="status">
+      {t('connectionLost')}
+    </Alert>
+  ) : null;
 }
 
 function useLanguage(): 'en' | 'nl' {

@@ -15,7 +15,6 @@ export function line(id: string, words: string[], at = 0, speaker = 'mic:0'): Se
   };
 }
 
-
 export function turnsAt(turns: [string, number, number][]): SpeakerAt {
   return (start, end) => {
     let best: string | null = null;

@@ -4,10 +4,7 @@ import { useState, type KeyboardEvent } from 'react';
 import { Button, Input, Text, VStack } from '@jensbouma123/acciva-ui';
 import { Check, Pencil, X } from 'lucide-react';
 import { useT } from '@/lib/i18n/useT';
-import {
-  removeVocabularyEntry,
-  renameVocabularyEntry,
-} from '@/lib/vocabulary/store';
+import { removeVocabularyEntry, renameVocabularyEntry } from '@/lib/vocabulary/store';
 import { vocabularyFill as fill } from './vocabularyText';
 import { VariantEditor } from './VariantEditor';
 import type { VocabularyRowProps } from './types';

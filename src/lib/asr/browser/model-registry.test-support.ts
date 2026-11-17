@@ -41,4 +41,3 @@ export function installLocalStorage(): Map<string, string> {
   });
   return store;
 }
-

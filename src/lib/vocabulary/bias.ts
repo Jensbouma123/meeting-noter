@@ -9,13 +9,13 @@ export class ContextBiaser {
   private readonly pieces: readonly string[];
   private readonly continuations = new Map<number, Continuations>();
   private readonly bonus: Float32Array;
-    private readonly touched: number[] = [];
-    private active: number[] = [];
+  private readonly touched: number[] = [];
+  private active: number[] = [];
   private bonusFor: string | null = null;
   readonly strength: number;
   private readonly startStrength: number;
 
-    constructor(
+  constructor(
     vocab: readonly string[],
     words: readonly string[],
     strength: number = DEFAULT_BIAS_STRENGTH,
@@ -28,7 +28,7 @@ export class ContextBiaser {
     for (const word of words) this.insert(word);
   }
 
-    get isEmpty(): boolean {
+  get isEmpty(): boolean {
     return this.nodes[ROOT].children.size === 0;
   }
 
@@ -48,7 +48,7 @@ export class ContextBiaser {
     this.nodes[node].terminal = true;
   }
 
-    walk(node: number, text: string): number {
+  walk(node: number, text: string): number {
     for (const ch of text) {
       const next = this.nodes[node].children.get(ch);
       if (next === undefined) return -1;
@@ -77,12 +77,12 @@ export class ContextBiaser {
     return found;
   }
 
-    reset(): void {
+  reset(): void {
     this.active = [];
     this.bonusFor = null;
   }
 
-    currentBonus(): Float32Array {
+  currentBonus(): Float32Array {
     const key = this.active.join(',');
     if (this.bonusFor === key) return this.bonus;
     for (const id of this.touched) this.bonus[id] = 0;
@@ -101,7 +101,7 @@ export class ContextBiaser {
     return this.bonus;
   }
 
-    apply(logits: Float32Array): Float32Array {
+  apply(logits: Float32Array): Float32Array {
     if (this.isEmpty) return logits;
     const bonus = this.currentBonus();
     const out = logits.slice();
@@ -111,7 +111,7 @@ export class ContextBiaser {
     return out;
   }
 
-    advance(tokenId: number): void {
+  advance(tokenId: number): void {
     const text = this.pieces[tokenId];
     const active: number[] = [];
     if (text) {

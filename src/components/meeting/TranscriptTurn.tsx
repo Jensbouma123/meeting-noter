@@ -25,15 +25,9 @@ export const TranscriptTurn = React.memo(
     }, [tokens.length]);
 
     return (
-      <article
-        className={`turn-block group flex flex-col gap-1.5 animate-turn-enter ${showHeader ? 'pt-1' : ''}`}
-      >
+      <article className={`turn-block group flex flex-col gap-1.5 animate-turn-enter ${showHeader ? 'pt-1' : ''}`}>
         {showHeader && (
-          <TranscriptTurnHeader
-            segment={segment}
-            speakerLabel={speakerLabel}
-            speakerColorIndex={speakerColorIndex}
-          />
+          <TranscriptTurnHeader segment={segment} speakerLabel={speakerLabel} speakerColorIndex={speakerColorIndex} />
         )}
 
         <div className="flex items-start gap-2 border-l-2 border-border-subtle/40 pl-4.5 transition-colors group-hover:border-border-subtle">

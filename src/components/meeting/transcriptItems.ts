@@ -10,8 +10,7 @@ export const COLUMN_WITHOUT_LINE_RULE = 'sm:[&_.turn-block>div]:border-l-0 sm:[&
 export const cssEscape = (value: string): string =>
   typeof CSS !== 'undefined' && typeof CSS.escape === 'function' ? CSS.escape(value) : value;
 
-const lineHeight = (text: string, charsPerLine = 60) =>
-  Math.max(1, Math.ceil(text.length / charsPerLine)) * 26;
+const lineHeight = (text: string, charsPerLine = 60) => Math.max(1, Math.ceil(text.length / charsPerLine)) * 26;
 
 function estimateRowHeight(item: TranscriptItem): number {
   if (item.kind === 'line') return lineHeight(item.seg.text) + 12;
@@ -31,14 +30,16 @@ export function buildTranscriptItems(segments: Segment[]): TranscriptItem[] {
   return splitTranscript(segments).flatMap((block): TranscriptItem[] =>
     block.kind === 'turn'
       ? block.segments.map((seg, i): TranscriptLine => ({ kind: 'line', seg, turnStart: i === 0 }))
-      : [{
-          kind: 'overlap',
-          id: block.segments[0].id,
-          start: block.segments[0].start,
-          columns: block.speakers
-            .map((speaker) => ({ speaker, segs: block.segments.filter((seg) => seg.speaker === speaker) }))
-            .filter((column) => column.segs.length > 0),
-        }],
+      : [
+          {
+            kind: 'overlap',
+            id: block.segments[0].id,
+            start: block.segments[0].start,
+            columns: block.speakers
+              .map((speaker) => ({ speaker, segs: block.segments.filter((seg) => seg.speaker === speaker) }))
+              .filter((column) => column.segs.length > 0),
+          },
+        ],
   );
 }
 

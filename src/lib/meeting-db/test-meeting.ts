@@ -11,7 +11,14 @@ export function sampleMeeting(over: Partial<StoredMeeting> = {}): StoredMeeting 
     captureMode: 'both',
     isDraft: false,
     segments: [
-      { id: 's2', source: 'system', speaker: 'system:1', text: 'We ship the café export on Friday.', start: 40, end: 44 },
+      {
+        id: 's2',
+        source: 'system',
+        speaker: 'system:1',
+        text: 'We ship the café export on Friday.',
+        start: 40,
+        end: 44,
+      },
       { id: 's1', source: 'mic', speaker: 'mic:0', text: 'Let us look at the quarterly budget.', start: 2, end: 6 },
     ],
     speakers: {

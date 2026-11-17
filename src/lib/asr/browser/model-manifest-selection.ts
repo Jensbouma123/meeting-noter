@@ -1,10 +1,6 @@
 import type { AsrModelFamily } from './model-family';
 import { NEMOTRON_ASR_WASM, NEMOTRON_ASR_WEBGPU } from './model-manifest-nemotron';
-import {
-  PARAKEET_TDT_V3_WASM,
-  PARAKEET_TDT_V3_WEBGPU,
-  PARAKEET_TDT_V3_WEBGPU_FP16,
-} from './model-manifest-parakeet';
+import { PARAKEET_TDT_V3_WASM, PARAKEET_TDT_V3_WEBGPU, PARAKEET_TDT_V3_WEBGPU_FP16 } from './model-manifest-parakeet';
 import type { AsrBackend, AsrModelManifest, ManifestRuntimeOptions, WebgpuEncoderQuant } from './types/model-manifest';
 
 function encoderAvailable(envUrl: string | undefined): boolean {
@@ -41,16 +37,11 @@ export function webgpuEncoderOf(manifest: AsrModelManifest): WebgpuEncoderQuant 
 }
 
 export function asrManifestFallbackOrder(): readonly AsrModelManifest[] {
-  return Object.freeze([
-    ...WEBGPU_ENCODER_FALLBACKS.map(webgpuManifestForEncoder),
-    PARAKEET_TDT_V3_WASM,
-  ]);
+  return Object.freeze([...WEBGPU_ENCODER_FALLBACKS.map(webgpuManifestForEncoder), PARAKEET_TDT_V3_WASM]);
 }
 
 export function manifestForBackend(backend: AsrBackend): AsrModelManifest {
-  return backend === 'webgpu'
-    ? webgpuManifestForEncoder(WEBGPU_ENCODER_FALLBACKS[0] ?? 'q4f16')
-    : PARAKEET_TDT_V3_WASM;
+  return backend === 'webgpu' ? webgpuManifestForEncoder(WEBGPU_ENCODER_FALLBACKS[0] ?? 'q4f16') : PARAKEET_TDT_V3_WASM;
 }
 
 export function manifestForFamily(family: AsrModelFamily, backend: AsrBackend): AsrModelManifest {

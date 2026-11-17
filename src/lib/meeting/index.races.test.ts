@@ -85,7 +85,16 @@ describe('meeting session lifecycle races', () => {
     const { getState } = await import('./store-core');
     const { upsertSegment } = await import('./segment-store');
     race.asr.transcribeRecordedAudioAfterStop.mockImplementationOnce(async () => {
-      upsertSegment({ id: 'tail', source: 'mic', speaker: 'mic:0', text: 'last words', start: 9, end: 10, final: true, unconfirmed: true });
+      upsertSegment({
+        id: 'tail',
+        source: 'mic',
+        speaker: 'mic:0',
+        text: 'last words',
+        start: 9,
+        end: 10,
+        final: true,
+        unconfirmed: true,
+      });
       return true;
     });
     await meeting.start({ mode: 'mic' });

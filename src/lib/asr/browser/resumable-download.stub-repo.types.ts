@@ -5,4 +5,3 @@ export interface DownloadStub {
   calls: () => number;
   ranges: () => Array<string | null>;
 }
-

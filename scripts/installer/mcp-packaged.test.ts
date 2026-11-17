@@ -2,7 +2,13 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { desktopConfigPath, hasEntry, mergeEntry, readDesktopConfig, writeDesktopConfig } from '@/lib/assistants/desktop-config';
+import {
+  desktopConfigPath,
+  hasEntry,
+  mergeEntry,
+  readDesktopConfig,
+  writeDesktopConfig,
+} from '@/lib/assistants/desktop-config';
 import { MCP_SERVER_NAME, mcpEntry } from '@/lib/assistants/mcp-entry';
 import { MeetingsDb } from '@/lib/meeting-db/db';
 import { connectStdio } from '@/mcp/test-client';
@@ -12,7 +18,10 @@ const stage = process.env.MEETING_NOTER_STAGE;
 const serverDir = stage ? path.join(stage, 'server') : '';
 const tmp = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'mn-mcp-smoke-'));
 const realClaude = path.join(os.homedir(), 'Library', 'Application Support', 'Claude');
-const env = { NODE_ENV: 'test' as const, MEETING_NOTER_CLAUDE_DESKTOP_CONFIG: path.join(tmp, 'Claude', 'claude_desktop_config.json') };
+const env = {
+  NODE_ENV: 'test' as const,
+  MEETING_NOTER_CLAUDE_DESKTOP_CONFIG: path.join(tmp, 'Claude', 'claude_desktop_config.json'),
+};
 
 describe.skipIf(!stage)('packaged MCP server', () => {
   beforeAll(() => {

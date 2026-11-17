@@ -3,7 +3,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getInsightsSnapshot, insightsKey, loadInsights, saveInsights } from './store';
 import { INSIGHTS_VERSION } from './version';
 
-const item = { id: 'decision:s1:0', kind: 'decision' as const, text: 'We ship on Friday.', segmentId: 's1', speakerId: 'mic:0', start: 1, score: 0.8 };
+const item = {
+  id: 'decision:s1:0',
+  kind: 'decision' as const,
+  text: 'We ship on Friday.',
+  segmentId: 's1',
+  speakerId: 'mic:0',
+  start: 1,
+  score: 0.8,
+};
 
 beforeEach(() => localStorage.clear());
 

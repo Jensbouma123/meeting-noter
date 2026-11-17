@@ -30,7 +30,12 @@ export function TopBarActions({
 
   return (
     <>
-      <HStack spacing="xs" align="center" data-testid="topbar-actions" className="mn-tips-below min-w-0 shrink-0 gap-0.5 sm:gap-1">
+      <HStack
+        spacing="xs"
+        align="center"
+        data-testid="topbar-actions"
+        className="mn-tips-below min-w-0 shrink-0 gap-0.5 sm:gap-1"
+      >
         <Button
           variant="ghost"
           size="sm"
@@ -65,17 +70,28 @@ export function TopBarActions({
               />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem icon={<Search className="size-4" />} onClick={() => window.dispatchEvent(new Event('mn:search'))}>
+              <DropdownMenuItem
+                icon={<Search className="size-4" />}
+                onClick={() => window.dispatchEvent(new Event('mn:search'))}
+              >
                 {t('search')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setShortcutsOpen(true)}>
-                {t('shortcuts')}
-              </DropdownMenuItem>
-              {updateAvailable && <DropdownMenuItem onClick={() => onOpenSettings('about')}>
-                {t('installUpdate')} <Badge size="sm" variant="info">{t('new')}</Badge>
-              </DropdownMenuItem>}
+              <DropdownMenuItem onClick={() => setShortcutsOpen(true)}>{t('shortcuts')}</DropdownMenuItem>
+              {updateAvailable && (
+                <DropdownMenuItem onClick={() => onOpenSettings('about')}>
+                  {t('installUpdate')}{' '}
+                  <Badge size="sm" variant="info">
+                    {t('new')}
+                  </Badge>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem variant="danger" icon={<Eraser className="size-4" />} disabled={clearDisabled} onClick={() => setClearOpen(true)}>
+              <DropdownMenuItem
+                variant="danger"
+                icon={<Eraser className="size-4" />}
+                disabled={clearDisabled}
+                onClick={() => setClearOpen(true)}
+              >
                 {t('clear')}
               </DropdownMenuItem>
               {clearDisabled && (
@@ -93,7 +109,14 @@ export function TopBarActions({
           iconOnly
           onClick={() => onOpenSettings()}
           tooltip={t('settings')}
-          leadingIcon={<span className="relative"><Settings className="size-4" />{(updateAvailable || modelFailed) && <span className="absolute -right-1 -top-1 size-2 rounded-full bg-danger" aria-label={t('new')} />}</span>}
+          leadingIcon={
+            <span className="relative">
+              <Settings className="size-4" />
+              {(updateAvailable || modelFailed) && (
+                <span className="absolute -right-1 -top-1 size-2 rounded-full bg-danger" aria-label={t('new')} />
+              )}
+            </span>
+          }
           className="touch-target-44"
         />
       </HStack>

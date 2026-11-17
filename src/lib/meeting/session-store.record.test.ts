@@ -12,7 +12,9 @@ describe('navigating between sessions (B2)', () => {
     const store = await loadMeetingStoreModules();
     store.restoreSnapshot([finalSegment('a1', 0, 1)], {});
     store.bindTranscriptSession('A');
-    expect(store.loadIdleSession('B', { segments: [finalSegment('b1', 0, 1)], speakers: {}, startedAt: null })).toBe(true);
+    expect(store.loadIdleSession('B', { segments: [finalSegment('b1', 0, 1)], speakers: {}, startedAt: null })).toBe(
+      true,
+    );
     expect(store.getState().segments.map((s) => s.id)).toEqual(['b1']);
     expect(store.getTranscriptSessionId()).toBe('B');
     store.loadIdleSession('C', null);
@@ -33,12 +35,21 @@ describe('navigating between sessions (B2)', () => {
 describe('startRecordingInSession', () => {
   const seg = (id: string, start: number, end: number, text = 'hi') => finalSegment(id, start, end, text);
   const setup = async () => {
-    const ss = { ...(await import('./session-crud')), ...(await import('./session-open')), ...(await import('./session-recording')) };
+    const ss = {
+      ...(await import('./session-crud')),
+      ...(await import('./session-open')),
+      ...(await import('./session-recording')),
+    };
     const store = await loadMeetingStoreModules();
     const persist = await import('./autosave');
     const id = ss.createDraftSession('Standup');
     store.loadIdleSession(id, { segments: [seg('s1', 0, 5), seg('s2', 5, 10)] as never, speakers: {}, startedAt: 1 });
-    ss.persistSession({ sessionId: id, segments: [seg('s1', 0, 5), seg('s2', 5, 10)] as never, speakers: {}, startedAt: 1 });
+    ss.persistSession({
+      sessionId: id,
+      segments: [seg('s1', 0, 5), seg('s2', 5, 10)] as never,
+      speakers: {},
+      startedAt: 1,
+    });
     return { ss, store, persist, id };
   };
 

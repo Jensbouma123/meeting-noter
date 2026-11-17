@@ -9,10 +9,7 @@ export function openChannel(): BroadcastChannel | null {
   }
 }
 
-export async function withDownloadLock<T>(
-  lockKey: string,
-  fn: (isLeader: boolean) => Promise<T>,
-): Promise<T> {
+export async function withDownloadLock<T>(lockKey: string, fn: (isLeader: boolean) => Promise<T>): Promise<T> {
   const nav = typeof navigator !== 'undefined' ? navigator : undefined;
   if (nav && 'locks' in nav && nav.locks) {
     let outcome!: T;
@@ -36,10 +33,7 @@ export async function withDownloadLock<T>(
   const isLeader = !sawOther;
   let heartbeatTimer: ReturnType<typeof setInterval> | undefined;
   if (isLeader) {
-    heartbeatTimer = setInterval(
-      () => channel.postMessage({ type: 'heartbeat', key: lockKey }),
-      LOCK_HEARTBEAT_MS,
-    );
+    heartbeatTimer = setInterval(() => channel.postMessage({ type: 'heartbeat', key: lockKey }), LOCK_HEARTBEAT_MS);
   }
   try {
     return await fn(isLeader);

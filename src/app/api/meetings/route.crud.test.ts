@@ -27,7 +27,11 @@ describe('/api/meetings', () => {
   });
 
   it('lists in pages with limit and offset', async () => {
-    for (const [id, day] of [['m1', 1], ['m2', 2], ['m3', 3]] as const) {
+    for (const [id, day] of [
+      ['m1', 1],
+      ['m2', 2],
+      ['m3', 3],
+    ] as const) {
       const m = sampleMeeting({ id, startedAt: Date.UTC(2026, 10, day) });
       await put(jsonRequest('PUT', `/${id}`, m), idContext(id));
     }
@@ -53,11 +57,10 @@ describe('/api/meetings', () => {
 
   it('refuses pages from another origin', async () => {
     const m = sampleMeeting();
-    const res = await put(
-      jsonRequest('PUT', `/${m.id}`, m, { origin: 'https://evil.example' }),
-      idContext(m.id),
-    );
+    const res = await put(jsonRequest('PUT', `/${m.id}`, m, { origin: 'https://evil.example' }), idContext(m.id));
     expect(res.status).toBe(403);
-    expect((await list(new Request('http://evil.example/api/meetings', { headers: { host: 'evil.example' } }))).status).toBe(403);
+    expect(
+      (await list(new Request('http://evil.example/api/meetings', { headers: { host: 'evil.example' } }))).status,
+    ).toBe(403);
   });
 });

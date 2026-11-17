@@ -8,7 +8,8 @@ export function slaneyFilterbank(): { start: Int32Array; weights: Float32Array[]
   const linScale = 200 / 3;
   const logStep = Math.log(6.4) / 27;
   const hzToMel = (hz: number) => (hz < minLogHz ? hz / linScale : minLogMel + Math.log(hz / minLogHz) / logStep);
-  const melToHz = (mel: number) => (mel < minLogMel ? mel * linScale : minLogHz * Math.exp((mel - minLogMel) * logStep));
+  const melToHz = (mel: number) =>
+    mel < minLogMel ? mel * linScale : minLogHz * Math.exp((mel - minLogMel) * logStep);
   const lo = hzToMel(0);
   const hi = hzToMel(sampleRate / 2);
   const f = Array.from({ length: nMels + 2 }, (_, i) => melToHz(lo + ((hi - lo) * i) / (nMels + 1)));

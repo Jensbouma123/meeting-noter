@@ -13,14 +13,13 @@ export async function seedManifestCache(manifest: ManifestFiles): Promise<void> 
 
   const stubFetch = vi.fn(async (input: string | URL, init?: RequestInit) => {
     const url = String(input);
-    const file =
-      decodeURIComponent(url.split('/resolve/main/')[1] ?? '') || (url.split('/').pop() ?? '');
+    const file = decodeURIComponent(url.split('/resolve/main/')[1] ?? '') || (url.split('/').pop() ?? '');
 
     if (url.includes('/api/models/')) {
-      return new Response(
-        JSON.stringify(hosted.map((name) => ({ type: 'file', path: name, size: content.length }))),
-        { status: 200, headers: { 'content-type': 'application/json' } },
-      );
+      return new Response(JSON.stringify(hosted.map((name) => ({ type: 'file', path: name, size: content.length }))), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
     }
     if (init?.method === 'HEAD') {
       return new Response(null, {
@@ -45,7 +44,10 @@ export async function seedManifestCache(manifest: ManifestFiles): Promise<void> 
 
 export async function consentAndCache(manifest: ManifestFiles = WASM_MANIFEST): Promise<void> {
   await seedManifestCache(manifest);
-  const registry = { ...(await import('@/lib/asr/browser/model-registry-status')), ...(await import('@/lib/asr/browser/model-registry-consent')) };
+  const registry = {
+    ...(await import('@/lib/asr/browser/model-registry-status')),
+    ...(await import('@/lib/asr/browser/model-registry-consent')),
+  };
   registry.markCached('parakeet-ttd');
   registry.recordConsent('accepted', ['parakeet-ttd']);
 }

@@ -17,9 +17,7 @@ function shouldShowDialog(): boolean {
   if (dialogVisible !== null) return dialogVisible;
   if (persistedConsent === null || persistedConsent.decidedAt === null) return true;
   if (persistedConsent.choice === 'declined') return false;
-  return !Object.values(entries).every(
-    (e) => e.status === 'cached' || e.status === 'unavailable',
-  );
+  return !Object.values(entries).every((e) => e.status === 'cached' || e.status === 'unavailable');
 }
 
 export function getState(): RegistryState {

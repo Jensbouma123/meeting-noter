@@ -1,7 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  desktopBackupPath, desktopConfigPath, hasEntry, mergeEntry, readDesktopConfig, removeEntry, writeDesktopConfig,
+  desktopBackupPath,
+  desktopConfigPath,
+  hasEntry,
+  mergeEntry,
+  readDesktopConfig,
+  removeEntry,
+  writeDesktopConfig,
 } from './desktop-config';
 import { ensureMcpBundle, mcpScriptPath } from './mcp-entry';
 import type { AssistantDeps, AssistantInfo, AssistantStatus, ConnectResult } from './types';
@@ -15,7 +21,13 @@ function statusOf(file: string, deps: AssistantDeps): AssistantStatus {
 export function desktopInfo(deps: AssistantDeps): AssistantInfo {
   const file = desktopConfigPath(deps.env);
   const status = statusOf(file, deps);
-  return { id: 'claude-desktop', status, canAutoConnect: status !== 'not-found', manualCommand: null, configPath: file };
+  return {
+    id: 'claude-desktop',
+    status,
+    canAutoConnect: status !== 'not-found',
+    manualCommand: null,
+    configPath: file,
+  };
 }
 
 export async function connectDesktop(deps: AssistantDeps, confirm: boolean): Promise<ConnectResult> {

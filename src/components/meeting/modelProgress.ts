@@ -1,24 +1,15 @@
-import {
-  downloadProgressPercent,
-  formatModelProgressLabel,
-  type ModelEntry,
-} from '@/lib/asr/browser';
+import { downloadProgressPercent, formatModelProgressLabel, type ModelEntry } from '@/lib/asr/browser';
 import { asrModelEntry } from './modelEntries';
 import { NO_MODEL_PROGRESS } from './modelProgress.constants';
 import type { AsrRuntimeProgress, ModelProgressView } from './modelReadiness.types';
 
-export function deriveModelProgress(
-  entries: ModelEntry[],
-  asr: AsrRuntimeProgress,
-): ModelProgressView {
+export function deriveModelProgress(entries: ModelEntry[], asr: AsrRuntimeProgress): ModelProgressView {
   if (asr.phase === 'ready') {
     return { stage: null, percent: 100, label: '', detail: null };
   }
   if (asr.phase === 'downloading') {
     const entry = asrModelEntry(entries);
-    const percent = downloadProgressPercent(
-      entry?.status === 'downloading' ? entry.progress : null,
-    );
+    const percent = downloadProgressPercent(entry?.status === 'downloading' ? entry.progress : null);
     return {
       stage: 'downloading',
       percent,

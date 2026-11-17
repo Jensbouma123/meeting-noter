@@ -55,7 +55,7 @@ export async function checkForUpdate(manual = false): Promise<void> {
     try {
       const response = await fetch(manual ? `${UPDATE_URL}?refresh=1` : UPDATE_URL);
       if (!response.ok) throw new Error(`Update check failed: ${response.status}`);
-      const info = normalizeInfo(await response.json() as UpdateResponse);
+      const info = normalizeInfo((await response.json()) as UpdateResponse);
       publish({
         ...getUpdateSnapshot(),
         status: info.available ? 'available' : 'idle',

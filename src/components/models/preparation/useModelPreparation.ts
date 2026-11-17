@@ -21,16 +21,8 @@ function downloadPercentOf(progress: ModelEntry['progress'] | null): number | nu
 }
 
 export function useModelPreparation(): ModelPreparationState {
-  const registry = useSyncExternalStore(
-    subscribeRegistry,
-    getModelRegistryState,
-    getModelRegistryServerSnapshot,
-  );
-  const engine = useSyncExternalStore(
-    subscribeBrowserASR,
-    getBrowserASRProgress,
-    getServerBrowserASRProgress,
-  );
+  const registry = useSyncExternalStore(subscribeRegistry, getModelRegistryState, getModelRegistryServerSnapshot);
+  const engine = useSyncExternalStore(subscribeBrowserASR, getBrowserASRProgress, getServerBrowserASRProgress);
 
   return useMemo(() => {
     const asrEntry = asrModelEntry(Object.values(registry.entries));

@@ -33,7 +33,11 @@ export async function connect(seed?: (db: MeetingsDb) => void, active?: { meetin
   }
   const activeFile = path.join(dir, 'active-meeting.json');
   if (active) fs.writeFileSync(activeFile, JSON.stringify(active));
-  const server = createMeetingsMcpServer(() => (fs.existsSync(file) ? new MeetingsDb(file, { readOnly: true }) : null), '0.0.0', activeFile);
+  const server = createMeetingsMcpServer(
+    () => (fs.existsSync(file) ? new MeetingsDb(file, { readOnly: true }) : null),
+    '0.0.0',
+    activeFile,
+  );
   const client = await connectClient(server);
   const call = async (name: string, args: Record<string, unknown> = {}) => {
     const res = (await client.callTool({ name, arguments: args })) as {

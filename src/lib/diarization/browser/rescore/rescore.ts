@@ -18,7 +18,9 @@ function spillWindows(input: RescoreInput): RescoreWindow[] {
 async function embedWindows(input: RescoreInput, windows: RescoreWindow[]): Promise<Float32Array> {
   const d = EMBEDDING_SIZE;
   const embs = new Float32Array(windows.length * d);
-  const order = windows.map((_, i) => i).sort((a, b) => windows[a].end - windows[a].start - (windows[b].end - windows[b].start) || a - b);
+  const order = windows
+    .map((_, i) => i)
+    .sort((a, b) => windows[a].end - windows[a].start - (windows[b].end - windows[b].start) || a - b);
   for (let s = 0; s < order.length; s += SLICE) {
     const slice = order.slice(s, s + SLICE);
     const feats: Float32Array[] = [];
@@ -65,7 +67,12 @@ export async function rescore(input: RescoreInput): Promise<RescoreResult | null
   const map = mapLabelsToChannels(relabelled.probs, relabelled.numSpeakers, input.probs, input.numChannels);
   const width = Math.max(input.numChannels, ...map.map((m) => m + 1));
   const probs = toChannels(relabelled.probs, relabelled.numSpeakers, map, width);
-  const tracker = new TurnTracker({ ...input.turnOptions, numSpeakers: width, frameSec: input.frameSec, provisional: false });
+  const tracker = new TurnTracker({
+    ...input.turnOptions,
+    numSpeakers: width,
+    frameSec: input.frameSec,
+    provisional: false,
+  });
   const turns = tracker.push(probs).concat(tracker.flush());
   return { turns, numSpeakers: width, labelToChannel: map, windows: windows.length };
 }

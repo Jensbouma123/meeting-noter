@@ -62,10 +62,11 @@ describe('live audio windows', () => {
   });
   it('re-reads the open utterance, updating one segment instead of adding fragments', async () => {
     const { asr, store } = await readyWebgpuAsr();
-    engineState.words = (s) => [
-      { text: 'hello', start: 0.1, end: 0.6 },
-      { text: 'there', start: 1.4, end: 2.0 },
-    ].filter((w) => w.end <= s);
+    engineState.words = (s) =>
+      [
+        { text: 'hello', start: 0.1, end: 0.6 },
+        { text: 'there', start: 1.4, end: 2.0 },
+      ].filter((w) => w.end <= s);
 
     for (let i = 0; i < 30; i += 1) asr.pushLiveAudio('mic', speech(i));
     await vi.waitFor(() => expect(engineState.recognized).toHaveLength(2));

@@ -17,7 +17,10 @@ export function translatedDownloadError(raw: string | null, t: (key: string) => 
   if (summary === 'error.download') return { summary: t(summary), filename };
   if (reason?.startsWith('error.downloadServer:')) {
     const status = reason.slice('error.downloadServer:'.length);
-    return { summary: t('error.downloadSummary').replace('{reason}', t('error.downloadServer').replace('{status}', status)), filename };
+    return {
+      summary: t('error.downloadSummary').replace('{reason}', t('error.downloadServer').replace('{status}', status)),
+      filename,
+    };
   }
   return { summary: t('error.downloadSummary').replace('{reason}', t(reason ?? 'error.downloadNotFound')), filename };
 }

@@ -14,7 +14,8 @@ export async function PUT(request: Request, { params }: IdRouteContext): Promise
   if (!isMeetingId(id)) return failure('bad-id', 400);
   const parsed = await readJson(request, 10_000);
   if (!parsed.ok) return parsed.response;
-  const folderId = parsed.value && typeof parsed.value === 'object' ? (parsed.value as { folderId?: unknown }).folderId : undefined;
+  const folderId =
+    parsed.value && typeof parsed.value === 'object' ? (parsed.value as { folderId?: unknown }).folderId : undefined;
   if (!isMeetingId(folderId)) return failure('bad-parent', 400);
   if (!meetingStore().db.declineFolderSuggestion(id, folderId)) return failure('not-found', 404);
   return Response.json({ ok: true });

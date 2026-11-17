@@ -70,12 +70,7 @@ export function useStartRecording(params: StartRecordingParams) {
       });
       return;
     }
-    if (
-      initialSessionId &&
-      !participantsAnswered.current &&
-      !hasAskedParticipants(initialSessionId) &&
-      !isDemoUrl()
-    ) {
+    if (initialSessionId && !participantsAnswered.current && !hasAskedParticipants(initialSessionId) && !isDemoUrl()) {
       setParticipantsPrompt(true);
       return;
     }

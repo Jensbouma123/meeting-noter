@@ -7,7 +7,8 @@ export const fake: { server: FakeServerState; calls: RecordedCall[] } = {
   calls: [],
 };
 
-const json = (status: number, body: object) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
+const json = (status: number, body: object) =>
+  new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 
 function collectSubtree(rootId: string): Set<string> {
   const subtree = new Set([rootId]);
@@ -36,7 +37,10 @@ function deleteFolderRoute(id: string, mode: string): Response {
     for (const f of server.folders) if (f.parentId === id) f.parentId = target.parentId;
   }
   server.folders = server.folders.filter((x) => !subtree.has(x.id) || (mode === 'move-up' && x.id !== id));
-  return json(200, { ok: true, deleted: { folders: subtree.size, meetings: mode === 'delete-contents' ? affected.length : 0 } });
+  return json(200, {
+    ok: true,
+    deleted: { folders: subtree.size, meetings: mode === 'delete-contents' ? affected.length : 0 },
+  });
 }
 
 function patchFolderRoute(id: string, body: RequestBody): Response {
@@ -67,7 +71,10 @@ function routeRequest(url: string, init?: RequestInit): Response {
     return json(201, { ok: true, folder: f });
   }
   if (path === '/api/meetings' && method === 'GET') {
-    return json(200, { ok: true, meetings: Object.entries(server.meetings).map(([id, folderId]) => ({ id, folderId })) });
+    return json(200, {
+      ok: true,
+      meetings: Object.entries(server.meetings).map(([id, folderId]) => ({ id, folderId })),
+    });
   }
   const meetingFolderMatch = /^\/api\/meetings\/([^/]+)\/folder$/.exec(path);
   if (meetingFolderMatch && method === 'PUT') {
@@ -76,13 +83,18 @@ function routeRequest(url: string, init?: RequestInit): Response {
   }
   const folderMatch = /^\/api\/folders\/([^/]+)$/.exec(path);
   if (folderMatch && method === 'PATCH') return patchFolderRoute(folderMatch[1], body);
-  if (folderMatch && method === 'DELETE') return deleteFolderRoute(folderMatch[1], new URLSearchParams(query).get('mode') ?? 'move-up');
+  if (folderMatch && method === 'DELETE')
+    return deleteFolderRoute(folderMatch[1], new URLSearchParams(query).get('mode') ?? 'move-up');
   return json(404, { ok: false, error: 'not-found' });
 }
 
 export function installFakeFolderServer() {
-  HTMLDialogElement.prototype.showModal ||= function (this: HTMLDialogElement) { this.setAttribute('open', ''); };
-  HTMLDialogElement.prototype.close ||= function (this: HTMLDialogElement) { this.removeAttribute('open'); };
+  HTMLDialogElement.prototype.showModal ||= function (this: HTMLDialogElement) {
+    this.setAttribute('open', '');
+  };
+  HTMLDialogElement.prototype.close ||= function (this: HTMLDialogElement) {
+    this.removeAttribute('open');
+  };
   fake.server = {
     folders: [folder('a', null, 'Work'), folder('b', 'a', 'Q1')],
     meetings: { m1: 'b' },

@@ -19,12 +19,18 @@ export function buildSummary(options: BuildSummaryOptions): string {
     lines.push(markdown ? `## ${heading}` : heading, '', ...entries, '');
   };
   section(t('participants'), participants);
-  section(t('decisions'), decisions.map((decision) => `- ${decision.text}`));
-  section(t('actions'), actions.map((action) => {
-    const mark = action.done ? '☑' : '☐';
-    const details = [action.ownerName, action.due].filter(Boolean).join(' · ');
-    return `- ${mark} ${action.text}${details ? ` (${details})` : ''}`;
-  }));
+  section(
+    t('decisions'),
+    decisions.map((decision) => `- ${decision.text}`),
+  );
+  section(
+    t('actions'),
+    actions.map((action) => {
+      const mark = action.done ? '☑' : '☐';
+      const details = [action.ownerName, action.due].filter(Boolean).join(' · ');
+      return `- ${mark} ${action.text}${details ? ` (${details})` : ''}`;
+    }),
+  );
   if (transcript !== undefined) section(t('transcript'), [transcript]);
   return lines.join('\n').trimEnd() + '\n';
 }

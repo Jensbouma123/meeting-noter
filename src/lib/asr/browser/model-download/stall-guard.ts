@@ -3,11 +3,7 @@ import { DOWNLOAD_STALL_MS } from './constants';
 import { downloadCancelError, wasCancelRequested } from './download-cancellation';
 import { describeDownloadStall, unrefTimer } from './timing';
 
-export function createStallGuard(
-  filename: string,
-  aborter: AbortController,
-  abortGeneration: number,
-): StallGuard {
+export function createStallGuard(filename: string, aborter: AbortController, abortGeneration: number): StallGuard {
   let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
   let stallTimer: ReturnType<typeof setTimeout> | null = null;
   let stallFired = false;

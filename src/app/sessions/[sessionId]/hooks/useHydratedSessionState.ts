@@ -12,11 +12,7 @@ export function useHydratedSessionState(initialSessionId?: string) {
   const [resumeCandidate, setResumeCandidate] = useState<AutosavedSession | null>(null);
 
   useOnChange(initialSessionId, () => {
-    setTitle(
-      initialSessionId
-        ? (getSessionMetadata(initialSessionId)?.title ?? 'Untitled meeting')
-        : loadSavedTitle(),
-    );
+    setTitle(initialSessionId ? (getSessionMetadata(initialSessionId)?.title ?? 'Untitled meeting') : loadSavedTitle());
     try {
       const candidate = loadAutosavedSession();
       setResumeCandidate(

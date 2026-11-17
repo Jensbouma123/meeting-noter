@@ -59,7 +59,12 @@ describe('body checks', () => {
   it('import counts hostile ids as invalid and writes nothing for them', async () => {
     const good = sampleMeeting();
     const res = await importMeetings(
-      rawRequest('POST', '/import', LOCAL, JSON.stringify({ meetings: [{ ...good, id: '../evil' }, { ...good, id: 'a/b' }, good] })),
+      rawRequest(
+        'POST',
+        '/import',
+        LOCAL,
+        JSON.stringify({ meetings: [{ ...good, id: '../evil' }, { ...good, id: 'a/b' }, good] }),
+      ),
     );
     expect(await res.json()).toMatchObject({ imported: 1, invalid: 2 });
     expect(fs.readdirSync(path.join(data.dir, 'meetings'))).toHaveLength(1);

@@ -11,7 +11,10 @@ function downloadModelFile(file: string, onProgress?: DownloadProgressHandler): 
   });
 }
 
-async function createWebGpuModel(encoderModel: string | Uint8Array, decoderModel: string | Uint8Array): Promise<LangIdModel | null> {
+async function createWebGpuModel(
+  encoderModel: string | Uint8Array,
+  decoderModel: string | Uint8Array,
+): Promise<LangIdModel | null> {
   const hasWebGpu = typeof navigator !== 'undefined' && 'gpu' in navigator;
   if (!hasWebGpu) return null;
   let encoder: ort.InferenceSession | undefined;

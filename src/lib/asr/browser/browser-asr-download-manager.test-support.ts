@@ -38,7 +38,10 @@ export async function load() {
   return { registry, manager, downloader };
 }
 
-export function registerTestModel(registry: { registerModel: typeof import('./model-registry-register').registerModel }, key: string): void {
+export function registerTestModel(
+  registry: { registerModel: typeof import('./model-registry-register').registerModel },
+  key: string,
+): void {
   registry.registerModel({
     key,
     modelRepo: `test/${key}`,

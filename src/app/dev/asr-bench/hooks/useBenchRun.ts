@@ -60,7 +60,10 @@ export function useBenchRun({ backend, encoder, runs, clipRef, appendLog }: Benc
           const out = await engine.transcribe(clip, 'mic', 'mic:0', true);
           const transcribeMs = performance.now() - start;
           if (out.error) throw new Error(out.error);
-          const text = out.segments.map((s: BrowserSegment) => s.text).join(' ').trim();
+          const text = out.segments
+            .map((s: BrowserSegment) => s.text)
+            .join(' ')
+            .trim();
           results.push({ run: i + 1, transcribeMs, rtf: transcribeMs / 1000 / audioSeconds, text });
           appendLog(`run ${i + 1}: ${(transcribeMs / 1000).toFixed(2)} s (RTF ${(results[i].rtf).toFixed(3)})`);
         }

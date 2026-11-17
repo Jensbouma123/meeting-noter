@@ -8,12 +8,7 @@ import type { ChaptersListProps } from './ChaptersList.types';
 export function ChaptersList({ chapters, onSeek }: ChaptersListProps) {
   const t = useT('search');
   if (chapters.length === 0) {
-    return (
-      <EmptyState
-        title={t('noChapters')}
-        description={t('noChaptersHint')}
-      />
-    );
+    return <EmptyState title={t('noChapters')} description={t('noChaptersHint')} />;
   }
 
   return (

@@ -29,11 +29,8 @@ export function containsBlob(value: unknown, depth = 0, seen = new Set<unknown>(
   seen.add(value);
   if (value instanceof ArrayBuffer || ArrayBuffer.isView(value)) return false;
   if (Array.isArray(value)) return value.some((item) => containsBlob(item, depth + 1, seen));
-  return Object.values(value as Record<string, unknown>).some((item) =>
-    containsBlob(item, depth + 1, seen),
-  );
+  return Object.values(value as Record<string, unknown>).some((item) => containsBlob(item, depth + 1, seen));
 }
-
 
 export function withDb<T>(work: (db: IDBDatabase) => Promise<T> | T): Promise<T> {
   return new Promise<T>((resolve, reject) => {
@@ -76,7 +73,6 @@ export function databaseExists(name: string): Promise<boolean> {
   if (!request) return Promise.resolve(true);
   return request.then((dbs) => dbs.some((d) => d.name === name));
 }
-
 
 export function installCacheHooks(): void {
   beforeEach(async () => {

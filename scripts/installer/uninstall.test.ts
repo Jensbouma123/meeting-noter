@@ -42,7 +42,12 @@ describe.skipIf(process.platform !== 'darwin')('uninstall.sh and meetings', () =
     const r = runScript(uninstallScript());
     expect(r.code, r.out).toBe(0);
     expect(r.out).toContain('meetings.db');
-    expect(readdirSync(installRoot()).sort()).toEqual(['meetings', 'meetings.db', 'meetings.db-shm', 'meetings.db-wal']);
+    expect(readdirSync(installRoot()).sort()).toEqual([
+      'meetings',
+      'meetings.db',
+      'meetings.db-shm',
+      'meetings.db-wal',
+    ]);
     expect(existsSync(meetingNote())).toBe(true);
     expect(existsSync(path.join(sandbox.home, 'Applications/Meeting Noter.app'))).toBe(false);
   });

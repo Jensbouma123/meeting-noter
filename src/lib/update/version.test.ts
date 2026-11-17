@@ -41,7 +41,11 @@ describe('findNewerRelease', () => {
         assets: [{ name: 'meeting-noter-macos-arm64.tar.gz' }, { name: 'meeting-noter-macos-arm64.tar.gz.sha256' }],
       }),
     });
-    expect(r).toMatchObject({ name: 'Snellere start', notes: '- Nieuw: bijwerken vanuit de app', publishedAt: '2026-11-10T12:00:00Z' });
+    expect(r).toMatchObject({
+      name: 'Snellere start',
+      notes: '- Nieuw: bijwerken vanuit de app',
+      publishedAt: '2026-11-10T12:00:00Z',
+    });
     expect(installerAssetsReady(r!.assetNames, 'arm64')).toBe(true);
     expect(installerAssetsReady(r!.assetNames, 'x64')).toBe(false);
     expect(installerAssetsReady(['meeting-noter-macos-arm64.tar.gz'], 'arm64')).toBe(false);
@@ -51,7 +55,13 @@ describe('findNewerRelease', () => {
     expect(await findNewerRelease('0.3.0', { fetchFn: ok({ tag_name: 'v0.2.0' }) })).toBeNull();
   });
   it('returns null offline, on HTTP errors and on junk', async () => {
-    expect(await findNewerRelease('0.1.0', { fetchFn: async () => { throw new Error('offline'); } })).toBeNull();
+    expect(
+      await findNewerRelease('0.1.0', {
+        fetchFn: async () => {
+          throw new Error('offline');
+        },
+      }),
+    ).toBeNull();
     expect(await findNewerRelease('0.1.0', { fetchFn: async () => ({ ok: false }) as Response })).toBeNull();
     expect(await findNewerRelease('0.1.0', { fetchFn: ok({ message: 'rate limited' }) })).toBeNull();
   });

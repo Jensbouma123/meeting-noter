@@ -14,7 +14,13 @@ afterEach(() => {
 describe('splitBySpeaker', () => {
   it('splits a final line between words where the speaker changes; the first part keeps the id', () => {
     const seg = line('s1', ['so', 'we', 'agree', 'yes', 'we', 'do'], 10);
-    const parts = splitBySpeaker(seg, turnsAt([['mic:0', 9, 12.9], ['mic:1', 13, 16]]));
+    const parts = splitBySpeaker(
+      seg,
+      turnsAt([
+        ['mic:0', 9, 12.9],
+        ['mic:1', 13, 16],
+      ]),
+    );
 
     expect(parts.map((p) => [p.id, p.speaker, p.text, p.start, p.end])).toEqual([
       ['s1', 'mic:0', 'so we agree', 10, 12.8],
@@ -31,7 +37,13 @@ describe('splitBySpeaker', () => {
 
   it('gives a word no turn covers its neighbour speaker', () => {
     const seg = line('s1', ['a', 'b', 'c', 'd'], 0);
-    const parts = splitBySpeaker(seg, turnsAt([['mic:0', 0, 0.9], ['mic:1', 3, 4]]));
+    const parts = splitBySpeaker(
+      seg,
+      turnsAt([
+        ['mic:0', 0, 0.9],
+        ['mic:1', 3, 4],
+      ]),
+    );
     expect(parts.map((p) => [p.speaker, p.text])).toEqual([
       ['mic:0', 'a b c'],
       ['mic:1', 'd'],
@@ -39,7 +51,10 @@ describe('splitBySpeaker', () => {
   });
 
   it('splits an open line too, but never one whose text is not its words', () => {
-    const turns = turnsAt([['mic:0', 0, 1.9], ['mic:1', 2, 4]]);
+    const turns = turnsAt([
+      ['mic:0', 0, 1.9],
+      ['mic:1', 2, 4],
+    ]);
     const open = { ...line('s1', ['a', 'b', 'c'], 0), final: false };
     expect(splitBySpeaker(open, turns).map((p) => [p.id, p.speaker, p.final])).toEqual([
       ['s1', 'mic:0', false],
@@ -68,12 +83,24 @@ describe('splitBySpeaker', () => {
 
   it('re-splits a merged family: a later turn moves the boundary, or merges the parts back', () => {
     const seg = line('s1', ['a', 'b', 'c', 'd'], 0);
-    const first = splitBySpeaker(seg, turnsAt([['mic:0', 0, 1.9], ['mic:1', 2, 4]]));
+    const first = splitBySpeaker(
+      seg,
+      turnsAt([
+        ['mic:0', 0, 1.9],
+        ['mic:1', 2, 4],
+      ]),
+    );
     expect(first.map((p) => p.id)).toEqual(['s1', 's1~2']);
 
     const merged = mergeFamily(first);
     expect(merged).toMatchObject({ id: 's1', text: 'a b c d', start: 0, end: seg.end, final: true });
-    const moved = splitBySpeaker(merged, turnsAt([['mic:0', 0, 0.9], ['mic:1', 1, 4]]));
+    const moved = splitBySpeaker(
+      merged,
+      turnsAt([
+        ['mic:0', 0, 0.9],
+        ['mic:1', 1, 4],
+      ]),
+    );
     expect(moved.map((p) => [p.id, p.speaker, p.text])).toEqual([
       ['s1', 'mic:0', 'a'],
       ['s1~1', 'mic:1', 'b c d'],

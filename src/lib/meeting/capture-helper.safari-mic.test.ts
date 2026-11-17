@@ -51,7 +51,9 @@ describe('Safari mic-only capture', () => {
     const cap = new Capture({ ...handler, onWarning });
     await cap.start('mic');
     socket().text({ type: 'mic', mic: 'silent', micError: 'delivers only silence', micPermission: 'unknown' });
-    expect(onWarning).toHaveBeenCalledExactlyOnceWith(expect.stringMatching(/microphone is not recorded.*only silence/));
+    expect(onWarning).toHaveBeenCalledExactlyOnceWith(
+      expect.stringMatching(/microphone is not recorded.*only silence/),
+    );
     expect(cap.warning).not.toMatch(/system audio only/);
     await cap.dispose();
   });
@@ -60,7 +62,10 @@ describe('Safari mic-only capture', () => {
     stubBrowser(SAFARI);
     FakeHelperSocket.reset('refused');
     const cap = new Capture(handler);
-    const err = await cap.start('mic').then(() => null, (e: Error) => e);
+    const err = await cap.start('mic').then(
+      () => null,
+      (e: Error) => e,
+    );
     expect(err?.message).toBe(SAFARI_MIC_NEEDS_HELPER);
     expect(err?.message).toMatch(/audiohelper.*draait niet.*Start Meeting Noter\.command.*npm run app/);
     expect(env.getUserMedia).not.toHaveBeenCalled();

@@ -62,7 +62,7 @@ export class MixedRadixFft {
         let re = 0;
         let im = 0;
         for (let r = 0; r < p; r++) {
-          const j = (((this.size / p) * ((r * q) % p)) % size);
+          const j = ((this.size / p) * ((r * q) % p)) % size;
           const c = cos[j];
           const s = sin[j];
           re += tmpRe[r] * c + tmpIm[r] * s;

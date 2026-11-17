@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  CACHE_CHUNK_BYTES,
-  categorizeManifestFile,
-  chunkCountFor,
-  planChunkRanges,
-} from './resumable-download';
+import { CACHE_CHUNK_BYTES, categorizeManifestFile, chunkCountFor, planChunkRanges } from './resumable-download';
 import { PARAKEET_TDT_V3 } from './model-manifest-parakeet';
 
 describe('chunk arithmetic', () => {
@@ -29,9 +24,7 @@ describe('chunk arithmetic', () => {
   it('covers every byte exactly once, whatever the size', () => {
     for (const size of [0, 1, 199, 200, 201, 450, 1000]) {
       const ranges = planChunkRanges(size, 200);
-      expect(ranges.map((range) => range.end - range.start)).toEqual(
-        ranges.map(() => expect.any(Number)),
-      );
+      expect(ranges.map((range) => range.end - range.start)).toEqual(ranges.map(() => expect.any(Number)));
       expect(ranges.length).toBe(chunkCountFor(size, 200));
       expect(ranges.reduce((sum, range) => sum + (range.end - range.start), 0)).toBe(size);
       let offset = 0;
@@ -46,11 +39,7 @@ describe('chunk arithmetic', () => {
 
   it('keeps the real encoder graph at three chunks, the last one short', () => {
     const ranges = planChunkRanges(41_770_866, CACHE_CHUNK_BYTES);
-    expect(ranges.map((range) => range.end - range.start)).toEqual([
-      CACHE_CHUNK_BYTES,
-      CACHE_CHUNK_BYTES,
-      8_216_434,
-    ]);
+    expect(ranges.map((range) => range.end - range.start)).toEqual([CACHE_CHUNK_BYTES, CACHE_CHUNK_BYTES, 8_216_434]);
   });
 
   it('counts nothing for an empty or nonsensical file', () => {
@@ -63,11 +52,7 @@ describe('chunk arithmetic', () => {
 
 describe('categorizeManifestFile', () => {
   it('classifies every file in the real manifest', () => {
-    expect(PARAKEET_TDT_V3.files.map(categorizeManifestFile)).toEqual([
-      'encoder',
-      'decoder',
-      'tokenizer',
-    ]);
+    expect(PARAKEET_TDT_V3.files.map(categorizeManifestFile)).toEqual(['encoder', 'decoder', 'tokenizer']);
   });
 
   it('recognizes a preprocessor onnx file', () => {
@@ -87,9 +72,7 @@ describe('HF/CDN Range support (live)', () => {
       const url = `https://huggingface.co/${PARAKEET_TDT_V3.modelRepo}/resolve/main/${encodedFile}`;
       const res = await fetch(url, { headers: { Range: 'bytes=1000-' } });
       expect(res.status, `expected 206 for a Range request on "${file}"`).toBe(206);
-      expect(res.headers.get('content-range'), `missing Content-Range for "${file}"`).toMatch(
-        /^bytes 1000-/,
-      );
+      expect(res.headers.get('content-range'), `missing Content-Range for "${file}"`).toMatch(/^bytes 1000-/);
     }
   });
 });

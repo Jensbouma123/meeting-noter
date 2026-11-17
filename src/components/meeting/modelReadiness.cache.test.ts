@@ -11,7 +11,6 @@ import {
   stubWebgpuDevice,
 } from './modelReadiness.cache.testUtils';
 
-
 const engineState = vi.hoisted(() => ({ instances: 0 }));
 
 vi.mock('@/lib/asr/browser/parakeet', () => {

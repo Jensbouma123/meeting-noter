@@ -3,7 +3,13 @@ import { FolderError } from './folder-error';
 import { folderExists, folderSubtreeIds, nextSiblingSort, readAllFolders, readFolder } from './folder-queries';
 import type { FolderRow } from './types';
 
-export function insertFolder(db: DatabaseSync, id: string, name: string, parentId: string | null, now: number): FolderRow {
+export function insertFolder(
+  db: DatabaseSync,
+  id: string,
+  name: string,
+  parentId: string | null,
+  now: number,
+): FolderRow {
   if (parentId !== null && !folderExists(db, parentId)) throw new FolderError('bad-parent');
   db.prepare('INSERT INTO folders (id, parent_id, name, sort, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)').run(
     id,
@@ -72,5 +78,9 @@ export function updateFolderContext(db: DatabaseSync, id: string, context: strin
 export function fileMeetingInFolder(db: DatabaseSync, meetingId: string, folderId: string | null, now: number): void {
   if (!db.prepare('SELECT 1 FROM meetings WHERE id = ?').get(meetingId)) throw new FolderError('not-found');
   if (folderId !== null && !folderExists(db, folderId)) throw new FolderError('bad-parent');
-  db.prepare('UPDATE meetings SET folder_id = ?, updated_at = MAX(updated_at + 1, ?) WHERE id = ?').run(folderId, now, meetingId);
+  db.prepare('UPDATE meetings SET folder_id = ?, updated_at = MAX(updated_at + 1, ?) WHERE id = ?').run(
+    folderId,
+    now,
+    meetingId,
+  );
 }

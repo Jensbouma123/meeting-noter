@@ -28,9 +28,7 @@ const CASES: Case[] = [
   {
     name: 'participants prompt',
     title: { en: 'Who is in this meeting?', nl: 'Wie zijn er in deze meeting?' },
-    render: (onClose) => (
-      <ParticipantsDialog ownerName="Jens" initial={[]} onSkip={onClose} onStart={() => {}} />
-    ),
+    render: (onClose) => <ParticipantsDialog ownerName="Jens" initial={[]} onSkip={onClose} onStart={() => {}} />,
   },
   {
     name: 'record target',
@@ -54,9 +52,7 @@ const CASES: Case[] = [
   {
     name: 'share',
     title: { en: 'Share this meeting', nl: 'Deel deze meeting' },
-    render: (onClose) => (
-      <ShareDialog open onClose={onClose} title="Standup" segments={[]} speakers={{}} />
-    ),
+    render: (onClose) => <ShareDialog open onClose={onClose} title="Standup" segments={[]} speakers={{}} />,
   },
   {
     name: 'settings',
@@ -78,11 +74,7 @@ for (const testCase of CASES) {
     for (const language of ['en', 'nl'] as const) {
       it(`is a modal dialog named “${testCase.title[language]}” in ${language}`, () => {
         const onClose = vi.fn();
-        render(
-          <LanguageContext.Provider value={language}>
-            {testCase.render(onClose)}
-          </LanguageContext.Provider>,
-        );
+        render(<LanguageContext.Provider value={language}>{testCase.render(onClose)}</LanguageContext.Provider>);
         const dialog = screen.getByRole('dialog', { name: testCase.title[language] });
         expect(dialog).toHaveAttribute('open');
         expect(dialog.contains(document.activeElement)).toBe(true);
@@ -91,17 +83,13 @@ for (const testCase of CASES) {
 
     it('closes on Escape', () => {
       const onClose = vi.fn();
-      render(
-        <LanguageContext.Provider value="en">{testCase.render(onClose)}</LanguageContext.Provider>,
-      );
+      render(<LanguageContext.Provider value="en">{testCase.render(onClose)}</LanguageContext.Provider>);
       escape(screen.getByRole('dialog', { hidden: true }));
       expect(onClose).toHaveBeenCalledOnce();
     });
 
     it('offers a labelled way out for pointer and screen reader users', () => {
-      render(
-        <LanguageContext.Provider value="en">{testCase.render(vi.fn())}</LanguageContext.Provider>,
-      );
+      render(<LanguageContext.Provider value="en">{testCase.render(vi.fn())}</LanguageContext.Provider>);
       expect(screen.getByRole('button', { name: /close dialog|dialoog sluiten/i, hidden: true })).toBeInTheDocument();
     });
   });

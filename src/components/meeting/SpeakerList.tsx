@@ -25,10 +25,7 @@ export function SpeakerList({ rows, sessionId, onAssigned }: SpeakerListProps) {
     );
   }
   return (
-    <ul
-      aria-labelledby="rail-speakers-h"
-      className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0"
-    >
+    <ul aria-labelledby="rail-speakers-h" className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
       {rows.map((spk) => {
         const colorStyle = getSpeakerColor(spk.colorIndex);
         const named = !isUnnamedSpeakerLabel(spk.label);
@@ -48,9 +45,7 @@ export function SpeakerList({ rows, sessionId, onAssigned }: SpeakerListProps) {
           <li key={spk.id} className="animate-turn-enter flex flex-col gap-1.5 py-2.5">
             <div className="flex min-w-0 items-center gap-2">
               <span className={`size-2 shrink-0 rounded-full ${colorStyle.dotClass}`} aria-hidden="true" />
-              <div className="min-w-0 flex-1">
-                {named ? assign : <SpeakerLabel label={spk.label} />}
-              </div>
+              <div className="min-w-0 flex-1">{named ? assign : <SpeakerLabel label={spk.label} />}</div>
               <Text size="xs" variant="muted" font="mono" className="shrink-0 tabular-nums">
                 <span className="sr-only">{tp('talkTime')} </span>
                 {formatTalkTime(spk.time)}
@@ -59,7 +54,9 @@ export function SpeakerList({ rows, sessionId, onAssigned }: SpeakerListProps) {
             <div className="flex items-center gap-2 pl-4">
               <ProgressTrack
                 value={Math.max(3, pct)}
-                label={tp('talkShare').replace('{name}', spk.label).replace('{pct}', String(Math.round(pct)))}
+                label={tp('talkShare')
+                  .replace('{name}', spk.label)
+                  .replace('{pct}', String(Math.round(pct)))}
                 barClassName={colorStyle.barBgClass}
                 className="flex-1"
               />
