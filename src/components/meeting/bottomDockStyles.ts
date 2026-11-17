@@ -5,4 +5,4 @@ export const MODEL_TINT =
 export const SEGMENT_TRACK =
   '[&>div]:h-10 [&>div]:!rounded-full [&>div]:!bg-muted [&>div]:!p-1 [&>div]:items-center';
 export const SEGMENT =
-  '!h-8 !rounded-full !px-3 aria-checked:!bg-elevation-2 aria-checked:shadow-sm aria-[checked=false]:!bg-transparent aria-[checked=false]:!text-muted-foreground';
+  '!h-8 !rounded-full !px-3 [&_svg]:!size-4 aria-checked:!bg-primary-500/15 aria-checked:!text-primary-800 aria-checked:font-semibold dark:aria-checked:!bg-primary-400/20 dark:aria-checked:!text-primary-200 aria-[checked=false]:!bg-transparent aria-[checked=false]:!text-muted-foreground aria-[checked=false]:font-normal hover:aria-[checked=false]:!text-foreground';
