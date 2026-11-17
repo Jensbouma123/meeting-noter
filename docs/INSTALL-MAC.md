@@ -31,7 +31,7 @@ gecontroleerd) en zet het om. Dat kost ca. 5-15 minuten en ca. 4 GB tijdelijke
 schijfruimte (wordt daarna verwijderd); er is dan minimaal 6 GB vrije ruimte en
 8 GB werkgeheugen nodig. Het resultaat staat in
 `~/Library/Application Support/Meeting Noter/models/` en blijft bewaard bij
-updates (het wordt niet opnieuw opgehaald). Met dit model kunt u live
+updates; alleen een nieuwe modelversie in een update vervangt het). Met dit model kunt u live
 transcriberen; bij het eerste gebruik vraagt de app toestemming om het te laden.
 Lukt beide niet, dan werkt de app met het CPU-model: transcriptie pas na Stop.
 Opnieuw proberen:
@@ -131,12 +131,27 @@ HOME=/tmp/mn-home MEETING_NOTER_NO_LAUNCHD=1 MEETING_NOTER_NO_OPEN=1 \
 
 (Een pad met spaties schrijft u in de `file://`-URL als `%20`.)
 
-### Het spraakmodel publiceren
+### Het spraakmodel publiceren en bijwerken
 
-`scripts/installer/publish-model.sh` bouwt `encoder-model.q4f16.onnx` lokaal (zelfde
-vastgepinde `uv run` als de terugvaloptie van de installer), schrijft de `.sha256`
-en uploadt beide met `gh release upload` naar de prerelease
-`model-parakeet-v3-webgpu-1` (aangemaakt als die ontbreekt; een prerelease wordt
-nooit "latest"). `--build-only` slaat de upload over. Zet daarna de afgedrukte hash
-in `MODEL_SHA256` in `install.sh`. Testen: `node scripts/installer/model-e2e.mjs`
-(met `MODEL_E2E_FILE=<gebouwd bestand>` tegen de echte vastgepinde hash).
+`scripts/installer/publish-model.sh N` bouwt `encoder-model.q4f16.onnx` lokaal
+(zelfde vastgepinde `uv run` als de terugvaloptie van de installer), schrijft de
+`.sha256` en uploadt beide met `gh release upload` naar de prerelease
+`model-parakeet-v3-webgpu-N` (aangemaakt als die ontbreekt; een prerelease wordt
+nooit "latest"). `--build-only` slaat de upload over.
+
+Een nieuw model uitrollen:
+
+1. `scripts/installer/publish-model.sh 2` (het volgende nummer; een bestaande tag
+   nooit hergebruiken).
+2. Zet in `install.sh` `MODEL_VERSION=2` en `MODEL_SHA256` op de afgedrukte hash.
+3. Publiceer een app-release met die `install.sh`.
+
+Bij elke installatie of update vergelijkt de installer de hash in
+`models/parakeet-tdt-0.6b-v3-webgpu/encoder-model.q4f16.onnx.sha256` met
+`MODEL_SHA256`. Verschillen ze (of ontbreekt dat bestand, bij een oudere
+installatie of een zelfgebouwd model), dan downloadt hij het nieuwe model,
+controleert het, zet het in één keer op zijn plaats en herstart de server. Mislukt
+dat, dan blijft het huidige model in gebruik.
+
+Testen: `npm run test:model-e2e` (met `MODEL_E2E_FILE=<gebouwd bestand>` tegen de
+echte vastgepinde hash).
