@@ -20,6 +20,7 @@ export function prepareWritableDatabase(db: DatabaseSync): void {
     const folderColumns = columnNames(db, 'folders');
     if (!folderColumns.includes('roster')) db.exec('ALTER TABLE folders ADD COLUMN roster TEXT');
     if (!folderColumns.includes('roster_inherit')) db.exec('ALTER TABLE folders ADD COLUMN roster_inherit INTEGER NOT NULL DEFAULT 1');
+    if (!folderColumns.includes('context')) db.exec("ALTER TABLE folders ADD COLUMN context TEXT NOT NULL DEFAULT ''");
     db.exec(`PRAGMA user_version = ${SCHEMA_VERSION}`);
   }
   db.exec("INSERT INTO meetings_fts (meetings_fts, rank) VALUES ('secure-delete', 1)");

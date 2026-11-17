@@ -36,6 +36,7 @@ export function readFolder(db: DatabaseSync, id: string): FolderRow {
     updatedAt: num(r.updated_at),
     roster: parseJson<string[]>(r.roster, []),
     inheritRoster: num(r.roster_inherit ?? 1) === 1,
+    context: str(r.context ?? ''),
   };
 }
 

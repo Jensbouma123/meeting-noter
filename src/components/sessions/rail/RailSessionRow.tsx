@@ -1,5 +1,5 @@
 import { useState, useSyncExternalStore, type MouseEvent } from 'react';
-import { Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, ListItem, Text } from '@jensbouma123/acciva-ui';
+import { Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, ListItem, Text } from '@jensbouma123/acciva-ui';
 import { ArrowRight, Eraser, FolderInput, Loader2, MoreHorizontal, Pencil, Sparkles, Trash2 } from 'lucide-react';
 import { isSessionRecording } from '@/lib/meeting/session-delete';
 import { subscribe as subscribeMeetingStore } from '@/lib/meeting/store-core';
@@ -92,6 +92,7 @@ export function RailSessionRow({ session, isActive, onOpen, onClear, onDelete, o
                 {tf('suggestFolder')}
               </DropdownMenuItem>
             )}
+            <DropdownMenuSeparator />
             <DropdownMenuItem variant="danger" icon={<Eraser className="size-4" />} disabled={locked} onClick={onClear}>
               {t('clear')}
             </DropdownMenuItem>

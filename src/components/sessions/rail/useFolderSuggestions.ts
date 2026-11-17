@@ -5,6 +5,7 @@ import { FOLDERS_CHANGED_EVENT, declineFolderSuggestion, fetchDeclinedSuggestion
 import { folderPath } from '@/lib/folders/folder-tree';
 import { computeFolderSuggestions } from '@/lib/semantic-search/folder-suggest/compute';
 import { loadIndex } from '@/lib/semantic-search/store';
+import { useFolderContextVectors } from './useFolderContextVectors';
 import type { FolderSuggestionView } from './folder-suggestion.types';
 
 export function useFolderSuggestions(
@@ -25,6 +26,7 @@ export function useFolderSuggestions(
     return () => window.removeEventListener(FOLDERS_CHANGED_EVENT, refresh);
   }, [refresh]);
 
+  const contextVectors = useFolderContextVectors(folders);
   const sessionKey = sessions.map((s) => s.sessionId).join('|');
   const suggestions = useMemo(
     () =>
@@ -32,9 +34,10 @@ export function useFolderSuggestions(
         sessionIds: sessionKey ? sessionKey.split('|') : [],
         meetingFolders,
         declined,
+        contextVectors,
         loadVectors: (id) => loadIndex(id)?.vectors ?? null,
       }),
-    [sessionKey, meetingFolders, declined],
+    [sessionKey, meetingFolders, declined, contextVectors],
   );
 
   return useMemo(() => {

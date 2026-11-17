@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { Input } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { ParticipantOptionList } from './ParticipantOptionList';
@@ -14,6 +14,7 @@ export function ParticipantPicker({ people, roster, folderName, selected, onTogg
   const [hidden, setHidden] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const listId = useId();
+  const rootRef = useRef<HTMLDivElement>(null);
   const { usual, others, fresh } = pickerSections(people, folderName ? roster : [], query);
   const flat: ParticipantOption[] = [...usual, ...others, ...(fresh ? [{ name: fresh, addNew: true }] : [])];
   const listLabel = t('pickerLabel');
@@ -42,7 +43,13 @@ export function ParticipantPicker({ people, roster, folderName, selected, onTogg
   };
 
   return (
-    <div className="flex w-full flex-col gap-2">
+    <div
+      ref={rootRef}
+      className="relative w-full"
+      onBlur={(event) => {
+        if (!rootRef.current?.contains(event.relatedTarget as Node | null)) setHidden(true);
+      }}
+    >
       <Input
         type="search"
         role="combobox"

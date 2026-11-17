@@ -50,6 +50,7 @@ function patchFolderRoute(id: string, body: RequestBody): Response {
     fake.server.folders = [...fake.server.folders.filter((x) => x.parentId !== f.parentId), ...sib];
   }
   if ('roster' in body) f.roster = (body.roster as string[]) ?? [];
+  if ('context' in body) f.context = String(body.context);
   if ('inheritRoster' in body) f.inheritRoster = Boolean(body.inheritRoster);
   return json(200, { ok: true, folder: f });
 }

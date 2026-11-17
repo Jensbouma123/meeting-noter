@@ -66,6 +66,10 @@ export class MeetingStore {
     return folder;
   }
 
+  setFolderContext(id: string, context: string) {
+    return this.db.setFolderContext(id, context);
+  }
+
   setInsights(id: string, insights: InsightSet | null): boolean {
     if (!this.db.setInsights(id, insights)) return false;
     const meeting = this.db.get(id);

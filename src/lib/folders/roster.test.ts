@@ -11,6 +11,7 @@ const folder = (id: string, parentId: string | null, roster: string[], inheritRo
   updatedAt: 0,
   roster,
   inheritRoster,
+  context: '',
 });
 
 const rows = [

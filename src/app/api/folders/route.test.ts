@@ -92,6 +92,15 @@ describe('/api/folders', () => {
     });
   });
 
+  it('stores a trimmed folder context through PATCH and rejects bad values', async () => {
+    const { folder } = (await (await post(req('POST', '/folders', { name: 'Team' }))).json()) as { folder: { id: string; context: string } };
+    expect(folder.context).toBe('');
+    const saved = await patch(req('PATCH', `/folders/${folder.id}`, { context: '  design syncs ' }), ctx(folder.id));
+    expect(((await saved.json()) as { folder: { context: string } }).folder.context).toBe('design syncs');
+    expect((await patch(req('PATCH', `/folders/${folder.id}`, { context: 5 }), ctx(folder.id))).status).toBe(400);
+    expect((await patch(req('PATCH', `/folders/${folder.id}`, { context: 'x'.repeat(1001) }), ctx(folder.id))).status).toBe(400);
+  });
+
   it('validates route ids and bodies and exposes folderId through meeting reads', async () => {
     expect((await patch(req('PATCH', '/folders/bad%2Fid', {}), ctx('bad/id'))).status).toBe(400);
     expect((await del(req('DELETE', '/folders/bad%2Fid'), ctx('bad/id'))).status).toBe(400);
