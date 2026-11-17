@@ -54,7 +54,7 @@ export function SessionSidebar({ activeSessionId, onOpenSession, onNewSession, o
       isActive={activeSessionId === session.sessionId}
       pathLabel={pathLabel}
       suggestion={onDemand.views[session.sessionId] ?? suggestions[session.sessionId]}
-      onSuggest={() => void onDemand.suggest(session.sessionId)}
+      onSuggest={folderCtl.meetingFolders[session.sessionId] == null ? () => void onDemand.suggest(session.sessionId) : undefined}
       suggesting={onDemand.pendingId === session.sessionId}
       onOpen={() => openSession(session.sessionId)}
       onClear={() => setClearTarget(session)}
