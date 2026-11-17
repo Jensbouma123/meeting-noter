@@ -146,3 +146,15 @@ describe('RailSessionRow folder suggestion', () => {
     expect(screen.queryByTestId('folder-suggestion')).toBeNull();
   });
 });
+
+describe('RailSessionRow menu separator', () => {
+  it('renders a separator between the normal items and "Clear transcript"', () => {
+    render(row(draft(), { isActive: false }));
+    fireEvent.click(screen.getByRole('button', { name: 'More actions for “Standup”' }));
+    const separator = screen.getByRole('separator', { hidden: true });
+    const clear = screen.getByRole('menuitem', { name: 'Clear transcript', hidden: true });
+    const open = screen.getByRole('menuitem', { name: 'Open', hidden: true });
+    expect(open.compareDocumentPosition(separator) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(separator.compareDocumentPosition(clear) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+});
