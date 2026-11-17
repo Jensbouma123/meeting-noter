@@ -46,7 +46,7 @@ export function ParticipantOptionList(props: ParticipantOptionListProps) {
       role="listbox"
       aria-multiselectable="true"
       aria-label={listLabel}
-      className="flex max-h-72 w-full flex-col gap-1 overflow-y-auto rounded-md border border-border-subtle p-1"
+      className="absolute left-0 right-0 top-full z-50 mt-1 flex max-h-72 w-full flex-col gap-1 overflow-y-auto rounded-md border border-border-subtle bg-surface p-1 shadow-lg"
     >
       {usual.length > 0 && (
         <div role="group" aria-label={usualLabel}>
