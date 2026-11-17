@@ -11,6 +11,7 @@ import { OnboardingHost } from "@/components/onboarding/OnboardingHost";
 import { I18nProvider } from "@/lib/i18n/I18nProvider";
 import { LifecycleClient } from "@/components/lifecycle/LifecycleClient";
 import { MeetingsSync } from "@/components/lifecycle/MeetingsSync";
+import { LegacyOriginImport } from "@/components/lifecycle/LegacyOriginImport";
 import { ActiveMeetingReporter } from "@/components/lifecycle/ActiveMeetingReporter";
 
 const geistSans = Geist({
@@ -64,6 +65,7 @@ export default function RootLayout({
               <OnboardingHost />
               <LifecycleClient />
               <MeetingsSync />
+              <LegacyOriginImport />
               <ActiveMeetingReporter />
               {children}
             </ToastProvider>

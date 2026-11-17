@@ -14,7 +14,10 @@ export function startLegacyListener(opts: LegacyListenOptions): Promise<(() => v
     server.close();
     server.closeAllConnections();
   };
-  const timer = setTimeout(close, opts.windowMs ?? LISTEN_WINDOW_MS);
+  const timer = setTimeout(() => {
+    close();
+    opts.onExpire?.();
+  }, opts.windowMs ?? LISTEN_WINDOW_MS);
   timer.unref();
   return new Promise((resolve) => {
     server.once('error', () => {
