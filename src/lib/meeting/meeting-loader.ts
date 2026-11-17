@@ -13,8 +13,17 @@ function hasLocalTranscript(id: string): boolean {
   return loadSessionTranscript(id) !== null || loadAutosavedSession()?.sessionId === id;
 }
 
+function openSessionIds(): Set<string> {
+  const ids = new Set<string>();
+  const live = getTranscriptSessionId();
+  const saved = loadAutosavedSession()?.sessionId;
+  if (live) ids.add(live);
+  if (saved) ids.add(saved);
+  return ids;
+}
+
 export function isOpen(id: string): boolean {
-  return getTranscriptSessionId() === id || loadAutosavedSession()?.sessionId === id;
+  return openSessionIds().has(id);
 }
 
 export async function ensureMeetingLoaded(id: string): Promise<boolean> {
@@ -42,9 +51,10 @@ export async function ensureMeetingLoaded(id: string): Promise<boolean> {
 export function evictSynced(): void {
   const pending = readPending();
   const synced = readJson<Record<string, number>>(SYNCED_KEY, {});
+  const open = openSessionIds();
   for (const s of listSessions()) {
     const at = synced[s.sessionId];
-    if (at === undefined || at < s.updatedAt || pending.save.includes(s.sessionId) || isOpen(s.sessionId)) continue;
+    if (at === undefined || at < s.updatedAt || pending.save.includes(s.sessionId) || open.has(s.sessionId)) continue;
     evictMeetingContent(s.sessionId);
   }
 }
