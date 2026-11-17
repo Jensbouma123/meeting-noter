@@ -28,7 +28,7 @@ export function currentIndexVersion(): number {
 }
 
 if (typeof window !== 'undefined') {
-  window.addEventListener('storage', (e) => {
+  window.addEventListener?.('storage', (e) => {
     if (e.key === null || e.key.startsWith('mn.semindex.')) indexVersion++;
   });
 }

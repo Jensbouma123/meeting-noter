@@ -6,3 +6,5 @@ export interface EncodedIndex {
   chapters: Chapter[];
   centroid: Float32Array | null;
 }
+
+export type WorkerReply = Float32Array[] | EncodedIndex | null;

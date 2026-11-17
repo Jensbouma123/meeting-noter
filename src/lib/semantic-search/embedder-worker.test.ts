@@ -39,6 +39,17 @@ describe('embed worker', () => {
     });
   });
 
+  it('chunks, embeds, chapters and encodes an index request in the worker', async () => {
+    const embedText = vi.fn(async (t: string[]) => t.map(() => new Float32Array(EMBEDDING_DIM).fill(1)));
+    const handle = createEmbedHandler(() => ({ embedText }));
+    const lines = [0, 30, 60].map((start) => ({ start, end: start + 10, text: `line ${start}` }));
+    const out = await handle({ id: 3, kind: 'index', meetingId: 'm', lines });
+    if (!('record' in out) || !out.record) throw new Error('expected a record');
+    expect(out.record.windows).toHaveLength(3);
+    expect(out.record.vectors.every((v) => typeof v === 'string')).toBe(true);
+    expect(out.record.chapters[0].meetingId).toBe('m');
+  });
+
   it('client spawns the worker on first embed and routes replies', async () => {
     const posted: EmbedWorkerIn[] = [];
     const spawn = vi.fn((): EmbedWorkerLike => {

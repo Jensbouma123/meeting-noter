@@ -1,8 +1,6 @@
 import { reportEmbedFailed, reportEmbedProgress, reportEmbedReady } from './embed-progress';
-import type { EncodedIndex } from './encoded-index.types';
+import type { EncodedIndex, WorkerReply as Reply } from './encoded-index.types';
 import { EMBEDDING_DIM, type EmbedWorkerIn, type EmbedWorkerLike, type WorkerEmbedder } from './types';
-
-type Reply = Float32Array[] | EncodedIndex | null;
 
 export function createWorkerEmbedder(
   spawn: () => EmbedWorkerLike = () =>
