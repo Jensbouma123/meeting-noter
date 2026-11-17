@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { ArrowHint } from "@/lib/ArrowHint";
 import { useDropdownMenuContext } from "@/components/ui/DropdownMenu/DropdownMenuContext";
 import { useDropdownMenuKeyboard } from "@/components/ui/DropdownMenu/useDropdownMenuKeyboard";
+import { useOpenSide } from "@/components/ui/Select/useOpenSide";
 
 export interface DropdownMenuContentProps extends HTMLAttributes<HTMLDivElement> {
   align?: "start" | "center" | "end";
@@ -28,11 +29,12 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuConten
   useImperativeHandle(ref, () => menuRef.current as HTMLDivElement);
 
   // `popover="auto"` puts the menu in the top layer with light dismiss (outside press, Escape) and
-  // anchor positioning follows the trigger, so there is no portal, measuring or outside-click listener.
+  // anchor positioning follows the trigger. useOpenSide shows it and sets `data-side` (above or below):
+  // a viewport-clamped menu always "fits", so CSS flips alone left it a sliver near the bottom in WebKit.
+  useOpenSide(menuRef, open);
   useEffect(() => {
     const menu = menuRef.current;
     if (!open || !menu) return;
-    if (menu.showPopover && !menu.matches(":popover-open")) menu.showPopover();
     const onToggle = (e: Event) => {
       if ((e as ToggleEvent).newState === "closed") setOpen(false);
     };
