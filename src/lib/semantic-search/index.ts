@@ -1,10 +1,9 @@
 import { findChapters } from './chapters';
 import { chunkTranscript } from './chunk';
+import { embedWindows } from './index-record';
 import { topHits } from './top-hits';
 import type { Chapter, ChapterOpts, ChunkOpts, Embedder, Hit, MeetingEntry, TranscriptLine, Window } from './types';
 import { normalizedCopy } from './vector-math';
-
-const EMBED_BATCH = 16;
 
 export class SemanticIndex {
   private readonly meetings = new Map<string, MeetingEntry>();
@@ -25,20 +24,7 @@ export class SemanticIndex {
 
   async addMeeting(meetingId: string, lines: TranscriptLine[], opts?: ChunkOpts): Promise<Window[]> {
     const windows = chunkTranscript(meetingId, lines, opts);
-    const vectors: Float32Array[] = [];
-    for (let i = 0; i < windows.length; i += EMBED_BATCH) {
-      const batch = windows.slice(i, i + EMBED_BATCH).map((w) => w.text);
-      const embedded = await this.embedder.embed(batch, 'document');
-      if (embedded.length !== batch.length) {
-        throw new Error(`embedder returned ${embedded.length} vectors for ${batch.length} texts`);
-      }
-      for (const v of embedded) {
-        if (v.length !== this.embedder.dim) {
-          throw new Error(`embedder dim ${v.length}, expected ${this.embedder.dim}`);
-        }
-        vectors.push(normalizedCopy(v));
-      }
-    }
+    const vectors = await embedWindows(this.embedder, windows);
     this.meetings.set(meetingId, { windows, vectors });
     return windows;
   }
@@ -47,7 +33,7 @@ export class SemanticIndex {
     if (windows.length !== vectors.length) {
       throw new RangeError('windows and vectors must have the same length');
     }
-    this.meetings.set(meetingId, { windows, vectors: vectors.map(normalizedCopy) });
+    this.meetings.set(meetingId, { windows, vectors });
   }
 
   exportMeeting(meetingId: string): { windows: Window[]; vectors: Float32Array[] } | null {

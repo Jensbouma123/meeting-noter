@@ -25,7 +25,15 @@ export function writeCentroid(
   vectors: Float32Array[],
   store: KeyValueStore,
 ): void {
-  const centroid = meetingCentroid(vectors);
+  storeCentroid(meetingId, indexedAt, meetingCentroid(vectors), store);
+}
+
+export function storeCentroid(
+  meetingId: string,
+  indexedAt: number,
+  centroid: Float32Array | null,
+  store: KeyValueStore,
+): void {
   store.setItem(
     centroidKey(meetingId),
     JSON.stringify({ indexedAt, centroid: centroid ? toBase64(centroid) : null }),
