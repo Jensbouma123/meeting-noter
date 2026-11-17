@@ -6,7 +6,7 @@ import { CHIP } from './constants';
 import { RowMenu } from './RowMenu';
 import type { ActionRowProps } from './NotesPanel.types';
 
-export function ActionRow({ item, speakers, t, sessionId }: ActionRowProps) {
+export function ActionRow({ item, speakers, t, sessionId, flash }: ActionRowProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(item.text);
   const [dueOpen, setDueOpen] = useState(false);
@@ -17,7 +17,7 @@ export function ActionRow({ item, speakers, t, sessionId }: ActionRowProps) {
     if (value && value !== item.text) updateAction(sessionId, item.id, { text: value });
     setEditing(false);
   };
-  return <li className="flex min-w-0 flex-col gap-1">
+  return <li ref={flash?.ref} className={`flex min-w-0 flex-col gap-1 ${flash?.className ?? ''}`}>
     <div className="flex min-w-0 items-start gap-1">
       <Checkbox aria-label={item.text} checked={item.done} className="mt-1 shrink-0"
         onChange={() => updateAction(sessionId, item.id, { done: !item.done })} />

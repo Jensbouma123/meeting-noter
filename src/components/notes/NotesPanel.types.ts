@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { FlashRowProps } from '@/hooks/types';
 import type { ActionItem, Decision } from '@/lib/meeting/types/notes';
 import type { Segment, Speaker } from '@/lib/meeting/types';
 import type { NoteSuggestion } from '@/lib/meeting/types/notes';
@@ -31,6 +32,7 @@ export interface RowMenuProps {
 }
 
 export interface ActionRowProps {
+  flash?: FlashRowProps;
   item: ActionItem;
   speakers: Speaker[];
   t: NotesTranslate;
@@ -38,6 +40,7 @@ export interface ActionRowProps {
 }
 
 export interface DecisionRowProps {
+  flash?: FlashRowProps;
   item: Decision;
   sessionId: string;
   t: NotesTranslate;
@@ -48,4 +51,5 @@ export interface SuggestionsListProps {
   sessionId: string;
   t: NotesTranslate;
   onDismiss: (sourceSegmentId: string) => void;
+  onAdded?: (id: string) => void;
 }

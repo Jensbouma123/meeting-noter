@@ -6,6 +6,7 @@ import { addAction, addDecision, getNotes } from '@/lib/meeting/notes';
 import { subscribe } from '@/lib/meeting/notes-storage';
 import { suggestFromSegments } from '@/lib/meeting/note-suggestions';
 import { useT } from '@/lib/i18n/useT';
+import { useFlashOnAdd } from '@/hooks/useFlashOnAdd';
 import { InsightSuggestions } from './InsightSuggestions';
 import { ActionRow } from './ActionRow';
 import { DecisionRow } from './DecisionRow';
@@ -29,6 +30,7 @@ export function NotesPanel({ sessionId, speakers = [], segments = [] }: NotesPan
       && !parsedNotes.actions.some((item) => item.sourceSegmentId === suggestion.sourceSegmentId)
       && !parsedNotes.decisions.some((item) => item.sourceSegmentId === suggestion.sourceSegmentId),
   );
+  const { flash, rowProps } = useFlashOnAdd();
   const dismiss = (id: string) => setDismissed((prev) => new Set(prev).add(id));
 
   return (
@@ -37,20 +39,20 @@ export function NotesPanel({ sessionId, speakers = [], segments = [] }: NotesPan
         addLabel={t('addAction')} placeholder={t('actionPlaceholder')} empty={t('emptyActions')}
         onSave={(text) => addAction(sessionId, text)}>
         {parsedNotes.actions.map((item) => (
-          <ActionRow key={item.id} item={item} speakers={speakers} t={t} sessionId={sessionId} />
+          <ActionRow key={item.id} item={item} speakers={speakers} t={t} sessionId={sessionId} flash={rowProps(item.id)} />
         ))}
       </NoteSection>
 
       <NoteSection id="notes-decisions" title={t('decisions')} count={parsedNotes.decisions.length} t={t}
         addLabel={t('addDecision')} placeholder={t('decisionPlaceholder')} empty={t('emptyDecisions')}
         onSave={(text) => addDecision(sessionId, text)}>
-        {parsedNotes.decisions.map((item) => <DecisionRow key={item.id} item={item} sessionId={sessionId} t={t} />)}
+        {parsedNotes.decisions.map((item) => <DecisionRow key={item.id} item={item} sessionId={sessionId} t={t} flash={rowProps(item.id)} />)}
       </NoteSection>
 
-      <InsightSuggestions sessionId={sessionId} speakers={speakers} t={t} />
+      <InsightSuggestions sessionId={sessionId} speakers={speakers} t={t} onAdded={flash} />
 
       {suggestions.length > 0 && (
-        <SuggestionsList suggestions={suggestions} sessionId={sessionId} t={t} onDismiss={dismiss} />
+        <SuggestionsList suggestions={suggestions} sessionId={sessionId} t={t} onDismiss={dismiss} onAdded={flash} />
       )}
 
       {parsedNotes.actions.length === 0 && parsedNotes.decisions.length === 0 && suggestions.length === 0 && (
