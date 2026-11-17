@@ -52,7 +52,7 @@ UV_VERSION=0.11.20
 UV_BASE=${MEETING_NOTER_UV_BASE:-https://github.com/astral-sh/uv/releases/download/$UV_VERSION}
 # Pinned: the combination verified to convert the encoder (ORT >= 1.22 dropped
 # the matmul_4bits_quantizer module the script uses).
-CONVERT_DEPS=(--with numpy==1.26.4 --with onnx==1.17.0 --with onnxconverter-common==1.14.0 --with onnxruntime==1.20.1)
+CONVERT_DEPS=(--with numpy==1.26.4 --with onnx==1.17.0 --with onnxconverter-common==1.14.0 --with onnxruntime==1.20.1 --with truststore==0.10.4)
 ROOT=${MEETING_NOTER_ROOT:-"$HOME/Library/Application Support/Meeting Noter"}
 MODEL_DIR_NAME=parakeet-tdt-0.6b-v3-webgpu
 AGENTS="$HOME/Library/LaunchAgents"
@@ -206,7 +206,7 @@ build_model() {
       || { say "⚠️  Uitpakken van uv mislukt."; rm -rf "$work"; return 1; }
     mv "$work/uv" "$ROOT/bin/uv"
   fi
-  if ! UV_CACHE_DIR="$work/uv-cache" UV_PYTHON_INSTALL_DIR="$work/python" \
+  if ! UV_PYTHON_PREFERENCE=only-managed UV_CACHE_DIR="$work/uv-cache" UV_PYTHON_INSTALL_DIR="$work/python" \
     "$uv" run --python 3.12 "${CONVERT_DEPS[@]}" python -I "$ROOT/app/convert-parakeet-v3.py" \
       --workdir "$work/src" --outdir "$work/out" > "$ROOT/logs/model-build.log" 2>&1 \
     || [ ! -f "$work/out/encoder-model.q4f16.onnx" ]; then

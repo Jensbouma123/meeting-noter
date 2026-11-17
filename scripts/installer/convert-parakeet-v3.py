@@ -47,6 +47,8 @@ import os
 import sys
 import urllib.request
 
+import truststore
+
 REPO = "istupakov/parakeet-tdt-0.6b-v3-onnx"
 REVISION = "main"
 GRAPH_FILE = "encoder-model.onnx"
@@ -346,6 +348,9 @@ def validate(workdir: str, fp16_path: str, q4_path: str, frames: int) -> None:
 
 
 def main(argv: list[str]) -> int:
+    # Trust the macOS Keychain (incl. corporate proxy CAs) for the model download;
+    # python.org builds otherwise fail with CERTIFICATE_VERIFY_FAILED.
+    truststore.inject_into_ssl()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workdir", default="/tmp/parakeet-fp16",
                         help="where the fp32 sources live")
