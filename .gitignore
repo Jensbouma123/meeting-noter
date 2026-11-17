@@ -51,6 +51,8 @@ public/uploads/
 # Dev-served by Next from public/; production hosting is set via
 # NEXT_PUBLIC_FP16_ENCODER_URL — never commit these files.
 public/models/
+# ONNX Runtime wasm copied from node_modules by src/lib/ort-paths/copy-ort-wasm.mjs.
+public/ort/
 # Bench clips for /dev/asr-bench `?file=` (copies of test-audio wavs).
 # Dev-served by Next from public/; never commit these files.
 public/bench/
