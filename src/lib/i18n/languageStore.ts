@@ -10,7 +10,9 @@ function readLanguage(): Language {
   try {
     const settings = JSON.parse(window.localStorage.getItem(SETTINGS_KEY) ?? '{}');
     if (settings.language === 'en' || settings.language === 'nl') return settings.language;
-  } catch {}
+  } catch (err) {
+    console.warn('Failed to read language setting', err);
+  }
   return getDefaultLanguage(navigator.language);
 }
 
