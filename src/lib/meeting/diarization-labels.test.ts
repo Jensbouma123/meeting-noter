@@ -1,25 +1,12 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  consentedAndCached,
-  fakes,
-  resetBridge,
-  resetFakesAndRegistry
-} from './diarization-bridge-fakes';
-import { OVERLAP_SEGMENT_PREFIX } from './overlap-pass-segments';
-
-vi.mock('@/lib/asr/browser', async (importOriginal) =>
-  (await import('./diarization-bridge-fakes')).mockAsrBrowser(importOriginal));
-
-vi.mock('@/lib/diarization/browser', async () =>
-  (await import('./diarization-bridge-fakes')).mockDiarizationBrowser());
-
-beforeEach(resetFakesAndRegistry);
-
-afterEach(resetBridge);
+import { describe, expect, it } from 'vitest';
+import { consentedAndCached, fakes } from './diarization-bridge-fakes';
+import './diarization-labels.testSupport';
 
 describe('diarization bridge — provisional labels', () => {
   const words = (text: string, start: number) =>
-    text.split(' ').map((w, i) => ({ text: w, start: (start + i * 0.5) * 16000, end: (start + i * 0.5 + 0.4) * 16000 }));
+    text
+      .split(' ')
+      .map((w, i) => ({ text: w, start: (start + i * 0.5) * 16000, end: (start + i * 0.5 + 0.4) * 16000 }));
   const update = (text: string, start: number, final = false) => ({
     id: 'live-1',
     text,
@@ -61,10 +48,16 @@ describe('diarization bridge — provisional labels', () => {
     expect(line()).toEqual([['live-1', 'system:3']]);
     const pending = () => store.getState().segments.map((s) => !!s.unconfirmed);
     publish('system', update('so what now then', 5));
-    expect(line()).toEqual([['live-1', 'system:3'], ['live-1~3', 'system:3']]);
+    expect(line()).toEqual([
+      ['live-1', 'system:3'],
+      ['live-1~3', 'system:3'],
+    ]);
     expect(pending()).toEqual([false, true]);
     publish('system', update('so what now then', 5, true));
-    expect(line()).toEqual([['live-1', 'system:3'], ['live-1~3', 'system:3']]);
+    expect(line()).toEqual([
+      ['live-1', 'system:3'],
+      ['live-1~3', 'system:3'],
+    ]);
     emit({ speaker: 'system:3', source: 'system', start: 4.8, end: 7, id: 'system#1', final: true });
     expect(line()).toEqual([['live-1', 'system:3']]);
     expect(pending()).toEqual([false]);
@@ -76,13 +69,22 @@ describe('diarization bridge — provisional labels', () => {
     const emit = fakes.turn.get('mic')!;
     emit({ speaker: 'mic:0', source: 'mic', start: 0, end: 5.3, id: 'mic#0', final: true });
     publish('mic', update('a b c d', 5));
-    expect(line()).toEqual([['live-1', 'mic:0'], ['live-1~1', 'mic:0']]);
+    expect(line()).toEqual([
+      ['live-1', 'mic:0'],
+      ['live-1~1', 'mic:0'],
+    ]);
     expect(store.getState().segments.map((s) => !!s.unconfirmed)).toEqual([false, true]);
     emit({ speaker: 'mic:1', source: 'mic', start: 5.45, end: 8, id: 'mic#1', final: false });
-    expect(line()).toEqual([['live-1', 'mic:0'], ['live-1~1', 'mic:1']]);
+    expect(line()).toEqual([
+      ['live-1', 'mic:0'],
+      ['live-1~1', 'mic:1'],
+    ]);
     expect(store.getState().segments.map((s) => !!s.unconfirmed)).toEqual([false, false]);
     publish('mic', update('a b c d e', 5));
-    expect(line()).toEqual([['live-1', 'mic:0'], ['live-1~1', 'mic:1']]);
+    expect(line()).toEqual([
+      ['live-1', 'mic:0'],
+      ['live-1~1', 'mic:1'],
+    ]);
   });
 
   it('never flips an open line between the turn nearest it and the latest speaker', async () => {
@@ -114,22 +116,3 @@ describe('diarization bridge — provisional labels', () => {
     expect(pending()).toEqual([false]);
   });
 });
-
-describe('diarization bridge — overlap second pass', () => {
-  it('hands each source its turns, and leaves the speaker of the words the pass added alone', async () => {
-    const { bridge, store } = await consentedAndCached();
-    const pass = await import('./overlap-retranscribe');
-    const noted = vi.spyOn(pass, 'noteOverlapTurns');
-    bridge.startDiarization(['mic']);
-    const emit = fakes.turn.get('mic')!;
-    store.upsertSegment({
-      id: `${OVERLAP_SEGMENT_PREFIX}1`, source: 'mic', speaker: 'mic:1', text: 'right', start: 3.2, end: 3.5,
-      final: true, words: [{ text: 'right', start: 3.2, end: 3.5 }],
-    });
-    emit({ speaker: 'mic:0', source: 'mic', start: 1, end: 4, id: 'mic#0', final: true });
-    expect(noted.mock.calls.at(-1)).toEqual(['mic', [expect.objectContaining({ speaker: 'mic:0', start: 1, end: 4 })]]);
-    expect(store.getState().segments.map((s) => s.speaker)).toEqual(['mic:1']);
-    noted.mockRestore();
-  });
-});
-
