@@ -1,5 +1,6 @@
 import { AUTOSAVE_VERSION, sanitizeSnapshot } from './autosave-snapshot';
 import { isStorageAvailable } from './storage-available';
+import { invalidateTranscriptRevision } from './transcript-revision';
 import type { Speaker } from './types';
 import type { AutosaveInput, AutosavedSession } from './types/autosave';
 
@@ -10,15 +11,17 @@ export function sessionTranscriptKey(sessionId: string): string {
   return `${SESSION_KEY_PREFIX}${sessionId}${SESSION_KEY_SUFFIX}`;
 }
 
-export function saveSessionTranscript(input: AutosaveInput): void {
-  if (!isStorageAvailable()) return;
+export function saveSessionTranscript(input: AutosaveInput): boolean {
+  if (!isStorageAvailable()) return false;
   try {
     const snapshot = sanitizeSnapshot(input);
-    if (!snapshot || snapshot.segments.length === 0) return;
+    if (!snapshot || snapshot.segments.length === 0) return false;
+    invalidateTranscriptRevision(snapshot.sessionId);
     window.localStorage.setItem(sessionTranscriptKey(snapshot.sessionId), JSON.stringify(snapshot));
   } catch {
-    return;
+    return true;
   }
+  return true;
 }
 
 export function loadSessionTranscript(sessionId: string): AutosavedSession | null {
@@ -48,6 +51,7 @@ export function loadSessionTranscript(sessionId: string): AutosavedSession | nul
 
 export function removeSessionTranscript(sessionId: string): void {
   if (!isStorageAvailable()) return;
+  invalidateTranscriptRevision(sessionId);
   try {
     window.localStorage.removeItem(sessionTranscriptKey(sessionId));
   } catch {

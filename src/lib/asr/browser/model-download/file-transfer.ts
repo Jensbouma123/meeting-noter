@@ -90,5 +90,6 @@ export async function transferFile(args: TransferArgs): Promise<TransferResult> 
     resuming,
     onProgress,
   });
+  await writer.prepareChecksum();
   return { writer, totalBytes, resuming, verifyHash };
 }

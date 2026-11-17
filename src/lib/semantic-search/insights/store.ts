@@ -2,6 +2,7 @@ import type { InsightSet } from './types/insight-set';
 import { INSIGHTS_VERSION } from './version';
 
 const EMPTY: InsightSet = { version: INSIGHTS_VERSION, items: [], dismissed: [] };
+const snapshots = new Map<string, InsightSet>();
 const listeners = new Map<string, Set<() => void>>();
 
 export function insightsKey(meetingId: string): string {
@@ -24,8 +25,17 @@ export function loadInsights(meetingId: string): InsightSet {
   }
 }
 
+export function getInsightsSnapshot(meetingId: string): InsightSet {
+  const cached = snapshots.get(meetingId);
+  if (cached) return cached;
+  const fresh = loadInsights(meetingId);
+  snapshots.set(meetingId, fresh);
+  return fresh;
+}
+
 export function saveInsights(meetingId: string, set: InsightSet): void {
   if (typeof window === 'undefined') return;
+  snapshots.delete(meetingId);
   try {
     window.localStorage.setItem(insightsKey(meetingId), JSON.stringify(set));
   } catch {
@@ -46,5 +56,8 @@ export function subscribeInsights(meetingId: string, listener: () => void): () =
   const set = listeners.get(meetingId) ?? new Set<() => void>();
   set.add(listener);
   listeners.set(meetingId, set);
-  return () => set.delete(listener);
+  return () => {
+    set.delete(listener);
+    if (set.size === 0) snapshots.delete(meetingId);
+  };
 }
