@@ -60,7 +60,7 @@ describe('urlOverride', () => {
   it('fetches an overridden file from the override URL, never from Hugging Face', async () => {
     const url = await downloadHfFileResumable(REPO, FILE, 'main', { urlOverride: OVERRIDE_URL });
 
-    const bodyFetches = requestedUrls.filter((u) => !u.includes('/api/models/'));
+    const bodyFetches = requestedUrls.filter((u) => !u.includes('/api/models/') && !u.endsWith('.sha256'));
     expect(bodyFetches.length).toBeGreaterThan(0);
     for (const u of bodyFetches) {
       expect(u, 'every byte request must go to the override origin').toBe(OVERRIDE_URL);
@@ -83,7 +83,8 @@ describe('urlOverride', () => {
     await downloadHfFileResumable(REPO, FILE, 'main', { urlOverride: OVERRIDE_URL });
     const bodyFetchesAfter = requestedUrls
       .slice(callsBefore)
-      .filter((u, i) => !u.includes('/api/models/') && requestedMethods[callsBefore + i] !== 'HEAD');
+      
+      .filter((u, i) => !u.includes('/api/models/') && !u.endsWith('.sha256') && requestedMethods[callsBefore + i] !== 'HEAD');
     expect(bodyFetchesAfter, 'a cached override file must not fetch its body again').toEqual([]);
   });
 });

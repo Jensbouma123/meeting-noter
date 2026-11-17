@@ -1,6 +1,12 @@
 import type { CachedFileProbe, ModelCacheState } from '../types/download-cache-state';
 import type { ManifestFiles } from '../types';
-import { isModelFileCached } from './cached-files';
+import { isModelFileCachedByKey } from './cached-files';
+import { resolveCacheKey } from './revision-pin';
+
+async function isFileCached(manifest: ManifestFiles, file: string, revision: string): Promise<boolean> {
+  const key = await resolveCacheKey(manifest.modelRepo, revision, file, manifest.fileUrlOverrides?.[file]);
+  return isModelFileCachedByKey(key);
+}
 
 export async function probeCachedModelFiles(
   manifest: ManifestFiles,
@@ -8,7 +14,7 @@ export async function probeCachedModelFiles(
   revision = 'main',
 ): Promise<void> {
   for (const [index, file] of manifest.files.entries()) {
-    const cached = await isModelFileCached(manifest.modelRepo, file, revision);
+    const cached = await isFileCached(manifest, file, revision);
     onProgress?.({ done: index + 1, total: manifest.files.length, file, cached });
   }
 }
@@ -19,7 +25,7 @@ export async function areModelFilesCached(
 ): Promise<ModelCacheState> {
   let cached = 0;
   for (const file of manifest.files) {
-    if (await isModelFileCached(manifest.modelRepo, file, revision)) cached += 1;
+    if (await isFileCached(manifest, file, revision)) cached += 1;
   }
   const total = manifest.files.length;
   return { cached, total, complete: total > 0 && cached === total };

@@ -24,3 +24,10 @@ export interface CachedFile {
   record: CachedFileRecord;
   parts: ChunkBytes[];
 }
+
+export interface RevisionPinRecord {
+  sha: string;
+  updatedAt: number;
+}
+
+export type ShaLookup = { kind: 'sha'; sha: string } | { kind: 'missing' } | { kind: 'offline' };
