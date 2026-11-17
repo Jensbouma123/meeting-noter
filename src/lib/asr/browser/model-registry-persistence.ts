@@ -19,8 +19,8 @@ export function persistConsent(state: ConsentState): void {
   try {
     if (typeof localStorage === 'undefined') return;
     localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    return;
+  } catch (err) {
+    console.warn('Failed to persist model consent', err);
   }
 }
 
@@ -67,7 +67,7 @@ export function persistEntries(): void {
       serializable[key] = rest as Pick<ModelEntry, Exclude<keyof ModelEntry, 'isReady'>>;
     }
     localStorage.setItem(REGISTRY_STORAGE_KEY, JSON.stringify(serializable));
-  } catch {
-    return;
+  } catch (err) {
+    console.warn('Failed to persist model registry', err);
   }
 }

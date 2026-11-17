@@ -50,7 +50,9 @@ export function stopTracks(stream: MediaStream): void {
   for (const track of stream.getTracks()) {
     try {
       track.stop();
-    } catch {}
+    } catch (err) {
+      console.warn('Failed to stop media track', err);
+    }
   }
 }
 

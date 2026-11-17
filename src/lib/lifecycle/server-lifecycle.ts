@@ -28,7 +28,9 @@ export function startIdleShutdown(intervalMs = 5_000): void {
       const pidFile = path.join(lc.install.root, 'server.pid');
       try {
         if (readFileSync(pidFile, 'utf8').trim() === String(process.pid)) rmSync(pidFile, { force: true });
-      } catch {}
+      } catch (err) {
+        console.warn('[meeting-noter] could not remove server.pid; exiting anyway', err);
+      }
     }
     process.exit(0);
   }, intervalMs);

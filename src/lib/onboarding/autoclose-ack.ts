@@ -15,5 +15,7 @@ export function writeAutoCloseAck(value: boolean): void {
   try {
     if (value) localStorage.setItem(AUTOCLOSE_STORAGE_KEY, '1');
     else localStorage.removeItem(AUTOCLOSE_STORAGE_KEY);
-  } catch {}
+  } catch (err) {
+    console.warn('[onboarding] could not persist auto-close ack; kept in memory only', err);
+  }
 }

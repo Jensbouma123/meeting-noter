@@ -2,8 +2,27 @@ import type { DatabaseSync } from 'node:sqlite';
 import { SCHEMA, SCHEMA_VERSION } from './schema';
 import { num } from './row-mapping';
 
+const ADDED_COLUMNS = [
+  { table: 'meetings', column: 'participants', ddl: 'TEXT' },
+  { table: 'meetings', column: 'folder_id', ddl: 'TEXT' },
+  { table: 'meetings', column: 'insights', ddl: 'TEXT' },
+  { table: 'meetings', column: 'folder_suggestion_declined', ddl: 'TEXT' },
+  { table: 'segments', column: 'low_conf_spans', ddl: 'TEXT' },
+  { table: 'folders', column: 'roster', ddl: 'TEXT' },
+  { table: 'folders', column: 'roster_inherit', ddl: 'INTEGER NOT NULL DEFAULT 1' },
+  { table: 'folders', column: 'context', ddl: "TEXT NOT NULL DEFAULT ''" },
+] as const;
+
 function columnNames(db: DatabaseSync, table: string): string[] {
   return db.prepare(`PRAGMA table_info(${table})`).all().map((c) => String(c.name));
+}
+
+function addMissingColumns(db: DatabaseSync): void {
+  const known = new Map<string, string[]>();
+  for (const { table, column, ddl } of ADDED_COLUMNS) {
+    if (!known.has(table)) known.set(table, columnNames(db, table));
+    if (!known.get(table)!.includes(column)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${ddl}`);
+  }
 }
 
 export function prepareWritableDatabase(db: DatabaseSync): void {
@@ -11,16 +30,7 @@ export function prepareWritableDatabase(db: DatabaseSync): void {
   const version = num(db.prepare('PRAGMA user_version').get()?.user_version ?? 0);
   if (version < SCHEMA_VERSION) {
     db.exec(SCHEMA);
-    const meetingColumns = columnNames(db, 'meetings');
-    if (!meetingColumns.includes('participants')) db.exec('ALTER TABLE meetings ADD COLUMN participants TEXT');
-    if (!meetingColumns.includes('folder_id')) db.exec('ALTER TABLE meetings ADD COLUMN folder_id TEXT');
-    if (!meetingColumns.includes('insights')) db.exec('ALTER TABLE meetings ADD COLUMN insights TEXT');
-    if (!meetingColumns.includes('folder_suggestion_declined')) db.exec('ALTER TABLE meetings ADD COLUMN folder_suggestion_declined TEXT');
-    if (!columnNames(db, 'segments').includes('low_conf_spans')) db.exec('ALTER TABLE segments ADD COLUMN low_conf_spans TEXT');
-    const folderColumns = columnNames(db, 'folders');
-    if (!folderColumns.includes('roster')) db.exec('ALTER TABLE folders ADD COLUMN roster TEXT');
-    if (!folderColumns.includes('roster_inherit')) db.exec('ALTER TABLE folders ADD COLUMN roster_inherit INTEGER NOT NULL DEFAULT 1');
-    if (!folderColumns.includes('context')) db.exec("ALTER TABLE folders ADD COLUMN context TEXT NOT NULL DEFAULT ''");
+    addMissingColumns(db);
     db.exec(`PRAGMA user_version = ${SCHEMA_VERSION}`);
   }
   db.exec("INSERT INTO meetings_fts (meetings_fts, rank) VALUES ('secure-delete', 1)");

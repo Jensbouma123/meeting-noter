@@ -56,4 +56,16 @@ describe('readJson', () => {
     expect(result.response.status).toBe(413);
     expect(state.pulled).toBe(0);
   });
+
+  it('answers a stream that fails mid-read with 400, not an empty body', async () => {
+    const stream = new ReadableStream<Uint8Array>({
+      pull() {
+        throw new Error('stream broke');
+      },
+    }, { highWaterMark: 0 });
+    const result = await readJson(postWith(stream), 100);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.response.status).toBe(400);
+  });
 });

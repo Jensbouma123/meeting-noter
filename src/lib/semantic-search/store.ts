@@ -105,7 +105,9 @@ export function removeIndex(meetingId: string, store: KeyValueStore | null = def
     store.removeItem(indexKey(meetingId));
     removeCentroid(meetingId, store);
     store.setItem(IDS_KEY, JSON.stringify(readIds(store).filter((id) => id !== meetingId)));
-  } catch {}
+  } catch (error) {
+    console.warn('semantic-search: could not update the indexed id list after removing an index', error);
+  }
 }
 
 export function listIndexedMeetingIds(store: KeyValueStore | null = defaultKeyValueStore()): string[] {

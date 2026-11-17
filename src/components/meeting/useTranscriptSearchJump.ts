@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import type { VirtualListRange } from '@jensbouma123/acciva-ui';
-import { ACTIVE_TURN_CLASS, SEG_SELECTOR, cssEscape, itemSegments } from './transcriptItems';
+import { ACTIVE_TURN_CLASS, cssEscape } from './transcriptItems';
+import { buildSearchRoot } from './buildSearchRoot';
 import type { UseTranscriptSearchJumpOptions } from './LiveTranscript.types';
 
 export function useTranscriptSearchJump({ listRef, getScrollElement, lines, segments }: UseTranscriptSearchJumpOptions) {
@@ -30,26 +31,15 @@ export function useTranscriptSearchJump({ listRef, getScrollElement, lines, segm
   const getSearchRoot = useCallback((): HTMLElement | null => {
     const el = getScrollElement();
     if (!el) return null;
-    const root = {
-      querySelector: (selector: string): Element | null => {
-        const found = el.querySelector(selector);
-        if (found) return found;
-        const wanted = SEG_SELECTOR.exec(selector)?.[1];
-        if (wanted === undefined) return null;
-        let segId: string | undefined;
-        const index = lines.findIndex((item) => {
-          segId = itemSegments(item).find((seg) => cssEscape(seg.id) === wanted)?.id;
-          return segId !== undefined;
-        });
-        if (index === -1 || segId === undefined) return null;
+    return buildSearchRoot({
+      el,
+      lines,
+      onJump: (segId, index) => {
         clearRing();
         pendingSegRef.current = segId;
         listRef.current?.scrollToIndex(index, 'center');
-        return null;
       },
-      querySelectorAll: (selector: string) => el.querySelectorAll(selector),
-    };
-    return root as unknown as HTMLElement;
+    });
   }, [getScrollElement, clearRing, lines, listRef]);
 
   const onVisibleRangeChange = useCallback((range: VirtualListRange) => {

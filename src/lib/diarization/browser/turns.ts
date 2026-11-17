@@ -34,32 +34,14 @@ export class TurnTracker {
   }
 
   push(probs: Float32Array): TurnSpan[] {
-    const s = this.numSpeakers;
-    const frames = Math.floor(probs.length / s);
+    const speakers = this.numSpeakers;
+    const frames = Math.floor(probs.length / speakers);
     const closed: TurnSpan[] = [];
     for (let i = 0; i < frames; i += 1) {
       const frame = this.nextFrame + i;
-      let others = 0;
-      for (let k = 0; k < s; k += 1) if (this.open[k]?.lastActive === frame - 1) others += 1;
-      for (let k = 0; k < s; k += 1) {
-        const run = this.open[k];
-        const p = probs[i * s + k];
-        const on = run !== null && run.lastActive === frame - 1;
-        const onset = others > (on ? 1 : 0) ? this.overlapThreshold : this.threshold;
-        if (p > onset || (on && p > this.offThreshold)) {
-          if (!run) {
-            this.open[k] = this.openRun(frame, frame, false);
-          } else {
-            if (frame - run.lastActive - 1 > this.pauseFrames) run.pauses.push([run.lastActive + 1, frame]);
-            run.lastActive = frame;
-            if (frame + 1 - run.startFrame >= this.maxOpenFrames) {
-              closed.push({ ...this.span(k, run, frame + 1, true), continues: true });
-              this.open[k] = this.openRun(frame + 1, frame, true);
-            }
-          }
-        } else if (run && frame - run.lastActive > this.maxGapFrames) {
-          this.close(k, closed);
-        }
+      const others = this.activeAt(frame - 1);
+      for (let k = 0; k < speakers; k += 1) {
+        this.step(k, frame, probs[i * speakers + k], others, closed);
       }
     }
     this.nextFrame += frames;
@@ -72,6 +54,38 @@ export class TurnTracker {
     const closed: TurnSpan[] = [];
     for (let k = 0; k < this.numSpeakers; k += 1) this.close(k, closed);
     return closed.sort((a, b) => a.start - b.start);
+  }
+
+  private activeAt(frame: number): number {
+    let count = 0;
+    for (let k = 0; k < this.numSpeakers; k += 1) if (this.open[k]?.lastActive === frame) count += 1;
+    return count;
+  }
+
+  private step(k: number, frame: number, p: number, others: number, closed: TurnSpan[]): void {
+    const run = this.open[k];
+    const on = run !== null && run.lastActive === frame - 1;
+    const onset = others > (on ? 1 : 0) ? this.overlapThreshold : this.threshold;
+    if (p > onset || (on && p > this.offThreshold)) {
+      this.activate(k, run, frame, closed);
+    } else if (run && frame - run.lastActive > this.maxGapFrames) {
+      this.close(k, closed);
+    }
+  }
+
+  private activate(k: number, run: OpenRun | null, frame: number, closed: TurnSpan[]): void {
+    if (!run) {
+      this.open[k] = this.openRun(frame, frame, false);
+      return;
+    }
+    if (frame - run.lastActive - 1 > this.pauseFrames) run.pauses.push([run.lastActive + 1, frame]);
+    run.lastActive = frame;
+    if (frame + 1 - run.startFrame >= this.maxOpenFrames) this.splitRun(k, run, frame, closed);
+  }
+
+  private splitRun(k: number, run: OpenRun, frame: number, closed: TurnSpan[]): void {
+    closed.push({ ...this.span(k, run, frame + 1, true), continues: true });
+    this.open[k] = this.openRun(frame + 1, frame, true);
   }
 
   private growingRuns(): TurnSpan[] {

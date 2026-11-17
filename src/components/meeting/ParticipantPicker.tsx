@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useRef, useState } from 'react';
+import { useId, useRef, useState, type KeyboardEvent } from 'react';
 import { Input } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { ParticipantOptionList } from './ParticipantOptionList';
@@ -44,6 +44,31 @@ export function ParticipantPicker({ people, roster, folderName, selected, onTogg
     );
   };
 
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    const enter = () => {
+      if (activeIndex >= 0) pick(activeIndex);
+      else if (fresh) pick(flat.length - 1);
+      else if (query.trim()) pick(0);
+    };
+    const space = keyboardActive && activeIndex >= 0 && !hidden;
+    if (event.key === ' ' && !space) return;
+    const handlers: Record<string, () => void> = {
+      ArrowDown: () => move(1),
+      ArrowUp: () => move(-1),
+      Escape: () => {
+        setHidden(true);
+        setQuery('');
+        setActiveIndex(-1);
+      },
+      Enter: enter,
+      ' ': () => pick(activeIndex),
+    };
+    const handler = handlers[event.key];
+    if (!handler) return;
+    event.preventDefault();
+    handler();
+  };
+
   return (
     <div
       ref={rootRef}
@@ -70,28 +95,7 @@ export function ParticipantPicker({ people, roster, folderName, selected, onTogg
           setActiveIndex(-1);
           setKeyboardActive(false);
         }}
-        onKeyDown={(event) => {
-          if (event.key === 'ArrowDown') {
-            event.preventDefault();
-            move(1);
-          } else if (event.key === 'ArrowUp') {
-            event.preventDefault();
-            move(-1);
-          } else if (event.key === 'Escape') {
-            event.preventDefault();
-            setHidden(true);
-            setQuery('');
-            setActiveIndex(-1);
-          } else if (event.key === 'Enter') {
-            event.preventDefault();
-            if (activeIndex >= 0) pick(activeIndex);
-            else if (fresh) pick(flat.length - 1);
-            else if (query.trim()) pick(0);
-          } else if (event.key === ' ' && keyboardActive && activeIndex >= 0 && !hidden) {
-            event.preventDefault();
-            pick(activeIndex);
-          }
-        }}
+        onKeyDown={handleKeyDown}
       />
       {!hidden && (
         <ParticipantOptionList
