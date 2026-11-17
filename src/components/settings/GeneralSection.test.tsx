@@ -17,10 +17,7 @@ function setBrowserLanguage(value: string) {
 function renderGeneral(language: string) {
   return render(
     <LanguageContext.Provider value="en">
-      <GeneralSection
-        settings={{ ...DEFAULT_SETTINGS, language }}
-        onSettingsChange={() => {}}
-      />
+      <GeneralSection settings={{ ...DEFAULT_SETTINGS, language }} onSettingsChange={() => {}} />
     </LanguageContext.Provider>,
   );
 }
