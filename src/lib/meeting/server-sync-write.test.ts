@@ -53,14 +53,15 @@ describe('server sync', () => {
 
   it('moves the browser meetings and an unfiled autosave into the DB once, and says so', async () => {
     const { persistSession } = await import('./session-crud');
-    const { saveAutosavedSession } = await import('./autosave');
     const { addDecision } = await import('./notes');
     const a = persistSession({ title: 'Kickoff', segments: [line('a1', 'welcome everyone', 0)], speakers: {}, startedAt: 1_000 });
     addDecision(a, 'Weekly demos on Thursday');
     persistSession({ title: 'Retro', segments: [line('b1', 'what went well', 0)], speakers: {} });
 
-    saveAutosavedSession({ sessionId: 'crashed-1', title: 'Crashed call', segments: [line('c1', 'lost words', 0)], speakers: {} });
-    localStorage.removeItem('mn.session.crashed-1.v1');
+    localStorage.setItem('mn.autosave.v1', JSON.stringify({
+      version: 1, savedAt: Date.now(), sessionId: 'crashed-1', title: 'Crashed call',
+      segments: [line('c1', 'lost words', 0)], speakers: {}, startedAt: null,
+    }));
 
     const sync = await loadSync();
     const events: unknown[] = [];

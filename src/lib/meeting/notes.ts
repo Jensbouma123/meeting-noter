@@ -1,4 +1,4 @@
-import { readNotes, writeNotes } from './notes-storage';
+import { readNotes, subscribe, writeNotes } from './notes-storage';
 import type { ActionItem, ActionItemInput, Decision, NotePatch, Notes } from './types/notes';
 
 function newId(): string {
@@ -12,6 +12,27 @@ function newId(): string {
 
 export function getNotes(sessionId: string): Notes {
   return readNotes(sessionId);
+}
+
+const snapshots = new Map<string, Notes>();
+
+export function getNotesSnapshot(sessionId: string): Notes {
+  const cached = snapshots.get(sessionId);
+  if (cached) return cached;
+  const fresh = readNotes(sessionId);
+  snapshots.set(sessionId, fresh);
+  return fresh;
+}
+
+export function subscribeNotesSnapshot(sessionId: string, callback: () => void): () => void {
+  const invalidate = () => void snapshots.delete(sessionId);
+  const offInvalidate = subscribe(sessionId, invalidate);
+  const offCallback = subscribe(sessionId, callback);
+  return () => {
+    offCallback();
+    offInvalidate();
+    invalidate();
+  };
 }
 
 export function addAction(sessionId: string, text: string, options: ActionItemInput = {}): ActionItem {

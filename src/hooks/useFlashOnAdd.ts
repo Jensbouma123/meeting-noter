@@ -8,7 +8,7 @@ const FLASH_MS = 1000;
 const BASE = 'rounded-md transition-colors duration-500 motion-reduce:transition-none';
 const ON = 'bg-primary-500/15';
 
-export function useFlashOnAdd(): { flash: (id: string) => void; rowProps: (id: string) => FlashRowProps } {
+export function useFlashOnAdd(block: ScrollLogicalPosition = 'nearest'): { flash: (id: string) => void; rowProps: (id: string) => FlashRowProps } {
   const [flashId, setFlashId] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const reduced = useRef(false);
@@ -21,7 +21,7 @@ export function useFlashOnAdd(): { flash: (id: string) => void; rowProps: (id: s
   };
 
   const scrollTo: RefCallback<HTMLElement> = (node) => {
-    node?.scrollIntoView?.({ behavior: reduced.current ? 'auto' : 'smooth', block: 'nearest' });
+    node?.scrollIntoView?.({ behavior: reduced.current ? 'auto' : 'smooth', block });
   };
 
   const rowProps = (id: string): FlashRowProps => id === flashId

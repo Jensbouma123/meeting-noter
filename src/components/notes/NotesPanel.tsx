@@ -2,8 +2,7 @@
 
 import { useCallback, useState, useSyncExternalStore } from 'react';
 import { EmptyState, VStack } from '@jensbouma123/acciva-ui';
-import { addAction, addDecision, getNotes } from '@/lib/meeting/notes';
-import { subscribe } from '@/lib/meeting/notes-storage';
+import { addAction, addDecision, getNotesSnapshot, subscribeNotesSnapshot } from '@/lib/meeting/notes';
 import { suggestFromSegments } from '@/lib/meeting/note-suggestions';
 import { useT } from '@/lib/i18n/useT';
 import { useFlashOnAdd } from '@/hooks/useFlashOnAdd';
@@ -12,18 +11,16 @@ import { ActionRow } from './ActionRow';
 import { DecisionRow } from './DecisionRow';
 import { NoteSection } from './NoteSection';
 import { SuggestionsList } from './SuggestionsList';
+import type { Notes } from '@/lib/meeting/types/notes';
 import type { NotesPanelProps } from './NotesPanel.types';
+
+const EMPTY_NOTES: Notes = { actions: [], decisions: [] };
 
 export function NotesPanel({ sessionId, speakers = [], segments = [] }: NotesPanelProps) {
   const t = useT('notes');
-  const subscribeSession = useCallback((callback: () => void) => subscribe(sessionId, callback), [sessionId]);
-  const getSessionNotes = useCallback(() => JSON.stringify(getNotes(sessionId)), [sessionId]);
-  const notes = useSyncExternalStore(
-    subscribeSession,
-    getSessionNotes,
-    () => '{"actions":[],"decisions":[]}',
-  );
-  const parsedNotes = JSON.parse(notes) as ReturnType<typeof getNotes>;
+  const subscribeSession = useCallback((callback: () => void) => subscribeNotesSnapshot(sessionId, callback), [sessionId]);
+  const getSessionNotes = useCallback(() => getNotesSnapshot(sessionId), [sessionId]);
+  const parsedNotes = useSyncExternalStore(subscribeSession, getSessionNotes, () => EMPTY_NOTES);
   const [dismissed, setDismissed] = useState<ReadonlySet<string>>(new Set());
   const suggestions = suggestFromSegments(segments).filter((suggestion) =>
     !dismissed.has(suggestion.sourceSegmentId)

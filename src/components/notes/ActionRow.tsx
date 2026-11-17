@@ -4,6 +4,7 @@ import { CalendarDays, Check, User } from 'lucide-react';
 import { removeAction, updateAction } from '@/lib/meeting/notes';
 import { CHIP } from './constants';
 import { RowMenu } from './RowMenu';
+import { SourceText } from './SourceText';
 import type { ActionRowProps } from './NotesPanel.types';
 
 export function ActionRow({ item, speakers, t, sessionId, flash }: ActionRowProps) {
@@ -28,7 +29,9 @@ export function ActionRow({ item, speakers, t, sessionId, flash }: ActionRowProp
             if (event.key === 'Enter') { event.preventDefault(); save(); }
             if (event.key === 'Escape') { event.preventDefault(); setEditing(false); }
           }} />
-        : <button type="button" onClick={startEdit} title={t('edit')}
+        : item.sourceSegmentId
+          ? <SourceText t={t} text={item.text} segmentId={item.sourceSegmentId} done={item.done} />
+          : <button type="button" onClick={startEdit} title={t('edit')}
           className={`min-w-0 flex-1 break-words rounded-md py-0.5 text-left text-sm focus-visible:outline-2 focus-visible:outline-offset-1 ${item.done ? 'line-through opacity-60' : ''}`}>
           {item.text}
         </button>}

@@ -1,5 +1,5 @@
 import type { StoredMeeting } from '@/lib/meeting-db/types';
-import { loadAutosavedSession } from './autosave';
+import { loadInlineAutosave } from './autosave-slot';
 import { getNotes } from './notes';
 import { getStoredParticipants } from './participants';
 import { getSessionMetadata } from './session-open';
@@ -9,7 +9,7 @@ export function buildStoredMeeting(sessionId: string, now = Date.now()): StoredM
   const meta = getSessionMetadata(sessionId);
   if (!meta) return null;
   let transcript = loadSessionTranscript(sessionId);
-  const autosaved = loadAutosavedSession();
+  const autosaved = loadInlineAutosave();
   if (autosaved && autosaved.sessionId === sessionId && (!transcript || autosaved.savedAt > transcript.savedAt)) {
     transcript = autosaved;
   }

@@ -1,4 +1,5 @@
 import type { EmbedWorkerProgress } from './embed-progress.types';
+import type { EncodedIndex } from './encoded-index.types';
 
 export const EMBEDDING_DIM = 768;
 
@@ -75,13 +76,23 @@ export interface SearchDeps {
   captureActive?: () => boolean;
 }
 
-export interface EmbedWorkerIn {
+export interface EmbedRequest {
   id: number;
   texts: string[];
   role: 'query' | 'document';
 }
 
-export type EmbedWorkerOut = { id: number; vectors: Float32Array[] } | { id: number; error: string };
+export interface IndexRequest {
+  id: number;
+  kind: 'index';
+  meetingId: string;
+  lines: TranscriptLine[];
+}
+
+export type EmbedWorkerIn = EmbedRequest | IndexRequest;
+
+export type EmbedWorkerOut =
+  { id: number; vectors: Float32Array[] } | { id: number; record: EncodedIndex | null } | { id: number; error: string };
 
 export interface EmbedWorkerLike {
   postMessage(msg: EmbedWorkerIn): void;
@@ -90,6 +101,10 @@ export interface EmbedWorkerLike {
   terminate(): void;
 }
 
-export interface WorkerEmbedder extends Embedder {
+export interface MeetingIndexer {
+  indexMeeting(meetingId: string, lines: TranscriptLine[]): Promise<EncodedIndex | null>;
+}
+
+export interface WorkerEmbedder extends Embedder, MeetingIndexer {
   terminate(): void;
 }
