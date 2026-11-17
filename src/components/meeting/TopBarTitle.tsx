@@ -78,7 +78,7 @@ export function TopBarTitle({ title, dateMs, onTitleChange }: TopBarTitleProps) 
             }}
             tooltip={t('renameMeeting')}
             leadingIcon={<Pencil className="size-3 text-muted-foreground" />}
-            className="group min-w-0 justify-start"
+            className="touch-target-44 group min-w-0 max-w-full justify-start"
           >
             <span className="truncate text-sm font-semibold sm:text-base">{title}</span>
           </Button>

@@ -3,6 +3,7 @@ import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { ToastProvider } from '@jensbouma123/acciva-ui';
+import { installViewport, VIEWPORTS } from '@/test/viewport';
 import { TopBar } from './TopBar';
 import type { ModelProgressView, ModelReadiness } from './modelReadiness.types';
 
@@ -99,5 +100,32 @@ describe('TopBar phone layout (390px)', () => {
     expect(screen.getByText('Install new version')).toBeInTheDocument();
     expect(screen.getByText('New')).toBeInTheDocument();
     expect(screen.getByText('Clear transcript')).toBeInTheDocument();
+  });
+});
+
+describe('TopBar phone viewport (400px)', () => {
+  it('keeps meetings drawer button, title button touch target, and actions accessible', () => {
+    const restoreViewport = installViewport(VIEWPORTS.phone);
+    try {
+      render(view());
+
+      const meetingsButton = screen.getByRole('button', { name: 'Show meetings' });
+      expect(meetingsButton).toBeInTheDocument();
+      expect(meetingsButton.className).toMatch(/touch-target-44/);
+      expect(meetingsButton.className).toMatch(/lg:hidden/);
+
+      const titleButton = screen.getByRole('button', { name: 'Standup' });
+      expect(titleButton).toBeInTheDocument();
+      expect(titleButton.className).toMatch(/touch-target-44/);
+      expect(titleButton.className).toMatch(/min-w-0/);
+      expect(titleButton.className).toMatch(/max-w-full/);
+
+      expect(screen.getByRole('button', { name: 'Show speakers' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Share' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'More actions' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
+    } finally {
+      restoreViewport();
+    }
   });
 });
