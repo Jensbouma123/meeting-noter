@@ -84,6 +84,10 @@ export function registerOnboardingTestEnv() {
   afterEach(cleanup);
 }
 
+export function advanceToAck() {
+  for (let i = 0; i < 3; i++) fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+}
+
 export function acceptAck() {
   fireEvent.click(screen.getByRole('checkbox', { name: /I understand: all data is processed locally/ }));
   fireEvent.click(screen.getByRole('button', { name: 'Continue' }));

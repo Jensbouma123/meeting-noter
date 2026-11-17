@@ -9,6 +9,7 @@ import {
 } from '@/lib/asr/browser/model-registry-known-keys';
 import {
   acceptAck,
+  advanceToAck,
   entry,
   initiateDownloads,
   recordConsent,
@@ -31,8 +32,7 @@ function allModels(searchStatus: string, coreStatus = 'not-downloaded') {
 
 function openModelsStep() {
   render(<OnboardingDialog />);
-  fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+  advanceToAck();
   acceptAck();
 }
 
@@ -92,18 +92,18 @@ describe('OnboardingDialog models step', () => {
     allModels('downloading', 'downloading');
     openModelsStep();
     fireEvent.click(screen.getByRole('button', { name: 'Back' }));
-    expect(screen.getByText('Step 3 of 8')).toBeInTheDocument();
+    expect(screen.getByText('Step 4 of 9')).toBeInTheDocument();
     expect(initiateDownloads).not.toHaveBeenCalled();
   });
 
   it('says the models are ready and enables Continue when all are cached', () => {
     allModels('cached', 'cached');
     openModelsStep();
-    expect(screen.getByText('Step 4 of 8')).toBeInTheDocument();
+    expect(screen.getByText('Step 5 of 9')).toBeInTheDocument();
     expect(screen.getByText('The speech models are ready.')).toBeInTheDocument();
     expect(cont()).toBeEnabled();
     expect(initiateDownloads).not.toHaveBeenCalled();
     fireEvent.click(cont());
-    expect(screen.getByText('Step 5 of 8')).toBeInTheDocument();
+    expect(screen.getByText('Step 6 of 9')).toBeInTheDocument();
   });
 });
