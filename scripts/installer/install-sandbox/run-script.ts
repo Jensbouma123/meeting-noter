@@ -11,6 +11,8 @@ export function runScript(script: string, env: Record<string, string> = {}, args
       MEETING_NOTER_NO_LAUNCHD: '1',
       MEETING_NOTER_NO_OPEN: '1',
       MEETING_NOTER_SKIP_GPU_MODEL: '1',
+      // Never the real release: absent unless a test publishes a model there.
+      MEETING_NOTER_MODEL_URL: `file://${sandbox.base}/encoder-model.q4f16.onnx`,
       ...env,
     },
     encoding: 'utf8',

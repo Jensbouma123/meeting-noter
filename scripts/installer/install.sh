@@ -18,17 +18,22 @@
 # stops itself when the browser tab is gone. An older install's server agent is
 # removed here.
 #
-# The fast WebGPU speech model (encoder-model.q4f16.onnx, 516 MB) is built once on
-# this Mac, after the app runs: a pinned standalone `uv` (astral-sh, sha256
-# checked) runs the bundled convert-parakeet-v3.py, which downloads the fp32 model
-# from Hugging Face and converts it (5-15 min, ~4 GB temporary, then deleted).
-# The result lives in ~/Library/Application Support/Meeting Noter/models/ (kept
-# across updates; never rebuilt when present) and the app serves it same-origin
-# at /models/. Needs >= 6 GB free disk and >= 8 GB RAM; otherwise, or when the
-# build fails, the app stays on the CPU model (no live transcription) and
-# `install.sh --gpu-model` (same command, plus `bash -s -- --gpu-model`) retries.
+# The fast WebGPU speech model (encoder-model.q4f16.onnx, 516 MB) is fetched once,
+# after the app runs: the prebuilt asset of the MODEL_TAG release (made by
+# publish-model.sh), accepted only when it matches the pinned MODEL_SHA256. When
+# that download or check fails, it is built on this Mac instead: a pinned
+# standalone `uv` (astral-sh, sha256 checked) runs the bundled
+# convert-parakeet-v3.py, which downloads the fp32 model from Hugging Face and
+# converts it (5-15 min, ~4 GB temporary, then deleted; needs >= 6 GB free disk
+# and >= 8 GB RAM). The result lives in ~/Library/Application Support/Meeting
+# Noter/models/ (kept across updates; never refetched when present) and the app
+# serves it same-origin at /models/. When neither works the app stays on the
+# CPU model (no live transcription) and `install.sh --gpu-model` (same command,
+# plus `bash -s -- --gpu-model`) retries.
 #
-# Test-only overrides: MEETING_NOTER_UV (use this uv binary, skip its download),
+# Test-only overrides: MEETING_NOTER_MODEL_URL (prebuilt model URL, file:// too),
+# MEETING_NOTER_MODEL_SHA256 (its expected sha256),
+# MEETING_NOTER_UV (use this uv binary, skip its download),
 # MEETING_NOTER_UV_BASE (uv download URL), MEETING_NOTER_SKIP_GPU_MODEL=1,
 # MEETING_NOTER_MIN_DISK_KB, MEETING_NOTER_DOWNLOAD_BASE (any curl URL, file:// too),
 # MEETING_NOTER_NO_LAUNCHD=1 (write the agents and the app, but load, register
@@ -53,6 +58,11 @@ UV_BASE=${MEETING_NOTER_UV_BASE:-https://github.com/astral-sh/uv/releases/downlo
 # Pinned: the combination verified to convert the encoder (ORT >= 1.22 dropped
 # the matmul_4bits_quantizer module the script uses).
 CONVERT_DEPS=(--with numpy==1.26.4 --with onnx==1.17.0 --with onnxconverter-common==1.14.0 --with onnxruntime==1.20.1 --with truststore==0.10.4)
+# The prebuilt model on its own prerelease (publish-model.sh); a new build gets
+# a new sha here, and only this pin decides whether a download is accepted.
+MODEL_TAG=model-parakeet-v3-webgpu-1
+MODEL_URL=${MEETING_NOTER_MODEL_URL:-https://github.com/$REPO/releases/download/$MODEL_TAG/encoder-model.q4f16.onnx}
+MODEL_SHA256=${MEETING_NOTER_MODEL_SHA256:-0000000000000000000000000000000000000000000000000000000000000000}
 ROOT=${MEETING_NOTER_ROOT:-"$HOME/Library/Application Support/Meeting Noter"}
 MODEL_DIR_NAME=parakeet-tdt-0.6b-v3-webgpu
 AGENTS="$HOME/Library/LaunchAgents"
@@ -173,12 +183,36 @@ agent_start() {
   fail "Kon achtergronddienst $label niet starten."
 }
 
-# Builds models/<dir>/encoder-model.q4f16.onnx on this Mac. Returns 1 (with a
-# friendly message) on any problem; the app then keeps the CPU model.
+# Puts models/<dir>/encoder-model.q4f16.onnx in place: the prebuilt release
+# asset when its sha256 matches MODEL_SHA256, else a build on this Mac. Returns
+# 1 (with a friendly message) on any problem; the app then keeps the CPU model.
 build_model() {
-  local dir="$ROOT/models/$MODEL_DIR_NAME" out work uv arch_uv uv_sha free_kb mem
-  out="$dir/encoder-model.q4f16.onnx"
+  local out="$ROOT/models/$MODEL_DIR_NAME/encoder-model.q4f16.onnx"
   [ -f "$out" ] && { say "✓ Snel GPU-spraakmodel is al aanwezig"; return 0; }
+  mkdir -p "$(dirname "$out")"
+  download_model "$out" || convert_model "$out"
+}
+
+# Downloads the prebuilt model and accepts it only when its sha256 matches the
+# pin. Returns 1 on any failure, leaving nothing behind.
+download_model() {
+  local out=$1 part="$ROOT/model-download.part"
+  say
+  say "Snel GPU-spraakmodel downloaden (eenmalig, ca. 520 MB)"
+  if ! curl -fL --connect-timeout 30 --progress-bar "$MODEL_URL" -o "$part"; then
+    rm -f "$part"; say "⚠️  Download van het GPU-spraakmodel mislukt; het wordt op deze Mac gebouwd."; return 1
+  fi
+  if [ "$(shasum -a 256 "$part" | awk '{print $1}')" != "$MODEL_SHA256" ]; then
+    rm -f "$part"; say "⚠️  Controlesom van het GPU-spraakmodel klopt niet; het wordt op deze Mac gebouwd."; return 1
+  fi
+  mv "$part" "$out"
+  say "✓ GPU-spraakmodel gedownload"
+}
+
+# Converts the model on this Mac with a pinned uv and convert-parakeet-v3.py.
+convert_model() {
+  local out=$1 dir work uv arch_uv uv_sha free_kb mem
+  dir=$(dirname "$out")
   say
   say "Snel GPU-spraakmodel voorbereiden (eenmalig, ca. 5-15 min, ca. 4 GB tijdelijk)"
   free_kb=$(df -k "$ROOT" | awk 'NR==2 {print $4}')
