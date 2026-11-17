@@ -93,7 +93,6 @@ export class MeetingsDb {
   setFolderContext(id: string, context: string, now = Date.now()): FolderRow {
     return this.transaction(() => updateFolderContext(this.db, id, context, now));
   }
-
   deleteFolder(id: string, mode: FolderDeleteMode, now = Date.now()): FolderDeleteResult {
     const out = this.transaction(() => deleteFolderRows(this.db, id, mode, now));
     this.scrub(out.meetings > 0);

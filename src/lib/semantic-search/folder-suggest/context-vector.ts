@@ -14,7 +14,6 @@ export function contextText(folder: Pick<FolderRow, 'name' | 'context'>): string
   return context ? `${folder.name.trim()}\n${context}` : null;
 }
 
-/** Embeds name + context of folders that have a context. Silently skips when the search model is not loaded. */
 export async function loadFolderContextVectors(
   folders: readonly FolderRow[],
   deps: ContextVectorDeps = { run: withEmbedder },
@@ -41,7 +40,7 @@ export async function loadFolderContextVectors(
       out[id] = vector;
     });
   } catch {
-    // model missing or embedding failed: suggest from meetings only
+    return out;
   }
   return out;
 }
