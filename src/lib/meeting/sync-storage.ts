@@ -36,9 +36,17 @@ export function readPending(): PendingSync {
   };
 }
 
+export function readSynced(): Record<string, number> {
+  return readJson<Record<string, number>>(SYNCED_KEY, {});
+}
+
+export function writeSynced(synced: Record<string, number>): void {
+  writeJson(SYNCED_KEY, synced);
+}
+
 export function markSynced(id: string, updatedAt: number | null): void {
-  const synced = readJson<Record<string, number>>(SYNCED_KEY, {});
+  const synced = readSynced();
   if (updatedAt === null) delete synced[id];
   else synced[id] = updatedAt;
-  writeJson(SYNCED_KEY, synced);
+  writeSynced(synced);
 }

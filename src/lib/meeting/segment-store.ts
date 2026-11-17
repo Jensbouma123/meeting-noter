@@ -1,6 +1,7 @@
 import { applyVocabularyToSegment } from '@/lib/vocabulary/replace';
 import { getPreparedVocabulary } from '@/lib/vocabulary/store';
 import { getActiveAppend } from './append-mode';
+import { segmentFamilyRoot } from './speaker-family';
 import { ensureSpeaker } from './speaker-registry';
 import { getState, setState } from './store-core';
 import type { Segment } from './types';
@@ -87,4 +88,47 @@ export function replaceSegmentFamily(root: string, parts: Segment[]): void {
   const rest = stored.filter((s) => !inSegmentFamily(s.id, root));
   const index = at < 0 ? rest.length : at;
   setState({ segments: [...rest.slice(0, index), ...placed, ...rest.slice(index)] });
+}
+
+function placeFamily(root: string, parts: Segment[]): [string, Segment[]] {
+  const append = getActiveAppend();
+  if (append && !root.startsWith(append.prefix)) {
+    return [append.prefix + root, parts.map((part) => shiftIntoAppend(part, append.prefix, append.offset))];
+  }
+  return [root, parts.map(withVocabulary)];
+}
+
+export function replaceSegmentFamilies(entries: ReadonlyArray<readonly [string, Segment[]]>): void {
+  const pending = new Map<string, Segment[]>();
+  for (const [root, parts] of entries) {
+    if (parts.length === 0) continue;
+    const [placedRoot, placed] = placeFamily(root, parts);
+    pending.set(placedRoot, placed);
+  }
+  if (pending.size === 0) return;
+  const { segments: current, mode } = getState();
+  const existing = new Map<string, Segment[]>();
+  for (const seg of current) {
+    const root = segmentFamilyRoot(seg.id);
+    if (pending.has(root)) existing.set(root, [...(existing.get(root) ?? []), seg]);
+  }
+  for (const [root, placed] of pending) {
+    const family = existing.get(root) ?? [];
+    if (family.length === placed.length && family.every((s, i) => s === placed[i])) pending.delete(root);
+  }
+  if (pending.size === 0) return;
+  for (const placed of pending.values()) for (const part of placed) ensureSpeaker(part.speaker, mode);
+  const emitted = new Set<string>();
+  const next: Segment[] = [];
+  for (const seg of getState().segments) {
+    const root = segmentFamilyRoot(seg.id);
+    const placed = pending.get(root);
+    if (!placed) next.push(seg);
+    else if (!emitted.has(root)) {
+      emitted.add(root);
+      next.push(...placed);
+    }
+  }
+  for (const [root, placed] of pending) if (!emitted.has(root)) next.push(...placed);
+  setState({ segments: next });
 }
