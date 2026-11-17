@@ -1,19 +1,19 @@
-import {
-  DEFAULT_MAX_GAP_SEC,
-  DEFAULT_MODE,
-  DEFAULT_OFF_THRESHOLD,
-  DEFAULT_ON_THRESHOLD,
-  DEFAULT_OVERLAP_THRESHOLD,
-  DEFAULT_PAUSE_SEC,
-} from './constants';
+import { DEFAULT_MODE } from './constants';
+import { createDiarizerCache, createDiarizerTracker } from './core-collaborators';
 import { chunkProbabilities, spanToSpeakerTurn } from './core-helpers';
-import { FRAME_SEC, HIDDEN_SIZE, NUM_SPEAKERS, SUBSAMPLING_FACTOR } from './manifest';
+import { FRAME_SEC, SUBSAMPLING_FACTOR } from './manifest';
 import { MelFrameBuffer } from './mel-frame-buffer';
 import { MelFrontend } from './mel';
-import { SpeakerCache } from './speaker-cache';
-import { TurnTracker } from './turns';
+import type { SpeakerCache } from './speaker-cache';
+import type { TurnTracker } from './turns';
 import type {
-  DiarizerCoreOptions, SortformerRunner, Source, SpeakerCacheSnapshot, SpeakerTurn, StreamingMode, TurnSpan,
+  DiarizerCoreOptions,
+  SortformerRunner,
+  Source,
+  SpeakerCacheSnapshot,
+  SpeakerTurn,
+  StreamingMode,
+  TurnSpan,
 } from './types';
 
 export class DiarizerCore {
@@ -39,25 +39,8 @@ export class DiarizerCore {
     this.source = options.source;
     this.model = options.model;
     this.mode = options.mode ?? DEFAULT_MODE;
-    this.cache = new SpeakerCache({
-      fifoLength: this.mode.fifoLength,
-      updatePeriod: this.mode.updatePeriod,
-      numSpeakers: NUM_SPEAKERS,
-      hiddenSize: HIDDEN_SIZE,
-      subsamplingFactor: SUBSAMPLING_FACTOR,
-      ...options.cache,
-    });
-    if (options.speakerState) this.cache.restore(options.speakerState);
-    this.tracker = new TurnTracker({
-      numSpeakers: NUM_SPEAKERS,
-      frameSec: FRAME_SEC,
-      threshold: DEFAULT_ON_THRESHOLD,
-      overlapThreshold: DEFAULT_OVERLAP_THRESHOLD,
-      offThreshold: DEFAULT_OFF_THRESHOLD,
-      maxGapSec: DEFAULT_MAX_GAP_SEC,
-      pauseSec: DEFAULT_PAUSE_SEC,
-      ...options.turns,
-    });
+    this.cache = createDiarizerCache(this.mode, options);
+    this.tracker = createDiarizerTracker(options);
     this.onProbabilities = options.onProbabilities;
     this.onStep = options.onStep;
   }
