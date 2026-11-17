@@ -1,13 +1,8 @@
 import type { Segment, Speaker } from './types';
 import type { AutosaveInput, AutosavedSession } from './types/autosave';
+import type { TrackedTranscript } from './types/tracked-transcript';
 
-interface Tracked {
-  segments: Segment[];
-  speakers: Record<string, Speaker>;
-  revision: number;
-}
-
-const tracked = new Map<string, Tracked>();
+const tracked = new Map<string, TrackedTranscript>();
 
 function finals(segments: Segment[] | undefined): Segment[] {
   return Array.isArray(segments) ? segments.filter((s) => s && s.final === true) : [];
