@@ -9,11 +9,11 @@
    `--overlay-gutter` (popovers.css), SC 1.4.10.
    Block size: `max-block-size` is a percentage of the `position-area` containing block, i.e. the
    space on the side it opened, minus the offset and the gutter, so a tall menu scrolls inside
-   instead of running off a short viewport (SC 1.4.10, 2.4.11). Since that always fits, the side
-   comes from `position-try-order: most-block-size` (as the UA `::picker(select)`): it opens
-   where there is more room; ties keep the list order. The far margin is the gutter, the near one
-   the offset: `flip-block` swaps them; the `span-all` tries keep the base margins (offset above, gutter
-   below) and the base `justify-self`, so the row is start-aligned, not centred on the trigger. */
+   instead of running off a short viewport (SC 1.4.10, 2.4.11). Since that always fits, CSS flips
+   never fire on a cramped side (WebKit also ignores `position-try-order`), so the side comes from
+   JS: `useOpenSide` sets `data-side` (below if the menu fits there, else the roomier side). The far
+   margin is the gutter, the near one the offset; the `span-all` tries keep that side and its
+   margins, start-aligned, not centred on the trigger. */
 .dropdown-menu {
   position: fixed;
   inset: auto;
@@ -60,9 +60,12 @@
     margin-inline: var(--overlay-gutter);
     max-block-size: calc(100% - var(--dropdown-offset, calc(var(--spacing) * 1)) - var(--overlay-gutter));
     position-area: block-end span-inline-end;
-    position-try-order: most-block-size;
-    position-try-fallbacks:
-      flip-block, flip-inline, flip-block flip-inline, block-end span-all, block-start span-all;
+    position-try-fallbacks: flip-inline, block-end span-all;
+  }
+  .dropdown-menu[data-side="top"] {
+    margin-block: var(--overlay-gutter) var(--dropdown-offset, calc(var(--spacing) * 1));
+    position-area: block-start span-inline-end;
+    position-try-fallbacks: flip-inline, block-start span-all;
   }
   .dropdown-menu[data-align="end"] {
     position-area: block-end span-inline-start;
@@ -70,5 +73,11 @@
   .dropdown-menu[data-align="center"] {
     position-area: block-end;
     justify-self: safe anchor-center;
+  }
+  .dropdown-menu[data-side="top"][data-align="end"] {
+    position-area: block-start span-inline-start;
+  }
+  .dropdown-menu[data-side="top"][data-align="center"] {
+    position-area: block-start;
   }
 }

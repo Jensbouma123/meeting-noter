@@ -7,19 +7,20 @@ import { cn } from "../../../lib/utils.js";
 import { ArrowHint } from "../../../lib/ArrowHint.js";
 import { useDropdownMenuContext } from "./DropdownMenuContext.js";
 import { useDropdownMenuKeyboard } from "./useDropdownMenuKeyboard.js";
+import { useOpenSide } from "../Select/useOpenSide.js";
 export const DropdownMenuContent = forwardRef(function DropdownMenuContent({ align = "start", sideOffset = 4, className, children, arrowHint, style, "aria-describedby": ariaDescribedBy, ...props }, ref) {
     const { open, setOpen, contentId, triggerId, anchorName } = useDropdownMenuContext("DropdownMenuContent");
     const menuRef = useRef(null);
     const hint = useArrowHint("dropdown-menu", arrowHint, "Use arrow keys to move between items");
     useImperativeHandle(ref, () => menuRef.current);
     // `popover="auto"` puts the menu in the top layer with light dismiss (outside press, Escape) and
-    // anchor positioning follows the trigger, so there is no portal, measuring or outside-click listener.
+    // anchor positioning follows the trigger. useOpenSide shows it and sets `data-side` (above or below):
+    // a viewport-clamped menu always "fits", so CSS flips alone left it a sliver near the bottom in WebKit.
+    useOpenSide(menuRef, open);
     useEffect(() => {
         const menu = menuRef.current;
         if (!open || !menu)
             return;
-        if (menu.showPopover && !menu.matches(":popover-open"))
-            menu.showPopover();
         const onToggle = (e) => {
             if (e.newState === "closed")
                 setOpen(false);
