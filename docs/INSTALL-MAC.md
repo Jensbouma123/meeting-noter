@@ -16,7 +16,7 @@ beheerdersrechten nodig, en er komt geen waarschuwing van macOS.
 
 3. Wacht enkele minuten. De app draait daarna; de installer bereidt dan nog eenmalig
    het snelle GPU-spraakmodel voor (zie hieronder; een download van 516 MB, of ca. 5-15 minuten als het hier gebouwd moet worden). Daarna opent Meeting Noter in uw browser op
-   `http://localhost:3000`, en staat **Meeting Noter** in de map **Apps**
+   `http://localhost:47823`, en staat **Meeting Noter** in de map **Apps**
    (Programma's) en in Spotlight. Bent u geen beheerder van de Mac, dan staat het
    in de map Apps in uw thuismap (`~/Applications`).
 
@@ -77,12 +77,19 @@ bash ~/Library/Application\ Support/Meeting\ Noter/uninstall.sh
 Dit verwijdert de app en de achtergronddiensten. Uw vergaderingen (`meetings.db`
 en de map `meetings/`) blijven bewaard; wilt u ook die wissen, voeg dan
 `--delete-meetings` toe (`… | bash -s -- --delete-meetings`). De reservekopie in
-de browser wist u via de websitegegevens van `localhost` in uw browser.
+de browser wist u via de websitegegevens van `localhost:47823` (en, bij een
+installatie van vóór versie 0.6.0, `localhost:3000`) in uw browser.
 
 ## Problemen
 
-- **"Poort 3000 is al in gebruik"**: er draait nog een andere Meeting Noter
-  (bijvoorbeeld `Start Meeting Noter.command`). Sluit die en plak de regel opnieuw.
+- **"Poort 47823 is al in gebruik"**: een ander programma gebruikt die poort.
+  Sluit dat en plak de regel opnieuw.
+- **Bijwerken vanaf een versie vóór 0.6.0**: de app draaide toen op poort 3000
+  en draait nu op 47823 (3000 blijft vrij voor ontwikkelaars). De browser bewaart
+  instellingen en de reservekopie van uw opnames per poort, dus de nieuwe versie
+  neemt ze bij de eerste start eenmalig over van `localhost:3000`. Is poort 3000
+  op dat moment bezet, dan gebeurt dat bij een volgende start. De spraakmodellen
+  worden opnieuw gedownload in plaats van overgenomen.
 - **"Kon de nieuwste versie niet ophalen"** vlak na een nieuwe release: de
   downloads worden nog gebouwd. Probeer het over 15 minuten opnieuw.
 - **De app opent niet**: plak de installatieregel opnieuw. Logbestanden staan in
@@ -94,14 +101,14 @@ de browser wist u via de websitegegevens van `localhost` in uw browser.
 | Waar | Wat |
 | --- | --- |
 | `~/Library/Application Support/Meeting Noter/` | de app met eigen Node.js, de audio-helper, logbestanden, `uninstall.sh` |
-| `~/Library/LaunchAgents/nl.jensbouma.meeting-noter.server.plist` | start de webserver op `127.0.0.1:3000` bij het inloggen |
+| `~/Library/LaunchAgents/nl.jensbouma.meeting-noter.server.plist` | oudere versies: startte de webserver bij het inloggen; de installer verwijdert het |
 | `~/Library/LaunchAgents/nl.jensbouma.meeting-noter.audio-helper.plist` | start de audio-helper (alleen macOS 14.4+) |
 | `~/Library/Application Support/Meeting Noter/meetings.db`, `meetings/` | uw vergaderingen: database en een Markdown-bestand per vergadering (blijven bewaard bij updates en verwijderen) |
 | `~/Library/Application Support/Meeting Noter/app/mcp/meetings-mcp.mjs` | MCP-server waarmee AI-assistenten uw vergaderingen lezen ([MCP.md](MCP.md)) |
 | `~/Library/Application Support/Meeting Noter/app/node/bin/node` | Meegeleverde Node.js; de Claude Desktop-koppeling gebruikt deze en bouwt nooit zelf (`npm run test:mcp-e2e` controleert dit in de gebouwde app) |
 | `~/Library/Application Support/Meeting Noter/models/` | het WebGPU-spraakmodel, gedownload of zelfgebouwd (blijft bewaard bij updates) |
 | `~/Library/Application Support/Meeting Noter/bin/uv` | modelbouwer, alleen gedownload als het model hier gebouwd moet worden |
-| `/Applications/Meeting Noter.app` (of `~/Applications/…`) | opent `http://localhost:3000`, biedt updates aan |
+| `/Applications/Meeting Noter.app` (of `~/Applications/…`) | start de webserver op `127.0.0.1:47823` en opent `http://localhost:47823`, biedt updates aan |
 
 De installer downloadt van GitHub-releases (de app, het spraakmodel en zo nodig `uv`,
 SHA-256 gecontroleerd) en, alleen als het spraakmodel hier gebouwd moet worden, van

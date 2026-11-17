@@ -3,8 +3,8 @@
 # and Meeting Noter.app in /Applications or ~/Applications. The meetings
 # (meetings.db and the meetings/ folder of Markdown copies, both in the data
 # folder below) are kept unless --delete-meetings is given; settings and the
-# browser's own copy live in the site data of http://localhost:3000 and are
-# kept too. Run it with:
+# browser's own copy live in the site data of http://localhost:47823 (and, for
+# installs from before 0.6.0, http://localhost:3000) and are kept too. Run it with:
 #   bash ~/Library/Application\ Support/Meeting\ Noter/uninstall.sh [--delete-meetings]
 # or
 #   curl -fsSL https://github.com/Jensbouma123/meeting-noter/releases/latest/download/uninstall.sh | bash [-s -- --delete-meetings]
@@ -57,6 +57,7 @@ if [ -n "$kept" ]; then
   echo "   Ook die wissen: voer dit script opnieuw uit met --delete-meetings."
 fi
 echo "   Uw opnames staan ook nog in de browser. Wilt u die wissen, verwijder dan de"
-echo "   websitegegevens van localhost in de instellingen van uw browser."
+echo "   websitegegevens van localhost:47823 (en van vóór versie 0.6.0 localhost:3000)"
+echo "   in de instellingen van uw browser."
 echo "   macOS kan Meeting Noter nog tonen onder Systeeminstellingen > Privacy en"
 echo "   beveiliging > Microfoon; dat kunt u daar uitzetten."

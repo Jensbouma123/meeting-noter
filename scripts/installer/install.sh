@@ -13,7 +13,7 @@
 #     unless given --delete-meetings)
 #   ~/Library/LaunchAgents/nl.jensbouma.meeting-noter.audio-helper.plist
 #   /Applications (or ~/Applications)/Meeting Noter.app  starts the server on demand
-#     and opens http://localhost:3000
+#     and opens http://localhost:47823 (not 3000, which developers keep for next dev)
 # The web server is no longer a LaunchAgent: the app starts it when opened and it
 # stops itself when the browser tab is gone. An older install's server agent is
 # removed here.
@@ -41,7 +41,13 @@
 # MEETING_NOTER_NO_OPEN=1 (do not open the browser), MEETING_NOTER_FORCE=1
 # (reinstall the same version), MEETING_NOTER_ROOT (install dir),
 # MEETING_NOTER_RUN_SERVER=1 (start the server even with NO_LAUNCHD; the update
-# e2e test, update-e2e.mjs).
+# e2e test, update-e2e.mjs), MEETING_NOTER_LEGACY_PORT (the pre-0.6.0 port).
+#
+# Before 0.6.0 the app ran on port 3000, and the browser keeps settings and its
+# copy of the recordings per origin. Updating from such a version writes
+# legacy-origin.pending; the new server then serves a one-time export page on
+# 127.0.0.1:3000 (only while that port is free) that hands the old origin's data
+# to the new one, and writes legacy-origin.done when it is done.
 #
 # An update keeps the previous app in app.old until the new one has started;
 # when it does not start, or anything fails in between, app.old is put back and
@@ -75,7 +81,8 @@ AGENTS="$HOME/Library/LaunchAgents"
 # (MEETING_NOTER_NO_LAUNCHD) stay inside $HOME.
 if [ -z "${MEETING_NOTER_NO_LAUNCHD:-}" ] && [ -w /Applications ]; then APPS=/Applications; else APPS="$HOME/Applications"; fi
 APP="$APPS/Meeting Noter.app"
-PORT=${MEETING_NOTER_PORT:-3000}
+PORT=${MEETING_NOTER_PORT:-47823}
+LEGACY_PORT=${MEETING_NOTER_LEGACY_PORT:-3000}
 URL="http://localhost:$PORT"
 SERVER_LABEL=nl.jensbouma.meeting-noter.server
 HELPER_LABEL=nl.jensbouma.meeting-noter.audio-helper
@@ -145,16 +152,20 @@ ours() {
   return 1
 }
 # Stops the on-demand server: the pid in server.pid plus whatever listens on our
-# port, each only when it runs our app (the pid file can be missing or stale).
+# port or the pre-0.6.0 port, each only when it runs our app (the pid file can be
+# missing or stale).
 server_stop() {
   local pid n=0 pids=""
   pid=$(cat "$ROOT/server.pid" 2>/dev/null) || pid=""
   case $pid in ''|*[!0-9]*) ;; *) pids=$pid ;; esac
   # lsof walks every open file on the machine (seconds on a busy Mac), so only ask
   # it when a connect shows that something listens; a refused connect is instant.
-  if nc -z localhost "$PORT" >/dev/null 2>&1; then
-    pids="$pids $(lsof -nP -iTCP:"$PORT" -sTCP:LISTEN -t 2>/dev/null || true)"
-  fi
+  local port
+  for port in "$PORT" "$LEGACY_PORT"; do
+    if nc -z 127.0.0.1 "$port" >/dev/null 2>&1; then
+      pids="$pids $(lsof -nP -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null || true)"
+    fi
+  done
   local live=""
   for pid in $pids; do ours "$pid" && live="$live $pid"; done
   for pid in $live; do kill "$pid" 2>/dev/null || true; done
@@ -164,6 +175,13 @@ server_stop() {
     kill -0 "$pid" 2>/dev/null && kill -9 "$pid" 2>/dev/null || true
   done
   rm -f "$ROOT/server.pid"
+}
+# Marks an update from before 0.6.0 (port 3000), so the new server offers the
+# one-time browser data hand-over. Fresh installs and later updates skip it.
+mark_legacy_origin() { # previous-version
+  [ -n "$1" ] && [ ! -e "$ROOT/legacy-origin.done" ] || return 0
+  version_at_least 0.6.0 "$1" && return 0
+  : > "$ROOT/legacy-origin.pending"
 }
 server_start() {
   [ -n "${MEETING_NOTER_NO_LAUNCHD:-}" ] && [ -z "${MEETING_NOTER_RUN_SERVER:-}" ] && return 0
@@ -319,9 +337,12 @@ main() {
     mkdir "$ROOT/app.new"
     tar -xzf "$tmp/$asset" -C "$ROOT/app.new" --strip-components 1 || fail "Uitpakken mislukt."
     "$ROOT/app.new/node/bin/node" -e 0 2>/dev/null || fail "De meegeleverde Node.js start niet op deze Mac."
+    local previous
+    previous=$(cat "$ROOT/app/VERSION" 2>/dev/null || true)
     server_halt
     if [ -d "$ROOT/app" ]; then mv "$ROOT/app" "$ROOT/app.old"; swapped=1; fi
     mv "$ROOT/app.new" "$ROOT/app"
+    mark_legacy_origin "$previous"
     say "✓ Versie $(cat "$ROOT/app/VERSION") uitgepakt"
   fi
 
@@ -336,7 +357,7 @@ main() {
   server_halt
   rm -f "$AGENTS/$SERVER_LABEL.plist"
   if [ -z "${MEETING_NOTER_NO_LAUNCHD:-}" ] && curl -fs -o /dev/null "http://127.0.0.1:$PORT" 2>/dev/null; then
-    fail "Poort $PORT is al in gebruik door een ander programma (draait 'Start Meeting Noter.command' nog?). Sluit dat en probeer opnieuw."
+    fail "Poort $PORT is al in gebruik door een ander programma. Sluit dat en probeer opnieuw."
   fi
   : > "$ROOT/logs/server.log"
   : > "$ROOT/logs/helper.log"
