@@ -7,6 +7,7 @@ import { PinThemeSeed } from "@/lib/theme/PinThemeSeed";
 import { THEME_SEED } from "@/lib/theme/theme-seed";
 import { UpdateBanner } from "@/components/UpdateBanner";
 import { WhatsNewDialog } from "@/components/whats-new/WhatsNewDialog";
+import { OnboardingHost } from "@/components/onboarding/OnboardingHost";
 import { I18nProvider } from "@/lib/i18n/I18nProvider";
 import { LifecycleClient } from "@/components/lifecycle/LifecycleClient";
 import { MeetingsSync } from "@/components/lifecycle/MeetingsSync";
@@ -60,6 +61,7 @@ export default function RootLayout({
             <ToastProvider position="bottom-right">
               <UpdateBanner />
               <WhatsNewDialog />
+              <OnboardingHost />
               <LifecycleClient />
               <MeetingsSync />
               <ActiveMeetingReporter />

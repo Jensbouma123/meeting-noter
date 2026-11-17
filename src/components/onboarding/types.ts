@@ -1,5 +1,4 @@
 import type { ModelEntry } from '@/lib/asr/browser';
-import type { AppSettings } from '@/components/meeting/types';
 import type { AssistantState } from '@/components/settings/Assistant.types';
 import type { STEPS } from './constants';
 
@@ -12,12 +11,8 @@ export interface OnboardingModels {
   failed: boolean;
   percent: number;
   sizeText: string;
+  searchMissing: boolean;
   startDownload: () => void;
-}
-
-export interface OnboardingDialogProps {
-  settings: AppSettings;
-  onSettingsChange: (settings: AppSettings) => void;
 }
 
 export interface OnboardingFooterProps {

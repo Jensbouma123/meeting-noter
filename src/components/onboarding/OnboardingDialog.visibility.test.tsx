@@ -5,11 +5,11 @@ import { describe, expect, it } from 'vitest';
 import { ONBOARDING_STORAGE_KEY, openOnboarding, restartOnboarding } from '@/lib/onboarding/store';
 import { addVocabularyEntries, getVocabulary } from '@/lib/vocabulary/store';
 import {
-  OnboardingDialogHarness as OnboardingDialog,
   entry,
   setEntries,
   registerOnboardingTestEnv,
 } from './OnboardingDialog.testSupport';
+import { OnboardingDialog } from './OnboardingDialog';
 
 registerOnboardingTestEnv();
 

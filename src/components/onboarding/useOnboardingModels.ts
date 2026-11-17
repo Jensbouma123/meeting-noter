@@ -2,15 +2,19 @@ import { useEffect, useSyncExternalStore } from 'react';
 import { formatBytes, initiateDownloads, retryDownload } from '@/lib/asr/browser';
 import { useModelSizesKnown } from '@/components/models/useModelSizesKnown';
 import { getServerSnapshot, getState } from '@/lib/asr/browser/model-registry-snapshot';
-import { recordConsent } from '@/lib/asr/browser/model-registry-consent';
+import { isConsentGiven, recordConsent } from '@/lib/asr/browser/model-registry-consent';
 import { setDialogVisible } from '@/lib/asr/browser/model-registry-dialog';
 import { subscribeRegistry } from '@/lib/asr/browser/model-registry-state';
+import { SEARCH_REGISTRY_KEY } from '@/lib/asr/browser/model-registry-known-keys';
 import type { OnboardingModels } from './types';
 
 export function useOnboardingModels(): OnboardingModels {
   const { entries } = useSyncExternalStore(subscribeRegistry, getState, getServerSnapshot);
   const sizeKnown = useModelSizesKnown(entries);
-  const list = Object.values(entries).filter((e) => e.status !== 'unavailable');
+  const search = entries[SEARCH_REGISTRY_KEY];
+  const list = Object.values(entries).filter(
+    (e) => e.status !== 'unavailable' && e.key !== SEARCH_REGISTRY_KEY,
+  );
   const modelsReady = list.length > 0 && list.every((e) => e.status === 'cached');
   const downloading = list.filter((e) => e.status === 'downloading');
   const failed = list.some((e) => e.status === 'failed');
@@ -25,8 +29,8 @@ export function useOnboardingModels(): OnboardingModels {
   }, []);
 
   const startDownload = () => {
-    const keys = Object.keys(entries);
-    recordConsent('accepted', keys);
+    const keys = list.map((e) => e.key);
+    recordConsent('accepted', search && isConsentGiven(search.key) ? [...keys, search.key] : keys);
     const failedKeys = keys.filter((k) => entries[k]?.status === 'failed');
     const run = failedKeys.length > 0
       ? Promise.all(failedKeys.map((k) => retryDownload(k)))
@@ -41,6 +45,7 @@ export function useOnboardingModels(): OnboardingModels {
     failed,
     percent,
     sizeText: sizeKnown ? formatBytes(totalBytes) : '…',
+    searchMissing: !!search && search.status !== 'cached',
     startDownload,
   };
 }

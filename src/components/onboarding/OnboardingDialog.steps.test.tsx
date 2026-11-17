@@ -2,17 +2,17 @@
 import '@testing-library/jest-dom/vitest';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import { loadSettings } from '@/components/meeting/settingsStorage';
 import { ONBOARDING_STORAGE_KEY } from '@/lib/onboarding/store';
 import { getVocabulary } from '@/lib/vocabulary/store';
 import {
-  OnboardingDialogHarness as OnboardingDialog,
   entry,
   initiateDownloads,
-  lastSettings,
   recordConsent,
   setEntries,
   registerOnboardingTestEnv,
 } from './OnboardingDialog.testSupport';
+import { OnboardingDialog } from './OnboardingDialog';
 
 registerOnboardingTestEnv();
 
@@ -40,7 +40,7 @@ describe('OnboardingDialog steps', () => {
     clickContinue();
     expect(screen.getByText('Step 2 of 6')).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Your name'), { target: { value: 'Jens' } });
-    expect(lastSettings.current.ownerName).toBe('Jens');
+    expect(loadSettings().ownerName).toBe('Jens');
     expect(screen.getByLabelText('Your name')).toHaveValue('Jens');
   });
 

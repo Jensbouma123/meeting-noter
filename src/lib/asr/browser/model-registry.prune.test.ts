@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { importFullRegistry, installLocalStorage, KEY } from './model-registry.test-support';
+import { importFullRegistry, installLocalStorage, KEY, loadRegistry } from './model-registry.test-support';
 
 const REGISTRY_STORAGE_KEY = 'mn.model-registry.v1';
 const STALE_KEY = 'd1';
@@ -44,5 +44,20 @@ describe('initRegistry', () => {
     expect(registry.getModelStatus(KEY)).toMatchObject({ status: 'cached', isReady: true });
     const rewritten = JSON.parse(store.get(REGISTRY_STORAGE_KEY)!);
     expect(Object.keys(rewritten)).toEqual([KEY]);
+  });
+
+  it('keeps a download that is still running when it runs again after navigation', async () => {
+    vi.stubGlobal('window', {});
+    installLocalStorage();
+    const registry = await loadRegistry();
+    registry.markDownloading(KEY, 1_000);
+    registry.updateProgress(KEY, 400, 1_000, 'encoder.onnx', 0, 0);
+
+    registry.initRegistry();
+
+    expect(registry.getModelStatus(KEY)).toMatchObject({
+      status: 'downloading',
+      progress: { loadedBytes: 400, totalBytes: 1_000 },
+    });
   });
 });

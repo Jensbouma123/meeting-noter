@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Modal, Text, VStack } from '@jensbouma123/acciva-ui';
 import { useAssistantState } from '@/components/settings/AssistantState';
-import { SEARCH_REGISTRY_KEY } from '@/lib/asr/browser/model-registry-known-keys';
 import { useT } from '@/lib/i18n/useT';
 import { finishOnboarding } from '@/lib/onboarding/store';
 import { STEPS } from './constants';
@@ -12,15 +11,14 @@ import { OnboardingFooter } from './OnboardingFooter';
 import { WhoStep } from './WhoStep';
 import { WordsStep } from './WordsStep';
 import { useOnboardingModels } from './useOnboardingModels';
-import type { OnboardingDialogProps, StepId } from './types';
+import type { StepId } from './types';
 
-export function OnboardingSteps({ settings, onSettingsChange }: OnboardingDialogProps) {
+export function OnboardingSteps() {
   const t = useT('onboarding');
   const [stepId, setStepId] = useState<StepId>('welcome');
   const models = useOnboardingModels();
   const assistants = useAssistantState();
   const detecting = assistants.assistants === null && !assistants.loadFailed;
-  const searchEntry = models.list.find((e) => e.key === SEARCH_REGISTRY_KEY);
   const step = STEPS.indexOf(stepId) + 1;
   const isLast = stepId === 'done';
 
@@ -50,12 +48,12 @@ export function OnboardingSteps({ settings, onSettingsChange }: OnboardingDialog
     >
       <VStack spacing="md" className="w-full">
         {stepId === 'welcome' && <Text size="sm">{t('welcome.body')}</Text>}
-        {stepId === 'who' && <WhoStep settings={settings} onSettingsChange={onSettingsChange} />}
+        {stepId === 'who' && <WhoStep />}
         {stepId === 'models' && <ModelsStep models={models} />}
         {stepId === 'assistant' && (
           <AssistantStep
             state={assistants}
-            searchMissing={!!searchEntry && searchEntry.status !== 'cached'}
+            searchMissing={models.searchMissing}
             onSkip={() => move(1)}
           />
         )}

@@ -77,7 +77,8 @@ export async function resetFakesAndRegistry(): Promise<void> {
   fakes.ready.clear();
   fakes.error.clear();
   const { registry, store } = await modules();
-  registry.resetAllEntries();
+  const { registryState } = await import('@/lib/asr/browser/model-registry-state');
+  registryState.entries = {};
   registry.resetConsent();
   store.resetSession('mic');
 }
