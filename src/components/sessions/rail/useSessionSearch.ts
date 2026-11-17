@@ -4,19 +4,18 @@ import { searchMeetingIds } from '@/lib/meeting/sync-control';
 import { filterSessions, groupSessionsByDay } from '@/lib/meeting/session-groups';
 import { useT } from '@/lib/i18n/useT';
 import { LanguageContext } from '@/lib/i18n/LanguageContext';
-import { readTranscriptText } from './readTranscriptText';
+import { lowerTranscriptText } from './transcriptTextCache';
 import { useDebounced } from './useDebounced';
-import type { ServerHits } from './types';
 
 export function useSessionSearch(sessions: SessionMetadata[], meetingFolders: Record<string, string | null>) {
   const t = useT('sidebar');
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounced(query, 200);
-  const [serverHits, setServerHits] = useState<ServerHits | null>(null);
+  const [serverHits, setServerHits] = useState<{ query: string; ids: Set<string> | null } | null>(null);
   useEffect(() => {
     let cancelled = false;
     void searchMeetingIds(debouncedQuery).then((ids) => {
-      if (!cancelled && ids) setServerHits({ query: debouncedQuery, ids });
+      if (!cancelled) setServerHits({ query: debouncedQuery, ids });
     });
     return () => {
       cancelled = true;
@@ -28,8 +27,14 @@ export function useSessionSearch(sessions: SessionMetadata[], meetingFolders: Re
   const unfiled = useMemo(() => sessions.filter((s) => !meetingFolders[s.sessionId]), [sessions, meetingFolders]);
   const searching = debouncedQuery.trim() !== '';
   const groups = useMemo(() => {
-    const hits = serverHits?.query === debouncedQuery ? serverHits.ids : null;
-    const transcriptOf = (id: string) => (hits?.has(id) ? debouncedQuery : readTranscriptText(id));
+    const answered = serverHits?.query === debouncedQuery;
+    const hits = answered ? serverHits.ids : null;
+    const updatedAtOf = new Map(sessions.map((s) => [s.sessionId, s.updatedAt]));
+    const transcriptOf = (id: string) => {
+      if (!answered) return '';
+      if (hits) return hits.has(id) ? debouncedQuery : '';
+      return lowerTranscriptText(id, updatedAtOf.get(id) ?? 0);
+    };
     return groupSessionsByDay(filterSessions(searching ? sessions : unfiled, debouncedQuery, transcriptOf), undefined, language, {
       today: todayLabel,
       yesterday: yesterdayLabel,
