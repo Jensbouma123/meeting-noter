@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Button, Modal } from '@jensbouma123/acciva-ui';
+import { Button } from '@jensbouma123/acciva-ui';
+import { OnboardingModal } from './OnboardingModal';
 import { useT } from '@/lib/i18n/useT';
 import { isAckAccepted, isAutoCloseAccepted, setAckAccepted, setAutoCloseAccepted } from '@/lib/onboarding/store';
 import { AckStep } from './AckStep';
@@ -17,9 +18,8 @@ export function AckOnlyDialog() {
     if (needAutoClose) setAutoCloseAccepted(true);
   };
   return (
-    <Modal
-      open
-      onClose={() => {}}
+    <OnboardingModal
+      closable={false}
       size="lg"
       title={t(needAck ? 'ack.title' : 'autoclose.title')}
       footer={
@@ -35,6 +35,6 @@ export function AckOnlyDialog() {
         {needAck && <AckStep checked={ack} onChange={setAck} />}
         {needAutoClose && <AutoCloseStep checked={autoClose} onChange={setAutoClose} />}
       </div>
-    </Modal>
+    </OnboardingModal>
   );
 }

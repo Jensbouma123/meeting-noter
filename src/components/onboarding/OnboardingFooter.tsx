@@ -7,7 +7,7 @@ export function OnboardingFooter({ step, isLast, nextDisabled, onSkip, onBack, o
   const size = { base: 'md', md: 'sm' } as const;
   return (
     <div className="dialog-actions flex w-full flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
-      {isLast ? (
+      {isLast || !onSkip ? (
         <span />
       ) : (
         <Button variant="ghost" size={size} onClick={onSkip}>

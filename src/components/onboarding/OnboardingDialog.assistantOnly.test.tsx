@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ACK_STORAGE_KEY, AUTOCLOSE_STORAGE_KEY, ASSISTANT_SEEN_STORAGE_KEY, ONBOARDING_STORAGE_KEY } from '@/lib/onboarding/store';
+import { ACK_STORAGE_KEY, AUTOCLOSE_STORAGE_KEY, ASSISTANT_SEEN_STORAGE_KEY, ONBOARDING_STORAGE_KEY, finishOnboarding } from '@/lib/onboarding/store';
 import { registerOnboardingTestEnv } from './OnboardingDialog.testSupport';
 import { OnboardingDialog } from './OnboardingDialog';
 
@@ -105,7 +105,7 @@ describe('assistant-only onboarding for existing users', () => {
 
   it('a new user finishing the full onboarding never gets the assistant-only dialog', () => {
     render(<OnboardingDialog />);
-    fireEvent.click(screen.getByRole('button', { name: 'Skip for now' }));
+    act(() => finishOnboarding());
     expect(title()).not.toBeInTheDocument();
     expect(localStorage.getItem(ASSISTANT_SEEN_STORAGE_KEY)).toBe('1');
   });
