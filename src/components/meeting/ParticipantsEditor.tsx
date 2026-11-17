@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useId, useState, type KeyboardEvent } from 'react';
 import { Input, Text, VStack } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { parseParticipantNames, uniqueNames } from '@/lib/meeting/participant-names';
@@ -44,6 +44,40 @@ export function ParticipantsEditor({
     setActiveIndex(-1);
   };
 
+  const handleDraftChange = (value: string) => {
+    if (!value.includes(',')) {
+      setDraft(value);
+    } else {
+      const parts = value.split(',');
+      const rest = parts.pop() ?? '';
+      add(parseParticipantNames(parts.join(',')));
+      setDraft(rest);
+    }
+    setActiveIndex(-1);
+  };
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    const count = options.length;
+    if (e.key === 'ArrowDown' && count > 0) {
+      e.preventDefault();
+      setActiveIndex((current) => (current + 1) % count);
+      return;
+    }
+    if (e.key === 'ArrowUp' && count > 0) {
+      e.preventDefault();
+      setActiveIndex((current) => (current < 0 ? count - 1 : (current - 1 + count) % count));
+      return;
+    }
+    if (e.key === 'Escape') {
+      setFocused(false);
+      return;
+    }
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    if (!draft.trim()) onEmptyEnter?.();
+    else if (count > 0) select(options[activeIndex]?.name ?? options[0].name);
+    else commitDraft();
+  };
+
   return (
     <VStack spacing="sm" className="w-full">
       {names.length > 0 && <ParticipantChips names={names} compact={compact} onChange={onChange} />}
@@ -62,34 +96,8 @@ export function ParticipantsEditor({
           autoComplete="off"
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          onChange={(e) => {
-            const value = e.target.value;
-            if (value.includes(',')) {
-              const parts = value.split(',');
-              const rest = parts.pop() ?? '';
-              add(parseParticipantNames(parts.join(',')));
-              setDraft(rest);
-            } else {
-              setDraft(value);
-            }
-            setActiveIndex(-1);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'ArrowDown' && options.length > 0) {
-              e.preventDefault();
-              setActiveIndex((current) => (current + 1) % options.length);
-            } else if (e.key === 'ArrowUp' && options.length > 0) {
-              e.preventDefault();
-              setActiveIndex((current) => (current < 0 ? options.length - 1 : (current - 1 + options.length) % options.length));
-            } else if (e.key === 'Escape') {
-              setFocused(false);
-            } else if (e.key === 'Enter') {
-              e.preventDefault();
-              if (draft.trim() && options.length > 0) select(options[activeIndex]?.name ?? options[0].name);
-              else if (draft.trim()) commitDraft();
-              else onEmptyEnter?.();
-            }
-          }}
+          onChange={(e) => handleDraftChange(e.target.value)}
+          onKeyDown={handleKeyDown}
         />
         {menuOpen && (
           <ParticipantMenu
