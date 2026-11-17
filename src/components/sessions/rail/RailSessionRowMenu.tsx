@@ -15,7 +15,8 @@ import type { RailSessionRowMenuProps } from './RailSessionRowMenu.types';
 export function RailSessionRowMenu(props: RailSessionRowMenuProps) {
   const t = useT('sidebar');
   const tf = useFoldersT();
-  const { open, onOpenChange, title, isActive, locked, suggesting, onOpen, onMove, onSuggest, onClear, onDelete } = props;
+  const { open, onOpenChange, title, isActive, locked, suggesting, onOpen, onMove, onSuggest, onClear, onDelete } =
+    props;
   return (
     <DropdownMenu open={open} onOpenChange={onOpenChange}>
       <DropdownMenuTrigger>

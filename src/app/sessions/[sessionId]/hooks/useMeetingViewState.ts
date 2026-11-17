@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useMeeting } from '@/components/meeting';
 import { getTranscriptSessionId } from '@/lib/meeting/transcript-session';
 import { useAutosave } from './useAutosave';
 import { useClearTranscript } from './useClearTranscript';
@@ -8,6 +7,7 @@ import { useDemoAutoStart } from './useDemoAutoStart';
 import { useHydratedSessionState } from './useHydratedSessionState';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { useMeetingBannerState } from './useMeetingBannerState';
+import { useMeetingStoreSnapshot } from './useMeetingStoreSnapshot';
 import { useModelStatus } from './useModelStatus';
 import { useOtherRecordingGuard } from './useOtherRecordingGuard';
 import { useRecordingFlow } from './useRecordingFlow';
@@ -16,15 +16,8 @@ import { useSettingsDialog } from './useSettingsDialog';
 import { useUpdateAvailable } from './useUpdateAvailable';
 
 export function useMeetingViewState(initialSessionId?: string) {
-  const status = useMeeting((s) => s.status);
-  const startedAt = useMeeting((s) => s.startedAt);
-  const segments = useMeeting((s) => s.segments);
-  const speakers = useMeeting((s) => s.speakers);
-  const stats = useMeeting((s) => s.stats);
-  const error = useMeeting((s) => s.error);
-  const warning = useMeeting((s) => s.warning);
-  const language = useMeeting((s) => s.language);
-
+  const { status, startedAt, segments, speakers, stats, error, warning, language, isRecording } =
+    useMeetingStoreSnapshot();
   const { modelReadiness, modelProgress, modelReady, asrEnabled, asrPhase, postStop } = useModelStatus();
   const { title, setTitle, settings, setSettings, resumeCandidate, setResumeCandidate } =
     useHydratedSessionState(initialSessionId);
@@ -85,7 +78,6 @@ export function useMeetingViewState(initialSessionId?: string) {
   });
   useDemoAutoStart(startRecording);
 
-  const isRecording = status === 'live' || status === 'paused';
   const { banner, asrProblem, asrPostStop, postStopDetail } = useMeetingBannerState({
     initialSessionId,
     otherRecording,
@@ -100,9 +92,6 @@ export function useMeetingViewState(initialSessionId?: string) {
   });
   const clearTranscript = useClearTranscript(initialSessionId);
   const updateAvailable = useUpdateAvailable(isRecording);
-  const effectiveLang = langOverride ?? settings.language;
-  const shareSessionId = initialSessionId ?? getTranscriptSessionId() ?? 'active';
-
   return {
     initialSessionId,
     status,
@@ -131,8 +120,8 @@ export function useMeetingViewState(initialSessionId?: string) {
     postStopDetail,
     clearTranscript,
     updateAvailable,
-    effectiveLang,
-    shareSessionId,
+    effectiveLang: langOverride ?? settings.language,
+    shareSessionId: initialSessionId ?? getTranscriptSessionId() ?? 'active',
     helpOpen,
     setHelpOpen,
     shareOpen,

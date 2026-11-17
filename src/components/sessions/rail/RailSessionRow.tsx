@@ -14,7 +14,11 @@ import type { RailSessionRowProps } from './types';
 export function RailSessionRow(props: RailSessionRowProps) {
   const { session, isActive, pathLabel, suggestion, suggesting, onOpen, onClear, onDelete, onMove, onSuggest } = props;
   const t = useT('sidebar');
-  useSyncExternalStore(subscribeMeetingStore, () => isSessionRecording(session.sessionId), () => false);
+  useSyncExternalStore(
+    subscribeMeetingStore,
+    () => isSessionRecording(session.sessionId),
+    () => false,
+  );
   const locked = isSessionRecording(session.sessionId);
   const badgeState = getRailBadgeState(session, locked);
   const count = openCount(session.sessionId);
