@@ -1,5 +1,6 @@
 import type { ChunkBytes } from '../types/download-cache-records';
-import { Sha256 } from '../sha256';
+import type { Sha256 } from '../sha256';
+import { updateSliced } from '../sha256-sliced';
 import { CACHE_CHUNK_BYTES } from './constants';
 
 export abstract class ChunkAssembler {
@@ -19,6 +20,12 @@ export abstract class ChunkAssembler {
   }
 
   protected abstract writeChunk(index: number, bytes: ChunkBytes): Promise<void>;
+
+  async prepareChecksum(): Promise<void> {
+    if (!this.hasher || this.checksumFinalized) return;
+    this.checksumFinalized = true;
+    if (this.fill > 0) await updateSliced(this.hasher, (this.buffer as ChunkBytes).subarray(0, this.fill));
+  }
 
   checksum(): string | null {
     if (!this.hasher) return null;
@@ -75,7 +82,7 @@ export abstract class ChunkAssembler {
 
   private async seal(): Promise<void> {
     const chunk = this.buffer as ChunkBytes;
-    this.hasher?.update(chunk);
+    if (this.hasher) await updateSliced(this.hasher, chunk);
     this.retained?.push(chunk);
     this.sealedChunks += 1;
     this.fill = 0;

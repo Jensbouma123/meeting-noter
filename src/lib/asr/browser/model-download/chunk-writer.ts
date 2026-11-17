@@ -4,6 +4,7 @@ import type {
   PartialFileRecord,
 } from '../types/download-cache-records';
 import type { Sha256 } from '../sha256';
+import { updateSliced } from '../sha256-sliced';
 import {
   deleteChunksFrom,
   deleteMetaRecord,
@@ -52,7 +53,7 @@ export class ChunkWriter extends ChunkAssembler {
       if (prefix.length !== sealed) return false;
       if (prefix.some((part) => part.byteLength !== CACHE_CHUNK_BYTES)) return false;
       this.retained.push(...prefix);
-      for (const part of prefix) this.hasher?.update(part);
+      if (this.hasher) for (const part of prefix) await updateSliced(this.hasher, part);
     }
     if (tailLength > 0) {
       const tail = await getChunk(this.key, sealed);
