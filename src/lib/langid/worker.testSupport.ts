@@ -1,18 +1,9 @@
 import { afterEach, beforeEach, vi } from 'vitest';
-import type { Mock } from 'vitest';
 import type { PostedMessage } from './types';
+import type { MessageHandler, WorkerFakes, WorkerHarness } from './worker-test.types';
 
 export const FIVE_SECONDS = 5 * 16_000;
 export const TWENTY_SECONDS = 20 * 16_000;
-
-export type WorkerFakes = Record<'load' | 'detect' | 'mel' | 'speech', Mock>;
-
-export interface WorkerHarness {
-  posted: PostedMessage[];
-  send(data: unknown): void;
-}
-
-type MessageHandler = (event: { data: unknown }) => void;
 
 export function setupWorkerHarness(fakes: WorkerFakes): WorkerHarness {
   let handler: MessageHandler;
