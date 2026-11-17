@@ -6,7 +6,9 @@ export function createInstallState(root) {
   const read = (file) => readFileSync(path.join(root, file), 'utf8');
 
   function userFilesIntact() {
-    const bad = Object.entries(USER_FILES).filter(([f, body]) => !existsSync(path.join(root, f)) || read(f) !== body);
+    const bad = Object.entries(USER_FILES).filter(
+      ([f, body]) => !existsSync(path.join(root, f)) || read(f) !== body,
+    );
     return { ok: bad.length === 0, bad: bad.map(([f]) => f).join(', ') };
   }
 
@@ -18,7 +20,8 @@ export function createInstallState(root) {
   function serverLogTail(lines = 40) {
     const log = path.join(root, 'logs/server.log');
     if (!existsSync(log)) return `no ${log}`;
-    return `server.log (last ${lines} lines):\n${read('logs/server.log').trimEnd().split('\n').slice(-lines).join('\n')}`;
+    const tail = read('logs/server.log').trimEnd().split('\n').slice(-lines).join('\n');
+    return `server.log (last ${lines} lines):\n${tail}`;
   }
 
   return { read, userFilesIntact, noLeftovers, serverLogTail };
