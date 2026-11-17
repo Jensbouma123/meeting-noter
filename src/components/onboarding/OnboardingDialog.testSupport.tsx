@@ -71,6 +71,7 @@ export function registerOnboardingTestEnv() {
     resetVocabularyForTests();
     setEntries({ asr: entry('not-downloaded') });
     resetSettingsStoreForTests();
+    window.dispatchEvent(new StorageEvent('storage', { key: 'mn.settings' }));
     recordConsent.mockClear();
     initiateDownloads.mockClear();
     HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) {
@@ -81,6 +82,10 @@ export function registerOnboardingTestEnv() {
     };
   });
   afterEach(cleanup);
+}
+
+export function advanceToAck() {
+  for (let i = 0; i < 3; i++) fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
 }
 
 export function acceptAck() {
