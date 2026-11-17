@@ -63,6 +63,12 @@ export function updateFolderRoster(
   return readFolder(db, id);
 }
 
+export function updateFolderContext(db: DatabaseSync, id: string, context: string, now: number): FolderRow {
+  readFolder(db, id);
+  db.prepare('UPDATE folders SET context = ?, updated_at = ? WHERE id = ?').run(context, now, id);
+  return readFolder(db, id);
+}
+
 export function fileMeetingInFolder(db: DatabaseSync, meetingId: string, folderId: string | null, now: number): void {
   if (!db.prepare('SELECT 1 FROM meetings WHERE id = ?').get(meetingId)) throw new FolderError('not-found');
   if (folderId !== null && !folderExists(db, folderId)) throw new FolderError('bad-parent');

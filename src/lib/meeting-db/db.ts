@@ -2,7 +2,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { randomUUID } from 'node:crypto';
 import { cleanFolderName } from './folder-name';
 import { readAllFolders } from './folder-queries';
-import { fileMeetingInFolder, insertFolder, renumberSiblings, reparentFolder, updateFolderName, updateFolderRoster } from './folder-writes';
+import { fileMeetingInFolder, insertFolder, renumberSiblings, reparentFolder, updateFolderContext, updateFolderName, updateFolderRoster } from './folder-writes';
 import { deleteAllMeetingRows, deleteFolderRows, deleteMeetingRows } from './meeting-delete';
 import { declineFolderSuggestionRow } from './folder-suggestions';
 import { listMeetingRows, searchMeetingRows } from './meeting-queries';
@@ -88,6 +88,10 @@ export class MeetingsDb {
 
   setFolderRoster(id: string, roster: readonly string[], inheritRoster: boolean, now = Date.now()): FolderRow {
     return this.transaction(() => updateFolderRoster(this.db, id, roster, inheritRoster, now));
+  }
+
+  setFolderContext(id: string, context: string, now = Date.now()): FolderRow {
+    return this.transaction(() => updateFolderContext(this.db, id, context, now));
   }
 
   deleteFolder(id: string, mode: FolderDeleteMode, now = Date.now()): FolderDeleteResult {

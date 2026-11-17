@@ -20,6 +20,7 @@ export const folders = {
     rosterInherit: 'Inherit from parent folder', rosterInherited: 'Inherited from “{name}”',
     rosterEmpty: 'No usual people here yet.', rosterAddLabel: 'Add a person', rosterAddPlaceholder: 'Type a name',
     rosterRemove: 'Remove {name} from this folder', add: 'Add',
+    contextTitle: 'About this folder', contextHint: 'Optional. Describe what belongs here; it helps suggest this folder for matching meetings, even while it is empty.', contextPlaceholder: 'e.g. Weekly product syncs with the design team',
   },
   nl: {
     title: 'Mappen', newFolder: 'Nieuwe map', newSubfolder: 'Nieuwe submap', rename: 'Naam wijzigen', deleteFolder: 'Map verwijderen',
@@ -42,5 +43,6 @@ export const folders = {
     rosterInherit: 'Overnemen van bovenliggende map', rosterInherited: 'Overgenomen van “{name}”',
     rosterEmpty: 'Nog geen vaste mensen hier.', rosterAddLabel: 'Persoon toevoegen', rosterAddPlaceholder: 'Typ een naam',
     rosterRemove: '{name} uit deze map verwijderen', add: 'Toevoegen',
+    contextTitle: 'Over deze map', contextHint: 'Optioneel. Beschrijf wat hier thuishoort; zo kan de map ook worden voorgesteld voor passende meetings, zelfs als hij nog leeg is.', contextPlaceholder: 'bijv. Wekelijkse productoverleggen met het designteam',
   },
 } as const;
