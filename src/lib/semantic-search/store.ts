@@ -1,4 +1,6 @@
 import type { KeyValueStore, PersistedIndex } from './types';
+import { defaultKeyValueStore } from './default-store';
+import { removeCentroid, writeCentroid } from './centroid-store';
 import { decodeVector, encodeVector } from './vector-codec';
 
 const VERSION = 1;
@@ -6,14 +8,6 @@ const IDS_KEY = 'mn.semindex.ids.v1';
 
 export function indexKey(meetingId: string): string {
   return `mn.semindex.${meetingId}.v1`;
-}
-
-function defaultStore(): KeyValueStore | null {
-  try {
-    return typeof window !== 'undefined' ? window.localStorage : null;
-  } catch {
-    return null;
-  }
 }
 
 function readIds(store: KeyValueStore): string[] {
@@ -28,20 +22,23 @@ function readIds(store: KeyValueStore): string[] {
 export function saveIndex(
   meetingId: string,
   data: Omit<PersistedIndex, 'indexedAt'>,
-  store: KeyValueStore | null = defaultStore(),
+  store: KeyValueStore | null = defaultKeyValueStore(),
 ): boolean {
   if (!store) return false;
   try {
+    const indexedAt = Date.now();
+    const encoded = data.vectors.map(encodeVector);
     store.setItem(
       indexKey(meetingId),
       JSON.stringify({
         version: VERSION,
-        indexedAt: Date.now(),
+        indexedAt,
         windows: data.windows,
-        vectors: data.vectors.map(encodeVector),
+        vectors: encoded,
         chapters: data.chapters,
       }),
     );
+    writeCentroid(meetingId, indexedAt, encoded.map(decodeVector), store);
     const ids = readIds(store);
     if (!ids.includes(meetingId)) store.setItem(IDS_KEY, JSON.stringify([...ids, meetingId]));
     return true;
@@ -52,7 +49,7 @@ export function saveIndex(
 
 export function loadIndex(
   meetingId: string,
-  store: KeyValueStore | null = defaultStore(),
+  store: KeyValueStore | null = defaultKeyValueStore(),
 ): PersistedIndex | null {
   if (!store) return null;
   try {
@@ -76,23 +73,24 @@ export function loadIndex(
 
 export function removeIndex(
   meetingId: string,
-  store: KeyValueStore | null = defaultStore(),
+  store: KeyValueStore | null = defaultKeyValueStore(),
 ): void {
   if (!store) return;
   try {
     store.removeItem(indexKey(meetingId));
+    removeCentroid(meetingId, store);
     store.setItem(IDS_KEY, JSON.stringify(readIds(store).filter((id) => id !== meetingId)));
   } catch {
   }
 }
 
-export function listIndexedMeetingIds(store: KeyValueStore | null = defaultStore()): string[] {
+export function listIndexedMeetingIds(store: KeyValueStore | null = defaultKeyValueStore()): string[] {
   return store ? readIds(store) : [];
 }
 
 export function indexSignature(
   ids: string[],
-  store: KeyValueStore | null = defaultStore(),
+  store: KeyValueStore | null = defaultKeyValueStore(),
 ): string {
   if (!store) return '';
   return ids
