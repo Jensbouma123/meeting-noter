@@ -13,6 +13,7 @@ export function ParticipantPicker({ people, roster, folderName, selected, onTogg
   const [query, setQuery] = useState('');
   const [hidden, setHidden] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [keyboardActive, setKeyboardActive] = useState(false);
   const listId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const { usual, others, fresh } = pickerSections(people, folderName ? roster : [], query);
@@ -37,6 +38,7 @@ export function ParticipantPicker({ people, roster, folderName, selected, onTogg
   const move = (delta: number) => {
     if (flat.length === 0) return;
     setHidden(false);
+    setKeyboardActive(true);
     setActiveIndex((current) =>
       current < 0 ? (delta > 0 ? 0 : flat.length - 1) : (current + delta + flat.length) % flat.length,
     );
@@ -66,6 +68,7 @@ export function ParticipantPicker({ people, roster, folderName, selected, onTogg
           setQuery(event.target.value);
           setHidden(false);
           setActiveIndex(-1);
+          setKeyboardActive(false);
         }}
         onKeyDown={(event) => {
           if (event.key === 'ArrowDown') {
@@ -84,7 +87,7 @@ export function ParticipantPicker({ people, roster, folderName, selected, onTogg
             if (activeIndex >= 0) pick(activeIndex);
             else if (fresh) pick(flat.length - 1);
             else if (query.trim()) pick(0);
-          } else if (event.key === ' ' && activeIndex >= 0 && !hidden) {
+          } else if (event.key === ' ' && keyboardActive && activeIndex >= 0 && !hidden) {
             event.preventDefault();
             pick(activeIndex);
           }
@@ -106,7 +109,7 @@ export function ParticipantPicker({ people, roster, folderName, selected, onTogg
           activeIndex={activeIndex}
           onToggle={onToggle}
           onCreate={addNew}
-          onHover={setActiveIndex}
+          onHover={(index) => { setKeyboardActive(false); setActiveIndex(index); }}
         />
       )}
     </div>

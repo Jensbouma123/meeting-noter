@@ -1,4 +1,6 @@
 import { ParakeetModel } from 'parakeet.js';
+import * as ort from 'onnxruntime-web';
+import { applyOrtWasmPaths } from '@/lib/ort-paths';
 import { takeBlobUrlBytes } from './resumable-download';
 import { resolveModelFileUrls } from './model-file-urls';
 import {
@@ -39,6 +41,7 @@ export async function createParakeetModel(
       resolveWatchdog.dispose();
     }
 
+    applyOrtWasmPaths(ort.env);
     const sessionWatchdog = startStallWatchdog(SESSION_STALL_MS, describeSessionStall);
     try {
       return await Promise.race([
