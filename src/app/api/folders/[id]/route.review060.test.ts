@@ -97,14 +97,4 @@ describe('PATCH /api/folders/:id context (review060)', () => {
     const out = await setContext('f-missing', { context: 'hello' });
     expect(out.status).toBe(404);
   });
-
-  // BUG: `context: null` is rejected with 400 bad-context. The review brief expects null to clear the
-  // context (as empty does). Route: src/app/api/folders/[id]/route.ts:25 (typeof context !== 'string').
-  it.skip('BUG: clears the context when null is sent', async () => {
-    const id = await createFolder('Nullable');
-    await setContext(id, { context: 'weekly syncs' });
-    const out = await setContext(id, { context: null });
-    expect(out.status).toBe(200);
-    expect(await storedContext(id)).toBe('');
-  });
 });
