@@ -9,7 +9,7 @@ import { fillTemplate } from './fillTemplate';
 import { AckStep } from './AckStep';
 import { AutoCloseStep } from './AutoCloseStep';
 import { AssistantStep } from './AssistantStep';
-import { ModelsStep } from './ModelsStep';
+import { MODELS_REQUIRED_HINT_ID, ModelsStep } from './ModelsStep';
 import { OnboardingModal } from './OnboardingModal';
 import { OnboardingFooter } from './OnboardingFooter';
 import { WhoStep } from './WhoStep';
@@ -32,8 +32,7 @@ export function OnboardingSteps() {
   const move = (delta: 1 | -1) => {
     if (delta === 1 && stepId === 'ack') setAckAccepted(true);
     if (delta === 1 && stepId === 'autoclose') setAutoCloseAccepted(true);
-    let i = STEPS.indexOf(stepId) + delta;
-    if (STEPS[i] === 'models' && models.modelsReady) i += delta;
+    const i = STEPS.indexOf(stepId) + delta;
     setStepId(STEPS[i]);
   };
 
@@ -50,8 +49,9 @@ export function OnboardingSteps() {
           isLast={isLast}
           nextDisabled={
             (stepId === 'assistant' && detecting) || (stepId === 'ack' && !ackChecked) ||
-            (stepId === 'autoclose' && !autoCloseChecked)
+            (stepId === 'autoclose' && !autoCloseChecked) || (stepId === 'models' && !models.modelsReady)
           }
+          nextDescribedBy={MODELS_REQUIRED_HINT_ID}
           onSkip={closable || isLast ? finishOnboarding : undefined}
           onBack={() => move(-1)}
           onNext={() => move(1)}
@@ -62,7 +62,7 @@ export function OnboardingSteps() {
         {stepId === 'welcome' && <Text size="sm">{t('welcome.body')}</Text>}
         {stepId === 'who' && <WhoStep />}
         {stepId === 'ack' && <AckStep checked={ackChecked} onChange={setAckChecked} />}
-        {stepId === 'models' && <ModelsStep models={models} onContinue={() => move(1)} />}
+        {stepId === 'models' && <ModelsStep models={models} />}
         {stepId === 'assistant' && (
           <AssistantStep
             state={assistants}
