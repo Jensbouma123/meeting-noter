@@ -81,11 +81,17 @@ function pruneUnknownEntries(entries: Record<string, ModelEntry>): Record<string
   return Object.fromEntries(Object.entries(entries).filter(([key]) => known.has(key)));
 }
 
+function downloadingEntries(): Record<string, ModelEntry> {
+  return Object.fromEntries(
+    Object.entries(registryState.entries).filter(([, entry]) => entry.status === 'downloading'),
+  );
+}
+
 export function initRegistry(): void {
   if (typeof window === 'undefined') return;
   registryState.persistedConsent = readPersistedConsent();
   const persisted = readPersistedEntries();
-  registryState.entries = pruneUnknownEntries(persisted);
+  registryState.entries = { ...pruneUnknownEntries(persisted), ...downloadingEntries() };
   for (const entry of Object.values(registryState.entries)) {
     entry.isReady = entry.status === 'cached';
   }

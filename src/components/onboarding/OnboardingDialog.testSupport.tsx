@@ -1,11 +1,8 @@
 import { cleanup } from '@testing-library/react';
-import { useState } from 'react';
 import { afterEach, beforeEach, vi } from 'vitest';
 import { resetOnboardingForTests } from '@/lib/onboarding/store';
 import { resetVocabularyForTests } from '@/lib/vocabulary/store';
-import type { AppSettings } from '@/components/meeting/types';
-import { DEFAULT_SETTINGS } from '@/components/meeting/settingsStorage';
-import { OnboardingDialog } from './OnboardingDialog';
+import { resetSettingsStoreForTests } from '@/components/meeting/settingsStore';
 
 const registry = vi.hoisted(() => ({
   listeners: new Set<() => void>(),
@@ -59,8 +56,6 @@ export const entry = (status: string) => ({
   progress: { loadedBytes: 500, totalBytes: 1000, percent: 50, throughputBytesPerSec: 0, etaSeconds: 0, currentFile: '' },
 });
 
-export const lastSettings = { current: DEFAULT_SETTINGS as AppSettings };
-
 export function registerOnboardingTestEnv() {
   beforeEach(() => {
     localStorage.clear();
@@ -68,7 +63,7 @@ export function registerOnboardingTestEnv() {
     resetOnboardingForTests();
     resetVocabularyForTests();
     setEntries({ asr: entry('not-downloaded') });
-    lastSettings.current = DEFAULT_SETTINGS;
+    resetSettingsStoreForTests();
     recordConsent.mockClear();
     initiateDownloads.mockClear();
     HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) {
@@ -79,17 +74,4 @@ export function registerOnboardingTestEnv() {
     };
   });
   afterEach(cleanup);
-}
-
-export function OnboardingDialogHarness() {
-  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
-  return (
-    <OnboardingDialog
-      settings={settings}
-      onSettingsChange={(s) => {
-        lastSettings.current = s;
-        setSettings(s);
-      }}
-    />
-  );
 }

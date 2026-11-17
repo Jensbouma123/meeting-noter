@@ -2,7 +2,8 @@
 import '@testing-library/jest-dom/vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { entry, OnboardingDialogHarness as OnboardingDialog, registerOnboardingTestEnv, setEntries } from './OnboardingDialog.testSupport';
+import { entry, registerOnboardingTestEnv, setEntries } from './OnboardingDialog.testSupport';
+import { OnboardingDialog } from './OnboardingDialog';
 
 registerOnboardingTestEnv();
 afterEach(() => vi.unstubAllGlobals());

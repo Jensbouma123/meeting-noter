@@ -3,7 +3,8 @@ import '@testing-library/jest-dom/vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ASSISTANT_SEEN_STORAGE_KEY, ONBOARDING_STORAGE_KEY } from '@/lib/onboarding/store';
-import { OnboardingDialogHarness as OnboardingDialog, registerOnboardingTestEnv } from './OnboardingDialog.testSupport';
+import { registerOnboardingTestEnv } from './OnboardingDialog.testSupport';
+import { OnboardingDialog } from './OnboardingDialog';
 
 registerOnboardingTestEnv();
 
