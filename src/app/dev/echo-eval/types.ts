@@ -1,5 +1,6 @@
 import type { CaseResult } from '../../../../scripts/echo-eval/types/case-result';
 import type { EvalCase } from '../../../../scripts/echo-eval/types/eval-case';
+import type { MeetingCase } from '../../../../scripts/echo-eval/types/meeting-case';
 import type { Segment } from '@/lib/meeting/types';
 
 export interface PlanUtterance {
@@ -10,7 +11,7 @@ export interface PlanUtterance {
 }
 
 export interface EvalPlan {
-  cases: EvalCase[];
+  cases: (EvalCase | MeetingCase)[];
   utterances: number;
   done: string[];
 }

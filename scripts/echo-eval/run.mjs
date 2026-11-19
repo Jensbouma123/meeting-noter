@@ -10,6 +10,7 @@ const AUDIO = process.env.ECHO_EVAL_AUDIO ?? '/Users/jensbouma/Desktop/Meeting N
 const limitArg = process.argv.find((a) => a.startsWith('--limit='));
 const limit = limitArg ? Number(limitArg.split('=')[1]) : 0;
 const fake = process.argv.includes('--fake');
+const meetings = process.env.ECHO_EVAL_SET === 'meetings';
 const POLL_MS = 5000;
 const READY_TIMEOUT_MS = 120_000;
 
@@ -59,9 +60,9 @@ const stop = (code) => {
 process.on('SIGINT', () => stop(130));
 
 const base = `http://localhost:${port}`;
-const q = `${limit ? `&limit=${limit}` : ''}${fake ? '&fake=1' : ''}`;
+const q = `${limit ? `&limit=${limit}` : ''}${fake ? '&fake=1' : ''}${meetings ? '&set=meetings' : ''}`;
 const runUrl = `${base}/dev/echo-eval?autostart=1${q}`;
-fs.rmSync(path.join(OUT, fake ? 'finished.fake.json' : 'finished.json'), { force: true });
+fs.rmSync(path.join(OUT, `finished${meetings ? '.meetings' : ''}${fake ? '.fake' : ''}.json`), { force: true });
 await waitFor(`${base}/api/dev/echo-eval?op=status${q}`);
 if (!openBrowser(runUrl)) {
   console.log(`[echo-eval] could not open browser automatically; open this URL manually:\n  ${runUrl}`);
@@ -77,7 +78,7 @@ for (;;) {
     stop(1);
   }
   if (s.finished) {
-    console.log(`[echo-eval] report: ${path.join(OUT, 'report.md')}`);
+    console.log(`[echo-eval] report: ${path.join(OUT, meetings ? 'meetings-report.md' : 'report.md')}`);
     stop(0);
   }
 }

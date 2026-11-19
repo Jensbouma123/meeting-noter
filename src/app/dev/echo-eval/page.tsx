@@ -7,7 +7,7 @@ import { useEchoEval } from './useEchoEval';
 function EchoEval() {
   const params = useSearchParams();
   const limit = Number(params.get('limit')) || null;
-  const { progress, start } = useEchoEval(params.get('autostart') === '1', params.get('fake') === '1', limit);
+  const { progress, start } = useEchoEval(params.get('autostart') === '1', params.get('fake') === '1', limit, params.get('set') === 'meetings');
   const busy = progress.phase === 'loading' || progress.phase === 'running';
   return (
     <main style={{ maxWidth: 720, margin: '2rem auto', padding: '0 1rem', fontFamily: 'system-ui' }}>

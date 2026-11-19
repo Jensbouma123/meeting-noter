@@ -106,6 +106,25 @@ describe.skipIf(!hasAudio)('echo-eval route', () => {
     ).toMatchObject({ done: 1, finished: false });
   });
 
+  it('plans, records and reports meetings in their own files', async () => {
+    vi.stubEnv('ECHO_EVAL_OUT', out);
+    vi.stubEnv('ECHO_EVAL_AUDIO', audio);
+    const route = await import('./route');
+    const plan = (await (await call(route, 'GET', 'op=plan&set=meetings&limit=2')).json()) as {
+      cases: { id: string; turns: unknown[] }[];
+      done: string[];
+    };
+    expect(plan.cases).toHaveLength(2);
+    expect(plan.cases[0].turns.length).toBeGreaterThan(10);
+    await call(route, 'POST', 'op=begin&set=meetings', { backend: 'fake', userAgent: 'ua', startedAt: 'now' });
+    await call(route, 'POST', 'op=result&set=meetings', { id: plan.cases[0].id, split: 'dev', segments: [] });
+    const again = (await (await call(route, 'GET', 'op=plan&set=meetings&limit=2')).json()) as { done: string[] };
+    expect(again.done).toEqual([plan.cases[0].id]);
+    await call(route, 'POST', 'op=finish&set=meetings', {});
+    expect(fs.existsSync(path.join(out, 'meetings-report.md'))).toBe(true);
+    expect(fs.existsSync(path.join(out, 'finished.meetings.json'))).toBe(true);
+  });
+
   it('refuses in production', async () => {
     vi.stubEnv('NODE_ENV', 'production');
     const route = await import('./route');
