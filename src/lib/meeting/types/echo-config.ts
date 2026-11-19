@@ -4,6 +4,8 @@ export interface EchoConfig {
   kernelsMs: readonly number[];
   noisePct: number;
   gainPct: number;
+  gainBins: number;
+  logCorr: boolean;
   nearEndRatio: number;
   minCorr: number;
   maxNearEnd: number;

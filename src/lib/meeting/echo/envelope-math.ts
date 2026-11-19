@@ -24,15 +24,20 @@ export function decay(power: Float64Array, ms: number, frameMs: number): Float64
   return out;
 }
 
-export function amplitude(power: Float64Array): Float64Array {
+function smoothed(power: Float64Array, map: (p: number) => number): Float64Array {
   const out = new Float64Array(power.length);
   for (let t = 0; t < power.length; t += 1) {
     const prev = power[Math.max(0, t - 1)];
     const next = power[Math.min(power.length - 1, t + 1)];
-    out[t] = Math.sqrt((prev + power[t] + next) / 3);
+    out[t] = map((prev + power[t] + next) / 3);
   }
   return out;
 }
+
+export const amplitude = (power: Float64Array): Float64Array => smoothed(power, Math.sqrt);
+
+export const logLevel = (power: Float64Array, floor: number): Float64Array =>
+  smoothed(power, (p) => Math.log(p + floor + 1e-20));
 
 export function pearson(x: Float64Array, xOffset: number, y: Float64Array, n: number): number {
   let sx = 0;

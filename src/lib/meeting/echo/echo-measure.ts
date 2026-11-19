@@ -5,21 +5,13 @@ import type { EchoWindow } from '../types/echo-window';
 import { alignEcho } from './echo-align';
 import { echoWindow } from './echo-window';
 import { percentile } from './envelope-math';
+import { predictEcho } from './gain-map';
 
 const FRAME_MS = 10;
 const EPS = 1e-12;
 const SYSTEM_ACTIVE_RATIO = 4;
 
 const mean = (x: Float64Array): number => x.reduce((s, v) => s + v, 0) / Math.max(1, x.length);
-
-function bandGain(mic: Float64Array, sys: Float64Array, noise: number, pct: number): number {
-  const loud = percentile(sys, 0.5);
-  const ratios: number[] = [];
-  for (let t = 0; t < sys.length; t += 1) {
-    if (sys[t] >= loud && sys[t] > EPS) ratios.push(Math.max(0, mic[t] - noise) / sys[t]);
-  }
-  return ratios.length ? percentile(ratios, pct) : 0;
-}
 
 function systemActive(win: EchoWindow, pct: number): boolean {
   const floor = percentile(win.systemHistory, pct);
@@ -37,9 +29,9 @@ export function measureEcho(
 ): EchoFeatures | null {
   const win = echoWindow(mic, system, from - cfg.marginFrames, to + cfg.marginFrames, cfg.maxLagFrames);
   if (!win) return null;
-  const { corr, lag, delayed } = alignEcho(win, cfg.kernelsMs);
   const noise = win.micHistory.map((x) => percentile(x, cfg.noisePct));
-  const gains = win.mic.map((m, b) => bandGain(m, delayed[b], noise[b], cfg.gainPct));
+  const { corr, lag, delayed } = alignEcho(win, cfg.kernelsMs, cfg.logCorr ? noise : null);
+  const echo = win.mic.map((m, b) => predictEcho(m, delayed[b], noise[b], cfg.gainPct, cfg.gainBins));
   const noiseSum = noise.reduce((s, n) => s + n, 0);
   let active = 0;
   let near = 0;
@@ -48,7 +40,7 @@ export function measureEcho(
     let predicted = noiseSum;
     for (let b = 0; b < win.mic.length; b += 1) {
       heard += win.mic[b][t];
-      predicted += gains[b] * delayed[b][t];
+      predicted += echo[b][t];
     }
     if (heard <= 2 * noiseSum + EPS) continue;
     active += 1;
@@ -56,7 +48,7 @@ export function measureEcho(
   }
   const sysMeans = delayed.map(mean);
   const sysSum = sysMeans.reduce((s, v) => s + v, 0);
-  const echoSum = sysMeans.reduce((s, v, b) => s + gains[b] * v, 0);
+  const echoSum = echo.reduce((s, e) => s + mean(e), 0);
   return {
     corr,
     nearEnd: active ? near / active : 0,
