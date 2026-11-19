@@ -1,4 +1,5 @@
 import { spawn, spawnSync } from 'node:child_process';
+import fs from 'node:fs';
 import net from 'node:net';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -38,7 +39,9 @@ async function waitFor(url) {
 
 function openBrowser(url) {
   const chrome = spawnSync('open', ['-a', 'Google Chrome', url], { stdio: 'ignore' });
-  if (chrome.status !== 0) spawnSync('open', [url], { stdio: 'ignore' });
+  if (chrome.status === 0) return true;
+  const fallback = spawnSync('open', [url], { stdio: 'ignore' });
+  return fallback.status === 0;
 }
 
 spawnSync(process.execPath, [path.join(root, 'src/lib/ort-paths/copy-ort-wasm.mjs')], { cwd: root, stdio: 'inherit' });
@@ -57,13 +60,17 @@ process.on('SIGINT', () => stop(130));
 
 const base = `http://localhost:${port}`;
 const q = `${limit ? `&limit=${limit}` : ''}${fake ? '&fake=1' : ''}`;
-await waitFor(`${base}/api/dev/echo-eval?op=status${limit ? `&limit=${limit}` : ''}`);
-openBrowser(`${base}/dev/echo-eval?autostart=1${q}`);
-console.log(`[echo-eval] ${base}/dev/echo-eval running; output ${OUT}`);
+const runUrl = `${base}/dev/echo-eval?autostart=1${q}`;
+fs.rmSync(path.join(OUT, fake ? 'finished.fake.json' : 'finished.json'), { force: true });
+await waitFor(`${base}/api/dev/echo-eval?op=status${q}`);
+if (!openBrowser(runUrl)) {
+  console.log(`[echo-eval] could not open browser automatically; open this URL manually:\n  ${runUrl}`);
+}
+console.log(`[echo-eval] ${runUrl} running; output ${OUT}`);
 
 for (;;) {
   await sleep(POLL_MS);
-  const s = await (await fetch(`${base}/api/dev/echo-eval?op=status${limit ? `&limit=${limit}` : ''}`)).json();
+  const s = await (await fetch(`${base}/api/dev/echo-eval?op=status${q}`)).json();
   console.log(`[echo-eval] ${s.done}/${s.total}`);
   if (s.error) {
     console.error(`[echo-eval] failed: ${s.error}`);
