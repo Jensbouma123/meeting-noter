@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { CaseResult } from '../types/case-result';
+import type { RunMeta } from '../types/run-meta';
 import { breakdownTable } from './breakdown';
 import { echoPresent, isAllLost, isFalseDrop, isJunk, isMiss } from './classify';
 import { pct, perGroup, wilson } from './stats';
@@ -18,7 +19,7 @@ function section(title: string, rows: CaseResult[], n: number, hit: (r: CaseResu
 export function writeReport(outDir: string, resultsFile: string, utterances: number): void {
   if (!fs.existsSync(resultsFile)) return;
   const all = fs.readFileSync(resultsFile, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l) as CaseResult);
-  const md: string[] = [`# Echo-twin eval\n\nGenerated ${new Date().toISOString()}; ${all.length} cases from ${utterances} utterances. ASR: Parakeet TDT v3 int8 (wasm, Node) via the app's live path; merge: splitTranscript/dropEchoTwins. Not the WebGPU q4f16 encoder.\n`];
+  const md: string[] = [`# Echo-twin eval\n\nGenerated ${new Date().toISOString()}; ${all.length} cases from ${utterances} utterances. ${asrLine(outDir)}; merge: splitTranscript/dropEchoTwins.\n`];
   const failures: unknown[] = [];
   for (const split of ['all', 'dev', 'heldout'] as const) {
     const rows = all.filter((r) => split === 'all' || r.split === split);
@@ -40,6 +41,13 @@ export function writeReport(outDir: string, resultsFile: string, utterances: num
   }
   fs.writeFileSync(path.join(outDir, 'report.md'), md.join('\n') + '\n');
   fs.writeFileSync(path.join(outDir, 'failures.json'), JSON.stringify(failures, null, 2));
+}
+
+function asrLine(outDir: string): string {
+  const file = path.join(outDir, 'meta.json');
+  if (!fs.existsSync(file)) return 'ASR: backend not recorded';
+  const m = JSON.parse(fs.readFileSync(file, 'utf8')) as RunMeta;
+  return `ASR: Parakeet TDT v3 via the app's live path, backend ${m.backend}, browser ${m.userAgent}`;
 }
 
 function wilsonStr(rows: CaseResult[], hit: (r: CaseResult) => boolean): string {
