@@ -1,4 +1,5 @@
 import { crossMarks, crossSourceOverlaps } from './cross-source-overlaps';
+import { dropEchoTwins } from './echo-twins';
 import { everyColumnHolds } from './overlap-columns';
 import { splitTurns } from './transcript-turns';
 import type { Segment } from './types';
@@ -60,7 +61,8 @@ function splitMarked<T extends Segment>(segments: readonly T[]): TranscriptBlock
   return blocks;
 }
 
-export function splitTranscript<T extends Segment>(segments: readonly T[]): TranscriptBlock<T>[] {
+export function splitTranscript<T extends Segment>(all: readonly T[]): TranscriptBlock<T>[] {
+  const segments = dropEchoTwins(all);
   const thin = new Set<T>();
   for (const block of splitMarked(segments)) {
     if (block.kind !== 'overlap' || everyColumnHolds(block.segments)) continue;
