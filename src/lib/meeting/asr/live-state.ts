@@ -1,4 +1,5 @@
 import { LiveChunker } from '@/lib/asr/live-chunker';
+import { clearEchoAudio } from '../echo/echo-store';
 import type { Source } from '../types/basics';
 import { asrState } from './state';
 import { clearSegmentTracking } from './place-segment';
@@ -37,4 +38,5 @@ export function clearLiveAudio(): void {
   liveShowing.clear();
   liveGateOpenAt.clear();
   clearSegmentTracking();
+  clearEchoAudio();
 }

@@ -1,5 +1,6 @@
 import type { LiveSegmentUpdate } from '@/lib/asr/types';
 import type { SpeakerTimeline } from './types/asr-speaker';
+import { micEchoVerdict } from './echo/segment-echo';
 import { CAPTURE_SAMPLE_RATE } from './pcm';
 import { withConfirmation } from './speaker-confirmation';
 import { installedOverlaps } from './speaker-overlap-timeline';
@@ -25,6 +26,7 @@ export function publishLiveUpdate(
 ): void {
   const start = update.startSample / CAPTURE_SAMPLE_RATE;
   const end = update.endSample / CAPTURE_SAMPLE_RATE;
+  const echo = update.final && source === 'mic' ? micEchoVerdict(start, end) : undefined;
   const seg: Segment = {
     id: update.id,
     source,
@@ -38,6 +40,7 @@ export function publishLiveUpdate(
       start: w.start / CAPTURE_SAMPLE_RATE,
       end: w.end / CAPTURE_SAMPLE_RATE,
     })),
+    ...(echo ? { echo } : {}),
   };
   if (!timeline) {
     upsertSegment(seg);
