@@ -34,7 +34,7 @@ const done = new Set(
     : [],
 );
 
-describe(`echo bleed eval (${utts.length} utterances, ${cases.length} cases)`, () => {
+describe.skipIf(process.env.ECHO_EVAL_SET === 'meetings')(`echo bleed eval (${utts.length} utterances, ${cases.length} cases)`, () => {
   afterAll(() => writeReport(OUT_DIR, RESULTS_FILE, utts.length));
   it.each(cases.filter((c) => !done.has(c.id)))('$id', async (c) => {
     const asr = await loadWebgpuAsr();

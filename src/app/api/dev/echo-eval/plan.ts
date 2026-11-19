@@ -1,3 +1,4 @@
+import { buildMeetings } from '../../../../../scripts/echo-eval/lib/meeting-plan';
 import { buildCases } from '../../../../../scripts/echo-eval/lib/cases';
 import { loadUtterances } from '../../../../../scripts/echo-eval/lib/utterances';
 import { AUDIO_DIR } from '../../../../../scripts/echo-eval/out-dir';
@@ -10,7 +11,7 @@ export function utterances(): Utterance[] {
   return G.__echoEvalUtts;
 }
 
-export function casesFor(limit: number | null) {
-  const all = buildCases(utterances());
+export function casesFor(limit: number | null, meetings = false) {
+  const all = meetings ? buildMeetings(utterances()) : buildCases(utterances());
   return limit ? all.slice(0, limit) : all;
 }

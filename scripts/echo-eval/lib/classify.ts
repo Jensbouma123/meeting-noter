@@ -2,6 +2,8 @@ import type { CaseResult } from '../types/case-result';
 
 const tokens = (t: string): string[] => t.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [];
 
+export const wordCount = (t: string): number => tokens(t).length;
+
 export function dice(a: string, b: string): number {
   const x = tokens(a);
   const pool = new Map<string, number>();
