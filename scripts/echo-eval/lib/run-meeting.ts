@@ -5,10 +5,28 @@ import type { MeetingCase } from '../types/meeting-case';
 import type { MeetingResult } from '../types/meeting-result';
 import type { RenderedCase } from '../types/rendered-case';
 
+const STEP_FRAMES = 10;
+const IDLE_POLLS = 3;
+const POLL_MS = 10;
+
+async function settle(): Promise<void> {
+  const { asrState } = await import('@/lib/meeting/asr/state');
+  const { liveChunkers } = await import('@/lib/meeting/asr/live-state');
+  for (let idle = 0; idle < IDLE_POLLS; ) {
+    const busy = asrState.transcribeInFlight || [...liveChunkers.values()].some((c) => c.due());
+    idle = busy ? 0 : idle + 1;
+    await new Promise((resolve) => setTimeout(resolve, POLL_MS));
+  }
+}
+
 export async function runMeeting(c: MeetingCase, audio: RenderedCase, asr: MeetingAsr, store: MeetingStore): Promise<MeetingResult> {
   store.resetSession('both');
-  for (const [source, pcm] of [['system', audio.system], ['mic', audio.mic]] as const) {
-    for (const frame of toFrames(pcm)) asr.pushLiveAudio(source, frame);
+  const system = toFrames(audio.system);
+  const mic = toFrames(audio.mic);
+  for (let at = 0; at < system.length; at += STEP_FRAMES) {
+    for (const frame of system.slice(at, at + STEP_FRAMES)) asr.pushLiveAudio('system', frame);
+    for (const frame of mic.slice(at, at + STEP_FRAMES)) asr.pushLiveAudio('mic', frame);
+    await settle();
   }
   await asr.flushLiveAudio();
   const all = store.getState().segments;
