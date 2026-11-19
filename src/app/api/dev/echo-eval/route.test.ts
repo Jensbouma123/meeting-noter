@@ -49,6 +49,63 @@ describe.skipIf(!hasAudio)('echo-eval route', () => {
     expect(fs.readFileSync(path.join(out, 'report.md'), 'utf8')).toContain('backend fake');
   });
 
+  it('ignores stale rows outside the current plan and isolates fake from real runs', async () => {
+    vi.stubEnv('ECHO_EVAL_OUT', out);
+    vi.stubEnv('ECHO_EVAL_AUDIO', audio);
+    for (const f of ['results.jsonl', 'results.fake.jsonl', 'finished.json', 'finished.fake.json']) {
+      fs.rmSync(path.join(out, f), { force: true });
+    }
+    const route = await import('./route');
+    const plan = (await (await call(route, 'GET', 'op=plan&limit=2')).json()) as {
+      cases: { id: string; kind: string; split: string; systemUtt: string; micUtt: string | null; bleed: null }[];
+    };
+    const [c0, c1] = plan.cases;
+    const staleRows = Array.from({ length: 30 }, (_, i) =>
+      JSON.stringify({ ...c0, id: `stale-case-${i}`, micAsr: [], systemAsr: [], micSurvivors: [], micDropped: [] }),
+    );
+    staleRows.push(JSON.stringify({ ...c0, micAsr: [], systemAsr: [], micSurvivors: [], micDropped: [] }));
+    staleRows.push(JSON.stringify({ ...c0, micAsr: [], systemAsr: [], micSurvivors: [], micDropped: [] }));
+    fs.writeFileSync(path.join(out, 'results.jsonl'), `${staleRows.join('\n')}\n`);
+
+    const realPlan = (await (await call(route, 'GET', 'op=plan&limit=2')).json()) as { done: string[] };
+    expect(realPlan.done).toEqual([c0.id]);
+    const realStatus = (await (await call(route, 'GET', 'op=status&limit=2')).json()) as {
+      done: number;
+      total: number;
+      finished: boolean;
+    };
+    expect(realStatus).toMatchObject({ done: 1, total: 2, finished: false });
+
+    const fakeStatusBefore = (await (await call(route, 'GET', 'op=status&limit=2&fake=1')).json()) as {
+      done: number;
+      total: number;
+      finished: boolean;
+    };
+    expect(fakeStatusBefore).toMatchObject({ done: 0, total: 2, finished: false });
+
+    await call(route, 'POST', 'op=begin&fake=1', { backend: 'fake', userAgent: 'test-ua', startedAt: 'now' });
+    for (const c of [c0, c1]) {
+      await call(route, 'POST', 'op=result&fake=1', {
+        ...c,
+        micAsr: [],
+        systemAsr: [],
+        micSurvivors: [],
+        micDropped: [],
+      });
+    }
+    await call(route, 'POST', 'op=finish&fake=1', {});
+
+    const fakeStatusAfter = (await (await call(route, 'GET', 'op=status&limit=2&fake=1')).json()) as {
+      done: number;
+      total: number;
+      finished: boolean;
+    };
+    expect(fakeStatusAfter).toMatchObject({ done: 2, total: 2, finished: true });
+    expect(
+      (await (await call(route, 'GET', 'op=status&limit=2')).json()) as { done: number; finished: boolean },
+    ).toMatchObject({ done: 1, finished: false });
+  });
+
   it('refuses in production', async () => {
     vi.stubEnv('NODE_ENV', 'production');
     const route = await import('./route');

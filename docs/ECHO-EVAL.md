@@ -15,8 +15,8 @@ Options: `-- --limit=2` runs only the first N cases; `-- --fake` swaps in a stub
 ## Inputs and outputs
 
 - Audio: `ECHO_EVAL_AUDIO` (default `/Users/jensbouma/Desktop/Meeting Noter/test-audio`) holding the AMI wav, words and label files.
-- Output: `ECHO_EVAL_OUT` (default `~/Library/Application Support/OrchestratorAI/exchange/echo-eval/`): `results.jsonl`, `meta.json` (recorded backend and user agent), `report.md`, `failures.json`.
-- Resume: cases already in `results.jsonl` are skipped on the next run. Delete the file for a fresh run.
+- Output: `ECHO_EVAL_OUT` (default `~/Library/Application Support/OrchestratorAI/exchange/echo-eval/`): `results.jsonl` (or `results.fake.jsonl` for `--fake`), `meta.json` (recorded backend and user agent), `report.md`, `failures.json`.
+- Resume: cases already in `results.jsonl` (or `results.fake.jsonl`) are skipped on the next run. Delete the file for a fresh run.
 
 ## Dev only
 

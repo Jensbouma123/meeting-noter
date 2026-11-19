@@ -11,12 +11,13 @@ export async function runEval(
   limit: number | null,
   report: (p: EvalProgress) => void,
 ): Promise<void> {
+  const fake = engine.backend === 'fake';
   try {
     report({ phase: 'loading', done: 0, total: 0, message: 'loading plan' });
-    const plan = await fetchPlan(limit);
+    const plan = await fetchPlan(limit, fake);
     const finished = new Set(plan.done);
     const todo = plan.cases.filter((c) => !finished.has(c.id));
-    await postBegin({ backend: engine.backend, userAgent: navigator.userAgent, startedAt: new Date().toISOString() });
+    await postBegin({ backend: engine.backend, userAgent: navigator.userAgent, startedAt: new Date().toISOString() }, fake);
     report({ phase: 'loading', done: 0, total: todo.length, message: `loading speech model (${engine.backend})` });
     await engine.ensureReady();
     const cache = new Map<string, Utterance>();
@@ -28,13 +29,13 @@ export async function runEval(
       report({ phase: 'running', done: i, total: todo.length, message: c.id });
       await need(c.systemUtt);
       await need(c.micUtt);
-      await postResult(await runCase(c, renderCase(c, cache), engine.asr, engine.store));
+      await postResult(await runCase(c, renderCase(c, cache), engine.asr, engine.store), fake);
     }
-    await postFinish();
+    await postFinish(fake);
     report({ phase: 'done', done: todo.length, total: todo.length, message: 'report written' });
   } catch (err) {
     const message = errorText(err);
-    await postFail(message).catch(() => {});
+    await postFail(message, fake).catch(() => {});
     report({ phase: 'error', done: 0, total: 0, message });
   }
 }
