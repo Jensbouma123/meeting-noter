@@ -1,7 +1,7 @@
 import type { Segment } from './types';
 
 const MIN_TIME_SHARE = 0.5;
-const MIN_TEXT_SIMILARITY = 0.6;
+const MIN_TEXT_SIMILARITY = 0.8;
 
 function tokens(text: string): string[] {
   return text.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [];
@@ -28,9 +28,9 @@ function timeShare(a: Segment, b: Segment): number {
 }
 
 function isEchoOf(mic: Segment, system: Segment): boolean {
-  if (mic.echo === 'speech') return false;
   const share = timeShare(mic, system);
   if (mic.echo === 'echo') return share > 0;
+  if (mic.echo === 'speech') return false;
   return share >= MIN_TIME_SHARE && similarity(tokens(mic.text), tokens(system.text)) >= MIN_TEXT_SIMILARITY;
 }
 

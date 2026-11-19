@@ -8,6 +8,4 @@ export interface EchoConfig {
   minCorr: number;
   maxNearEnd: number;
   maxGainDb: number;
-  speechCorr: number;
-  speechNearEnd: number;
 }
