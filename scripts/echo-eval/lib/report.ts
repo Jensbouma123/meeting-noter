@@ -3,6 +3,7 @@ import path from 'node:path';
 import type { CaseResult } from '../types/case-result';
 import type { RunMeta } from '../types/run-meta';
 import { breakdownTable } from './breakdown';
+import { factorGroups, groupTable, languageGroups, pairGroups } from './group-table';
 import { echoPresent, isAllLost, isFalseDrop, isJunk, isMiss } from './classify';
 import { pct, perGroup, wilson } from './stats';
 
@@ -33,6 +34,11 @@ export function writeReport(outDir: string, resultsFile: string, utterances: num
     md.push(`\n${section('FALSE-DROP rate, crosstalk (any genuine mic line removed)', cross, cross.length, isFalseDrop, (r) => r.micUtt ?? r.id)}`);
     md.push(`\n${section('FALSE-DROP strict (speaker fully lost)', cross, cross.length, isAllLost, (r) => r.micUtt ?? r.id)}`);
     md.push(`\nCrosstalk with bleed: ${wilsonStr(cross.filter((r) => r.bleed), isFalseDrop)}; without: ${wilsonStr(cross.filter((r) => !r.bleed), isFalseDrop)}`);
+    md.push('\n### Miss by language (echo, mic heard text; system utterance language)\n', groupTable(present, languageGroups('echo'), isMiss));
+    md.push('\n### Miss by new factor (echo, mic heard text)\n', groupTable(present, factorGroups, isMiss));
+    md.push('\n### False drop by language (crosstalk; mic utterance language)\n', groupTable(cross, languageGroups('crosstalk'), isFalseDrop));
+    md.push('\n### False drop by language pair (crosstalk)\n', groupTable(cross, pairGroups, isFalseDrop));
+    md.push('\n### False drop by new factor (crosstalk with bleed)\n', groupTable(cross.filter((r) => r.bleed), factorGroups, isFalseDrop));
     if (split === 'all') {
       md.push('\n### Miss by factor (echo, mic heard text)\n', breakdownTable(present, isMiss));
       md.push('\n### False drop by factor (crosstalk with bleed)\n', breakdownTable(cross.filter((r) => r.bleed), isFalseDrop));

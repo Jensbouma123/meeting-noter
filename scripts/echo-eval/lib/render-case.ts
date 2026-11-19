@@ -1,6 +1,7 @@
 import type { EvalCase } from '../types/eval-case';
 import type { RenderedCase } from '../types/rendered-case';
 import type { Utterance } from '../types/utterance';
+import { activity, duckNear } from './aec-residual';
 import { bleedMicSignal, mixInto } from './bleed-synth';
 import { hashString } from './rng';
 
@@ -24,6 +25,9 @@ export function renderCase(c: EvalCase, byId: Map<string, Utterance>): RenderedC
   const system = new Float32Array(total);
   mixInto(system, sysSrc, lead);
   const mic = c.bleed ? bleedMicSignal(system, c.bleed, total, hashString(c.id)) : new Float32Array(total);
-  if (micSrc) mixInto(mic, micSrc, micStart);
+  if (micSrc) {
+    const duck = c.bleed?.aecDuckDb;
+    mixInto(mic, duck ? duckNear(micSrc, micStart, activity(system), duck) : micSrc, micStart);
+  }
   return { system, mic };
 }
