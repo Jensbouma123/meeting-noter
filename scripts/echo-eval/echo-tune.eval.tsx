@@ -6,7 +6,8 @@ import { AUDIO_DIR, OUT_DIR, RESULTS_FILE } from './out-dir';
 import { buildCases } from './lib/cases';
 import { measureCase, measureFeatures } from './lib/measure-case';
 import { renderCase } from './lib/render-case';
-import { scoreAll } from './lib/tune-score';
+import { writeReport } from './lib/report';
+import { rescore, scoreAll } from './lib/tune-score';
 import { sweepThresholds } from './lib/tune-sweep';
 import { loadUtterances } from './lib/utterances';
 import type { CaseResult } from './types/case-result';
@@ -36,10 +37,15 @@ describe.skipIf(process.env.ECHO_TUNE !== '1')('echo verdict tuner (dev split on
     for (const feature of FEATURE_GRID) {
       const cfg = { ...DEFAULT_ECHO_CONFIG, ...feature };
       const remeasured = measured.map((m) => measureFeatures(m, cfg));
-      best.push(...sweepThresholds(remeasured, cfg, baseline.falseDrop, KEEP).map((t) => ({ ...t, feature })));
+      best.push(...sweepThresholds(remeasured, cfg, Number(process.env.ECHO_TUNE_MAX_FD ?? baseline.falseDrop), KEEP).map((t) => ({ ...t, feature })));
     }
     best.sort((a, b) => a.cost - b.cost);
     const report = { cases: dev.length, baseline, defaults: scoreAll(measured, DEFAULT_ECHO_CONFIG), best: best.slice(0, KEEP) };
     fs.writeFileSync(path.join(OUT_DIR, 'tune.json'), JSON.stringify(report, null, 2));
+    const rescoredDir = path.join(OUT_DIR, 'rescored');
+    fs.mkdirSync(rescoredDir, { recursive: true });
+    const rescored = path.join(rescoredDir, 'results.jsonl');
+    fs.writeFileSync(rescored, measured.map((m) => JSON.stringify(rescore(m, DEFAULT_ECHO_CONFIG))).join('\n') + '\n');
+    writeReport(rescoredDir, rescored, utts.length);
   });
 });

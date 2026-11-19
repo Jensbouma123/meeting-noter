@@ -9,7 +9,7 @@ export const DEFAULT_ECHO_CONFIG: EchoConfig = {
   gainBins: 8,
   logCorr: false,
   nearEndRatio: 4,
-  minCorr: 0.65,
+  minCorr: 0.7,
   maxNearEnd: 0.3,
   maxGainDb: 0,
 };
