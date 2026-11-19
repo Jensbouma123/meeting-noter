@@ -1,0 +1,890 @@
+[
+ {
+  "id": "nl-10587_9412_000040",
+  "language": "nl",
+  "speaker": "nl:mls10587",
+  "seconds": 4,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-10587_9412_000218",
+  "language": "nl",
+  "speaker": "nl:mls10587",
+  "seconds": 6,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-10632_7242_000003",
+  "language": "nl",
+  "speaker": "nl:mls10632",
+  "seconds": 5.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-10632_7242_000004",
+  "language": "nl",
+  "speaker": "nl:mls10632",
+  "seconds": 6,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-1085_2211_000005",
+  "language": "nl",
+  "speaker": "nl:mls1085",
+  "seconds": 5.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-1085_2211_000020",
+  "language": "nl",
+  "speaker": "nl:mls1085",
+  "seconds": 5.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-10879_9412_000008",
+  "language": "nl",
+  "speaker": "nl:mls10879",
+  "seconds": 7,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-10879_9412_000016",
+  "language": "nl",
+  "speaker": "nl:mls10879",
+  "seconds": 3.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-10984_9412_000034",
+  "language": "nl",
+  "speaker": "nl:mls10984",
+  "seconds": 5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-10984_9412_000057",
+  "language": "nl",
+  "speaker": "nl:mls10984",
+  "seconds": 6,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-11157_9412_000028",
+  "language": "nl",
+  "speaker": "nl:mls11157",
+  "seconds": 7.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-11157_9412_000030",
+  "language": "nl",
+  "speaker": "nl:mls11157",
+  "seconds": 0.36,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-11290_9412_000006",
+  "language": "nl",
+  "speaker": "nl:mls11290",
+  "seconds": 4.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-11290_9412_000037",
+  "language": "nl",
+  "speaker": "nl:mls11290",
+  "seconds": 4,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-11472_7242_000000",
+  "language": "nl",
+  "speaker": "nl:mls11472",
+  "seconds": 4.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-11472_7242_000001",
+  "language": "nl",
+  "speaker": "nl:mls11472",
+  "seconds": 4,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-11936_9412_000008",
+  "language": "nl",
+  "speaker": "nl:mls11936",
+  "seconds": 7,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-11936_9412_000112",
+  "language": "nl",
+  "speaker": "nl:mls11936",
+  "seconds": 3.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-123_2211_000001",
+  "language": "nl",
+  "speaker": "nl:mls123",
+  "seconds": 6,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-123_2211_000015",
+  "language": "nl",
+  "speaker": "nl:mls123",
+  "seconds": 5.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-12500_13029_000188",
+  "language": "nl",
+  "speaker": "nl:mls12500",
+  "seconds": 4,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-12500_13029_000204",
+  "language": "nl",
+  "speaker": "nl:mls12500",
+  "seconds": 6.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-12749_7242_000002",
+  "language": "nl",
+  "speaker": "nl:mls12749",
+  "seconds": 7.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-12749_7242_000013",
+  "language": "nl",
+  "speaker": "nl:mls12749",
+  "seconds": 4,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-1775_1747_000025",
+  "language": "nl",
+  "speaker": "nl:mls1775",
+  "seconds": 4,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-1775_1747_000027",
+  "language": "nl",
+  "speaker": "nl:mls1775",
+  "seconds": 5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-2239_1747_000010",
+  "language": "nl",
+  "speaker": "nl:mls2239",
+  "seconds": 5.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-2239_1747_000020",
+  "language": "nl",
+  "speaker": "nl:mls2239",
+  "seconds": 4.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-2450_10026_000346",
+  "language": "nl",
+  "speaker": "nl:mls2450",
+  "seconds": 4.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-2450_10026_000596",
+  "language": "nl",
+  "speaker": "nl:mls2450",
+  "seconds": 6,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-2506_1747_000106",
+  "language": "nl",
+  "speaker": "nl:mls2506",
+  "seconds": 3.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-2506_1747_000402",
+  "language": "nl",
+  "speaker": "nl:mls2506",
+  "seconds": 5.04,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-2825_2211_000055",
+  "language": "nl",
+  "speaker": "nl:mls2825",
+  "seconds": 5.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-2825_2211_000155",
+  "language": "nl",
+  "speaker": "nl:mls2825",
+  "seconds": 6.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-2951_2211_000147",
+  "language": "nl",
+  "speaker": "nl:mls2951",
+  "seconds": 6,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-2951_2211_000167",
+  "language": "nl",
+  "speaker": "nl:mls2951",
+  "seconds": 4.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-3024_2211_000037",
+  "language": "nl",
+  "speaker": "nl:mls3024",
+  "seconds": 7,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-3024_2211_000048",
+  "language": "nl",
+  "speaker": "nl:mls3024",
+  "seconds": 6.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-3034_2211_000087",
+  "language": "nl",
+  "speaker": "nl:mls3034",
+  "seconds": 4.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-3034_2211_000119",
+  "language": "nl",
+  "speaker": "nl:mls3034",
+  "seconds": 3.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-3245_2211_000052",
+  "language": "nl",
+  "speaker": "nl:mls3245",
+  "seconds": 4.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-3245_2211_000121",
+  "language": "nl",
+  "speaker": "nl:mls3245",
+  "seconds": 7,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-3619_10256_000321",
+  "language": "nl",
+  "speaker": "nl:mls3619",
+  "seconds": 6,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-3619_10256_000431",
+  "language": "nl",
+  "speaker": "nl:mls3619",
+  "seconds": 3.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-3798_2211_000040",
+  "language": "nl",
+  "speaker": "nl:mls3798",
+  "seconds": 3.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-3798_2211_000066",
+  "language": "nl",
+  "speaker": "nl:mls3798",
+  "seconds": 6.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-4174_4370_000004",
+  "language": "nl",
+  "speaker": "nl:mls4174",
+  "seconds": 3.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-4174_4370_000011",
+  "language": "nl",
+  "speaker": "nl:mls4174",
+  "seconds": 7,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-4396_4370_000003",
+  "language": "nl",
+  "speaker": "nl:mls4396",
+  "seconds": 6,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-4396_4370_000067",
+  "language": "nl",
+  "speaker": "nl:mls4396",
+  "seconds": 4,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-4429_3478_000036",
+  "language": "nl",
+  "speaker": "nl:mls4429",
+  "seconds": 7.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-4429_3478_000139",
+  "language": "nl",
+  "speaker": "nl:mls4429",
+  "seconds": 3.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-5367_4727_000000",
+  "language": "nl",
+  "speaker": "nl:mls5367",
+  "seconds": 4.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-5367_4727_000001",
+  "language": "nl",
+  "speaker": "nl:mls5367",
+  "seconds": 5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-5438_4370_000136",
+  "language": "nl",
+  "speaker": "nl:mls5438",
+  "seconds": 7,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-5438_4370_000137",
+  "language": "nl",
+  "speaker": "nl:mls5438",
+  "seconds": 6.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-6513_4370_000016",
+  "language": "nl",
+  "speaker": "nl:mls6513",
+  "seconds": 5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-6513_4370_000038",
+  "language": "nl",
+  "speaker": "nl:mls6513",
+  "seconds": 6,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-6697_4370_000008",
+  "language": "nl",
+  "speaker": "nl:mls6697",
+  "seconds": 4,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-6697_4370_000014",
+  "language": "nl",
+  "speaker": "nl:mls6697",
+  "seconds": 7,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-7432_4370_000027",
+  "language": "nl",
+  "speaker": "nl:mls7432",
+  "seconds": 2.736,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-7432_4370_000051",
+  "language": "nl",
+  "speaker": "nl:mls7432",
+  "seconds": 7,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-7723_4370_000017",
+  "language": "nl",
+  "speaker": "nl:mls7723",
+  "seconds": 3.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-7723_4370_000034",
+  "language": "nl",
+  "speaker": "nl:mls7723",
+  "seconds": 7,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-7884_7242_000001",
+  "language": "nl",
+  "speaker": "nl:mls7884",
+  "seconds": 6,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-7884_7242_000023",
+  "language": "nl",
+  "speaker": "nl:mls7884",
+  "seconds": 6,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-8331_7242_000008",
+  "language": "nl",
+  "speaker": "nl:mls8331",
+  "seconds": 5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-8331_7242_000009",
+  "language": "nl",
+  "speaker": "nl:mls8331",
+  "seconds": 4.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-8480_7242_000003",
+  "language": "nl",
+  "speaker": "nl:mls8480",
+  "seconds": 4.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-8480_7242_000009",
+  "language": "nl",
+  "speaker": "nl:mls8480",
+  "seconds": 4,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-880_795_000018",
+  "language": "nl",
+  "speaker": "nl:mls880",
+  "seconds": 4.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-880_795_000081",
+  "language": "nl",
+  "speaker": "nl:mls880",
+  "seconds": 6.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-960_1747_000024",
+  "language": "nl",
+  "speaker": "nl:mls960",
+  "seconds": 6,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-960_1747_000059",
+  "language": "nl",
+  "speaker": "nl:mls960",
+  "seconds": 4.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-9861_7242_000003",
+  "language": "nl",
+  "speaker": "nl:mls9861",
+  "seconds": 3.5,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "nl-9861_7242_000008",
+  "language": "nl",
+  "speaker": "nl:mls9861",
+  "seconds": 7,
+  "source": "facebook/multilingual_librispeech (mls_dutch)",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-1089-134686-0014",
+  "language": "en",
+  "speaker": "en:ls1089",
+  "seconds": 4.5,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-1188-133604-0035",
+  "language": "en",
+  "speaker": "en:ls1188",
+  "seconds": 4.5,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-1221-135767-0024",
+  "language": "en",
+  "speaker": "en:ls1221",
+  "seconds": 5,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-1284-134647-0006",
+  "language": "en",
+  "speaker": "en:ls1284",
+  "seconds": 7,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-1320-122617-0038",
+  "language": "en",
+  "speaker": "en:ls1320",
+  "seconds": 6,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-1580-141083-0051",
+  "language": "en",
+  "speaker": "en:ls1580",
+  "seconds": 6.5,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-1995-1826-0000",
+  "language": "en",
+  "speaker": "en:ls1995",
+  "seconds": 7.5,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-2094-142345-0055",
+  "language": "en",
+  "speaker": "en:ls2094",
+  "seconds": 6,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-2300-131720-0040",
+  "language": "en",
+  "speaker": "en:ls2300",
+  "seconds": 7,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-260-123286-0021",
+  "language": "en",
+  "speaker": "en:ls260",
+  "seconds": 4,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-2830-3980-0035",
+  "language": "en",
+  "speaker": "en:ls2830",
+  "seconds": 6,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-2961-961-0001",
+  "language": "en",
+  "speaker": "en:ls2961",
+  "seconds": 5,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-3575-170457-0014",
+  "language": "en",
+  "speaker": "en:ls3575",
+  "seconds": 6.5,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-3729-6852-0028",
+  "language": "en",
+  "speaker": "en:ls3729",
+  "seconds": 4,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-4077-13754-0002",
+  "language": "en",
+  "speaker": "en:ls4077",
+  "seconds": 4.5,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-4446-2273-0028",
+  "language": "en",
+  "speaker": "en:ls4446",
+  "seconds": 7.5,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-4507-16021-0031",
+  "language": "en",
+  "speaker": "en:ls4507",
+  "seconds": 5,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-4970-29095-0032",
+  "language": "en",
+  "speaker": "en:ls4970",
+  "seconds": 6,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-4992-23283-0002",
+  "language": "en",
+  "speaker": "en:ls4992",
+  "seconds": 5,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-5105-28241-0005",
+  "language": "en",
+  "speaker": "en:ls5105",
+  "seconds": 7,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-5142-36377-0013",
+  "language": "en",
+  "speaker": "en:ls5142",
+  "seconds": 6.5,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-5639-40744-0032",
+  "language": "en",
+  "speaker": "en:ls5639",
+  "seconds": 6.5,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-61-70968-0058",
+  "language": "en",
+  "speaker": "en:ls61",
+  "seconds": 3.5,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-672-122797-0023",
+  "language": "en",
+  "speaker": "en:ls672",
+  "seconds": 5,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-6829-68769-0026",
+  "language": "en",
+  "speaker": "en:ls6829",
+  "seconds": 4,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-6930-81414-0020",
+  "language": "en",
+  "speaker": "en:ls6930",
+  "seconds": 5.5,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-7021-79740-0011",
+  "language": "en",
+  "speaker": "en:ls7021",
+  "seconds": 6,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-7127-75947-0018",
+  "language": "en",
+  "speaker": "en:ls7127",
+  "seconds": 4.5,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-7176-92135-0015",
+  "language": "en",
+  "speaker": "en:ls7176",
+  "seconds": 6.5,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-7729-102255-0043",
+  "language": "en",
+  "speaker": "en:ls7729",
+  "seconds": 6,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-8224-274384-0009",
+  "language": "en",
+  "speaker": "en:ls8224",
+  "seconds": 6,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-8230-279154-0024",
+  "language": "en",
+  "speaker": "en:ls8230",
+  "seconds": 5,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-8455-210777-0025",
+  "language": "en",
+  "speaker": "en:ls8455",
+  "seconds": 7,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-8463-294825-0017",
+  "language": "en",
+  "speaker": "en:ls8463",
+  "seconds": 5.5,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ },
+ {
+  "id": "en-908-31957-0009",
+  "language": "en",
+  "speaker": "en:ls908",
+  "seconds": 5.5,
+  "source": "LibriSpeech test-clean",
+  "license": "CC-BY-4.0"
+ }
+]
