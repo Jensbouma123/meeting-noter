@@ -21,7 +21,7 @@ describe.skipIf(process.env.ECHO_TUNE !== '1')('echo verdict tuner (dev split on
     const byId = new Map(utts.map((u) => [u.id, u]));
     const cases = new Map(buildCases(utts).map((c) => [c.id, c]));
     const results = fs.readFileSync(RESULTS, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l) as CaseResult);
-    const dev = results.filter((r) => r.split === 'dev');
+    const dev = results.filter((r) => r.split === 'dev' && cases.has(r.id));
     const measured = dev.map((r) => measureCase(r, renderCase(cases.get(r.id)!, byId), DEFAULT_ECHO_CONFIG));
     const baseline = scoreAll(measured, null);
     fs.writeFileSync(
