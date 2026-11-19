@@ -41,8 +41,8 @@ export function loadUtterances(dir: string): Utterance[] {
   const five = readWav16kMono(path.join(dir, 'ami-EN2002b-5min.wav'));
   const full = readWav16kMono(path.join(dir, 'ami-EN2002b-full.wav'));
   const sources: [string, Float32Array, Span[]][] = [
-    ['a5', five, singleSpeakerSpans(wordRuns(path.join(dir, 'ami-EN2002b-5min.words.json')), 2.5, 12, 0.3)],
-    ['f', full, singleSpeakerSpans(labelSpans(path.join(dir, 'ami-meeting-1.labels.json')), 2.5, 12, 0.3)],
+    ['a5', five, singleSpeakerSpans(wordRuns(path.join(dir, 'ami-EN2002b-5min.words.json')), 1.8, 14, 0.15)],
+    ['f', full, singleSpeakerSpans(labelSpans(path.join(dir, 'ami-meeting-1.labels.json')), 1.8, 14, 0.15)],
   ];
   const out: Utterance[] = [];
   for (const [tag, audio, spans] of sources) {
