@@ -10,6 +10,4 @@ export const DEFAULT_ECHO_CONFIG: EchoConfig = {
   minCorr: 0.7,
   maxNearEnd: 0.15,
   maxGainDb: -2,
-  speechCorr: 0.5,
-  speechNearEnd: 0.3,
 };

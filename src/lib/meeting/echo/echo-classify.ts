@@ -6,6 +6,5 @@ export function classifyEcho(f: EchoFeatures | null, cfg: EchoConfig): EchoVerdi
   if (!f) return undefined;
   if (!f.systemActive) return 'speech';
   if (f.corr >= cfg.minCorr && f.nearEnd <= cfg.maxNearEnd && f.gainDb <= cfg.maxGainDb) return 'echo';
-  if (f.corr < cfg.speechCorr || f.nearEnd >= cfg.speechNearEnd) return 'speech';
-  return undefined;
+  return 'speech';
 }

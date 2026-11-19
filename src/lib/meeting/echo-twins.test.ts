@@ -50,6 +50,17 @@ describe('dropEchoTwins', () => {
     expect(dropEchoTwins([system, spoken])).toHaveLength(2);
   });
 
+  it('keeps a mic line with identical words when the audio marked it near-end speech', () => {
+    const same = { ...micBleed, text: system.text, echo: 'speech' as const };
+    expect(dropEchoTwins([system, same])).toHaveLength(2);
+  });
+
+  it('without audio evidence a loose paraphrase is kept and a near-verbatim copy dropped', () => {
+    const loose = { ...micBleed, text: 'ik denk dat we dit volgende week moeten doen voor klant' };
+    expect(dropEchoTwins([system, loose])).toHaveLength(2);
+    expect(dropEchoTwins([system, micBleed]).map((s) => s.id)).toEqual(['s']);
+  });
+
   it('keeps an audio echo verdict that has no simultaneous system line', () => {
     expect(dropEchoTwins([system, { ...micBleed, start: 60, end: 65, echo: 'echo' as const }])).toHaveLength(2);
   });
