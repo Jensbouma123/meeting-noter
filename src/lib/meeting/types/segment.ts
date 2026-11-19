@@ -1,4 +1,5 @@
 import type { Source } from './basics';
+import type { EchoVerdict } from './echo-verdict';
 
 export interface SegmentWord {
   text: string;
@@ -27,6 +28,7 @@ export interface Segment {
   lowConfSpans?: LowConfSpan[];
   unconfirmed?: boolean;
   overlap?: SegmentOverlap;
+  echo?: EchoVerdict;
 }
 
 export interface Speaker {

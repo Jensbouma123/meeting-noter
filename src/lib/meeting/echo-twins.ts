@@ -28,8 +28,10 @@ function timeShare(a: Segment, b: Segment): number {
 }
 
 function isEchoOf(mic: Segment, system: Segment): boolean {
-  if (timeShare(mic, system) < MIN_TIME_SHARE) return false;
-  return similarity(tokens(mic.text), tokens(system.text)) >= MIN_TEXT_SIMILARITY;
+  if (mic.echo === 'speech') return false;
+  const share = timeShare(mic, system);
+  if (mic.echo === 'echo') return share > 0;
+  return share >= MIN_TIME_SHARE && similarity(tokens(mic.text), tokens(system.text)) >= MIN_TEXT_SIMILARITY;
 }
 
 export function dropEchoTwins<T extends Segment>(segments: readonly T[]): T[] {

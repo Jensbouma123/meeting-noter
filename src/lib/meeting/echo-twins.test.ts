@@ -39,4 +39,18 @@ describe('dropEchoTwins', () => {
     expect(blocks.map((b) => b.kind)).toEqual(['turn']);
     expect(blocks[0].segments.map((s) => s.id)).toEqual(['s']);
   });
+
+  it('drops a mic line the audio marked as echo even when ASR misheard the words', () => {
+    const garbled = { ...micBleed, text: 'in tank dat wee het vol gen week', echo: 'echo' as const };
+    expect(dropEchoTwins([system, garbled]).map((s) => s.id)).toEqual(['s']);
+  });
+
+  it('keeps a mic line the audio marked as near-end speech even when the words match', () => {
+    const spoken = { ...micBleed, echo: 'speech' as const };
+    expect(dropEchoTwins([system, spoken])).toHaveLength(2);
+  });
+
+  it('keeps an audio echo verdict that has no simultaneous system line', () => {
+    expect(dropEchoTwins([system, { ...micBleed, start: 60, end: 65, echo: 'echo' as const }])).toHaveLength(2);
+  });
 });

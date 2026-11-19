@@ -1,3 +1,4 @@
+import { pushEchoAudio } from '../echo/echo-store';
 import { int16ToFloat32 } from '../pcm';
 import type { Source } from '../types/basics';
 import { asrState } from './state';
@@ -15,6 +16,8 @@ export function pushLiveAudio(source: Source, pcm: ArrayBuffer, startSample?: nu
     return;
   }
   feed.frames += 1;
-  liveChunker(source).push(int16ToFloat32(pcm), startSample);
+  const samples = int16ToFloat32(pcm);
+  pushEchoAudio(source, samples, startSample);
+  liveChunker(source).push(samples, startSample);
   pumpLiveAudio();
 }
