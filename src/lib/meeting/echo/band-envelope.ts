@@ -6,6 +6,7 @@ export const ECHO_BAND_CENTERS_HZ = [250, 500, 1000, 2000, 4000] as const;
 const BANDS = ECHO_BAND_CENTERS_HZ.length;
 const RING_FRAMES = 6000;
 const Q = 1.4;
+const CLOCK_JITTER = 800;
 
 function bandpass(hz: number): Float64Array {
   const w = (2 * Math.PI * hz) / CAPTURE_SAMPLE_RATE;
@@ -26,7 +27,8 @@ export class BandEnvelope {
   private validFrom = 0;
 
   push(samples: Float32Array, at?: number): void {
-    const start = at ?? Math.max(0, this.next);
+    const onClock = at === undefined || (this.next >= 0 && Math.abs(at - this.next) <= CLOCK_JITTER);
+    const start = onClock ? Math.max(0, this.next) : at;
     if (this.next >= 0 && start !== this.next) this.reset();
     if (this.next < 0) this.begin(start);
     for (let i = 0; i < samples.length; i += 1) {
