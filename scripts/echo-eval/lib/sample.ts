@@ -1,8 +1,9 @@
 import type { EvalCase } from '../types/eval-case';
+import { hashString } from './rng';
 
-function strided(rows: EvalCase[], n: number): EvalCase[] {
-  if (n >= rows.length) return rows;
-  return Array.from({ length: n }, (_, i) => rows[Math.floor((i * rows.length) / n)]);
+function mixedFirst(rows: EvalCase[], n: number): EvalCase[] {
+  const mixed = [...rows].sort((a, b) => hashString(a.id) - hashString(b.id));
+  return mixed.slice(0, n);
 }
 
 export function sampleDev(cases: EvalCase[], n: number): EvalCase[] {
@@ -10,5 +11,5 @@ export function sampleDev(cases: EvalCase[], n: number): EvalCase[] {
   const echo = dev.filter((c) => c.kind === 'echo');
   const cross = dev.filter((c) => c.kind === 'crosstalk');
   const nCross = Math.round((n * cross.length) / dev.length);
-  return [...strided(echo, n - nCross), ...strided(cross, nCross)];
+  return [...mixedFirst(echo, n - nCross), ...mixedFirst(cross, nCross)];
 }
