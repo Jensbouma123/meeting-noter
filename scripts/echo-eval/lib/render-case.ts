@@ -8,7 +8,7 @@ import { hashString } from './rng';
 const SR = 16_000;
 const TARGET_RMS = 0.07;
 
-function leveled(u: Utterance): Float32Array {
+export function leveled(u: Utterance): Float32Array {
   const rms = Math.sqrt(u.audio.reduce((s, v) => s + v * v, 0) / u.audio.length) || 1;
   return u.audio.map((v) => v * (TARGET_RMS / rms));
 }
