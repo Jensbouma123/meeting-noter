@@ -3,11 +3,10 @@ import { toFrames } from '@/lib/meeting/two-source-bleed.testSupport';
 import type { Segment } from '@/lib/meeting/types';
 import type { CaseResult, SegmentView } from '../types/case-result';
 import type { EvalCase } from '../types/eval-case';
-import type { RenderedCase } from './render-case';
+import type { RenderedCase } from '../types/rendered-case';
 
 const view = (s: Segment): SegmentView => ({ source: s.source, text: s.text, start: +s.start.toFixed(2), end: +s.end.toFixed(2) });
 
-/** Push both channels through the app's live ASR path (real model), then the real transcript merge. */
 export async function runCase(
   c: EvalCase,
   audio: RenderedCase,

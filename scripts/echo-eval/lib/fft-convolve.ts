@@ -29,7 +29,10 @@ function fft(re: Float64Array, im: Float64Array, inverse: boolean): void {
       }
     }
   }
-  if (inverse) for (let i = 0; i < n; i += 1) (re[i] /= n), (im[i] /= n);
+  if (inverse) for (let i = 0; i < n; i += 1) {
+    re[i] /= n;
+    im[i] /= n;
+  }
 }
 
 export function convolve(x: Float32Array, h: Float32Array): Float32Array {

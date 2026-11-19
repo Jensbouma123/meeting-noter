@@ -1,7 +1,7 @@
+import type { Bin } from '../types/bin';
 import type { CaseResult } from '../types/case-result';
 import { pct, wilson } from './stats';
 
-type Bin = [string, (r: CaseResult) => boolean];
 const b = (get: (r: CaseResult) => number, lo: number, hi: number): ((r: CaseResult) => boolean) => (r) => {
   const v = get(r);
   return v >= lo && v < hi;

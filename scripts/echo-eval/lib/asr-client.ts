@@ -1,15 +1,8 @@
 import { Worker } from 'node:worker_threads';
 import path from 'node:path';
+import type { Pending } from '../types/asr-pending';
+import type { Slot } from '../types/asr-slot';
 
-interface Pending {
-  resolve: (v: unknown) => void;
-  reject: (e: Error) => void;
-}
-interface Slot {
-  worker: Worker;
-  pending: Map<number, Pending>;
-  ready: Promise<void>;
-}
 const G = globalThis as unknown as { __echoEvalPool?: Slot[]; __echoEvalNext?: number };
 
 const repoRoot = path.resolve(__dirname, '../../..');
@@ -32,7 +25,6 @@ function spawn(): Slot {
   return { worker, pending, ready };
 }
 
-/** Shared across vi.resetModules(): the model is expensive to load, so keep the pool on globalThis. */
 export async function realTranscribe(audio: Float32Array, sampleRate: number, options: object): Promise<unknown> {
   G.__echoEvalPool ??= [spawn(), spawn()];
   const slot = G.__echoEvalPool[(G.__echoEvalNext = ((G.__echoEvalNext ?? -1) + 1) % G.__echoEvalPool.length)];

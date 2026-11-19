@@ -5,7 +5,6 @@ import { gaussian, makeRng, uniform } from './rng';
 
 const SR = 16_000;
 
-// Synthetic room impulse response: direct tap + exponentially decaying noise tail.
 function roomIr(rt60: number, rng: () => number): Float32Array {
   const len = Math.max(64, Math.round(rt60 * SR));
   const ir = new Float32Array(len);
@@ -28,7 +27,6 @@ export function drawBleedParams(rng: () => number): BleedParams {
   };
 }
 
-/** What the mic hears of the system audio: speaker EQ -> room IR -> delay -> gain, plus mic noise. */
 export function bleedMicSignal(system: Float32Array, p: BleedParams, totalSamples: number, seed: number): Float32Array {
   const rng = makeRng(seed);
   const eq = lowpass(highpass(system, p.hpHz), p.lpHz);

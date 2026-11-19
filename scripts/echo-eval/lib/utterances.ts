@@ -1,15 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import type { Span } from '../types/span';
 import type { Utterance } from '../types/utterance';
 import { hashString } from './rng';
 import { readWav16kMono } from './wav-io';
 
 const SR = 16_000;
-interface Span {
-  start: number;
-  end: number;
-  speaker: string;
-}
 
 function singleSpeakerSpans(spans: Span[], minS: number, maxS: number, margin: number): Span[] {
   return spans.filter(
@@ -36,7 +32,6 @@ function labelSpans(file: string): Span[] {
   return l.speakers.map((speaker, i) => ({ speaker, start: l.timestamps_start[i], end: l.timestamps_end[i] }));
 }
 
-/** Clean, single-speaker, non-overlapped AMI utterances (read-only source dir). Split dev/heldout by utterance. */
 export function loadUtterances(dir: string): Utterance[] {
   const five = readWav16kMono(path.join(dir, 'ami-EN2002b-5min.wav'));
   const full = readWav16kMono(path.join(dir, 'ami-EN2002b-full.wav'));

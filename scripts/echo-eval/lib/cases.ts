@@ -6,7 +6,6 @@ import { makeRng, uniform } from './rng';
 export const ECHO_PER_SPLIT = 160;
 export const CROSSTALK_PER_SPLIT = 60;
 
-/** Seeded case list. Dev and held-out use disjoint utterance pools, so no utterance leaks between splits. */
 export function buildCases(utts: Utterance[], seed = 20261119): EvalCase[] {
   const rng = makeRng(seed);
   const cases: EvalCase[] = [];
@@ -36,7 +35,6 @@ export function buildCases(utts: Utterance[], seed = 20261119): EvalCase[] {
         split,
         systemUtt: sys.id,
         micUtt: mic.id,
-        // Half of the crosstalk cases also carry realistic bleed of the system voice (hard negatives).
         bleed: i % 2 === 0 ? drawBleedParams(rng) : null,
         offsetSec: +uniform(rng, 0.4, Math.max(0.5, Math.min(sys.seconds, mic.seconds) * 0.6)).toFixed(2),
       });

@@ -1,4 +1,5 @@
 import type { EvalCase } from '../types/eval-case';
+import type { RenderedCase } from '../types/rendered-case';
 import type { Utterance } from '../types/utterance';
 import { bleedMicSignal, mixInto } from './bleed-synth';
 import { hashString } from './rng';
@@ -9,11 +10,6 @@ const TARGET_RMS = 0.07;
 function leveled(u: Utterance): Float32Array {
   const rms = Math.sqrt(u.audio.reduce((s, v) => s + v * v, 0) / u.audio.length) || 1;
   return u.audio.map((v) => v * (TARGET_RMS / rms));
-}
-
-export interface RenderedCase {
-  system: Float32Array;
-  mic: Float32Array;
 }
 
 export function renderCase(c: EvalCase, byId: Map<string, Utterance>): RenderedCase {

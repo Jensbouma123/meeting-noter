@@ -3,7 +3,6 @@ import { defineConfig } from 'vitest/config';
 
 const root = fileURLToPath(new URL('../..', import.meta.url));
 
-// Separate from the app suite: this eval is slow (real ASR) and must never run under `npm test`.
 export default defineConfig({
   root,
   resolve: { alias: { '@': fileURLToPath(new URL('../../src', import.meta.url)) } },

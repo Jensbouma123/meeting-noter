@@ -1,5 +1,3 @@
-// Worker thread: owns the real Parakeet int8 wasm model (same parakeet.js the app uses) so the
-// vitest process can call model.transcribe() without loading onnxruntime inside jsdom.
 import path from 'node:path';
 import fs from 'node:fs';
 import { parentPort, workerData } from 'node:worker_threads';

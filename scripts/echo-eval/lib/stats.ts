@@ -1,12 +1,6 @@
+import type { Item } from '../types/item';
+import type { Rate } from '../types/rate';
 import { makeRng } from './rng';
-
-export interface Rate {
-  k: number;
-  n: number;
-  p: number;
-  lo: number;
-  hi: number;
-}
 
 export function wilson(k: number, n: number): Rate {
   if (n === 0) return { k, n, p: NaN, lo: NaN, hi: NaN };
@@ -18,12 +12,6 @@ export function wilson(k: number, n: number): Rate {
   return { k, n, p, lo: Math.max(0, centre - half), hi: Math.min(1, centre + half) };
 }
 
-export interface Item {
-  group: string;
-  hit: boolean;
-}
-
-/** Per-unique-utterance rate: mean of each utterance's own rate, with a seeded cluster bootstrap 95% CI. */
 export function perGroup(items: Item[]): { groups: number; mean: number; lo: number; hi: number; anyHit: Rate } {
   const by = new Map<string, boolean[]>();
   for (const i of items) by.set(i.group, [...(by.get(i.group) ?? []), i.hit]);

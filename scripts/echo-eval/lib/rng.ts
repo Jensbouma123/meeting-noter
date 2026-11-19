@@ -1,4 +1,3 @@
-// mulberry32: tiny seeded PRNG so every run of the eval draws the same cases.
 export function makeRng(seed: number): () => number {
   let a = seed >>> 0;
   return () => {

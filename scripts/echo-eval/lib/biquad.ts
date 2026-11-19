@@ -17,7 +17,6 @@ function run(x: Float32Array, b: number[], a: number[]): Float32Array {
   return out;
 }
 
-// RBJ cookbook 2nd-order Butterworth-ish sections.
 export function highpass(x: Float32Array, hz: number): Float32Array {
   const w = (2 * Math.PI * hz) / SR;
   const al = Math.sin(w) / (2 * Math.SQRT1_2);
