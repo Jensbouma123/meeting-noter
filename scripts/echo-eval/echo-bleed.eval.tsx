@@ -7,6 +7,7 @@ import { consentAndCache } from '@/lib/meeting/asr-test-cache';
 import { installAsrTestLifecycle, loadWebgpuAsr } from '@/lib/meeting/asr-test-setup';
 import { AUDIO_DIR, OUT_DIR, RESULTS_FILE } from './out-dir';
 import { buildCases } from './lib/cases';
+import { sampleDev } from './lib/sample';
 import { renderCase } from './lib/render-case';
 import { runCase } from './lib/run-case';
 import { loadUtterances } from './lib/utterances';
@@ -24,7 +25,9 @@ installAsrTestLifecycle(engineState);
 const utts = loadUtterances(AUDIO_DIR);
 const byId = new Map(utts.map((u) => [u.id, u]));
 const limit = Number(process.env.ECHO_EVAL_LIMIT) || Infinity;
-const cases = buildCases(utts).slice(0, limit);
+const devSample = Number(process.env.ECHO_EVAL_DEV_SAMPLE) || 0;
+const planned = devSample ? sampleDev(buildCases(utts), devSample) : buildCases(utts);
+const cases = planned.slice(0, limit);
 const done = new Set(
   fs.existsSync(RESULTS_FILE)
     ? fs.readFileSync(RESULTS_FILE, 'utf8').split('\n').filter(Boolean).map((l) => (JSON.parse(l) as CaseResult).id)
