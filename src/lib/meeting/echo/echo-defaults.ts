@@ -6,6 +6,8 @@ export const DEFAULT_ECHO_CONFIG: EchoConfig = {
   kernelsMs: [0, 40, 120],
   noisePct: 0.1,
   gainPct: 0.3,
+  gainBins: 1,
+  logCorr: false,
   nearEndRatio: 4,
   minCorr: 0.7,
   maxNearEnd: 0.15,
