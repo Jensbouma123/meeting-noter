@@ -1,7 +1,8 @@
 import type { MeetingCase, MeetingLang } from '../types/meeting-case';
 import type { Utterance } from '../types/utterance';
 import { drawBleedParams } from './draw-bleed';
-import { buildTurns, type UttPick } from './meeting-turns';
+import type { UttPick } from '../types/utt-pick';
+import { buildTurns } from './meeting-turns';
 import { chooseSpeakers, isCorpusUtt, speakerPools } from './meeting-speakers';
 import { hashString, makeRng } from './rng';
 

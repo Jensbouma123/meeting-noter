@@ -1,4 +1,5 @@
 import type { MeetingPairing, MeetingSpeaker, MeetingTurn } from '../types/meeting-case';
+import type { UttPick, UttPool } from '../types/utt-pick';
 import { uniform } from './rng';
 
 export const BACKCHANNEL_SEC = 0.7;
@@ -6,14 +7,8 @@ const TARGET_MIN = 120;
 const TARGET_MAX = 230;
 const FRAC_BINS = [0.1, 0.4, 0.7];
 
-export interface UttPick {
-  id: string;
-  seconds: number;
-}
 
-type Pool = Map<string, UttPick[]>;
-
-const pickOf = (rng: () => number, pool: Pool, speaker: string): UttPick => {
+const pickOf = (rng: () => number, pool: UttPool, speaker: string): UttPick => {
   const list = pool.get(speaker)!;
   return list[Math.floor(rng() * list.length)];
 };
@@ -48,7 +43,7 @@ function partners(rng: () => number, speakers: MeetingSpeaker[], pairing: Meetin
   return rng() < 0.5 ? pair : [pair[1], pair[0]];
 }
 
-function overlapBlock(rng: () => number, speakers: MeetingSpeaker[], pool: Pool, start: number, k: number, pairing: MeetingPairing, bin: number): MeetingTurn[] {
+function overlapBlock(rng: () => number, speakers: MeetingSpeaker[], pool: UttPool, start: number, k: number, pairing: MeetingPairing, bin: number): MeetingTurn[] {
   const [sa, sb] = partners(rng, speakers, pairing);
   const a = turn(sa, pickOf(rng, pool, sa.id), start, 'turn');
   const ub = pickOf(rng, pool, sb.id);
@@ -59,14 +54,14 @@ function overlapBlock(rng: () => number, speakers: MeetingSpeaker[], pool: Pool,
   return [{ ...a, ...tag }, { ...b, ...tag }];
 }
 
-function backchannel(rng: () => number, speakers: MeetingSpeaker[], pool: Pool, last: MeetingTurn): MeetingTurn {
+function backchannel(rng: () => number, speakers: MeetingSpeaker[], pool: UttPool, last: MeetingTurn): MeetingTurn {
   const s = choose(rng, speakers.filter((x) => x.id !== last.speaker));
   const u = pickOf(rng, pool, s.id);
   const start = Math.max(last.startSec, last.endSec - uniform(rng, 0, 1.5));
   return { ...turn(s, u, start, 'backchannel'), endSec: +(start + BACKCHANNEL_SEC).toFixed(2), clipSec: BACKCHANNEL_SEC };
 }
 
-export function buildTurns(rng: () => number, speakers: MeetingSpeaker[], pool: Pool): MeetingTurn[] {
+export function buildTurns(rng: () => number, speakers: MeetingSpeaker[], pool: UttPool): MeetingTurn[] {
   const pairings: MeetingPairing[] = ['remote+remote', 'local+remote', ...(speakers.filter((s) => s.role === 'local').length > 1 ? (['local+local'] as const) : [])];
   const target = uniform(rng, TARGET_MIN, TARGET_MAX);
   const turns: MeetingTurn[] = [];
