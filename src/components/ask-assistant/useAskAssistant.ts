@@ -1,0 +1,36 @@
+'use client';
+
+import { useSyncExternalStore } from 'react';
+import { useToast } from '@jensbouma123/acciva-ui';
+import { buildAskPrompt, getAskAssistant, resolveAskTarget } from '@/lib/ask-assistant';
+import { getLastAssistant, getServerLastAssistant, subscribeLastAssistant } from '@/lib/ask-assistant/lastAssistantStore';
+import { useLanguage } from '@/lib/i18n/useLanguage';
+import { useT } from '@/lib/i18n/useT';
+import { copyToClipboard } from '@/lib/meeting/export-browser';
+import { finalSegments, resolveSpeakerLabel } from '@/lib/meeting/transcript-format';
+import type { UseAskAssistantInput } from './useAskAssistant.types';
+
+export function useAskAssistant({ title, startedAt, segments, speakers }: UseAskAssistantInput) {
+  const t = useT('ask');
+  const language = useLanguage();
+  const { toast } = useToast();
+  const assistantId = useSyncExternalStore(subscribeLastAssistant, getLastAssistant, getServerLastAssistant);
+  const assistant = getAskAssistant(assistantId);
+  const finals = finalSegments(segments);
+  const hasTranscript = finals.length > 0;
+
+  const ask = async (instruction: string) => {
+    const turns = finals.map((seg) => ({ speaker: resolveSpeakerLabel(seg, speakers), text: seg.text }));
+    const dateLabel = startedAt ? new Intl.DateTimeFormat(language, { dateStyle: 'long' }).format(startedAt) : '';
+    const prompt = buildAskPrompt({ instruction, title, dateLabel, turns, language });
+    const target = resolveAskTarget(assistant, prompt);
+    const copied = copyToClipboard(prompt);
+    window.open(target.url, '_blank', 'noopener,noreferrer');
+    const fill = (message: string) => message.replace('{name}', assistant.name);
+    if (!(await copied)) toast.danger(fill(t('copyFailed')));
+    else if (target.prefilled) toast.success(fill(t('copiedOpened')));
+    else toast.success(fill(t('copiedPaste')));
+  };
+
+  return { assistant, language, hasTranscript, ask };
+}
