@@ -1,6 +1,7 @@
 import { retranscribeOverlap } from './overlap-clip-pass';
 import { clearHeldAudio, heldAudio, holdFrame } from './overlap-held-audio';
 import { missedWords } from './overlap-missed-words';
+import { removeFirstPassWords } from './overlap-move-words';
 import { firstPassWords, pruneDuplicatedPassWords } from './overlap-pass-segments';
 import { upsertPassSegment, upsertSpeakerSegments } from './overlap-pass-upsert';
 import { separateOverlap } from './overlap-separate';
@@ -66,7 +67,9 @@ function schedule(source: Source, all: boolean): void {
         const sep = separator;
         const separated = sep ? await separateOverlap(span, source, first, turns, heldAudio(source), transcribe, sep) : null;
         if (separated) {
-          if (run === epoch) upsertSpeakerSegments(source, span, separated);
+          if (run !== epoch) return;
+          removeFirstPassWords(source, separated.moved);
+          upsertSpeakerSegments(source, span, separated.words);
           return;
         }
         const heard = await retranscribeOverlap(span, first, turns, heldAudio(source), transcribe);
