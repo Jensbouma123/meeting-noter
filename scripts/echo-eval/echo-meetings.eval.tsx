@@ -11,7 +11,6 @@ import { buildMeetings } from './lib/meeting-plan';
 import { writeMeetingReport } from './lib/meeting-report';
 import { renderMeeting } from './lib/meeting-render';
 import { runMeeting } from './lib/run-meeting';
-import { withLiveSpeakers } from './lib/diar-live-host';
 import { loadUtterances } from './lib/utterances';
 import type { MeetingResult } from './types/meeting-result';
 
@@ -54,6 +53,7 @@ describe.skipIf(!enabled)(`meeting eval (${cases.length} meetings)`, () => {
     await consentAndCache(PARAKEET_TDT_V3_WEBGPU);
     await asr.ensureBrowserASRReady();
     const store = { ...(await import('@/lib/meeting/session-reset')), ...(await import('@/lib/meeting/store-core')) };
-    fs.appendFileSync(file, JSON.stringify(await runMeeting(c, renderMeeting(c, byId), diarize ? withLiveSpeakers(asr) : asr, store)) + '\n');
+    const engine = diarize ? (await import('./lib/diar-live-host')).withLiveSpeakers(asr) : asr;
+    fs.appendFileSync(file, JSON.stringify(await runMeeting(c, renderMeeting(c, byId), engine, store)) + '\n');
   });
 });
