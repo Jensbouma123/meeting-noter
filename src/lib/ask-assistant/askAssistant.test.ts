@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ASK_ASSISTANTS, getAskAssistant, isAskAssistantId } from './assistants';
+import { ASK_ASSISTANTS, getAskAssistant, isAskAssistantId, pickAskAssistant } from './assistants';
 import { buildAskPrompt, mergeTurns } from './buildAskPrompt';
 import { ASK_PRESET_IDS, presetInstruction } from './presets';
 import { resolveAskTarget } from './resolveAskTarget';
@@ -25,9 +25,24 @@ describe('buildAskPrompt', () => {
   ];
 
   it('puts the instruction, title, date and speaker-labelled transcript in order', () => {
-    const prompt = buildAskPrompt({ instruction: 'Do it.', title: 'Weekly', dateLabel: '20 Nov 2026', turns, language: 'en' });
+    const prompt = buildAskPrompt({
+      instruction: 'Do it.',
+      title: 'Weekly',
+      dateLabel: '20 Nov 2026',
+      turns,
+      language: 'en',
+    });
     expect(prompt).toBe(
-      ['Do it.', '', 'Meeting: Weekly', 'Date: 20 Nov 2026', '', 'Transcript:', 'Anna: Hello everyone.', 'Bob: We ship Friday.'].join('\n'),
+      [
+        'Do it.',
+        '',
+        'Meeting: Weekly',
+        'Date: 20 Nov 2026',
+        '',
+        'Transcript:',
+        'Anna: Hello everyone.',
+        'Bob: We ship Friday.',
+      ].join('\n'),
     );
   });
 
@@ -46,37 +61,36 @@ describe('buildAskPrompt', () => {
 });
 
 describe('resolveAskTarget', () => {
-  const prefillBases: Record<string, string> = {
-    claude: 'https://claude.ai/new?q=',
-    chatgpt: 'https://chatgpt.com/?q=',
-    copilot: 'https://copilot.microsoft.com/?q=',
-    perplexity: 'https://www.perplexity.ai/search?q=',
-  };
-
-  it('prefills the encoded prompt for assistants that support it', () => {
-    for (const [id, base] of Object.entries(prefillBases)) {
-      if (!isAskAssistantId(id)) throw new Error(id);
-      expect(resolveAskTarget(getAskAssistant(id), 'a & b?')).toEqual({ url: `${base}a%20%26%20b%3F`, prefilled: true });
-    }
+  it('prefills the encoded prompt in Claude Desktop', () => {
+    expect(resolveAskTarget(getAskAssistant('claude-desktop'), 'a & b?')).toEqual({
+      url: 'claude://claude.ai/new?q=a%20%26%20b%3F',
+      prefilled: true,
+    });
   });
 
-  it('opens a plain new chat for assistants without a prefill URL', () => {
-    expect(resolveAskTarget(getAskAssistant('gemini'), 'hi')).toEqual({
-      url: 'https://gemini.google.com/app',
-      prefilled: false,
-    });
-    expect(resolveAskTarget(getAskAssistant('mistral'), 'hi').prefilled).toBe(false);
+  it('has no URL to open for the command-line assistants', () => {
+    expect(resolveAskTarget(getAskAssistant('claude-code'), 'hi')).toEqual({ url: null, prefilled: false });
+    expect(resolveAskTarget(getAskAssistant('codex'), 'hi')).toEqual({ url: null, prefilled: false });
   });
 
   it('falls back to the new-chat URL once the encoded prompt exceeds the limit', () => {
-    const claude = getAskAssistant('claude');
+    const claude = getAskAssistant('claude-desktop');
     expect(resolveAskTarget(claude, 'x'.repeat(6000)).prefilled).toBe(true);
-    expect(resolveAskTarget(claude, 'x'.repeat(6001))).toEqual({ url: 'https://claude.ai/new', prefilled: false });
+    expect(resolveAskTarget(claude, 'x'.repeat(6001))).toEqual({ url: 'claude://claude.ai/new', prefilled: false });
     expect(resolveAskTarget(claude, ' '.repeat(2001)).prefilled).toBe(false);
   });
 
-  it('lists six assistants with unique ids', () => {
-    expect(new Set(ASK_ASSISTANTS.map((a) => a.id)).size).toBe(6);
-    expect(isAskAssistantId('bard')).toBe(false);
+  it('only accepts the assistant ids Settings can connect', () => {
+    expect(Object.keys(ASK_ASSISTANTS)).toEqual(['claude-desktop', 'claude-code', 'codex']);
+    expect(isAskAssistantId('chatgpt')).toBe(false);
+  });
+});
+
+describe('pickAskAssistant', () => {
+  it('keeps the stored choice while it is still connected, else takes the first connected one', () => {
+    expect(pickAskAssistant('codex', ['claude-desktop', 'codex'])).toBe('codex');
+    expect(pickAskAssistant('codex', ['claude-code'])).toBe('claude-code');
+    expect(pickAskAssistant(null, ['claude-desktop'])).toBe('claude-desktop');
+    expect(pickAskAssistant('codex', [])).toBeNull();
   });
 });

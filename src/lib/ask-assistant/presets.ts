@@ -4,8 +4,10 @@ export const ASK_PRESET_IDS: readonly AskPresetId[] = ['summary', 'decisions', '
 
 const INSTRUCTIONS: Record<AskLanguage, Record<AskPresetId, string>> = {
   en: {
-    summary: 'Summarise this meeting in a few short paragraphs: the purpose, the main points discussed and the outcome.',
-    decisions: 'List every decision made in this meeting. For each one, say who decided it and why, if the transcript says so.',
+    summary:
+      'Summarise this meeting in a few short paragraphs: the purpose, the main points discussed and the outcome.',
+    decisions:
+      'List every decision made in this meeting. For each one, say who decided it and why, if the transcript says so.',
     actions:
       'List every action item from this meeting as a checklist: what needs to happen, who owns it and the deadline, if the transcript says so.',
     all: 'Write meeting notes with three sections: 1. Summary (a few short paragraphs), 2. Decisions (a list, with who decided), 3. Action items (a checklist with owner and deadline, if known).',
@@ -15,7 +17,8 @@ const INSTRUCTIONS: Record<AskLanguage, Record<AskPresetId, string>> = {
   nl: {
     summary:
       'Vat deze meeting samen in een paar korte alinea’s: het doel, de belangrijkste besproken punten en de uitkomst.',
-    decisions: 'Noem alle besluiten die in deze meeting zijn genomen. Zeg bij elk besluit wie het nam en waarom, als dat in het transcript staat.',
+    decisions:
+      'Noem alle besluiten die in deze meeting zijn genomen. Zeg bij elk besluit wie het nam en waarom, als dat in het transcript staat.',
     actions:
       'Zet alle actiepunten uit deze meeting in een checklist: wat er moet gebeuren, wie het oppakt en de deadline, als dat in het transcript staat.',
     all: 'Schrijf notulen met drie onderdelen: 1. Samenvatting (een paar korte alinea’s), 2. Besluiten (een lijst, met wie besloot), 3. Actiepunten (een checklist met eigenaar en deadline, als die bekend zijn).',

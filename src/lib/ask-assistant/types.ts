@@ -1,4 +1,6 @@
-export type AskAssistantId = 'claude' | 'chatgpt' | 'gemini' | 'copilot' | 'perplexity' | 'mistral';
+import type { AssistantId } from '@/lib/assistants/types';
+
+export type AskAssistantId = AssistantId;
 
 export type AskPresetId = 'summary' | 'decisions' | 'actions' | 'all' | 'cleanup';
 
@@ -6,8 +8,7 @@ export type AskLanguage = 'en' | 'nl';
 
 export interface AskAssistant {
   id: AskAssistantId;
-  name: string;
-  newChatUrl: string;
+  newChatUrl?: string;
   prefillUrl?: (encodedPrompt: string) => string;
 }
 
@@ -25,6 +26,11 @@ export interface AskPromptInput {
 }
 
 export interface AskTarget {
-  url: string;
+  url: string | null;
   prefilled: boolean;
+}
+
+export interface ConfiguredAssistants {
+  loaded: boolean;
+  ids: readonly AskAssistantId[];
 }

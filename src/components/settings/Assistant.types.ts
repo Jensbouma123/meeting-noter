@@ -48,6 +48,7 @@ export interface AssistantPending {
 
 export interface AssistantLogoProps {
   id: AssistantId;
+  size?: number;
 }
 
 export type AssistantState = ReturnType<typeof import('./AssistantState').useAssistantState>;
