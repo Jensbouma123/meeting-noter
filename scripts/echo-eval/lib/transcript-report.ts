@@ -4,7 +4,7 @@ import type { MeetingScore, ScoredMeetingResult } from '../types/meeting-score';
 import type { RefTurn } from '../types/ref-turn';
 import { diarizationError } from './der';
 import { isOverSplit, turnLines } from './oversplit';
-import { corpusWer, speakerWer } from './wer';
+import { corpusWer, normalizeWords, speakerWer } from './wer';
 
 const EVENTS: MeetingEvent[] = ['turn', 'interrupt', 'backchannel'];
 const pc = (x: number): string => `${(x * 100).toFixed(1)}%`;
@@ -29,6 +29,12 @@ export function transcriptInputs(c: MeetingCase, r: ScoredMeetingResult, s: Meet
   return { turns, segs, labelMap };
 }
 
+export function offSourceLines(c: MeetingCase, r: ScoredMeetingResult): { lines: number; words: number } {
+  const sources = new Set(c.turns.map((t) => sourceOf(t.role)));
+  const off = r.segments.filter((x) => x.kept !== false && !sources.has(x.source));
+  return { lines: off.length, words: off.reduce((n, x) => n + normalizeWords(x.text).length, 0) };
+}
+
 function caseRows(c: MeetingCase, r: ScoredMeetingResult, s: MeetingScore): { main: string; speakers: string[] } {
   const { turns, segs, labelMap } = transcriptInputs(c, r, s);
   const wer = corpusWer(turns, segs);
@@ -40,9 +46,10 @@ function caseRows(c: MeetingCase, r: ScoredMeetingResult, s: MeetingScore): { ma
   }).filter(Boolean).join(', ') || 'n/a';
   const werCell = wer ? `${pc(wer.wer)} (${wer.edits}/${wer.refWords})` : 'n/a';
   const derCells = der ? [pc(der.der), pc(der.missSec / der.scoredSec || 0), pc(der.falseAlarmSec / der.scoredSec || 0), pc(der.confusionSec / der.scoredSec || 0)] : ['n/a', 'n/a', 'n/a', 'n/a'];
+  const off = offSourceLines(c, r);
   const merged = segs.length ? `${s.mergedLines}/${segs.length} = ${pc(s.mergedLines / segs.length)}` : 'n/a';
   return {
-    main: `| ${c.id} | ${werCell} | ${derCells.join(' | ')} | ${split} | ${merged} |`,
+    main: `| ${c.id} | ${werCell} | ${derCells.join(' | ')} | ${split} | ${merged} | ${s.phantomSpeakers}/${s.shownSpeakers} | ${off.lines} (${off.words} words) |`,
     speakers: speakerWer(turns, segs, labelMap).map((w) => `| ${c.id} | ${w.speaker} | ${w.labels.join(', ') || '-'} | ${pc(w.wer)} (${w.edits}/${w.refWords}) |`),
   };
 }
@@ -56,9 +63,9 @@ export function transcriptSection(cases: Map<string, MeetingCase>, results: Scor
   if (!rows.length) return [];
   return [
     '\n## Transcript accuracy (cases with a reference)\n',
-    'WER over kept lines vs reference text (normalised); DER at 10 ms frames, 0.25 s collar, overlap scored; over-split = a turn of at most 15 s covered by more than 2 lines.\n',
-    '| case | WER | DER | miss | false alarm | confusion | over-split by event | merged lines |',
-    '|---|---|---|---|---|---|---|---|',
+    'WER over kept lines of the reference channel vs reference text (normalised); DER at 10 ms frames, 0.25 s collar, overlap scored; over-split = a turn of at most 15 s covered by more than 2 lines; phantom = shown speakers with no truth match; off-channel = kept lines on a channel with no reference speaker (not in WER/DER).\n',
+    '| case | WER | DER | miss | false alarm | confusion | over-split by event | merged lines | phantom speakers | off-channel lines |',
+    '|---|---|---|---|---|---|---|---|---|---|',
     ...rows.map((x) => x.main),
     '\n### Per-speaker WER (after label mapping)\n',
     '| case | speaker | labels | WER |',

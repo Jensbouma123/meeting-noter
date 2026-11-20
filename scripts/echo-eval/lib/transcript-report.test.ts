@@ -37,4 +37,19 @@ describe('transcript report', () => {
     const bare = meeting([turn('A', 0, 4), turn('B', 4, 8)]);
     expect(transcriptSection(new Map([[bare.id, bare]]), [result], [scoreMeeting(bare, result)])).toEqual([]);
   });
+
+  it('gives variants with the same reference-channel output distinct rows for mic leakage and phantoms', () => {
+    const sys = { ...c, id: 'ext-system' };
+    const bleed = { ...c, id: 'ext-bleed' };
+    const clean: ScoredMeetingResult = { id: sys.id, split: 'heldout', segments: result.segments.filter((x) => x.source === 'system') };
+    const leaky = { ...result, id: bleed.id };
+    const md = transcriptSection(
+      new Map([[sys.id, sys], [bleed.id, bleed]]),
+      [clean, leaky],
+      [scoreMeeting(sys, clean), scoreMeeting(bleed, leaky)],
+    ).join('\n');
+    expect(md).toContain('| ext-system | 0.0% (0/5) | 0.0% |');
+    expect(md).toMatch(/\| ext-system \|.*\| 0\/2 \| 0 \(0 words\) \|/);
+    expect(md).toMatch(/\| ext-bleed \|.*\| 1\/3 \| 1 \(2 words\) \|/);
+  });
 });
