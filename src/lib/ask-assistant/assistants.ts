@@ -7,6 +7,7 @@ const CLAUDE_WEB_NEW_CHAT = 'https://claude.ai/new';
 export const ASK_ASSISTANTS: Readonly<Record<AskAssistantId, AskAssistant>> = {
   'claude-desktop': {
     id: 'claude-desktop',
+    serverLaunch: 'app',
     app: {
       newChat: CLAUDE_APP_NEW_CHAT,
       prefill: (q) => `${CLAUDE_APP_NEW_CHAT}?q=${q}`,
@@ -25,6 +26,7 @@ export const ASK_ASSISTANTS: Readonly<Record<AskAssistantId, AskAssistant>> = {
   codex: { id: 'codex', serverLaunch: 'terminal' },
   'gemini-app': {
     id: 'gemini-app',
+    serverLaunch: 'app',
     app: { newChat: 'googlegemini://' },
     web: { newChat: 'https://gemini.google.com/app' },
   },

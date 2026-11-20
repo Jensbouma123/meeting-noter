@@ -38,6 +38,20 @@ export function stubAssistants(connected: string[]) {
   );
 }
 
+export function stubAppLaunch(result: Record<string, unknown>) {
+  const launches: { url: string; prompt: string }[] = [];
+  const assistants = [{ id: 'claude-desktop', status: 'connected' }];
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/assistants') return new Response(JSON.stringify({ assistants }));
+      launches.push({ url, prompt: (JSON.parse(String(init?.body)) as { prompt: string }).prompt });
+      return new Response(JSON.stringify(result));
+    }),
+  );
+  return launches;
+}
+
 export function renderButton(onOpenSettings = vi.fn()) {
   render(
     <LanguageContext.Provider value="nl">

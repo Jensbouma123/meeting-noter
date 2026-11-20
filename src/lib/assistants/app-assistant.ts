@@ -1,10 +1,13 @@
 import path from 'node:path';
 import type { AppAssistant, AssistantDeps, AssistantInfo } from './types';
+import type { PasteApp } from './ask.types';
 
 export const APP_NAME: Record<AppAssistant, string> = {
   'codex-app': 'Codex',
   'gemini-app': 'Gemini',
 };
+
+export const PASTE_APP_NAME: Record<PasteApp, string> = { ...APP_NAME, 'claude-desktop': 'Claude' };
 
 export function appBundlePaths(id: AppAssistant, env: NodeJS.ProcessEnv): string[] {
   const bundle = `${APP_NAME[id]}.app`;
