@@ -119,7 +119,14 @@ vi.mock('@/components/share/ShareDialog', () => ({ ShareDialog: () => null }));
 vi.mock('@/components/update/useUpdate', () => ({ useUpdate: () => ({}) }));
 vi.mock('@/lib/lifecycle/useServerHeartbeat', () => ({ useServerHeartbeat: () => {} }));
 vi.mock('@/lib/i18n/useT', () => ({ useT: () => (key: string) => key }));
-vi.mock('lucide-react', () => ({ MicOff: () => null }));
+vi.mock('lucide-react', () => ({
+  MicOff: () => null,
+  FileCheck: () => null,
+  FileClock: () => null,
+  FilePen: () => null,
+  Files: () => null,
+  FileText: () => null,
+}));
 vi.mock('@jensbouma123/acciva-ui', () => {
   const toast = Object.assign(vi.fn(), { danger: vi.fn(), warning: vi.fn(), success: vi.fn() });
   return {

@@ -3,13 +3,13 @@ import { SquareTerminal } from 'lucide-react';
 import type { AssistantLogoProps } from './Assistant.types';
 import { OPENAI_PATH } from './AssistantLogoPaths';
 
-export function AssistantLogo({ id }: AssistantLogoProps) {
+export function AssistantLogo({ id, size = 28 }: AssistantLogoProps) {
   const isCodex = id === 'codex';
   return (
     <svg
       viewBox="0 0 24 24"
-      width={28}
-      height={28}
+      width={size}
+      height={size}
       aria-hidden="true"
       focusable="false"
       data-testid={`assistant-logo-${id}`}

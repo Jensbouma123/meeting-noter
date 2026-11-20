@@ -1,3 +1,5 @@
 import type { UseAskAssistantInput } from './useAskAssistant.types';
 
-export type AskAssistantButtonProps = UseAskAssistantInput;
+export interface AskAssistantButtonProps extends UseAskAssistantInput {
+  onOpenSettings: () => void;
+}
