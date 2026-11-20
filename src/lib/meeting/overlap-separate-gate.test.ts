@@ -13,6 +13,8 @@ describe('separationGate', () => {
   it('rejects mic spans, short spans and 3 speakers', () => {
     expect(separationGate(span, 'mic', 'webgpu', idle, 0)).toBe('source');
     expect(separationGate({ ...span, end: 10.5 }, 'system', 'webgpu', idle, 0)).toBe('short');
+    expect(separationGate({ ...span, end: 17 }, 'system', 'webgpu', idle, 0)).toBeNull();
+    expect(separationGate({ ...span, end: 17.1 }, 'system', 'webgpu', idle, 0)).toBe('long');
     expect(separationGate({ ...span, speakers: ['a', 'b', 'c'] }, 'system', 'webgpu', idle, 0)).toBe('speakers');
   });
 

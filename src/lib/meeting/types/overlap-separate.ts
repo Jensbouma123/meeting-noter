@@ -2,7 +2,20 @@ import type { SeparateClip, TimedWord } from './overlap-retranscribe';
 
 export type SeparatorBackend = 'unloaded' | 'webgpu' | 'wasm' | 'failed';
 
-export type SeparationSkip = 'source' | 'short' | 'speakers' | 'backend' | 'busy' | 'rate';
+export type SeparationSkip = 'source' | 'short' | 'long' | 'speakers' | 'backend' | 'busy' | 'rate';
+
+export type SeparationOutcome = SeparationSkip | 'audio' | 'unmapped' | 'error' | 'separated';
+
+export interface SeparationClipTiming {
+  seconds: number;
+  ms: number;
+  backend: SeparatorBackend;
+}
+
+export interface SeparationStats {
+  outcomes: Partial<Record<SeparationOutcome, number>>;
+  clips: SeparationClipTiming[];
+}
 
 export interface OverlapSeparator {
   name: string;
