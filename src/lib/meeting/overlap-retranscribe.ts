@@ -1,28 +1,33 @@
-import { micEchoVerdict } from './echo/segment-echo';
 import { retranscribeOverlap } from './overlap-clip-pass';
 import { clearHeldAudio, heldAudio, holdFrame } from './overlap-held-audio';
 import { missedWords } from './overlap-missed-words';
-import { OVERLAP_SEGMENT_PREFIX, firstPassWords, pruneDuplicatedPassWords } from './overlap-pass-segments';
+import { firstPassWords, pruneDuplicatedPassWords } from './overlap-pass-segments';
+import { upsertPassSegment, upsertSpeakerSegments } from './overlap-pass-upsert';
+import { resetSeparation, separateOverlap } from './overlap-separate';
 import { overlapSpans } from './overlap-spans';
 import { CAPTURE_SAMPLE_RATE } from './pcm';
-import { upsertSegment } from './segment-store';
 import type { Source } from './types';
 import type { OverlapSpan, OverlapTurn, TranscribeClip } from './types/overlap-retranscribe';
+import type { OverlapSeparator } from './types/overlap-separate';
 
 export const SETTLE_SECONDS = 12;
 export const FLUSH_TIMEOUT_MS = 10_000;
 
 let transcriber: TranscribeClip | null = null;
+let separator: OverlapSeparator | null = null;
 const closedTurns = new Map<Source, OverlapTurn[]>();
 const handled = new Map<Source, OverlapSpan[]>();
 const heardUntil = new Map<Source, number>();
 let queue: Promise<void> = Promise.resolve();
 let epoch = 0;
-let segmentCounter = 0;
 
 export function setOverlapTranscriber(fn: TranscribeClip | null): void {
   transcriber = fn;
   if (!fn) clearHeldAudio();
+}
+
+export function setOverlapSeparator(sep: OverlapSeparator | null): void {
+  separator = sep;
 }
 
 export function pushOverlapAudio(source: Source, pcm: ArrayBuffer, at: number): void {
@@ -57,30 +62,17 @@ function schedule(source: Source, all: boolean): void {
     queue = queue.then(async () => {
       if (run !== epoch) return;
       try {
-        const heard = await retranscribeOverlap(
-          span,
-          firstPassWords(source, span),
-          turns,
-          heldAudio(source),
-          transcribe,
-        );
+        const first = firstPassWords(source, span);
+        const sep = separator;
+        const separated = sep ? await separateOverlap(span, source, first, turns, heldAudio(source), transcribe, sep) : null;
+        if (separated) {
+          if (run === epoch) upsertSpeakerSegments(source, span, separated);
+          return;
+        }
+        const heard = await retranscribeOverlap(span, first, turns, heldAudio(source), transcribe);
         const added = missedWords(firstPassWords(source, span), heard, span);
-        if (run !== epoch || added.length === 0) return;
-        const start = added[0].start;
-        const end = added[added.length - 1].end;
-        const echo = source === 'mic' ? micEchoVerdict(start, end) : undefined;
-        upsertSegment({
-          id: `${OVERLAP_SEGMENT_PREFIX}${++segmentCounter}`,
-          source,
-          speaker: added[0].speaker,
-          text: added.map((w) => w.text).join(' '),
-          start,
-          end,
-          final: true,
-          words: added.map(({ text, start, end }) => ({ text, start, end })),
-          overlap: span,
-          ...(echo ? { echo } : {}),
-        });
+        if (run !== epoch) return;
+        upsertPassSegment(source, span, added);
       } catch (err) {
         console.warn('[overlap] Second pass failed', err);
       }
@@ -101,4 +93,5 @@ export function resetOverlapRetranscribe(): void {
   closedTurns.clear();
   handled.clear();
   heardUntil.clear();
+  resetSeparation();
 }
