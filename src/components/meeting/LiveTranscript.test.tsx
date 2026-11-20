@@ -8,7 +8,7 @@ import { rowOf, seg, speakerShown, timeline, view } from './LiveTranscript.testU
 afterEach(cleanup);
 
 describe('LiveTranscript timeline', () => {
-  it('shows lines in time order with a timestamp on every line', () => {
+  it("shows lines in time order, the time only on a turn's first line", () => {
     const { container } = render(
       view([seg('b', 'mic:0', 12), seg('a', 'mic:0', 3), seg('c', 'mic:0', 40), seg('d', 'mic:0', 65)]),
     );
@@ -17,9 +17,9 @@ describe('LiveTranscript timeline', () => {
         'Speaker 1',
         [
           ['00:03', 'a'],
-          ['00:12', 'b'],
-          ['00:40', 'c'],
-          ['01:05', 'd'],
+          ['', 'b'],
+          ['', 'c'],
+          ['', 'd'],
         ],
       ],
     ]);
@@ -34,7 +34,7 @@ describe('LiveTranscript timeline', () => {
         'Speaker 1',
         [
           ['00:00', 'a'],
-          ['00:03', 'b'],
+          ['', 'b'],
         ],
       ],
       ['Speaker 2', [['00:06', 'c']]],
@@ -48,9 +48,17 @@ describe('LiveTranscript timeline', () => {
     ]);
   });
 
-  it('starts a new turn after a pause over 30 s from the same speaker', () => {
+  it('shows the time again but not the name after a pause over 30 s from the same speaker', () => {
     const { container } = render(view([seg('a', 'mic:0', 0), seg('b', 'mic:0', 40)]));
-    expect(timeline(container).map(([, lines]) => lines.map(([, id]) => id))).toEqual([['a'], ['b']]);
+    expect(timeline(container)).toEqual([
+      [
+        'Speaker 1',
+        [
+          ['00:00', 'a'],
+          ['00:40', 'b'],
+        ],
+      ],
+    ]);
   });
 
   it('moves a line into the right turn when diarization reassigns it late', () => {
@@ -65,7 +73,7 @@ describe('LiveTranscript timeline', () => {
         'Speaker 2',
         [
           ['00:03', 'b'],
-          ['00:06', 'c'],
+          ['', 'c'],
         ],
       ],
     ]);
@@ -82,7 +90,7 @@ describe('LiveTranscript timeline', () => {
     const before = rowOf(container, 'c');
     expect(speakerShown(before)).toBe('');
     expect(before.getAttribute('data-speaker')).toBe('mic:0');
-    const shape = (row: Element) => [row.children.length, row.className.replace(/\bbefore:\S+/g, '').trim()];
+    const shape = (row: Element) => [row.children.length, row.className.replace(/\bpt-\S+/g, '').replace(/\s+/g, ' ')];
     const shapeBefore = shape(before);
 
     rerender(view([lines[0], lines[1], { ...lines[2], speaker: 'mic:1' }]));
