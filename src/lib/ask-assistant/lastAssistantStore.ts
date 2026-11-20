@@ -1,7 +1,7 @@
-import { isAskAssistantId } from './assistants';
-import type { AskAssistantId } from './types';
+import { isAskAssistantId } from "./assistants";
+import type { AskAssistantId } from "./types";
 
-export const LAST_ASSISTANT_KEY = 'meeting-noter.ask-assistant';
+export const LAST_ASSISTANT_KEY = "meeting-noter.ask-assistant";
 
 const listeners = new Set<() => void>();
 let memoryChoice: AskAssistantId | null = null;

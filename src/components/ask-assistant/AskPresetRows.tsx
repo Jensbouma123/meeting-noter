@@ -1,10 +1,18 @@
-'use client';
+"use client";
 
-import { FileCheck, FileClock, FilePen, FileQuestion, Files, FileText, type LucideIcon } from 'lucide-react';
-import { ASK_PRESET_IDS, type AskPresetId } from '@/lib/ask-assistant';
-import { useT } from '@/lib/i18n/useT';
-import { AskMenuRow } from './AskMenuRow';
-import type { AskPresetRowsProps } from './AskPresetRows.types';
+import {
+  FileCheck,
+  FileClock,
+  FilePen,
+  FileQuestion,
+  Files,
+  FileText,
+  type LucideIcon,
+} from "lucide-react";
+import { ASK_PRESET_IDS, type AskPresetId } from "@/lib/ask-assistant";
+import { useT } from "@/lib/i18n/useT";
+import { AskMenuRow } from "./AskMenuRow";
+import type { AskPresetRowsProps } from "./AskPresetRows.types";
 
 const PRESET_ICONS: Record<AskPresetId, LucideIcon> = {
   summary: FileText,
@@ -14,8 +22,12 @@ const PRESET_ICONS: Record<AskPresetId, LucideIcon> = {
   cleanup: FilePen,
 };
 
-export function AskPresetRows({ hasTranscript, onPreset, onCustom }: AskPresetRowsProps) {
-  const t = useT('ask');
+export function AskPresetRows({
+  hasTranscript,
+  onPreset,
+  onCustom,
+}: AskPresetRowsProps) {
+  const t = useT("ask");
   return (
     <>
       {ASK_PRESET_IDS.map((preset) => {
@@ -33,8 +45,8 @@ export function AskPresetRows({ hasTranscript, onPreset, onCustom }: AskPresetRo
       })}
       <AskMenuRow
         icon={<FileQuestion className="size-4" />}
-        title={t('preset.custom')}
-        hint={t('presetHint.custom')}
+        title={t("preset.custom")}
+        hint={t("presetHint.custom")}
         disabled={!hasTranscript}
         onClick={onCustom}
       />

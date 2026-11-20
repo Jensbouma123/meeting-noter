@@ -1,14 +1,18 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { presetInstruction } from '@/lib/ask-assistant';
-import { AskAssistantMenu } from './AskAssistantMenu';
-import { CustomQuestionDialog } from './CustomQuestionDialog';
-import { useAskAssistant } from './useAskAssistant';
-import type { AskAssistantButtonProps } from './AskAssistantButton.types';
+import { useState } from "react";
+import { presetInstruction } from "@/lib/ask-assistant";
+import { AskAssistantMenu } from "./AskAssistantMenu";
+import { CustomQuestionDialog } from "./CustomQuestionDialog";
+import { useAskAssistant } from "./useAskAssistant";
+import type { AskAssistantButtonProps } from "./AskAssistantButton.types";
 
-export function AskAssistantButton({ onOpenSettings, ...input }: AskAssistantButtonProps) {
-  const { assistant, configured, language, hasTranscript, ask } = useAskAssistant(input);
+export function AskAssistantButton({
+  onOpenSettings,
+  ...input
+}: AskAssistantButtonProps) {
+  const { assistant, configured, language, hasTranscript, ask } =
+    useAskAssistant(input);
   const [customOpen, setCustomOpen] = useState(false);
 
   return (
@@ -24,7 +28,7 @@ export function AskAssistantButton({ onOpenSettings, ...input }: AskAssistantBut
       />
       <CustomQuestionDialog
         open={customOpen}
-        assistantName={assistant?.name ?? ''}
+        assistantName={assistant?.name ?? ""}
         onClose={() => setCustomOpen(false)}
         onSubmit={(question) => {
           setCustomOpen(false);

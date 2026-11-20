@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { meeting } from '@/components/meeting/store';
+import { useEffect, useState } from "react";
+import { meeting } from "@/components/meeting/store";
 
 export function useMicDevices(): MediaDeviceInfo[] {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);

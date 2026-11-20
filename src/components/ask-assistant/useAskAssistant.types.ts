@@ -1,4 +1,4 @@
-import type { Segment, Speaker } from '@/lib/meeting';
+import type { Segment, Speaker } from "@/lib/meeting";
 
 export interface UseAskAssistantInput {
   title: string;

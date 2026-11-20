@@ -1,7 +1,24 @@
-export type AssistantId = 'claude-desktop' | 'claude-code' | 'codex';
-export type CliAssistant = Exclude<AssistantId, 'claude-desktop'>;
-export type DesktopConfig = Record<string, unknown> & { mcpServers?: Record<string, unknown> };
-export type AssistantStatus = 'connected' | 'needs-repair' | 'not-connected' | 'not-found';
+export type AssistantId =
+  | "claude-desktop"
+  | "claude-code"
+  | "codex-app"
+  | "codex"
+  | "gemini-app"
+  | "agy";
+export type CliAssistant = "claude-code" | "codex" | "agy";
+export type AppAssistant = "codex-app" | "gemini-app";
+export type AssistantVendor = "anthropic" | "openai" | "google";
+export type AssistantKind = "app" | "cli";
+export type DesktopConfig = Record<string, unknown> & {
+  mcpServers?: Record<string, unknown>;
+};
+export type AssistantStatus =
+  "connected" | "installed" | "needs-repair" | "not-connected" | "not-found";
+
+export interface AssistantCatalogEntry {
+  vendor: AssistantVendor;
+  kind: AssistantKind;
+}
 
 export interface AssistantInfo {
   id: AssistantId;
@@ -11,7 +28,10 @@ export interface AssistantInfo {
   configPath: string | null;
 }
 
-export type CliRunner = (bin: string, args: string[]) => Promise<{ ok: boolean; stdout: string }>;
+export type CliRunner = (
+  bin: string,
+  args: string[],
+) => Promise<{ ok: boolean; stdout: string }>;
 
 export interface AssistantDeps {
   env: NodeJS.ProcessEnv;

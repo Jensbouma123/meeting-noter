@@ -1,16 +1,31 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useState } from 'react';
-import { connectAssistant, disconnectAssistant, fetchAssistants } from './AssistantApi';
-import type { AssistantActionResult, AssistantId, AssistantInfo, AssistantPending } from './Assistant.types';
+import { useCallback, useEffect, useState } from "react";
+import {
+  connectAssistant,
+  disconnectAssistant,
+  fetchAssistants,
+} from "./AssistantApi";
+import type {
+  AssistantActionResult,
+  AssistantId,
+  AssistantInfo,
+  AssistantPending,
+} from "./Assistant.types";
 
 export function useAssistantState() {
   const [assistants, setAssistants] = useState<AssistantInfo[] | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [busyId, setBusyId] = useState<AssistantId | null>(null);
-  const [errors, setErrors] = useState<Partial<Record<AssistantId, string>>>({});
-  const [confirmFor, setConfirmFor] = useState<Partial<Record<AssistantId, AssistantPending>>>({});
-  const [restart, setRestart] = useState<Partial<Record<AssistantId, boolean>>>({});
+  const [errors, setErrors] = useState<Partial<Record<AssistantId, string>>>(
+    {},
+  );
+  const [confirmFor, setConfirmFor] = useState<
+    Partial<Record<AssistantId, AssistantPending>>
+  >({});
+  const [restart, setRestart] = useState<Partial<Record<AssistantId, boolean>>>(
+    {},
+  );
 
   useEffect(() => {
     let live = true;
@@ -23,21 +38,36 @@ export function useAssistantState() {
     };
   }, []);
 
-  const run = useCallback(async (id: AssistantId, action: () => Promise<AssistantActionResult>) => {
-    setBusyId(id);
-    setErrors((e) => ({ ...e, [id]: undefined }));
-    const result = await action();
-    setBusyId(null);
-    if ('needsConfirm' in result) {
-      setConfirmFor((c) => ({ ...c, [id]: { configPath: result.configPath, backupPath: result.backupPath } }));
-    } else if (result.ok) {
-      setConfirmFor((c) => ({ ...c, [id]: undefined }));
-      setAssistants((list) => list && list.map((a) => (a.id === id ? { ...a, status: result.status } : a)));
-      setRestart((r) => ({ ...r, [id]: true }));
-    } else {
-      setErrors((e) => ({ ...e, [id]: result.error }));
-    }
-  }, []);
+  const run = useCallback(
+    async (id: AssistantId, action: () => Promise<AssistantActionResult>) => {
+      setBusyId(id);
+      setErrors((e) => ({ ...e, [id]: undefined }));
+      const result = await action();
+      setBusyId(null);
+      if ("needsConfirm" in result) {
+        setConfirmFor((c) => ({
+          ...c,
+          [id]: {
+            configPath: result.configPath,
+            backupPath: result.backupPath,
+          },
+        }));
+      } else if (result.ok) {
+        setConfirmFor((c) => ({ ...c, [id]: undefined }));
+        setAssistants(
+          (list) =>
+            list &&
+            list.map((a) =>
+              a.id === id ? { ...a, status: result.status } : a,
+            ),
+        );
+        setRestart((r) => ({ ...r, [id]: true }));
+      } else {
+        setErrors((e) => ({ ...e, [id]: result.error }));
+      }
+    },
+    [],
+  );
 
   return {
     assistants,
@@ -46,8 +76,10 @@ export function useAssistantState() {
     errors,
     confirmFor,
     restart,
-    connect: (id: AssistantId, confirmed: boolean) => run(id, () => connectAssistant(id, confirmed)),
+    connect: (id: AssistantId, confirmed: boolean) =>
+      run(id, () => connectAssistant(id, confirmed)),
     disconnect: (id: AssistantId) => run(id, () => disconnectAssistant(id)),
-    cancelConfirm: (id: AssistantId) => setConfirmFor((c) => ({ ...c, [id]: undefined })),
+    cancelConfirm: (id: AssistantId) =>
+      setConfirmFor((c) => ({ ...c, [id]: undefined })),
   };
 }

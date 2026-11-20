@@ -1,9 +1,15 @@
-'use client';
+"use client";
 
-import { DropdownMenuItem } from '@jensbouma123/acciva-ui';
-import type { AskMenuRowProps } from './AskMenuRow.types';
+import { DropdownMenuItem } from "@jensbouma123/acciva-ui";
+import type { AskMenuRowProps } from "./AskMenuRow.types";
 
-export function AskMenuRow({ icon, title, hint, disabled, onClick }: AskMenuRowProps) {
+export function AskMenuRow({
+  icon,
+  title,
+  hint,
+  disabled,
+  onClick,
+}: AskMenuRowProps) {
   return (
     <DropdownMenuItem
       icon={icon}
@@ -13,7 +19,9 @@ export function AskMenuRow({ icon, title, hint, disabled, onClick }: AskMenuRowP
     >
       <span className="flex min-w-0 flex-col gap-0.5">
         <span className="font-semibold">{title}</span>
-        <span className="text-xs font-normal text-muted-foreground">{hint}</span>
+        <span className="text-xs font-normal text-muted-foreground">
+          {hint}
+        </span>
       </span>
     </DropdownMenuItem>
   );

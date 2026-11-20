@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { Badge, HStack } from '@jensbouma123/acciva-ui';
-import { SHORTCUTS } from '@/components/meeting/shortcuts';
-import { useT } from '@/lib/i18n/useT';
-import { SettingsGroup } from './SettingsGroup';
-import { SettingsRow } from './SettingsRow';
+import { Badge, HStack } from "@jensbouma123/acciva-ui";
+import { SHORTCUTS } from "@/components/meeting/shortcuts";
+import { useT } from "@/lib/i18n/useT";
+import { SettingsGroup } from "./SettingsGroup";
+import { SettingsRow } from "./SettingsRow";
 
 export function ShortcutsSection() {
-  const t = useT('dialogs');
+  const t = useT("dialogs");
   return (
     <SettingsGroup>
       {SHORTCUTS.map((s) => (
@@ -17,7 +17,12 @@ export function ShortcutsSection() {
           control={
             <HStack spacing="xs" className="flex-wrap">
               {s.keys.map((k) => (
-                <Badge key={k} variant="neutral" size="sm" className="font-mono">
+                <Badge
+                  key={k}
+                  variant="neutral"
+                  size="sm"
+                  className="font-mono"
+                >
                   {k}
                 </Badge>
               ))}

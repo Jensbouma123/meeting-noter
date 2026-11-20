@@ -1,4 +1,4 @@
-import type { AskAssistantId } from '@/lib/ask-assistant';
+import type { AskAssistantId } from "@/lib/ask-assistant";
 
 export interface AskAssistantPickerProps {
   assistantId: AskAssistantId | null;

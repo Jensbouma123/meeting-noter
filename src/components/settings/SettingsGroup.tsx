@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { Card, VStack } from '@jensbouma123/acciva-ui';
-import type { SettingsGroupProps } from './types';
+import { Card, VStack } from "@jensbouma123/acciva-ui";
+import type { SettingsGroupProps } from "./types";
 
 export function SettingsGroup({ children }: SettingsGroupProps) {
   return (

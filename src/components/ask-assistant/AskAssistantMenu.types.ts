@@ -1,4 +1,4 @@
-import type { AskAssistantId, AskPresetId } from '@/lib/ask-assistant';
+import type { AskAssistantId, AskPresetId } from "@/lib/ask-assistant";
 
 export interface AskAssistantMenuProps {
   assistant: { id: AskAssistantId; name: string } | null;

@@ -1,6 +1,6 @@
-import { isAssistantId } from '@/lib/assistants/ids';
-import type { AssistantInfo } from '@/lib/assistants/types';
-import type { AskAssistantId, ConfiguredAssistants } from './types';
+import { isAssistantId } from "@/lib/assistants/ids";
+import type { AssistantInfo } from "@/lib/assistants/types";
+import type { AskAssistantId, ConfiguredAssistants } from "./types";
 
 const NOT_LOADED: ConfiguredAssistants = { loaded: false, ids: [] };
 
@@ -14,10 +14,16 @@ function publish(next: ConfiguredAssistants) {
 }
 
 async function fetchConnectedIds(): Promise<AskAssistantId[]> {
-  const res = await fetch('/api/assistants');
-  if (!res.ok) throw new Error('load');
+  const res = await fetch("/api/assistants");
+  if (!res.ok) throw new Error("load");
   const body = (await res.json()) as { assistants: AssistantInfo[] };
-  return body.assistants.filter((a) => a.status === 'connected' && isAssistantId(a.id)).map((a) => a.id);
+  return body.assistants
+    .filter(
+      (a) =>
+        (a.status === "connected" || a.status === "installed") &&
+        isAssistantId(a.id),
+    )
+    .map((a) => a.id);
 }
 
 export function loadConfiguredAssistants(): Promise<void> {
