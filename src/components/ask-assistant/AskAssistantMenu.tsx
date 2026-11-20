@@ -1,23 +1,21 @@
 'use client';
 
 import { Bot } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  Tooltip,
-} from '@jensbouma123/acciva-ui';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, Tooltip } from '@jensbouma123/acciva-ui';
 import { AssistantLogo } from '@/components/settings/AssistantLogo';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { loadConfiguredAssistants } from '@/lib/ask-assistant/configuredAssistantsStore';
 import { useT } from '@/lib/i18n/useT';
+import { AskAssistantMenuLayout } from './AskAssistantMenuLayout';
 import { AskAssistantPicker } from './AskAssistantPicker';
 import { AskPresetRows } from './AskPresetRows';
 import { SEGMENT_CLASS } from './askAssistantStyles';
 import type { AskAssistantMenuProps } from './AskAssistantMenu.types';
 
 const MENU_GAP_PX = 8;
+const TWO_COLUMN_QUERY = '(min-width: 640px)';
+const WIDE_MENU_CLASS = 'mic-menu w-[40rem] max-w-[calc(100vw-2rem)] p-2';
+const NARROW_MENU_CLASS = 'mic-menu w-80 max-w-[calc(100vw-2rem)] p-1.5';
 
 export function AskAssistantMenu({
   assistant,
@@ -29,6 +27,7 @@ export function AskAssistantMenu({
   onOpenSettings,
 }: AskAssistantMenuProps) {
   const t = useT('ask');
+  const isTwoCol = useMediaQuery(TWO_COLUMN_QUERY);
   const label = t('ask');
   const tip = !loaded
     ? t('loadingTip')
@@ -63,17 +62,27 @@ export function AskAssistantMenu({
       <DropdownMenuContent
         align="end"
         sideOffset={MENU_GAP_PX}
-        className="mic-menu w-80 max-w-[calc(100vw-2rem)] p-1.5"
+        className={isTwoCol ? WIDE_MENU_CLASS : NARROW_MENU_CLASS}
       >
-        <DropdownMenuLabel>{t('assistantHeading')}</DropdownMenuLabel>
-        <AskAssistantPicker
-          assistantId={assistant?.id ?? null}
-          configuredIds={configuredIds}
-          onOpenSettings={onOpenSettings}
+        <AskAssistantMenuLayout
+          twoColumn={isTwoCol}
+          assistantHeading={t('assistantHeading')}
+          promptHeading={t('promptHeading')}
+          assistantSlot={
+            <AskAssistantPicker
+              assistantId={assistant?.id ?? null}
+              configuredIds={configuredIds}
+              onOpenSettings={onOpenSettings}
+            />
+          }
+          promptSlot={
+            <AskPresetRows
+              hasTranscript={hasTranscript && assistant !== null}
+              onPreset={onPreset}
+              onCustom={onCustom}
+            />
+          }
         />
-        <DropdownMenuSeparator />
-        <DropdownMenuLabel>{t('promptHeading')}</DropdownMenuLabel>
-        <AskPresetRows hasTranscript={hasTranscript && assistant !== null} onPreset={onPreset} onCustom={onCustom} />
       </DropdownMenuContent>
     </DropdownMenu>
   );

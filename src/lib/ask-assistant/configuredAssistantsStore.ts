@@ -41,13 +41,16 @@ function publish(next: ConfiguredAssistants) {
   listeners.forEach((notify) => notify());
 }
 
+function isInstalledAssistant(info: AssistantInfo): boolean {
+  if (typeof info.installed === 'boolean') return info.installed;
+  return info.status === 'connected' || info.status === 'installed';
+}
+
 async function fetchConnectedIds(): Promise<AskAssistantId[]> {
   const res = await fetch('/api/assistants');
   if (!res.ok) throw new Error('load');
   const body = (await res.json()) as { assistants: AssistantInfo[] };
-  return body.assistants
-    .filter((a) => (a.status === 'connected' || a.status === 'installed') && isAssistantId(a.id))
-    .map((a) => a.id);
+  return body.assistants.filter((a) => isInstalledAssistant(a) && isAssistantId(a.id)).map((a) => a.id);
 }
 
 export function loadConfiguredAssistants(): Promise<void> {

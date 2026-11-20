@@ -16,6 +16,7 @@ export interface AssistantCatalogEntry {
 export interface AssistantInfo {
   id: AssistantId;
   status: AssistantStatus;
+  installed?: boolean;
   canAutoConnect: boolean;
   manualCommand: string | null;
   configPath: string | null;

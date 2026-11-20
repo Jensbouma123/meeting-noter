@@ -6,7 +6,7 @@ import {
   subscribeConfiguredAssistants,
 } from './configuredAssistantsStore';
 
-function respond(assistants: { id: string; status: string }[]) {
+function respond(assistants: { id: string; status: string; installed?: boolean }[]) {
   return vi.fn(async () => new Response(JSON.stringify({ assistants })));
 }
 
@@ -43,5 +43,19 @@ describe('configuredAssistantsStore', () => {
     );
     await loadConfiguredAssistants();
     expect(getConfiguredAssistants()).toEqual({ loaded: true, ids: ['codex'] });
+  });
+
+  it('filters strictly by installed when the API reports installed flags', async () => {
+    vi.stubGlobal(
+      'fetch',
+      respond([
+        { id: 'claude-desktop', status: 'connected', installed: false },
+        { id: 'claude-code', status: 'not-connected', installed: true },
+        { id: 'codex-app', status: 'not-found', installed: false },
+        { id: 'gemini-app', status: 'installed', installed: true },
+      ]),
+    );
+    await loadConfiguredAssistants();
+    expect(getConfiguredAssistants()).toEqual({ loaded: true, ids: ['claude-code', 'gemini-app'] });
   });
 });

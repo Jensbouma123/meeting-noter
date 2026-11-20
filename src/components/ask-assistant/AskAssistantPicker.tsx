@@ -45,9 +45,11 @@ export function AskAssistantPicker({ assistantId, configuredIds, onOpenSettings 
                 className={OPTION_CLASS}
               >
                 <AssistantLogo id={id} size={16} />
-                <span className="flex-1">{ASSISTANT_NAMES[id]}</span>
+                <span className="min-w-0 flex-1 truncate">{ASSISTANT_NAMES[id]}</span>
                 <AssistantKindTag kind={ASSISTANT_CATALOG[id].kind} />
-                {selected && <Check className="size-4 text-primary-600 dark:text-primary-400" aria-hidden="true" />}
+                {selected && (
+                  <Check className="size-4 shrink-0 text-primary-600 dark:text-primary-400" aria-hidden="true" />
+                )}
               </button>
             );
           })}
