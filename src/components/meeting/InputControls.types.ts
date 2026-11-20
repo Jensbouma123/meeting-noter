@@ -1,13 +1,9 @@
-import type { CaptureMode } from '@/lib/meeting';
+import type { AudioDrawerState } from './useAudioDrawer.types';
 
 export interface InputControlsProps {
-  mode: CaptureMode;
-  inputsLocked: boolean;
+  drawer: AudioDrawerState;
   isLive: boolean;
-  micDeviceId: string;
   showCallAudioMissing: boolean;
   callAudioMissingReason: string;
-  onModeChange: (newMode: CaptureMode) => void;
-  onMicDeviceChange: (deviceId: string) => void;
   onOpenAdvanced: () => void;
 }

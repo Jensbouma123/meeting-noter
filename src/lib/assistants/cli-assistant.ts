@@ -1,14 +1,20 @@
 import { CLI_BIN, addArgs, manualCommand, removeArgs } from './cli-commands';
+import { readCliRegistration } from './cli-config';
 import { MCP_SERVER_NAME, ensureMcpBundle, mcpScriptPath } from './mcp-entry';
 import type { AssistantDeps, CliAssistant, AssistantInfo, AssistantStatus, ConnectResult } from './types';
 
-async function statusOf(bin: string, deps: AssistantDeps): Promise<AssistantStatus> {
+async function listedByCli(bin: string, deps: AssistantDeps): Promise<boolean> {
   const { ok, stdout } = await deps.runCli(bin, ['mcp', 'list']);
-  const listed =
+  return (
     ok &&
     stdout
       .split('\n')
-      .some((l) => l.trim().startsWith(`${MCP_SERVER_NAME}:`) || l.trim().startsWith(`${MCP_SERVER_NAME} `));
+      .some((l) => l.trim().startsWith(`${MCP_SERVER_NAME}:`) || l.trim().startsWith(`${MCP_SERVER_NAME} `))
+  );
+}
+
+async function statusOf(id: CliAssistant, bin: string, deps: AssistantDeps): Promise<AssistantStatus> {
+  const listed = readCliRegistration(id, deps.env) ?? (await listedByCli(bin, deps));
   if (!listed) return 'not-connected';
   return deps.fileExists(mcpScriptPath(deps.env, { exists: deps.fileExists })) ? 'connected' : 'needs-repair';
 }
@@ -16,8 +22,21 @@ async function statusOf(bin: string, deps: AssistantDeps): Promise<AssistantStat
 export async function cliInfo(id: CliAssistant, deps: AssistantDeps): Promise<AssistantInfo> {
   const bin = deps.findCli(CLI_BIN[id]);
   const manual = manualCommand(id, deps.env);
-  if (!bin) return { id, status: 'not-found', canAutoConnect: false, manualCommand: manual, configPath: null };
-  return { id, status: await statusOf(bin, deps), canAutoConnect: true, manualCommand: manual, configPath: null };
+  if (!bin)
+    return {
+      id,
+      status: 'not-found',
+      canAutoConnect: false,
+      manualCommand: manual,
+      configPath: null,
+    };
+  return {
+    id,
+    status: await statusOf(id, bin, deps),
+    canAutoConnect: true,
+    manualCommand: manual,
+    configPath: null,
+  };
 }
 
 export async function connectCli(id: CliAssistant, deps: AssistantDeps): Promise<ConnectResult> {

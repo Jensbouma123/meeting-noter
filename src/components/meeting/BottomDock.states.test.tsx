@@ -1,13 +1,28 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, screen } from '@testing-library/react';
+import { cleanup, fireEvent, screen, within } from '@testing-library/react';
 import { renderDockState } from './BottomDock.testUtils';
 
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
 });
+
+function expectAudioSettings(locked: boolean) {
+  fireEvent.click(screen.getByRole('button', { name: 'Audio-instellingen' }));
+  const dialog = screen.getByRole('dialog', { name: 'Audio-instellingen' });
+  const radios = within(dialog).getAllByRole('radio');
+  expect(radios).toHaveLength(2);
+  for (const radio of radios) {
+    if (locked) expect(radio).toBeDisabled();
+    else expect(radio).toBeEnabled();
+  }
+  const note = within(dialog).queryByText(/^Vergrendeld tijdens de opname/);
+  if (locked) expect(note).toBeVisible();
+  else expect(note).toBeNull();
+  if (locked) expect(within(dialog).getByRole('combobox', { name: 'Microfoon' })).toBeDisabled();
+}
 
 describe('dock states', () => {
   it('idle: one solid red Record action, no clock, pause or stop', () => {
@@ -20,7 +35,7 @@ describe('dock states', () => {
     expect(screen.queryByRole('button', { name: /^Opname stoppen/ })).toBeNull();
     fireEvent.click(record);
     expect(h.onStart).toHaveBeenCalledOnce();
-    expect(screen.getByRole('button', { name: /^Audiobron:/ })).toBeEnabled();
+    expectAudioSettings(false);
   });
 
   it('without a model: the primary action offers the download', () => {
@@ -41,8 +56,7 @@ describe('dock states', () => {
     expect(h.onStop).toHaveBeenCalledOnce();
     fireEvent.click(screen.getByRole('button', { name: 'Pauzeren' }));
     expect(h.onPause).toHaveBeenCalledOnce();
-    expect(screen.getByRole('button', { name: /^Audiobron:/ })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Microfoon kiezen' })).toBeDisabled();
+    expectAudioSettings(true);
   });
 
   it('paused: Stop announces the pause and the pause control resumes', () => {
@@ -65,7 +79,7 @@ describe('dock states', () => {
       fireEvent.click(finishing);
       expect(h.onStart).not.toHaveBeenCalled();
       expect(h.onStop).not.toHaveBeenCalled();
-      expect(screen.getByRole('button', { name: /^Audiobron:/ })).toBeDisabled();
+      expectAudioSettings(true);
     } finally {
       flush.endLiveFlush();
     }

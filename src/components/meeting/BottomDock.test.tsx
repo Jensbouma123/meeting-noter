@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { act, cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, screen } from '@testing-library/react';
 import { dockElement, renderDock, renderDockWithStatus } from './BottomDock.testUtils';
 
 afterEach(() => {
@@ -30,34 +30,57 @@ describe('recording clock', () => {
   });
 });
 
-describe('capture mode dropdown', () => {
-  it('shows the current mode and offers exactly Mic and Mic + gesprek', async () => {
+describe('audio settings drawer', () => {
+  const cog = () => screen.getByRole('button', { name: 'Audio-instellingen' });
+  const open = () => {
+    fireEvent.click(cog());
+    return screen.getByRole('dialog', { name: 'Audio-instellingen' });
+  };
+  const expectClosed = (node: HTMLElement) => {
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(cog()).toHaveAttribute('aria-expanded', 'false');
+    expect(node).toBeInTheDocument();
+    fireEvent.transitionEnd(node);
+    expect(node).not.toBeInTheDocument();
+  };
+
+  it('opens from the cog', () => {
     renderDock('both');
-    fireEvent.click(screen.getByRole('button', { name: 'Audiobron: Mic + gesprek' }));
-    const items = await screen.findAllByRole('menuitem', { hidden: true });
-    expect(items.map((i) => i.textContent)).toEqual(['Mic', 'Mic + gesprek']);
+    expect(cog()).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('dialog')).toBeNull();
+    open();
+    expect(cog()).toHaveAttribute('aria-expanded', 'true');
   });
 
-  it('shows exactly one tooltip on hover, also while recording', () => {
-    const { rerender } = renderDockWithStatus('idle', 'mic');
-    fireEvent.mouseEnter(screen.getByRole('button', { name: 'Audiobron: Mic' }));
-    expect(screen.getAllByRole('tooltip', { hidden: true })).toHaveLength(1);
-    expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent('Neemt alleen je microfoon op.');
-
-    rerender(dockElement('live', 'mic'));
-    const live = screen.getByRole('button', { name: 'Audiobron: Mic' });
-    fireEvent.mouseEnter(live.parentElement!);
-    const tooltips = screen.getAllByRole('tooltip', { hidden: true });
-    expect(tooltips).toHaveLength(1);
-    expect(tooltips[0]).toHaveTextContent('Neemt alleen je microfoon op. Stop de opname om de audiobron te wijzigen.');
+  it('closes on Escape', () => {
+    renderDock('both');
+    const node = open();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expectClosed(node);
   });
 
-  it('still reports the selection', async () => {
+  it('closes on an outside pointerdown but not on one inside', () => {
+    renderDock('both');
+    const node = open();
+    fireEvent.pointerDown(node);
+    expect(screen.getByRole('dialog', { name: 'Audio-instellingen' })).toBe(node);
+    fireEvent.pointerDown(document.body);
+    expectClosed(node);
+  });
+
+  it('closes on a second cog click', () => {
+    renderDock('both');
+    const node = open();
+    fireEvent.click(cog());
+    expectClosed(node);
+  });
+
+  it('reports the picked mode', () => {
     const onModeChange = vi.fn();
     renderDock('both', onModeChange);
-    fireEvent.click(screen.getByRole('button', { name: 'Audiobron: Mic + gesprek' }));
-    fireEvent.click(await screen.findByRole('menuitem', { name: 'Mic', hidden: true }));
-    await waitFor(() => expect(onModeChange).toHaveBeenCalledWith('mic'));
+    open();
+    fireEvent.click(screen.getByRole('radio', { name: /Alleen mic/ }));
+    expect(onModeChange).toHaveBeenCalledWith('mic');
   });
 });
 

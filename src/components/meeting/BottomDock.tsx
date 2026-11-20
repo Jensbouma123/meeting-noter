@@ -5,10 +5,12 @@ import { getMeetingDiagnostics } from '@/lib/meeting';
 import { callAudioHint } from '@/lib/meeting/call-audio-hint';
 import { Divider, TooltipGroup } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
+import { AudioSettingsDrawer } from './AudioSettingsDrawer';
 import { InputControls } from './InputControls';
 import { RecordControls } from './RecordControls';
 import { useCallAudioMissing } from './useCallAudioMissing';
 import { useElapsedSeconds } from './useElapsedSeconds';
+import { useAudioDrawer } from './useAudioDrawer';
 import { useReleaseOnUnmount } from './useReleaseOnUnmount';
 import { useFinishingPercent } from './useFinishingPercent';
 import type { BottomDockProps } from './BottomDock.types';
@@ -30,6 +32,7 @@ export function BottomDock({
 }: BottomDockProps) {
   const t = useT('dock');
   const dockRef = useRef<HTMLDivElement>(null);
+  const drawer = useAudioDrawer(dockRef);
   useReleaseOnUnmount();
 
   const isLive = status === 'live';
@@ -71,6 +74,16 @@ export function BottomDock({
       <span role="status" className="sr-only">
         {showCallAudioMissing ? `${t('noCallAudio')}. ${callAudioMissingReason}` : ''}
       </span>
+      <AudioSettingsDrawer
+        drawer={drawer}
+        mode={mode}
+        locked={inputsLocked}
+        isLive={isLive}
+        micDeviceId={micDeviceId}
+        callMissing={showCallAudioMissing}
+        onModeChange={onModeChange}
+        onMicDeviceChange={onMicDeviceChange}
+      />
       <TooltipGroup>
         <div className="flex flex-wrap items-center justify-center gap-1.5 rounded-[26px] border border-border-subtle bg-surface/90 p-1.5 shadow-elevation-3 backdrop-blur-md">
           <div className="flex shrink-0 items-center gap-1">
@@ -93,14 +106,10 @@ export function BottomDock({
           <Divider orientation="vertical" className="mx-1 hidden h-6 w-px shrink-0 sm:block" />
 
           <InputControls
-            mode={mode}
-            inputsLocked={inputsLocked}
+            drawer={drawer}
             isLive={isLive}
-            micDeviceId={micDeviceId}
             showCallAudioMissing={showCallAudioMissing}
             callAudioMissingReason={callAudioMissingReason}
-            onModeChange={onModeChange}
-            onMicDeviceChange={onMicDeviceChange}
             onOpenAdvanced={onOpenAdvanced}
           />
 

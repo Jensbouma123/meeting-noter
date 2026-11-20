@@ -1,12 +1,17 @@
 import { MCP_SERVER_NAME, mcpEntry } from './mcp-entry';
 import type { CliAssistant } from './types';
 
-export const CLI_BIN: Record<CliAssistant, string> = { 'claude-code': 'claude', codex: 'codex' };
+export const CLI_BIN: Record<CliAssistant, string> = {
+  'claude-code': 'claude',
+  codex: 'codex',
+  agy: 'agy',
+};
 
 export function addArgs(id: CliAssistant, env: NodeJS.ProcessEnv): string[] {
   const { command, args } = mcpEntry(env);
   const scope = id === 'claude-code' ? ['--scope', 'user'] : [];
-  return ['mcp', 'add', ...scope, MCP_SERVER_NAME, '--', command, ...args];
+  const separator = id === 'agy' ? [] : ['--'];
+  return ['mcp', 'add', ...scope, MCP_SERVER_NAME, ...separator, command, ...args];
 }
 
 export function removeArgs(id: CliAssistant): string[] {

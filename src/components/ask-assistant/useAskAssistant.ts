@@ -3,7 +3,14 @@
 import { useSyncExternalStore } from 'react';
 import { useToast } from '@jensbouma123/acciva-ui';
 import { ASSISTANT_NAMES } from '@/components/settings/AssistantNames';
-import { buildAskPrompt, getAskAssistant, pickAskAssistant, resolveAskTarget } from '@/lib/ask-assistant';
+import {
+  buildAskPrompt,
+  deliverPrompt,
+  getAskAssistant,
+  launchAppLink,
+  pickAskAssistant,
+  requestServerLaunch,
+} from '@/lib/ask-assistant';
 import {
   getConfiguredAssistants,
   getServerConfiguredAssistants,
@@ -37,16 +44,28 @@ export function useAskAssistant({ title, startedAt, segments, speakers }: UseAsk
 
   const ask = async (instruction: string) => {
     if (!assistant) return;
-    const turns = finals.map((seg) => ({ speaker: resolveSpeakerLabel(seg, speakers), text: seg.text }));
+    const turns = finals.map((seg) => ({
+      speaker: resolveSpeakerLabel(seg, speakers),
+      text: seg.text,
+    }));
     const dateLabel = startedAt ? new Intl.DateTimeFormat(language, { dateStyle: 'long' }).format(startedAt) : '';
-    const prompt = buildAskPrompt({ instruction, title, dateLabel, turns, language });
-    const target = resolveAskTarget(getAskAssistant(assistant.id), prompt);
-    const copied = copyToClipboard(prompt);
-    if (target.url) window.open(target.url, '_blank', 'noopener,noreferrer');
+    const prompt = buildAskPrompt({
+      instruction,
+      title,
+      dateLabel,
+      turns,
+      language,
+    });
+    const outcome = await deliverPrompt(getAskAssistant(assistant.id), prompt, {
+      copy: copyToClipboard,
+      launchApp: (appUrl, webUrl) => launchAppLink(appUrl, webUrl),
+      openWeb: (url) => void window.open(url, '_blank', 'noopener,noreferrer'),
+      requestLaunch: requestServerLaunch,
+    });
     const fill = (message: string) => message.replace('{name}', assistant.name);
-    if (!(await copied)) toast.danger(fill(t('copyFailed')));
-    else if (target.prefilled) toast.success(fill(t('copiedOpened')));
-    else toast.success(fill(t('copiedPaste')));
+    if (outcome === 'opened') toast.success(fill(t('opened')));
+    else if (outcome === 'copied') toast.success(fill(t('copiedPaste')));
+    else toast.danger(fill(t('copyFailed')));
   };
 
   return { assistant, configured, language, hasTranscript, ask };

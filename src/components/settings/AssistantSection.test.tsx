@@ -15,7 +15,7 @@ describe('AssistantSection', () => {
     for (const [id, name] of [
       ['claude-desktop', 'Claude Desktop'],
       ['claude-code', 'Claude Code'],
-      ['codex', 'Codex'],
+      ['codex', 'Codex CLI'],
     ]) {
       const card = screen.getByTestId(`assistant-placeholder-${id}`);
       expect(card.getAttribute('aria-label')).toBe(name);

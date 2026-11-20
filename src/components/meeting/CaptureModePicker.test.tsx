@@ -14,43 +14,43 @@ const ui = (mode: CaptureMode, onChange = vi.fn(), locked = false) => (
   </LanguageContext.Provider>
 );
 
-describe('CaptureModePicker', () => {
-  it('shows the current mode on the trigger with a menu chevron', () => {
-    render(ui('both'));
-    const trigger = screen.getByRole('button', { name: 'Audio source: Mic + call' });
-    expect(trigger).toHaveTextContent('Mic + call');
-    expect(trigger.querySelectorAll('svg')).toHaveLength(2);
-  });
+const checked = () => screen.getAllByRole('radio').map((r) => r.getAttribute('aria-checked'));
 
-  it('lists both modes with the current one checked', async () => {
+describe('CaptureModePicker', () => {
+  it('offers two explained cards under "What to record", the current one checked', () => {
     render(ui('mic'));
-    fireEvent.click(screen.getByRole('button', { name: 'Audio source: Mic' }));
-    const items = await screen.findAllByRole('menuitem', { hidden: true });
-    expect(items.map((i) => i.textContent)).toEqual(['Mic', 'Mic + call']);
-    expect(items.map((i) => i.getAttribute('aria-current'))).toEqual(['true', null]);
+    const group = screen.getByRole('radiogroup', { name: 'What to record' });
+    const radios = screen.getAllByRole('radio');
+    expect(group).toContainElement(radios[0]);
+    expect(radios[0]).toHaveTextContent('Mic only');
+    expect(radios[0]).toHaveTextContent('Only your microphone');
+    expect(radios[1]).toHaveTextContent('Mic + call');
+    expect(radios[1]).toHaveTextContent('call audio of the other people');
+    expect(checked()).toEqual(['true', 'false']);
   });
 
   it('treats the legacy system mode as Mic + call', () => {
     render(ui('system'));
-    expect(screen.getByRole('button', { name: 'Audio source: Mic + call' })).toBeInTheDocument();
+    expect(checked()).toEqual(['false', 'true']);
   });
 
-  it('reports the mode chosen from the menu', async () => {
+  it('reports the picked card and ignores a click on the current one', () => {
     const onChange = vi.fn();
     render(ui('both', onChange));
-    fireEvent.click(screen.getByRole('button', { name: 'Audio source: Mic + call' }));
-    fireEvent.click(await screen.findByRole('menuitem', { name: 'Mic', hidden: true }));
+    fireEvent.click(screen.getByRole('radio', { name: /Mic \+ call/ }));
+    expect(onChange).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('radio', { name: /Mic only/ }));
     expect(onChange).toHaveBeenCalledWith('mic');
   });
 
-  it('is disabled with an explanatory tooltip while recording', () => {
-    render(ui('mic', vi.fn(), true));
-    const trigger = screen.getByRole('button', { name: 'Audio source: Mic' });
-    expect(trigger).toBeDisabled();
-    expect(trigger.querySelectorAll('svg')).toHaveLength(1);
-    fireEvent.mouseEnter(trigger.parentElement!);
-    expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent(
-      'Records your microphone only. Stop recording to change the audio source.',
+  it('is locked while recording and says why', () => {
+    const onChange = vi.fn();
+    render(ui('mic', onChange, true));
+    for (const r of screen.getAllByRole('radio')) expect(r).toBeDisabled();
+    fireEvent.click(screen.getByRole('radio', { name: /Mic \+ call/ }));
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.getByRole('radiogroup')).toHaveAccessibleDescription(
+      'Locked while recording. Stop recording to change what is recorded.',
     );
   });
 });
