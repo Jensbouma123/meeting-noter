@@ -2,14 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { CORPUS_DIR } from '../out-dir';
 import { makeRng, uniform } from '../lib/rng';
+import type { ManifestEntry as Entry } from './types/manifest-entry';
 import type { MixSpec } from './types/mix-spec';
-
-interface Entry {
-  id: string;
-  language: string;
-  speaker: string;
-  seconds: number;
-}
 
 const MIN_SECONDS = 2.5;
 
