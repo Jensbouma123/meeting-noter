@@ -6,6 +6,8 @@ import type { MeetingStatus, ModelReadiness } from '../types';
 
 export interface MeetingWorkspaceProps {
   sessionId: string;
+  title: string;
+  startedAt: number | null;
   segments: Segment[];
   speakers: Record<string, Speaker>;
   status: MeetingStatus;

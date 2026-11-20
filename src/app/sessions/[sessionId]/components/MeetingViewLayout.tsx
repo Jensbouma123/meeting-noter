@@ -40,6 +40,8 @@ export function MeetingViewLayout({ state }: MeetingViewLayoutProps) {
         />
         <MeetingWorkspace
           sessionId={state.shareSessionId}
+          title={state.title}
+          startedAt={state.startedAt}
           segments={state.segments}
           speakers={state.speakers}
           status={state.status}

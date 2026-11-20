@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { CaptureMode, Status } from '@/lib/meeting';
 import type { ModelProgressView, ModelReadiness } from './modelReadiness.types';
 
@@ -14,4 +15,5 @@ export interface BottomDockProps {
   onOpenAdvanced: () => void;
   micDeviceId?: string;
   onMicDeviceChange?: (deviceId: string) => void;
+  trailing?: ReactNode;
 }

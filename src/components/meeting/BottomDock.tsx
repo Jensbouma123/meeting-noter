@@ -26,6 +26,7 @@ export function BottomDock({
   onOpenAdvanced,
   micDeviceId = 'default',
   onMicDeviceChange = () => {},
+  trailing,
 }: BottomDockProps) {
   const t = useT('dock');
   const dockRef = useRef<HTMLDivElement>(null);
@@ -102,6 +103,13 @@ export function BottomDock({
             onMicDeviceChange={onMicDeviceChange}
             onOpenAdvanced={onOpenAdvanced}
           />
+
+          {trailing && (
+            <>
+              <Divider orientation="vertical" className="mx-1 hidden h-6 w-px shrink-0 sm:block" />
+              {trailing}
+            </>
+          )}
         </div>
       </TooltipGroup>
     </div>
