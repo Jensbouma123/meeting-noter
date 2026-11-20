@@ -1,23 +1,17 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { Check, ChevronUp } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  Tooltip,
-} from '@jensbouma123/acciva-ui';
+import { useCallback, useEffect, useId, useState } from 'react';
+import { ChevronDown, Lock } from 'lucide-react';
 import { useT } from '@/lib/i18n/useT';
 import { meeting } from './store';
 import { LevelMeter } from './LevelMeter';
 import type { MicPickerProps } from './MicPicker.types';
 
-const MENU_GAP_PX = 8;
-
+/** "Microphone": a native device select (no portal, so the drawer's outside-click stays correct) beside the live levels. */
 export function MicPicker({ value, onChange, locked, mode, active, callMissing = false }: MicPickerProps) {
   const t = useT('dock');
+  const selectId = useId();
+  const noteId = useId();
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
 
   const refresh = useCallback(() => {
@@ -34,56 +28,44 @@ export function MicPicker({ value, onChange, locked, mode, active, callMissing =
     return () => md?.removeEventListener?.('devicechange', refresh);
   }, [refresh]);
 
-  const label = t('chooseMic');
-  const trigger = (
-    <button
-      type="button"
-      disabled={locked}
-      aria-label={label}
-      className="focus-ring touch-target-44 inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-3 text-foreground transition-colors enabled:cursor-pointer enabled:hover:bg-elevation-2 enabled:active:bg-elevation-3 aria-expanded:bg-elevation-2 disabled:cursor-default dark:enabled:hover:bg-elevation-3 dark:enabled:active:bg-elevation-4 dark:aria-expanded:bg-elevation-3"
-    >
-      <LevelMeter mode={mode} active={active} callMissing={callMissing} />
-      {!locked && <ChevronUp className="hidden size-4 text-muted-foreground sm:block" aria-hidden="true" />}
-    </button>
-  );
-
-  if (locked) {
-    return (
-      <Tooltip content={t('micLockedTip')}>
-        <span className="inline-flex">{trigger}</span>
-      </Tooltip>
-    );
-  }
-
   return (
-    <DropdownMenu>
-      <Tooltip content={label}>
-        <span className="inline-flex">
-          <DropdownMenuTrigger>{trigger}</DropdownMenuTrigger>
-        </span>
-      </Tooltip>
-      <DropdownMenuContent align="end" sideOffset={MENU_GAP_PX} className="mic-menu max-w-72">
-        <DropdownMenuItem
-          icon={value === 'default' ? <Check className="size-4" /> : <span className="size-4" />}
-          aria-current={value === 'default' ? 'true' : undefined}
-          onClick={() => onChange('default')}
-        >
-          {t('defaultMic')}
-        </DropdownMenuItem>
-        {devices.map((d, i) => {
-          const selected = d.deviceId === value;
-          return (
-            <DropdownMenuItem
-              key={d.deviceId}
-              icon={selected ? <Check className="size-4" /> : <span className="size-4" />}
-              aria-current={selected ? 'true' : undefined}
-              onClick={() => onChange(d.deviceId)}
-            >
-              {d.label || t('micN').replace('{n}', String(i + 1))}
-            </DropdownMenuItem>
-          );
-        })}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <section className="flex flex-col gap-2">
+      <label
+        htmlFor={selectId}
+        className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+      >
+        {t('microphone')}
+      </label>
+      <div className="flex items-center gap-3">
+        <div className="relative min-w-0 flex-1">
+          <select
+            id={selectId}
+            value={value}
+            disabled={locked}
+            aria-describedby={locked ? noteId : undefined}
+            onChange={(e) => onChange(e.target.value)}
+            className="focus-ring h-10 w-full appearance-none truncate rounded-xl border border-border-subtle bg-surface pl-3 pr-9 text-sm text-foreground enabled:cursor-pointer disabled:cursor-default disabled:opacity-60"
+          >
+            <option value="default">{t('defaultMic')}</option>
+            {devices.map((d, i) => (
+              <option key={d.deviceId} value={d.deviceId}>
+                {d.label || t('micN').replace('{n}', String(i + 1))}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+            aria-hidden="true"
+          />
+        </div>
+        <LevelMeter mode={mode} active={active} callMissing={callMissing} />
+      </div>
+      {locked && (
+        <p id={noteId} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Lock className="size-3.5 shrink-0" aria-hidden="true" />
+          {t('micLockedTip')}
+        </p>
+      )}
+    </section>
   );
 }
