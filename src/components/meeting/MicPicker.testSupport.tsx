@@ -1,5 +1,5 @@
 import { afterEach, expect, vi } from 'vitest';
-import { act, cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, screen, waitFor } from '@testing-library/react';
 import { MicPicker } from './MicPicker';
 import { LanguageContext } from '@/lib/i18n/LanguageContext';
 
@@ -41,9 +41,11 @@ export const ui = (value: string, onChange = vi.fn(), locked = false) => (
   </LanguageContext.Provider>
 );
 
-export async function open() {
-  const btn = screen.getByRole('button', { name: 'Choose microphone' });
+/** Waits for the device list to load and returns the Microphone select. */
+export async function loaded() {
   await waitFor(() => expect(navigator.mediaDevices.enumerateDevices).toHaveBeenCalled());
   await act(async () => {});
-  fireEvent.click(btn);
+  return screen.getByRole('combobox', { name: 'Microphone' }) as HTMLSelectElement;
 }
+
+export const optionNames = () => screen.getAllByRole('option').map((o) => o.textContent);
