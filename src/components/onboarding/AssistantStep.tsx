@@ -1,5 +1,5 @@
 import { Alert, Button, Text, VStack } from '@jensbouma123/acciva-ui';
-import { AssistantList } from '@/components/settings/AssistantList';
+import { AssistantList, isInstalledAssistant } from '@/components/settings/AssistantList';
 import { AssistantLoading } from '@/components/settings/AssistantLoading';
 import { useT } from '@/lib/i18n/useT';
 import type { AssistantStepProps } from './types';
@@ -8,7 +8,7 @@ export function AssistantStep({ state, searchMissing, onSkip }: AssistantStepPro
   const t = useT('onboarding');
   const a = useT('assistant');
   const { assistants, loadFailed } = state;
-  const anyMissing = !!assistants?.some((x) => x.status === 'not-found');
+  const anyMissing = !!assistants?.some((x) => !isInstalledAssistant(x));
   return (
     <VStack spacing="sm" className="w-full">
       <Text size="sm">{t('assistant.body')}</Text>

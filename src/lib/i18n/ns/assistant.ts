@@ -27,6 +27,8 @@ export const assistant = {
     'kind.app': 'App',
     'kind.cli': 'CLI',
     notFoundHint: 'This app is not installed on your Mac.',
+    noneInstalled:
+      'No supported AI assistants found on this Mac. Supported: Claude Desktop, Claude Code, Codex, Gemini, and Antigravity.',
     confirmText: 'To connect, we change a settings file of Claude Desktop. First we save a backup copy here:',
     confirmYes: 'Yes, connect',
     confirmRestart: "You'll need to quit Claude Desktop completely (Cmd+Q) and reopen it.",
@@ -65,6 +67,8 @@ export const assistant = {
     'kind.app': 'App',
     'kind.cli': 'CLI',
     notFoundHint: 'Deze app is niet geïnstalleerd op je Mac.',
+    noneInstalled:
+      'Geen ondersteunde AI-assistenten gevonden op deze Mac. Ondersteund: Claude Desktop, Claude Code, Codex, Gemini en Antigravity.',
     confirmText: 'Om te koppelen passen we een instellingenbestand van Claude Desktop aan. Eerst bewaren we hier een reservekopie:',
     confirmYes: 'Ja, koppelen',
     confirmRestart: 'Je moet Claude Desktop helemaal afsluiten (Cmd+Q) en opnieuw openen.',

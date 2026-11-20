@@ -55,9 +55,26 @@ describe('assistant onboarding step', () => {
     resolve(LIST);
     const connect = await screen.findByRole('button', { name: 'Connect' });
     expect(next()).toBeEnabled();
+    expect(screen.getByText('Claude Desktop')).toBeInTheDocument();
+    expect(screen.getByText('Codex CLI')).toBeInTheDocument();
+    expect(screen.queryByText('Claude Code')).not.toBeInTheDocument();
     expect(screen.getByText(/Install the app|Not found yet/)).toBeInTheDocument();
     fireEvent.click(connect);
     await waitFor(() => expect(screen.getAllByText(/Quit Claude Desktop completely/).length).toBeGreaterThan(0));
+  });
+
+  it('shows supported assistants hint when none are installed', async () => {
+    stubFetch(
+      Promise.resolve({
+        assistants: [
+          { id: 'claude-desktop', status: 'not-found', installed: false, canAutoConnect: false, manualCommand: null, configPath: null },
+          { id: 'codex', status: 'not-found', installed: false, canAutoConnect: false, manualCommand: null, configPath: null },
+        ],
+      }),
+    );
+    openAssistantStep();
+    expect(await screen.findByText(/No supported AI assistants found on this Mac/)).toBeInTheDocument();
+    expect(screen.getByText(/Claude Desktop, Claude Code, Codex, Gemini, and Antigravity/)).toBeInTheDocument();
   });
 
   it('can be skipped from the step', async () => {
