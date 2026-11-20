@@ -25,12 +25,11 @@ function remember(ids: readonly AskAssistantId[]) {
   try {
     localStorage.setItem(CONFIGURED_ASSISTANTS_KEY, JSON.stringify(ids));
   } catch {
-    // Storage blocked: the list just is not remembered across reloads.
+    return;
   }
 }
 
-// The last known list renders the button at once; the fetch only corrects it.
-function restore() {
+function restoreRemembered() {
   if (restored) return;
   restored = true;
   const ids = readRemembered();
@@ -52,7 +51,7 @@ async function fetchConnectedIds(): Promise<AskAssistantId[]> {
 }
 
 export function loadConfiguredAssistants(): Promise<void> {
-  restore();
+  restoreRemembered();
   inflight ??= fetchConnectedIds()
     .then(
       (ids) => {
@@ -77,7 +76,7 @@ export function subscribeConfiguredAssistants(onChange: () => void) {
 }
 
 export function getConfiguredAssistants(): ConfiguredAssistants {
-  restore();
+  restoreRemembered();
   return snapshot;
 }
 

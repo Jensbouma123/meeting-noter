@@ -2,7 +2,7 @@
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
-import { resetConfiguredAssistants } from '@/lib/ask-assistant/configuredAssistantsStore';
+import { CONFIGURED_ASSISTANTS_KEY, resetConfiguredAssistants } from '@/lib/ask-assistant/configuredAssistantsStore';
 import { launchAppLink } from '@/lib/ask-assistant/launchAppLink';
 import {
   name,
@@ -104,5 +104,39 @@ describe('AskAssistantButton', () => {
     expect(name(items[0])).toBe('Assistent koppelenGa naar Instellingen, AI-assistent');
     fireEvent.click(items[0]);
     expect(onOpenSettings).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the remembered assistant at once while the list refreshes in the background', async () => {
+    const fetchMock = vi.fn(() => new Promise<Response>(() => {}));
+    vi.stubGlobal('fetch', fetchMock);
+    localStorage.setItem(CONFIGURED_ASSISTANTS_KEY, JSON.stringify(['codex']));
+    renderButton();
+    const trigger = screen.getByRole('button', { name: 'Vraag assistent...' });
+    expect(trigger).toBeEnabled();
+    expect(trigger.querySelector('[data-testid="assistant-logo-codex"]')).not.toBeNull();
+    expect(fetchMock).toHaveBeenCalledWith('/api/assistants');
+  });
+
+  it('remembers the fetched list for the next load', async () => {
+    stubAssistants(['claude-code']);
+    renderButton();
+    await openMenu();
+    expect(JSON.parse(localStorage.getItem(CONFIGURED_ASSISTANTS_KEY) ?? 'null')).toEqual(['claude-code']);
+  });
+
+  it('shows a neutral loading state, not the connect tip, before anything is known', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise<Response>(() => {})),
+    );
+    renderButton();
+    const trigger = screen.getByRole('button', { name: 'Vraag assistent...' });
+    expect(trigger).toBeDisabled();
+    expect(trigger).toHaveAttribute('aria-busy', 'true');
+    fireEvent.pointerEnter(trigger.parentElement!);
+    fireEvent.mouseEnter(trigger.parentElement!);
+    fireEvent.focus(trigger.parentElement!);
+    expect(await screen.findAllByText('Assistenten laden...')).not.toHaveLength(0);
+    expect(screen.queryByText('Koppel eerst een assistent in Instellingen')).toBeNull();
   });
 });

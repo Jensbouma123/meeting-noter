@@ -30,11 +30,13 @@ export function AskAssistantMenu({
 }: AskAssistantMenuProps) {
   const t = useT('ask');
   const label = t('ask');
-  const tip = !assistant
-    ? t('setupTip')
-    : hasTranscript
-      ? t('askTip').replace('{name}', assistant.name)
-      : t('noTranscript');
+  const tip = !loaded
+    ? t('loadingTip')
+    : !assistant
+      ? t('setupTip')
+      : hasTranscript
+        ? t('askTip').replace('{name}', assistant.name)
+        : t('noTranscript');
 
   return (
     <DropdownMenu onOpenChange={(open) => open && void loadConfiguredAssistants()}>
@@ -45,6 +47,7 @@ export function AskAssistantMenu({
               type="button"
               aria-label={label}
               disabled={!loaded}
+              aria-busy={!loaded}
               className={`${SEGMENT_CLASS} rounded-full px-3 text-sm font-medium`}
             >
               {assistant ? (

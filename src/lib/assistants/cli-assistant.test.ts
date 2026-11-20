@@ -36,8 +36,14 @@ describe('CLI assistants', () => {
       calls.push([bin, ...args]);
       return { ok: true, stdout: 'meeting-noter: node /app/mcp.mjs\n' };
     });
-    expect(await connectAssistant('claude-code', deps)).toEqual({ ok: true, status: 'connected' });
-    expect(await disconnectAssistant('codex', deps)).toEqual({ ok: true, status: 'not-connected' });
+    expect(await connectAssistant('claude-code', deps)).toEqual({
+      ok: true,
+      status: 'connected',
+    });
+    expect(await disconnectAssistant('codex', deps)).toEqual({
+      ok: true,
+      status: 'not-connected',
+    });
     expect(calls).toContainEqual([
       '/bin/claude',
       'mcp',
@@ -54,7 +60,13 @@ describe('CLI assistants', () => {
   });
 
   it('reports a failed CLI run', async () => {
-    const deps = fakeDeps(env, ['claude'], async () => ({ ok: false, stdout: '' }));
-    expect(await disconnectAssistant('claude-code', deps)).toEqual({ ok: false, error: 'cli-failed' });
+    const deps = fakeDeps(env, ['claude'], async () => ({
+      ok: false,
+      stdout: '',
+    }));
+    expect(await disconnectAssistant('claude-code', deps)).toEqual({
+      ok: false,
+      error: 'cli-failed',
+    });
   });
 });

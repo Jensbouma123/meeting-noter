@@ -5,6 +5,7 @@ import { LanguageContext } from '@/lib/i18n/LanguageContext';
 import type { Segment } from '@/lib/meeting';
 import { AskAssistantButton } from './AskAssistantButton';
 
+const MEETING_TITLE = 'Weekoverleg';
 const SEGMENTS: Segment[] = [
   {
     id: 's1',
@@ -42,7 +43,7 @@ export function renderButton(onOpenSettings = vi.fn()) {
     <LanguageContext.Provider value="nl">
       <ToastProvider>
         <AskAssistantButton
-          title="Weekoverleg"
+          title={MEETING_TITLE}
           startedAt={null}
           segments={SEGMENTS}
           speakers={SPEAKERS}

@@ -13,7 +13,6 @@ async function listedByCli(bin: string, deps: AssistantDeps): Promise<boolean> {
   );
 }
 
-// `mcp list` health-checks every server (seconds), so the config file is the source of truth.
 async function statusOf(id: CliAssistant, bin: string, deps: AssistantDeps): Promise<AssistantStatus> {
   const listed = readCliRegistration(id, deps.env) ?? (await listedByCli(bin, deps));
   if (!listed) return 'not-connected';
@@ -23,8 +22,21 @@ async function statusOf(id: CliAssistant, bin: string, deps: AssistantDeps): Pro
 export async function cliInfo(id: CliAssistant, deps: AssistantDeps): Promise<AssistantInfo> {
   const bin = deps.findCli(CLI_BIN[id]);
   const manual = manualCommand(id, deps.env);
-  if (!bin) return { id, status: 'not-found', canAutoConnect: false, manualCommand: manual, configPath: null };
-  return { id, status: await statusOf(id, bin, deps), canAutoConnect: true, manualCommand: manual, configPath: null };
+  if (!bin)
+    return {
+      id,
+      status: 'not-found',
+      canAutoConnect: false,
+      manualCommand: manual,
+      configPath: null,
+    };
+  return {
+    id,
+    status: await statusOf(id, bin, deps),
+    canAutoConnect: true,
+    manualCommand: manual,
+    configPath: null,
+  };
 }
 
 export async function connectCli(id: CliAssistant, deps: AssistantDeps): Promise<ConnectResult> {
