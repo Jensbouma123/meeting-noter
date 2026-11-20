@@ -2,7 +2,6 @@ import { TranscriptTurn } from './TranscriptTurn';
 import { buildTurnActions } from './buildTurnActions';
 import type { OverlapColumnProps } from './OverlapColumn.types';
 
-/** One speaker's words inside an overlap row, stacked under the other speaker's. */
 export function OverlapColumn({ speakerId, segs, sessionId, style }: OverlapColumnProps) {
   const { label, colorIndex, color } = style;
   return (

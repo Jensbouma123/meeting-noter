@@ -1,4 +1,6 @@
 import type { Segment, Speaker } from '@/lib/meeting';
+import { LanguageContext } from '@/lib/i18n/LanguageContext';
+import type { Language } from '@/lib/i18n/types';
 import { LiveTranscript } from './LiveTranscript';
 
 export const speakers: Record<string, Speaker> = {
@@ -16,17 +18,32 @@ export const seg = (id: string, speaker: string, start: number, text = id): Segm
   final: true,
 });
 
-export function view(segments: Segment[]) {
+export const overlap = { start: 4, end: 6, speakers: ['mic:0', 'mic:1'] };
+
+export const overlapTranscript: Segment[] = [
+  seg('a', 'mic:0', 0, 'so I think'),
+  { ...seg('b', 'mic:0', 4, 'we should'), overlap },
+  { ...seg('c', 'mic:1', 4.5, 'no wait'), overlap },
+  seg('d', 'mic:1', 7, 'hear me out'),
+];
+
+export function view(
+  segments: Segment[],
+  { sessionId, language = 'en' }: { sessionId?: string; language?: Language } = {},
+) {
   return (
-    <LiveTranscript
-      segments={segments}
-      speakers={speakers}
-      status="live"
-      autoScrollEnabled={false}
-      onStartRecording={() => {}}
-      modelReady
-      onOpenSettings={() => {}}
-    />
+    <LanguageContext.Provider value={language}>
+      <LiveTranscript
+        sessionId={sessionId}
+        segments={segments}
+        speakers={speakers}
+        status="live"
+        autoScrollEnabled={false}
+        onStartRecording={() => {}}
+        modelReady
+        onOpenSettings={() => {}}
+      />
+    </LanguageContext.Provider>
   );
 }
 
@@ -41,8 +58,7 @@ export function timeline(container: HTMLElement): [string, string[][]][] {
 }
 
 export function speakerShown(row: Element): string {
-  const name = row.children[1].querySelector('.truncate')!;
-  return name.classList.contains('invisible') ? '' : (name.textContent ?? '');
+  return row.children[1].querySelector('[data-speaker-name]')?.textContent ?? '';
 }
 
 export const rowOf = (container: HTMLElement, id: string) =>

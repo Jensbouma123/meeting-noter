@@ -2,7 +2,6 @@ import { Text } from '@jensbouma123/acciva-ui';
 import { SpeakerAssign } from './SpeakerAssign';
 import type { TranscriptSpeakerNameProps } from './TranscriptSpeakerName.types';
 
-/** A speaker's name in their colour; in a saved session it opens the rename menu. */
 export function TranscriptSpeakerName({ sessionId, speakerId, source, speakers, style }: TranscriptSpeakerNameProps) {
   const textClass = `text-sm font-semibold ${style.color.textClass}`;
   if (!sessionId) {

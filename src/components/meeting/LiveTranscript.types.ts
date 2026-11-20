@@ -22,9 +22,7 @@ export interface LiveTranscriptProps {
 export interface TranscriptLine {
   kind: 'line';
   seg: Segment;
-  /** A different speaker than the line before: the row shows the name and opens a new block. */
   turnStart: boolean;
-  /** First line of a turn (a speaker change or a long pause): the row shows its time. */
   showTime: boolean;
 }
 
