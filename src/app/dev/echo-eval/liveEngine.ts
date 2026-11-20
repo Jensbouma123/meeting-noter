@@ -7,6 +7,7 @@ import { flushLiveAudio } from '@/lib/meeting/asr/live-flush';
 import { pushLiveAudio } from '@/lib/meeting/asr/live-push';
 import { asrState } from '@/lib/meeting/asr/state';
 import { resetSession } from '@/lib/meeting/session-reset';
+import { installOverlapSeparator } from '@/lib/meeting/overlap-separation-flag';
 import { getState } from '@/lib/meeting/store-core';
 import { acceptEvalModels } from './acceptEvalModels';
 import { withBrowserSpeakers } from './browserSpeakers';
@@ -29,9 +30,14 @@ async function loadDiarizer(): Promise<void> {
   if (getModelStatus(DIARIZATION_REGISTRY_KEY)?.status !== 'cached') await retryDownload(DIARIZATION_REGISTRY_KEY);
 }
 
+async function loadSeparator(separate: boolean): Promise<void> {
+  const client = installOverlapSeparator(separate);
+  if (client) console.info(`[echo-eval] separator backend: ${await client.warm()}`);
+}
+
 const logBackend = (backend: string) => console.info(`[echo-eval] diarizer backend: ${backend}`);
 
-export async function createLiveEngine(meetings = false, autoConfirm = false): Promise<EvalEngine> {
+export async function createLiveEngine(meetings = false, autoConfirm = false, separate = false): Promise<EvalEngine> {
   const backend = await detectAsrBackend();
   const asr = { pushLiveAudio, flushLiveAudio };
   return {
@@ -40,6 +46,7 @@ export async function createLiveEngine(meetings = false, autoConfirm = false): P
       await registerModelsOnce();
       await loadAsr(autoConfirm);
       if (meetings) await loadDiarizer();
+      await loadSeparator(separate);
     },
     asr: meetings ? withBrowserSpeakers(asr, logBackend) : asr,
     store: { resetSession, getState },

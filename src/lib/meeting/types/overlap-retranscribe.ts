@@ -28,3 +28,5 @@ export interface HeldChunk {
 export type TranscribeClip = (audio: Float32Array) => Promise<TimedWord[]>;
 
 export type AudioAt = (start: number, end: number) => { audio: Float32Array; start: number } | null;
+
+export type SeparateClip = (pcm: Float32Array) => Promise<[Float32Array, Float32Array]>;

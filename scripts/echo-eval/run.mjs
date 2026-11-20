@@ -82,7 +82,8 @@ const stop = (code) => {
 process.on('SIGINT', () => stop(130));
 
 const base = `http://localhost:${port}`;
-const q = `${limit ? `&limit=${limit}` : ''}${fake ? '&fake=1' : ''}${SET === 'cases' ? '' : `&set=${SET}`}`;
+const SEPARATION = process.env.ECHO_EVAL_SEPARATION;
+const q = `${limit ? `&limit=${limit}` : ''}${fake ? '&fake=1' : ''}${SET === 'cases' ? '' : `&set=${SET}`}${SEPARATION ? `&sep=${encodeURIComponent(SEPARATION)}` : ''}`;
 const runUrls = shardQs.map((sq) => `${base}/dev/echo-eval?autostart=1${q}${sq}`);
 const marker = `finished${SET === 'cases' ? '' : `.${SET}`}${fake ? '.fake' : ''}`;
 for (const name of [marker, ...shardQs.filter(Boolean).map((_, i) => `${marker}.shard${i}`)]) {

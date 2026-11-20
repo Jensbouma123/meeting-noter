@@ -8,16 +8,16 @@ import type { EvalProgress } from './types';
 
 const IDLE: EvalProgress = { phase: 'idle', done: 0, total: 0, message: '' };
 
-export function useEchoEval(autostart: boolean, fake: boolean, limit: number | null, set: EvalSet = 'cases', shard: Shard | null = null) {
+export function useEchoEval(autostart: boolean, fake: boolean, limit: number | null, set: EvalSet = 'cases', shard: Shard | null = null, separate = false) {
   const [progress, setProgress] = useState<EvalProgress>(IDLE);
   const started = useRef(false);
   const start = useCallback(async () => {
     if (started.current) return;
     started.current = true;
-    const engine = fake ? createFakeEngine() : await createLiveEngine(set !== 'cases', autostart);
+    const engine = fake ? createFakeEngine() : await createLiveEngine(set !== 'cases', autostart, separate);
     await runEval(engine, limit, setProgress, set, shard);
     started.current = false;
-  }, [autostart, fake, limit, set, shard]);
+  }, [autostart, fake, limit, set, shard, separate]);
   const auto = useEffectEvent(() => {
     if (autostart) void start();
   });

@@ -1,5 +1,6 @@
 import { initRegistry } from '@/lib/asr/browser';
 import { setOverlapTranscriber } from '../overlap-retranscribe';
+import { installOverlapSeparator } from '../overlap-separation-flag';
 import { asrState } from './state';
 import { clearLoadMarker, markLoadInProgress, readLoadMarker } from './load-marker';
 import { resolveAsrBackend } from './backend';
@@ -16,6 +17,7 @@ function watchPageLifecycle(): void {
 }
 
 setOverlapTranscriber(recognizeOverlapClip);
+installOverlapSeparator();
 asrState.previousLoadCrashed = readLoadMarker();
 if (typeof window !== 'undefined') {
   initRegistry();

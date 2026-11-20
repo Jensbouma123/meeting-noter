@@ -8,6 +8,7 @@ import { resetDiarization, startDiarization } from './diarization-bridge';
 import { routeCapturedFrame } from './frame-router';
 import { resetLanguageOverride, startLangId } from './langid-bridge';
 import { resetOverlapRetranscribe } from './overlap-retranscribe';
+import { resetSeparation } from './overlap-separate';
 import { beginSpeakerSession } from './speaker-session';
 import { disposeSharedEmbedder } from '@/lib/semantic-search/service';
 import { degradeAfterSourceEnded } from './source-ended';
@@ -28,6 +29,7 @@ function resetSessionBookkeeping(opts: StartOpts): void {
   resetSession(opts.mode);
   resetDiarization();
   resetOverlapRetranscribe();
+  resetSeparation();
   beginSpeakerSession();
   captureClock.clear();
   frameFeed.clear();

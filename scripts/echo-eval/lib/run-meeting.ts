@@ -1,3 +1,4 @@
+import { separationStats } from '@/lib/meeting/overlap-separate';
 import { toFrames } from '@/lib/meeting/two-source-bleed.testSupport';
 import type { MeetingAsr, MeetingStore } from '../types/meeting-engine';
 import type { MeetingCase } from '../types/meeting-case';
@@ -33,5 +34,12 @@ export async function runMeeting(c: MeetingCase, audio: RenderedCase, asr: Meeti
   }
   await (asr.flushSpeakers ? asr.flushSpeakers() : asr.flushLiveAudio());
   const diarized = !!asr.route;
-  return { id: c.id, split: c.split, diarized, segments: meetingSegments(store.getState().segments, diarized) };
+  const separation = separationStats();
+  return {
+    id: c.id,
+    split: c.split,
+    diarized,
+    segments: meetingSegments(store.getState().segments, diarized),
+    ...(separation.clips.length > 0 || Object.keys(separation.outcomes).length > 0 ? { separation } : {}),
+  };
 }

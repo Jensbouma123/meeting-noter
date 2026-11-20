@@ -1,4 +1,5 @@
 import { setOverlapTranscriber } from '../overlap-retranscribe';
+import { installOverlapSeparator } from '../overlap-separation-flag';
 import { clearPostStopCapture } from '../post-stop-buffer';
 import type { BrowserErrorKind } from '../types/asr-state';
 import { asrState } from './state';
@@ -11,6 +12,7 @@ import { recognizeOverlapClip } from './overlap-clip';
 export function enableBrowserASR(): void {
   asrState.enabled = true;
   setOverlapTranscriber(recognizeOverlapClip);
+  installOverlapSeparator();
   notifyBrowserListeners();
 }
 
