@@ -11,6 +11,7 @@ vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams(q
 const item = (id: string, start: number, end: number): TranscriptItem => ({
   kind: 'line',
   turnStart: true,
+  showTime: true,
   seg: { id, start, end, text: id } as Segment,
 });
 const items = [item('a', 0, 30), item('b', 30, 70), item('c', 70, 100)];
