@@ -28,7 +28,6 @@ export function gridShape(n: number): { cols: number; rows: number } {
   return { cols, rows: Math.ceil(n / cols) };
 }
 
-// Shard 0 loads the models into the origin's cache first; the other frames get no src until it reports warm.
 export const WARM_SHARD = 0;
 
 export function cellSources(urls: readonly string[], warm: boolean): (string | null)[] {

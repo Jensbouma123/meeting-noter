@@ -12,7 +12,6 @@ import { acceptEvalModels } from './acceptEvalModels';
 import { withBrowserSpeakers } from './browserSpeakers';
 import type { EvalEngine } from './types';
 
-// A WebGPU or crash fallback resets consent for its smaller model; autostart confirms it again.
 const MAX_FALLBACKS = 3;
 
 async function loadAsr(autoConfirm: boolean): Promise<void> {
@@ -25,7 +24,6 @@ async function loadAsr(autoConfirm: boolean): Promise<void> {
   }
 }
 
-// Downloads the diarizer up front, so a grid's warm shard caches it before the other shards start.
 async function loadDiarizer(): Promise<void> {
   acceptEvalModels([DIARIZATION_REGISTRY_KEY]);
   if (getModelStatus(DIARIZATION_REGISTRY_KEY)?.status !== 'cached') await retryDownload(DIARIZATION_REGISTRY_KEY);

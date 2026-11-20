@@ -1,4 +1,3 @@
-// A fixed port keeps one browser origin across runs, so the model cache (IndexedDB, Cache Storage) survives.
 export const DEFAULT_EVAL_PORT = 3333;
 
 export function evalPort(raw: string | undefined): number {
