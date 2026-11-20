@@ -4,7 +4,11 @@ import { Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { SHARD_PROGRESS_MESSAGE } from '../../../../scripts/echo-eval/lib/grid-url';
 import { parseShard } from '../../../../scripts/echo-eval/lib/shard';
+import type { EvalSet } from '../../../../scripts/echo-eval/types/eval-set';
 import { useEchoEval } from './useEchoEval';
+
+const SETS: readonly EvalSet[] = ['cases', 'meetings', 'external'];
+const setOf = (raw: string | null): EvalSet => SETS.find((s) => s === raw) ?? 'cases';
 
 function EchoEval() {
   const params = useSearchParams();
@@ -14,7 +18,7 @@ function EchoEval() {
     params.get('autostart') === '1',
     params.get('fake') === '1',
     limit,
-    params.get('set') === 'meetings',
+    setOf(params.get('set')),
     shard,
   );
   const status = `${progress.phase}: ${progress.done}/${progress.total} ${progress.message}`;

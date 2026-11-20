@@ -13,7 +13,12 @@ const limit = limitArg ? Number(limitArg.split('=')[1]) : 0;
 const shardsArg = process.argv.find((a) => a.startsWith('--shards='));
 const shards = shardsArg ? Number(shardsArg.split('=')[1]) : 1;
 const fake = process.argv.includes('--fake');
-const meetings = process.env.ECHO_EVAL_SET === 'meetings';
+const SET = ['meetings', 'external'].includes(process.env.ECHO_EVAL_SET) ? process.env.ECHO_EVAL_SET : 'cases';
+const EXTERNAL = process.env.ECHO_EVAL_EXTERNAL;
+if (SET === 'external' && !EXTERNAL) {
+  console.error('[echo-eval] ECHO_EVAL_SET=external needs ECHO_EVAL_EXTERNAL=<dir with audio16k.wav and reference.json>');
+  process.exit(2);
+}
 const POLL_MS = 5000;
 const READY_TIMEOUT_MS = 120_000;
 if (!Number.isInteger(shards) || shards < 1 || shards > MAX_GRID_SHARDS) {
@@ -60,7 +65,7 @@ const port = await freePort();
 const next = spawn(process.execPath, [path.join(root, 'node_modules/next/dist/bin/next'), 'dev', '-p', String(port)], {
   cwd: root,
   stdio: 'inherit',
-  env: { ...process.env, ECHO_EVAL_OUT: OUT, ECHO_EVAL_AUDIO: AUDIO },
+  env: { ...process.env, ECHO_EVAL_OUT: OUT, ECHO_EVAL_AUDIO: AUDIO, ...(EXTERNAL ? { ECHO_EVAL_EXTERNAL: EXTERNAL } : {}) },
 });
 const stop = (code) => {
   next.kill('SIGTERM');
@@ -69,9 +74,9 @@ const stop = (code) => {
 process.on('SIGINT', () => stop(130));
 
 const base = `http://localhost:${port}`;
-const q = `${limit ? `&limit=${limit}` : ''}${fake ? '&fake=1' : ''}${meetings ? '&set=meetings' : ''}`;
+const q = `${limit ? `&limit=${limit}` : ''}${fake ? '&fake=1' : ''}${SET === 'cases' ? '' : `&set=${SET}`}`;
 const runUrls = shardQs.map((sq) => `${base}/dev/echo-eval?autostart=1${q}${sq}`);
-const marker = `finished${meetings ? '.meetings' : ''}${fake ? '.fake' : ''}`;
+const marker = `finished${SET === 'cases' ? '' : `.${SET}`}${fake ? '.fake' : ''}`;
 for (const name of [marker, ...shardQs.filter(Boolean).map((_, i) => `${marker}.shard${i}`)]) {
   fs.rmSync(path.join(OUT, `${name}.json`), { force: true });
 }
@@ -85,7 +90,7 @@ if (sharded) {
   for (const url of runUrls) console.log(`  ${url}`);
 }
 
-const report = path.join(OUT, meetings ? 'meetings-report.md' : 'report.md');
+const report = path.join(OUT, SET === 'cases' ? 'report.md' : `${SET}-report.md`);
 for (;;) {
   await sleep(POLL_MS);
   const states = await Promise.all(

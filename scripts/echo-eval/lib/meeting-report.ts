@@ -1,8 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import type { MeetingCase } from '../types/meeting-case';
 import type { MeetingScore, ScoredMeetingResult } from '../types/meeting-score';
-import type { Utterance } from '../types/utterance';
-import { buildMeetings } from './meeting-plan';
 import { scoreMeeting } from './meeting-score';
 import {
   LANGS,
@@ -71,11 +70,11 @@ export function formatMeetingReport(scores: MeetingScore[], now = new Date().toI
   return md.join('\n') + '\n';
 }
 
-export function writeMeetingReport(outDir: string, resultsFile: string, utts: Utterance[]): void {
+export function writeMeetingReport(outDir: string, resultsFile: string, meetings: MeetingCase[], name = 'meetings'): void {
   if (!fs.existsSync(resultsFile)) return;
-  const cases = new Map(buildMeetings(utts).map((c) => [c.id, c]));
+  const cases = new Map(meetings.map((c) => [c.id, c]));
   const results = readResults(resultsFile);
   const scores = results.flatMap((r) => (cases.has(r.id) ? [scoreMeeting(cases.get(r.id)!, r)] : []));
-  fs.writeFileSync(path.join(outDir, 'meetings-report.md'), formatMeetingReport(scores, undefined, transcriptSection(cases, results, scores)));
-  fs.writeFileSync(path.join(outDir, 'meetings-scores.json'), JSON.stringify(scores, null, 2));
+  fs.writeFileSync(path.join(outDir, `${name}-report.md`), formatMeetingReport(scores, undefined, transcriptSection(cases, results, scores)));
+  fs.writeFileSync(path.join(outDir, `${name}-scores.json`), JSON.stringify(scores, null, 2));
 }
