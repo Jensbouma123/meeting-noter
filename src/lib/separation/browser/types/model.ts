@@ -5,6 +5,7 @@ export interface SeparatorModelFile {
   filename: string;
   revision: string;
   sizeBytes: number;
+  url: string;
 }
 
 export interface LoadedSeparator {

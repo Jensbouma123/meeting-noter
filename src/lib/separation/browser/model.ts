@@ -8,8 +8,8 @@ import type { LoadedSeparator } from './types/model';
 let loading: Promise<LoadedSeparator> | null = null;
 
 async function load(): Promise<LoadedSeparator> {
-  const { repo, filename, revision } = MOSSFORMER2_MODEL;
-  const url = await downloadHfFileResumable(repo, filename, revision);
+  const { repo, filename, revision, url: urlOverride } = MOSSFORMER2_MODEL;
+  const url = await downloadHfFileResumable(repo, filename, revision, { urlOverride });
   try {
     const created = await createSession(modelSource(url));
     if (created.backend === 'webgpu') return { session: created.session, backend: 'webgpu' };
