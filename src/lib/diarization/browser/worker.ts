@@ -37,7 +37,8 @@ function startDiarizer(
   });
   diarizers.set(msg.id, core);
   if (rescore) rescores.set(msg.id, rescore);
-  post({ type: 'ready', id: msg.id, backend: model.backend ?? 'wasm' });
+  const webGpuUnavailable = model.webGpuUnavailable ?? undefined;
+  post({ type: 'ready', id: msg.id, backend: model.backend ?? 'wasm', ...(webGpuUnavailable ? { webGpuUnavailable } : {}) });
   for (const { chunk, startSample } of held?.chunks ?? []) pushAudio(msg.id, chunk, startSample);
 }
 

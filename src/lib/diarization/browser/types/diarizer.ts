@@ -9,6 +9,7 @@ export interface DiarizerOptions {
 
 export interface DiarizerReady {
   backend: 'webgpu' | 'wasm';
+  webGpuUnavailable?: string;
 }
 
 export type DiarizerErrorCode = 'not-cached' | 'failed';

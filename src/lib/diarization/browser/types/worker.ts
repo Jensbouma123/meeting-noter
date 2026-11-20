@@ -10,7 +10,7 @@ export type WorkerInMessage =
   | { type: 'dispose'; id: string };
 
 export type WorkerOutMessage =
-  | { type: 'ready'; id: string; backend: DiarizerReady['backend'] }
+  | { type: 'ready'; id: string; backend: DiarizerReady['backend']; webGpuUnavailable?: string }
   | { type: 'flushed'; id: string; speakerState?: SerializedSpeakerState; rescoring?: true }
   | { type: 'rescored'; id: string; turns?: SpeakerTurn[] }
   | { type: 'turn'; id: string; turn: SpeakerTurn }

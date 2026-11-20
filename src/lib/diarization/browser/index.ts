@@ -10,6 +10,7 @@ import type {
   WorkerInMessage,
   WorkerOutMessage,
 } from './types';
+import { reportWebGpuUnavailable } from './webgpu-report';
 
 let nextId = 0;
 
@@ -43,7 +44,11 @@ export function createDiarizer(options: DiarizerOptions): Diarizer {
       if (msg.turns) for (const cb of rescoredListeners) cb(msg.turns);
       if (disposed) detach();
     } else if (msg.type === 'ready') {
-      for (const cb of readyListeners) cb({ backend: msg.backend });
+      reportWebGpuUnavailable(msg.webGpuUnavailable);
+      const info: DiarizerReady = msg.webGpuUnavailable
+        ? { backend: msg.backend, webGpuUnavailable: msg.webGpuUnavailable }
+        : { backend: msg.backend };
+      for (const cb of readyListeners) cb(info);
     } else if (msg.type === 'error') {
       console.error(`[diarization:${options.source}] ${msg.message}`);
       for (const cb of errorListeners) cb(msg.message, msg.code ?? 'failed');
