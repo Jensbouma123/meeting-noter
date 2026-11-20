@@ -1,3 +1,5 @@
+import type { Spectrum } from '../types/spectrum';
+
 function fft(re: Float64Array, im: Float64Array, inverse: boolean): void {
   const n = re.length;
   for (let i = 1, j = 0; i < n; i += 1) {
@@ -41,11 +43,8 @@ const nextPow2 = (len: number): number => {
   return n;
 };
 
-// A full-length FFT of a 99-minute meeting needs about 4 GB, so longer inputs are convolved in overlap-add blocks.
 const FULL_FFT_MAX = 1 << 22;
 const BLOCK_FFT_MIN = 1 << 16;
-
-type Spectrum = [Float64Array, Float64Array];
 
 function spectrum(x: Float32Array, n: number): Spectrum {
   const re = new Float64Array(n);
