@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react';
+import type { Shard } from '../../../../scripts/echo-eval/types/shard';
 import { createFakeEngine } from './fakeEngine';
 import { createLiveEngine } from './liveEngine';
 import { runEval } from './runEval';
@@ -6,16 +7,16 @@ import type { EvalProgress } from './types';
 
 const IDLE: EvalProgress = { phase: 'idle', done: 0, total: 0, message: '' };
 
-export function useEchoEval(autostart: boolean, fake: boolean, limit: number | null, meetings = false) {
+export function useEchoEval(autostart: boolean, fake: boolean, limit: number | null, meetings = false, shard: Shard | null = null) {
   const [progress, setProgress] = useState<EvalProgress>(IDLE);
   const started = useRef(false);
   const start = useCallback(async () => {
     if (started.current) return;
     started.current = true;
     const engine = fake ? createFakeEngine() : await createLiveEngine(meetings);
-    await runEval(engine, limit, setProgress, meetings);
+    await runEval(engine, limit, setProgress, meetings, shard);
     started.current = false;
-  }, [fake, limit, meetings]);
+  }, [fake, limit, meetings, shard]);
   const auto = useEffectEvent(() => {
     if (autostart) void start();
   });

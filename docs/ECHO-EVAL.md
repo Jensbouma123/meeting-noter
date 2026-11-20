@@ -10,12 +10,17 @@ npm run eval:echo
 
 The script copies the ORT wasm files, starts `next dev` on a free port, opens Google Chrome (falls back to the default browser) at `/dev/echo-eval?autostart=1`, polls until the run finishes, then stops the server. Keep the browser tab in the foreground; the first run downloads the speech model into IndexedDB.
 
-Options: `-- --limit=2` runs only the first N cases; `-- --fake` swaps in a stub engine (plumbing check only).
+Options: `-- --limit=2` runs only the first N cases; `-- --fake` swaps in a stub engine (plumbing check only); `-- --shards=4` splits the run over 4 browser tabs (below).
+
+### Parallel tabs
+
+`ECHO_EVAL_SET=meetings npm run eval:echo -- --shards=4` opens 4 tabs, one per shard, and prints their URLs (`/dev/echo-eval?autostart=1&set=meetings&shard=<i>&shards=4`). Tab `i` runs the plan items whose index (after `--limit`) satisfies `index % 4 == i`, so the tabs never overlap. Each tab writes its own `meetings.shard<i>.jsonl` and `finished.meetings.shard<i>.json`, and resumes from its own file. When every shard has finished, the script merges the shard files into `meetings.jsonl` (rows already there are kept; a shard row wins on the same id) and writes `meetings-report.md` as for a single tab. A tab that fails (for example a model load error) marks only its own shard failed: the script waits for the others, prints the failed shard's URL and exits 1; rerun the same command to resume. Without `--shards` (or `shard`/`shards` page params) nothing changes.
 
 ## Inputs and outputs
 
 - Audio: `ECHO_EVAL_AUDIO` (default `/Users/jensbouma/Desktop/Meeting Noter/test-audio`) holding the AMI wav, words and label files.
 - Output: `ECHO_EVAL_OUT` (default `~/Library/Application Support/OrchestratorAI/exchange/echo-eval/`): `results.jsonl` (or `results.fake.jsonl` for `--fake`), `meta.json` (recorded backend and user agent), `report.md`, `failures.json`.
+- Sharded runs add `meetings.shard<i>.jsonl` and `finished.meetings.shard<i>.json` per tab (`.fake` before `.shard<i>` for `--fake`).
 - Resume: cases already in `results.jsonl` (or `results.fake.jsonl`) are skipped on the next run. Delete the file for a fresh run.
 
 ## Corpus
