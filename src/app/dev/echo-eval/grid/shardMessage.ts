@@ -1,7 +1,6 @@
 import { SHARD_PROGRESS_MESSAGE, isWarmPhase } from '../../../../../scripts/echo-eval/lib/grid-url';
 import type { ShardMessage } from './types';
 
-export const WARM_FALLBACK_MS = 90_000;
 export const SHARD_HEARTBEAT_MS = 2_000;
 
 export function shardMessage(shard: number, text: string, phase: string): ShardMessage {
