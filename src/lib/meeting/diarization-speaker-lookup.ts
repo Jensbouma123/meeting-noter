@@ -1,3 +1,4 @@
+import { withoutBleedSpeakers } from './bleed-speakers';
 import { firstTurnReaching, turnsOf } from './diarization-turns';
 import type { SpeakerTurn } from '@/lib/diarization/browser';
 import type { Source } from './types';
@@ -32,7 +33,9 @@ export function speakerFor(source: Source, start: number, end: number): string |
   };
   let best: string | null = null;
   let bestTime = 0;
-  for (const [speaker, t] of time) {
+  const candidates = source === 'mic' && time.size > 1 ? withoutBleedSpeakers([...time.keys()]) : [...time.keys()];
+  for (const speaker of candidates) {
+    const t = time.get(speaker)!;
     const tie = best !== null && Math.abs(t - bestTime) <= TIE_SECONDS;
     if (tie ? winsTie(speaker, best!) : t > bestTime) {
       best = speaker;
