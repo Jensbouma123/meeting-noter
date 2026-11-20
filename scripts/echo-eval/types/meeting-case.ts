@@ -23,6 +23,7 @@ export interface MeetingTurn {
   pairId: number | null;
   pairing: MeetingPairing | null;
   overlapFrac: number | null;
+  refText?: string;
 }
 
 export interface MeetingCase {
