@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import net from 'node:net';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { MAX_GRID_SHARDS, gridUrl } from './lib/grid-url.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const OUT = process.env.ECHO_EVAL_OUT ?? '/Users/jensbouma/Library/Application Support/OrchestratorAI/exchange/echo-eval';
@@ -15,8 +16,8 @@ const fake = process.argv.includes('--fake');
 const meetings = process.env.ECHO_EVAL_SET === 'meetings';
 const POLL_MS = 5000;
 const READY_TIMEOUT_MS = 120_000;
-if (!Number.isInteger(shards) || shards < 1) {
-  console.error(`[echo-eval] --shards must be a positive integer, got ${shardsArg}`);
+if (!Number.isInteger(shards) || shards < 1 || shards > MAX_GRID_SHARDS) {
+  console.error(`[echo-eval] --shards must be an integer from 1 to ${MAX_GRID_SHARDS}, got ${shardsArg}`);
   process.exit(2);
 }
 const sharded = shards > 1;
@@ -75,11 +76,14 @@ for (const name of [marker, ...shardQs.filter(Boolean).map((_, i) => `${marker}.
   fs.rmSync(path.join(OUT, `${name}.json`), { force: true });
 }
 await waitFor(`${base}/api/dev/echo-eval?op=status${q}`);
-for (const url of runUrls) {
-  if (!openBrowser(url)) console.log(`[echo-eval] could not open browser automatically; open this URL manually:\n  ${url}`);
+const openUrl = sharded ? gridUrl(base, q, shards) : runUrls[0];
+if (!openBrowser(openUrl)) console.log('[echo-eval] could not open browser automatically; open the URL below manually');
+console.log(`[echo-eval] open this: ${openUrl}`);
+console.log(`[echo-eval] output ${OUT}`);
+if (sharded) {
+  console.log(`[echo-eval] fallback, one tab per shard instead of the grid:`);
+  for (const url of runUrls) console.log(`  ${url}`);
 }
-console.log(`[echo-eval] running ${runUrls.length} tab(s); output ${OUT}`);
-for (const url of runUrls) console.log(`  ${url}`);
 
 const report = path.join(OUT, meetings ? 'meetings-report.md' : 'report.md');
 for (;;) {
