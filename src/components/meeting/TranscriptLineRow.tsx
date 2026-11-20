@@ -6,6 +6,7 @@ import { TranscriptSpeakerHeader } from './TranscriptSpeakerHeader';
 import { TranscriptSpeakerName } from './TranscriptSpeakerName';
 import { TranscriptTurn } from './TranscriptTurn';
 import { buildTurnActions } from './buildTurnActions';
+import { TRANSCRIPT_TEXT_INDENT_CLASS } from './transcriptGutter';
 import { useSpeakerStyle } from './useSpeakerStyle';
 import type { TranscriptLineRowProps } from './LiveTranscript.types';
 
@@ -22,7 +23,7 @@ export function TranscriptLineRow({ item, index, isLast, sessionId, speakers, fl
       ref={flash?.ref}
       className={`mn-vrow px-4 md:px-8 ${index === 0 ? 'pt-6' : ''} ${isLast ? 'pb-40' : ''} ${flash?.className ?? ''}`}
     >
-      <div className="mx-auto w-full max-w-[calc(72ch+1rem)]">
+      <div className="mx-auto w-full max-w-[calc(72ch+5.375rem)]">
         <div
           data-speaker={seg.speaker}
           data-turn-start={turnStart ? '' : undefined}
@@ -50,7 +51,7 @@ export function TranscriptLineRow({ item, index, isLast, sessionId, speakers, fl
               )}
             </TranscriptSpeakerHeader>
           )}
-          <div data-seg-id={seg.id} className="min-w-0 pl-3.5">
+          <div data-seg-id={seg.id} className={`min-w-0 ${TRANSCRIPT_TEXT_INDENT_CLASS}`}>
             <TranscriptTurn
               actions={buildTurnActions(sessionId, seg)}
               segment={seg}
