@@ -6,9 +6,11 @@ import { isOverlapPassSegment } from './overlap-pass-segments';
 import { attributeSpeakers } from './speaker-attribution';
 import { mergeFamily, segmentFamilyRoot } from './speaker-family';
 import { captureSpanOf } from './append-mode';
+import { micEchoVerdict } from './echo/segment-echo';
 import { getState } from './store-core';
 import { replaceSegmentFamilies } from './segment-store';
 import type { Segment, Source } from './types';
+import type { EchoVerdict } from './types/echo-verdict';
 
 const RELABEL_LOOKBACK_SEGMENTS = 200;
 
@@ -26,6 +28,7 @@ function sameParts(a: readonly Segment[], b: readonly Segment[]): boolean {
         s.speaker === b[i].speaker &&
         !!s.unconfirmed === !!b[i].unconfirmed &&
         s.text === b[i].text &&
+        s.echo === b[i].echo &&
         overlapKey(s) === overlapKey(b[i]),
     )
   );
@@ -50,6 +53,11 @@ function familyRootsToRelabel(turn: SpeakerTurn, from: number): Set<string> {
   return roots;
 }
 
+function priorEcho(family: readonly Segment[], start: number, end: number): EchoVerdict | undefined {
+  const verdicts = family.filter((p) => p.end > start && p.start < end).map((p) => p.echo);
+  return verdicts.length && verdicts.every((v) => v === verdicts[0]) ? verdicts[0] : undefined;
+}
+
 function relabeledParts(source: Source, family: readonly Segment[]): Segment[] | null {
   const merged = mergeFamily(family);
   const span = captureSpanOf(merged);
@@ -65,6 +73,7 @@ function relabeledParts(source: Source, family: readonly Segment[]): Segment[] |
         start: o.start + offset,
         end: o.end + offset,
       })),
+    (a, b) => micEchoVerdict(a - offset, b - offset) ?? priorEcho(family, a, b),
   );
   return sameParts(parts, family) ? null : parts;
 }
