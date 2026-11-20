@@ -5,11 +5,13 @@ import type { ExternalDataFile, SessionBackend, SortformerOutput, SortformerRunn
 export class SortformerModel implements SortformerRunner {
   private session: InferenceSession | null = null;
   backend: SessionBackend | null = null;
+  webGpuUnavailable: string | null = null;
 
   async load(graph: string | Uint8Array, weights: ExternalDataFile): Promise<void> {
-    const { session, backend } = await createSession(graph, [weights]);
+    const { session, backend, webGpuUnavailable } = await createSession(graph, [weights]);
     this.session = session;
     this.backend = backend;
+    this.webGpuUnavailable = webGpuUnavailable;
   }
 
   async run(
