@@ -17,4 +17,4 @@ export const resultsFileFor = (fake: boolean, set: EvalSet = 'cases', shard: Sha
   path.join(OUT_DIR, `${RESULTS_PREFIX[set]}${fake ? '.fake' : ''}${shardSuffix(shard)}.jsonl`);
 export const markerFileFor = (fake: boolean, set: EvalSet = 'cases', shard: Shard | null = null): string =>
   path.join(OUT_DIR, `finished${set === 'cases' ? '' : `.${set}`}${fake ? '.fake' : ''}${shardSuffix(shard)}.json`);
-fs.mkdirSync(OUT_DIR, { recursive: true });
+if (process.env.NODE_ENV !== 'production') fs.mkdirSync(OUT_DIR, { recursive: true });
