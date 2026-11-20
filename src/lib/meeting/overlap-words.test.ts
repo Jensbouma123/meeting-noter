@@ -121,10 +121,8 @@ describe('retranscribeOverlap attribution by activity', () => {
       { speaker: 'a', start: 5, end: 10.8 },
       { speaker: 'b', start: 10, end: 15 },
     ];
-    // 'a' has fewer pass-1 words, so the old rule gave everything to 'a'.
     const first = [word('x', 10.1, 10.2, 'b'), word('y', 11.9, 12, 'b')];
     const added = await run(turns, first);
-    // 'early' (10.3): both active, 'b' already talks nearby, so 'a'. 'late' (11.3): only 'b' is active.
     expect(added.map((w) => [w.text, w.speaker])).toEqual([
       ['early', 'a'],
       ['late', 'b'],

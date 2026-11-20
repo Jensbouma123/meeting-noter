@@ -27,9 +27,7 @@ export function quieterSpeaker(
 
 const LOCAL_WORD_SECONDS = 1;
 
-// The speaker the diarizer has active at `at`; when several are, the one with fewer pass-1 words
-// near that moment. Null when no span speaker's turn covers it.
-export function speakerAt(
+export function activeSpeakerAt(
   at: number,
   span: OverlapSpan,
   first: readonly AttributedWord[],
@@ -58,5 +56,5 @@ export async function retranscribeOverlap(
     start: w.start + clip.start,
     end: w.end + clip.start,
   }));
-  return missedWords(first, heard, span).map((w) => ({ ...w, speaker: speakerAt(wordMidpoint(w), span, first, turns) ?? fallback }));
+  return missedWords(first, heard, span).map((w) => ({ ...w, speaker: activeSpeakerAt(wordMidpoint(w), span, first, turns) ?? fallback }));
 }
