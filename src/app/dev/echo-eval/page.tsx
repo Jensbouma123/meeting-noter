@@ -1,11 +1,11 @@
 'use client';
 
-import { Suspense, useEffect } from 'react';
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { SHARD_PROGRESS_MESSAGE } from '../../../../scripts/echo-eval/lib/grid-url';
 import { parseShard } from '../../../../scripts/echo-eval/lib/shard';
 import type { EvalSet } from '../../../../scripts/echo-eval/types/eval-set';
 import { useEchoEval } from './useEchoEval';
+import { useShardReporter } from './useShardReporter';
 
 const SETS: readonly EvalSet[] = ['cases', 'meetings', 'external'];
 const setOf = (raw: string | null): EvalSet => SETS.find((s) => s === raw) ?? 'cases';
@@ -23,14 +23,7 @@ function EchoEval() {
     params.get('sep') === 'mossformer2',
   );
   const status = `${progress.phase}: ${progress.done}/${progress.total} ${progress.message}`;
-  const shardIndex = shard?.index;
-  useEffect(() => {
-    if (shardIndex === undefined || window.parent === window) return;
-    window.parent.postMessage(
-      { type: SHARD_PROGRESS_MESSAGE, shard: shardIndex, text: status, phase: progress.phase },
-      window.location.origin,
-    );
-  }, [shardIndex, status, progress.phase]);
+  useShardReporter(shard?.index, status, progress.phase);
   const busy = progress.phase === 'loading' || progress.phase === 'running';
   return (
     <main style={{ maxWidth: 720, margin: '2rem auto', padding: '0 1rem', fontFamily: 'system-ui' }}>

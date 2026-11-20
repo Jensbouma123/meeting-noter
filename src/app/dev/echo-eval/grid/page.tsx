@@ -1,34 +1,10 @@
 'use client';
 
-import { Suspense, useEffect, useState, type CSSProperties } from 'react';
+import { Suspense, type CSSProperties } from 'react';
 import { useSearchParams } from 'next/navigation';
-import {
-  MAX_GRID_SHARDS,
-  SHARD_PROGRESS_MESSAGE,
-  WARM_SHARD,
-  cellSources,
-  gridShape,
-  isWarmPhase,
-  parseGridShards,
-  shardFrameUrls,
-} from '../../../../../scripts/echo-eval/lib/grid-url';
+import { MAX_GRID_SHARDS, cellSources, gridShape, parseGridShards, shardFrameUrls } from '../../../../../scripts/echo-eval/lib/grid-url';
 import { ShardCell } from './ShardCell';
-
-function useShardProgress(): { texts: Record<number, string>; warm: boolean } {
-  const [texts, setTexts] = useState<Record<number, string>>({});
-  const [warm, setWarm] = useState(false);
-  useEffect(() => {
-    const onMessage = (e: MessageEvent) => {
-      if (e.origin !== window.location.origin || e.data?.type !== SHARD_PROGRESS_MESSAGE) return;
-      const { shard, text, phase } = e.data as { shard: number; text: string; phase: string };
-      setTexts((prev) => ({ ...prev, [shard]: text }));
-      if (shard === WARM_SHARD && isWarmPhase(phase)) setWarm(true);
-    };
-    window.addEventListener('message', onMessage);
-    return () => window.removeEventListener('message', onMessage);
-  }, []);
-  return { texts, warm };
-}
+import { useShardProgress } from './useShardProgress';
 
 function EchoEvalGrid() {
   const params = useSearchParams();
