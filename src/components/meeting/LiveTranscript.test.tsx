@@ -48,17 +48,18 @@ describe('LiveTranscript timeline', () => {
     ]);
   });
 
-  it('shows the time again but not the name after a pause over 30 s from the same speaker', () => {
+  it('shows no header on a continuation line after a pause over 30 s from the same speaker', () => {
     const { container } = render(view([seg('a', 'mic:0', 0), seg('b', 'mic:0', 40)]));
     expect(timeline(container)).toEqual([
       [
         'Speaker 1',
         [
           ['00:00', 'a'],
-          ['00:40', 'b'],
+          ['', 'b'],
         ],
       ],
     ]);
+    expect(rowOf(container, 'b').querySelector('[data-speaker-header]')).toBeNull();
   });
 
   it('moves a line into the right turn when diarization reassigns it late', () => {
@@ -90,7 +91,7 @@ describe('LiveTranscript timeline', () => {
     const before = rowOf(container, 'c');
     expect(speakerShown(before)).toBe('');
     expect(before.getAttribute('data-speaker')).toBe('mic:0');
-    const shape = (row: Element) => [row.children.length, row.className.replace(/\bpt-\S+/g, '').replace(/\s+/g, ' ')];
+    const shape = (row: Element) => row.className.replace(/\bpt-\S+/g, '').replace(/\s+/g, ' ');
     const shapeBefore = shape(before);
 
     rerender(view([lines[0], lines[1], { ...lines[2], speaker: 'mic:1' }]));
@@ -103,14 +104,15 @@ describe('LiveTranscript timeline', () => {
     expect(after.closest('[data-index]')!.getAttribute('data-index')).toBe('2');
   });
 
-  it("never size-contains lines, and shows the speaker in the line's own row", () => {
+  it("never size-contains lines, and shows the speaker header above the text in the line's own row", () => {
     const { container, rerender } = render(view([seg('a', 'mic:0', 3, 'hi')]));
     const css = readFileSync(resolve(__dirname, '../../app/globals.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
     expect(css).not.toMatch(/content-visibility|contain-intrinsic|contain:\s*(size|strict|content)/);
     const row = rowOf(container, 'a');
-    const [time, speaker, line] = Array.from(row.children);
-    expect(time.textContent).toBe('00:03');
-    expect(speaker.textContent).toContain('Speaker 1');
+    const [header, line] = Array.from(row.children);
+    expect(header.hasAttribute('data-speaker-header')).toBe(true);
+    expect(header.querySelector('[data-speaker-name]')!.textContent).toBe('Speaker 1');
+    expect(header.querySelector('[data-speaker-time]')!.textContent).toBe('00:03');
     expect(line.getAttribute('data-seg-id')).toBe('a');
     rerender(view([seg('a', 'mic:0', 3, 'hi '.repeat(200))]));
     const grown = rowOf(container, 'a');

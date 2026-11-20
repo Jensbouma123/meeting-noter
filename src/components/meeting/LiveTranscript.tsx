@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { VirtualList, type VirtualListHandle } from '@jensbouma123/acciva-ui';
 import { useT } from '@/lib/i18n/useT';
 import { FixWordAction } from './FixWordAction';
@@ -11,7 +11,7 @@ import { TranscriptListening } from './TranscriptListening';
 import { TranscriptOverlapRow } from './TranscriptOverlapRow';
 import { TranscriptSearch } from './TranscriptSearch';
 import { meeting } from './store';
-import { buildTranscriptItems, estimateItemHeight, itemKey, turnGridClass } from './transcriptItems';
+import { buildTranscriptItems, estimateItemHeight, itemKey } from './transcriptItems';
 import { useLiveEdge } from './useLiveEdge';
 import { useRevealSegment } from './useRevealSegment';
 import { useSeekFromQuery } from './useSeekFromQuery';
@@ -56,18 +56,10 @@ export function LiveTranscript({
   useSeekFromQuery(listRef, lines);
   const rowFlash = useRevealSegment(listRef, lines);
 
-  const pastHour = segments.some((seg) => seg.start >= 3600);
-  const rowClass = turnGridClass(pastHour);
-
-  useEffect(() => {
-    listRef.current?.measureAll();
-  }, [pastHour]);
-
   const renderItem = (item: TranscriptItem, index: number) => {
     const rowProps = {
       index,
       isLast: index === lines.length - 1,
-      rowClass,
       sessionId,
       speakers,
       flash: rowFlash(itemKey(item)),

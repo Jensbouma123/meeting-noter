@@ -9,10 +9,18 @@ const OUT = process.env.ECHO_EVAL_OUT ?? '/Users/jensbouma/Library/Application S
 const AUDIO = process.env.ECHO_EVAL_AUDIO ?? '/Users/jensbouma/Desktop/Meeting Noter/test-audio';
 const limitArg = process.argv.find((a) => a.startsWith('--limit='));
 const limit = limitArg ? Number(limitArg.split('=')[1]) : 0;
+const shardsArg = process.argv.find((a) => a.startsWith('--shards='));
+const shards = shardsArg ? Number(shardsArg.split('=')[1]) : 1;
 const fake = process.argv.includes('--fake');
 const meetings = process.env.ECHO_EVAL_SET === 'meetings';
 const POLL_MS = 5000;
 const READY_TIMEOUT_MS = 120_000;
+if (!Number.isInteger(shards) || shards < 1) {
+  console.error(`[echo-eval] --shards must be a positive integer, got ${shardsArg}`);
+  process.exit(2);
+}
+const sharded = shards > 1;
+const shardQs = sharded ? Array.from({ length: shards }, (_, i) => `&shard=${i}&shards=${shards}`) : [''];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -61,24 +69,53 @@ process.on('SIGINT', () => stop(130));
 
 const base = `http://localhost:${port}`;
 const q = `${limit ? `&limit=${limit}` : ''}${fake ? '&fake=1' : ''}${meetings ? '&set=meetings' : ''}`;
-const runUrl = `${base}/dev/echo-eval?autostart=1${q}`;
-fs.rmSync(path.join(OUT, `finished${meetings ? '.meetings' : ''}${fake ? '.fake' : ''}.json`), { force: true });
-await waitFor(`${base}/api/dev/echo-eval?op=status${q}`);
-if (!openBrowser(runUrl)) {
-  console.log(`[echo-eval] could not open browser automatically; open this URL manually:\n  ${runUrl}`);
+const runUrls = shardQs.map((sq) => `${base}/dev/echo-eval?autostart=1${q}${sq}`);
+const marker = `finished${meetings ? '.meetings' : ''}${fake ? '.fake' : ''}`;
+for (const name of [marker, ...shardQs.filter(Boolean).map((_, i) => `${marker}.shard${i}`)]) {
+  fs.rmSync(path.join(OUT, `${name}.json`), { force: true });
 }
-console.log(`[echo-eval] ${runUrl} running; output ${OUT}`);
+await waitFor(`${base}/api/dev/echo-eval?op=status${q}`);
+for (const url of runUrls) {
+  if (!openBrowser(url)) console.log(`[echo-eval] could not open browser automatically; open this URL manually:\n  ${url}`);
+}
+console.log(`[echo-eval] running ${runUrls.length} tab(s); output ${OUT}`);
+for (const url of runUrls) console.log(`  ${url}`);
 
+const report = path.join(OUT, meetings ? 'meetings-report.md' : 'report.md');
 for (;;) {
   await sleep(POLL_MS);
-  const s = await (await fetch(`${base}/api/dev/echo-eval?op=status${q}`)).json();
-  console.log(`[echo-eval] ${s.done}/${s.total}`);
-  if (s.error) {
-    console.error(`[echo-eval] failed: ${s.error}`);
+  const states = await Promise.all(
+    shardQs.map(async (sq) => (await fetch(`${base}/api/dev/echo-eval?op=status${q}${sq}`)).json()),
+  );
+  console.log(`[echo-eval] ${states.map((s) => `${s.done}/${s.total}`).join('  ')}`);
+  if (!sharded) {
+    const [s] = states;
+    if (s.error) {
+      console.error(`[echo-eval] failed: ${s.error}`);
+      stop(1);
+    }
+    if (s.finished) {
+      console.log(`[echo-eval] report: ${report}`);
+      stop(0);
+    }
+    continue;
+  }
+  if (!states.every((s) => s.finished || s.error)) continue;
+  const failed = states.flatMap((s, i) => (s.error ? [i] : []));
+  if (failed.length) {
+    for (const i of failed) console.error(`[echo-eval] shard ${i} failed: ${states[i].error}\n  resume: ${runUrls[i]}`);
+    console.error('[echo-eval] rerun the same command to resume the failed shards; finished shards keep their results');
     stop(1);
   }
-  if (s.finished) {
-    console.log(`[echo-eval] report: ${path.join(OUT, meetings ? 'meetings-report.md' : 'report.md')}`);
-    stop(0);
+  const merged = await fetch(`${base}/api/dev/echo-eval?op=merge${q}&shards=${shards}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: '{}',
+  });
+  if (!merged.ok) {
+    console.error(`[echo-eval] merge failed: ${(await merged.text()).slice(0, 200)}`);
+    stop(1);
   }
+  console.log(`[echo-eval] merged ${shards} shards; report: ${report}`);
+  stop(0);
 }

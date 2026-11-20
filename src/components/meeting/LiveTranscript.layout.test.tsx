@@ -2,64 +2,30 @@
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
-import type { Segment, Speaker } from '@/lib/meeting';
-import { LiveTranscript } from './LiveTranscript';
-
-const speakers: Record<string, Speaker> = {
-  'mic:0': { id: 'mic:0', source: 'mic', label: 'Speaker 1', colorIndex: 0 },
-  'mic:1': { id: 'mic:1', source: 'mic', label: 'Speaker 2', colorIndex: 1 },
-};
-
-const seg = (id: string, speaker: string, start: number): Segment => ({
-  id,
-  source: 'mic',
-  speaker,
-  text: id,
-  start,
-  end: start + 2,
-  final: true,
-});
+import { rowOf, seg, view } from './LiveTranscript.testUtils';
 
 afterEach(cleanup);
 
-describe('LiveTranscript phone layout (390px)', () => {
-  it('fits "Speaker 1"/"Speaker 2" in the phone speaker column without ellipsis', () => {
-    const { container } = render(
-      <LiveTranscript
-        segments={[seg('a', 'mic:0', 0), seg('b', 'mic:1', 5)]}
-        speakers={speakers}
-        status="live"
-        autoScrollEnabled={false}
-        onStartRecording={() => {}}
-        modelReady
-        onOpenSettings={() => {}}
-      />,
-    );
-    expect(container.textContent).toContain('Speaker 1');
-    expect(container.textContent).toContain('Speaker 2');
-
-    const row = container.querySelector('[data-seg-id="a"]')!.parentElement!;
-    expect(row.className).toContain('6rem');
-    expect(row.className).not.toContain('4.5rem_minmax');
-
-    expect(row.className).toContain('sm:grid-cols-');
-    expect(row.className).toContain('7rem');
+describe('LiveTranscript speaker header layout', () => {
+  it('puts dot, name and time on a header line above the full-width text', () => {
+    const { container } = render(view([seg('a', 'mic:0', 0), seg('b', 'mic:1', 5)]));
+    const row = rowOf(container, 'a');
+    expect(row.className).not.toMatch(/grid/);
+    const [header, text] = Array.from(row.children);
+    const [dot, name, time] = Array.from(header.children);
+    expect(dot.getAttribute('aria-hidden')).toBe('true');
+    expect(dot.className).toContain('bg-primary-500');
+    expect(name.querySelector('[data-speaker-name]')!.textContent).toBe('Speaker 1');
+    expect(time.textContent).toBe('00:00');
+    expect(text.getAttribute('data-seg-id')).toBe('a');
+    expect(text.className).toContain('pl-3.5');
+    expect(rowOf(container, 'b').firstElementChild!.firstElementChild!.className).toContain('bg-secondary-500');
   });
 
-  it('keeps the wider phone column past the first hour too', () => {
-    const { container } = render(
-      <LiveTranscript
-        segments={[seg('a', 'mic:0', 3725)]}
-        speakers={speakers}
-        status="live"
-        autoScrollEnabled={false}
-        onStartRecording={() => {}}
-        modelReady
-        onOpenSettings={() => {}}
-      />,
-    );
-    const row = container.querySelector('[data-seg-id="a"]')!.parentElement!;
-    expect(row.className).toContain('6rem');
-    expect(container.textContent).toContain('Speaker 1');
+  it('shows hh:mm:ss in the header past the first hour without a time column', () => {
+    const { container } = render(view([seg('a', 'mic:0', 3725)]));
+    const row = rowOf(container, 'a');
+    expect(row.querySelector('[data-speaker-time]')!.textContent).toBe('01:02:05');
+    expect(row.className).not.toMatch(/grid-cols/);
   });
 });
