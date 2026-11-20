@@ -41,4 +41,51 @@ describe('AssistantSection', () => {
     expect(screen.getAllByText('Not connected')).toHaveLength(2);
     expect(screen.getByText('Copy command')).toBeTruthy();
   });
+
+  it('hides assistants that are not installed on this Mac', async () => {
+    mockFetch(() => ({
+      assistants: [
+        {
+          id: 'claude-desktop',
+          status: 'connected',
+          installed: false,
+          canAutoConnect: true,
+          manualCommand: null,
+          configPath: '/cfg.json',
+        },
+        {
+          id: 'claude-code',
+          status: 'not-connected',
+          installed: true,
+          canAutoConnect: true,
+          manualCommand: null,
+          configPath: null,
+        },
+        {
+          id: 'codex-app',
+          status: 'not-found',
+          installed: false,
+          canAutoConnect: false,
+          manualCommand: null,
+          configPath: null,
+        },
+      ],
+    }));
+    renderSection();
+    expect(await screen.findByText('Claude Code')).toBeTruthy();
+    expect(screen.queryByText('Claude Desktop')).toBeNull();
+    expect(screen.queryByText('Codex App')).toBeNull();
+  });
+
+  it('shows supported assistants hint when none are installed', async () => {
+    mockFetch(() => ({
+      assistants: [
+        { id: 'claude-desktop', status: 'not-found', installed: false, canAutoConnect: false, manualCommand: null, configPath: null },
+        { id: 'codex', status: 'not-found', installed: false, canAutoConnect: false, manualCommand: null, configPath: null },
+      ],
+    }));
+    renderSection();
+    expect(await screen.findByText(/No supported AI assistants found on this Mac/)).toBeTruthy();
+    expect(screen.getByText(/Claude Desktop, Claude Code, Codex, Gemini, and Antigravity/)).toBeTruthy();
+  });
 });

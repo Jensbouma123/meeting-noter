@@ -4,6 +4,14 @@ import path from 'node:path';
 import { MCP_SERVER_NAME, mcpEntry } from './mcp-entry';
 import type { DesktopConfig as Config } from './types';
 
+export const CLAUDE_DESKTOP_APP_NAME = 'Claude.app';
+export const CLAUDE_DESKTOP_BUNDLE_ID = 'com.anthropic.claudefordesktop';
+
+export function desktopBundlePaths(env: NodeJS.ProcessEnv): string[] {
+  const dirs = ['/Applications', env.HOME ? path.join(env.HOME, 'Applications') : null];
+  return dirs.filter((d): d is string => d !== null).map((d) => path.join(d, CLAUDE_DESKTOP_APP_NAME));
+}
+
 export function desktopConfigPath(env: NodeJS.ProcessEnv): string {
   return (
     env.MEETING_NOTER_CLAUDE_DESKTOP_CONFIG ??
