@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import net from 'node:net';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { evalPort, portBusyMessage } from './lib/eval-port.ts';
 import { MAX_GRID_SHARDS, gridUrl } from './lib/grid-url.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -30,14 +31,11 @@ const shardQs = sharded ? Array.from({ length: shards }, (_, i) => `&shard=${i}&
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-function freePort() {
-  return new Promise((resolve, reject) => {
+function portFree(port) {
+  return new Promise((resolve) => {
     const s = net.createServer();
-    s.once('error', reject);
-    s.listen(0, '127.0.0.1', () => {
-      const { port } = s.address();
-      s.close(() => resolve(port));
-    });
+    s.once('error', () => resolve(false));
+    s.listen(port, () => s.close(() => resolve(true)));
   });
 }
 
@@ -61,7 +59,17 @@ function openBrowser(url) {
 
 spawnSync(process.execPath, [path.join(root, 'src/lib/ort-paths/copy-ort-wasm.mjs')], { cwd: root, stdio: 'inherit' });
 
-const port = await freePort();
+let port;
+try {
+  port = evalPort(process.env.ECHO_EVAL_PORT);
+} catch (err) {
+  console.error(`[echo-eval] ${err.message}`);
+  process.exit(2);
+}
+if (!(await portFree(port))) {
+  console.error(`[echo-eval] ${portBusyMessage(port)}`);
+  process.exit(2);
+}
 const next = spawn(process.execPath, [path.join(root, 'node_modules/next/dist/bin/next'), 'dev', '-p', String(port)], {
   cwd: root,
   stdio: 'inherit',
