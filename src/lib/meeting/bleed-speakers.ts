@@ -1,8 +1,13 @@
-import { turnsOf, turnsRevision } from './diarization-turns';
+import { captureSpanOf } from './append-mode';
+import { turnsOf, turnsRevision, turnsSessionId } from './diarization-turns';
+import { getTranscriptSessionId } from './transcript-session';
+import type { Segment } from './types';
+import type { BleedCache } from './types/bleed-cache';
 
 const BLEED_SYSTEM_SHARE = 0.7;
+const BLEED_PIECE_SHARE = 0.5;
 
-let cached: { revision: number; speakers: ReadonlySet<string> } | null = null;
+let cached: BleedCache | null = null;
 
 function systemSpans(): [number, number][] {
   const merged: [number, number][] = [];
@@ -29,8 +34,7 @@ function overlapWith(spans: readonly [number, number][], start: number, end: num
   return total;
 }
 
-function computeBleedSpeakers(): ReadonlySet<string> {
-  const spans = systemSpans();
+function computeBleedSpeakers(spans: readonly [number, number][]): ReadonlySet<string> {
   const total = new Map<string, number>();
   const shared = new Map<string, number>();
   for (const t of turnsOf('mic')) {
@@ -44,10 +48,26 @@ function computeBleedSpeakers(): ReadonlySet<string> {
   return bleed;
 }
 
-export function micBleedSpeakers(): ReadonlySet<string> {
+function current(): BleedCache {
   const revision = turnsRevision();
-  if (cached?.revision !== revision) cached = { revision, speakers: computeBleedSpeakers() };
-  return cached.speakers;
+  if (cached?.revision !== revision) {
+    const spans = systemSpans();
+    cached = { revision, spans, speakers: computeBleedSpeakers(spans) };
+  }
+  return cached;
+}
+
+export function micBleedSpeakers(): ReadonlySet<string> {
+  return current().speakers;
+}
+
+export function isMicBleedPiece(seg: Segment): boolean {
+  if (seg.source !== 'mic' || turnsSessionId() !== getTranscriptSessionId()) return false;
+  const { spans, speakers } = current();
+  if (!speakers.has(seg.speaker)) return false;
+  const span = captureSpanOf(seg);
+  if (!span || span.end <= span.start) return false;
+  return overlapWith(spans, span.start, span.end) / (span.end - span.start) >= BLEED_PIECE_SHARE;
 }
 
 export function withoutBleedSpeakers(speakers: readonly string[]): readonly string[] {
