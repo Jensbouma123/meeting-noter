@@ -3,7 +3,11 @@ import os from 'node:os';
 import path from 'node:path';
 import type { AssistantDeps, CliRunner } from './types';
 
-export function tempDesktop(withApp = true): { dir: string; file: string; env: NodeJS.ProcessEnv } {
+export function tempDesktop(withApp = true): {
+  dir: string;
+  file: string;
+  env: NodeJS.ProcessEnv;
+} {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'assistants-'));
   const appDir = path.join(dir, 'Claude');
   if (withApp) fs.mkdirSync(appDir);
@@ -11,7 +15,11 @@ export function tempDesktop(withApp = true): { dir: string; file: string; env: N
   return {
     dir,
     file,
-    env: { NODE_ENV: 'test', MEETING_NOTER_CLAUDE_DESKTOP_CONFIG: file, MEETING_NOTER_MCP_PATH: '/app/mcp.mjs' },
+    env: {
+      NODE_ENV: 'test',
+      MEETING_NOTER_CLAUDE_DESKTOP_CONFIG: file,
+      MEETING_NOTER_MCP_PATH: '/app/mcp.mjs',
+    },
   };
 }
 
@@ -30,4 +38,13 @@ export function fakeDeps(
     buildMcp: async () => true,
     ...extra,
   };
+}
+
+export function tempHome(files: Record<string, string> = {}): string {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'assistants-home-'));
+  for (const [rel, text] of Object.entries(files)) {
+    fs.mkdirSync(path.dirname(path.join(home, rel)), { recursive: true });
+    fs.writeFileSync(path.join(home, rel), text);
+  }
+  return home;
 }

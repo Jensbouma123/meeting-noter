@@ -1,13 +1,6 @@
-export type AssistantId = 'claude-desktop' | 'claude-code' | 'codex';
-export type AssistantStatus = 'connected' | 'needs-repair' | 'not-connected' | 'not-found';
+import type { AssistantId, AssistantInfo, AssistantStatus } from '@/lib/assistants/types';
 
-export interface AssistantInfo {
-  id: AssistantId;
-  status: AssistantStatus;
-  canAutoConnect: boolean;
-  manualCommand: string | null;
-  configPath: string | null;
-}
+export type { AssistantId, AssistantInfo, AssistantStatus };
 
 export type AssistantActionResult =
   | { ok: true; status: AssistantStatus }
@@ -56,4 +49,8 @@ export type AssistantState = ReturnType<typeof import('./AssistantState').useAss
 export interface AssistantListProps {
   assistants: AssistantInfo[];
   state: AssistantState;
+}
+
+export interface AssistantKindTagProps {
+  kind: import('@/lib/assistants/types').AssistantKind;
 }

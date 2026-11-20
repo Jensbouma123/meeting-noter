@@ -6,10 +6,27 @@ export type AskPresetId = 'summary' | 'decisions' | 'actions' | 'all' | 'cleanup
 
 export type AskLanguage = 'en' | 'nl';
 
+export interface AskLink {
+  newChat: string;
+  prefill?: (encodedPrompt: string) => string;
+}
+
+export type AskServerLaunch = 'terminal' | 'app';
+
 export interface AskAssistant {
   id: AskAssistantId;
-  newChatUrl?: string;
-  prefillUrl?: (encodedPrompt: string) => string;
+  app?: AskLink;
+  web?: AskLink;
+  serverLaunch?: AskServerLaunch;
+}
+
+export type AskOutcome = 'opened' | 'copied' | 'copy-failed';
+
+export interface AskDeliveryIo {
+  copy: (text: string) => Promise<boolean>;
+  launchApp: (appUrl: string, webUrl: string | null) => void;
+  openWeb: (url: string) => void;
+  requestLaunch: (id: AskAssistantId, prompt: string) => Promise<boolean>;
 }
 
 export interface AskTurn {
@@ -26,7 +43,8 @@ export interface AskPromptInput {
 }
 
 export interface AskTarget {
-  url: string | null;
+  appUrl: string | null;
+  webUrl: string | null;
   prefilled: boolean;
 }
 

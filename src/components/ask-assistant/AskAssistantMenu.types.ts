@@ -1,7 +1,7 @@
 import type { AskAssistantId, AskPresetId } from '@/lib/ask-assistant';
 
 export interface AskAssistantMenuProps {
-  assistantId: AskAssistantId | null;
+  assistant: { id: AskAssistantId; name: string } | null;
   configuredIds: readonly AskAssistantId[];
   loaded: boolean;
   hasTranscript: boolean;

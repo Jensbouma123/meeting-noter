@@ -21,7 +21,7 @@ const LIST = {
 const NOTICES: Array<[string, string]> = [
   ['Claude Desktop', 'Quit Claude Desktop completely (Cmd+Q) and reopen it.'],
   ['Claude Code', "Start a new Claude Code session; sessions already open won't see it."],
-  ['Codex', "Start a new Codex session; sessions already open won't see it."],
+  ['Codex CLI', "Start a new Codex session; sessions already open won't see it."],
 ];
 
 describe('AssistantSection restart notice', () => {

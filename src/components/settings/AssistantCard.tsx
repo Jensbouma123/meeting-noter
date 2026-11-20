@@ -1,7 +1,9 @@
 'use client';
 
 import { Alert, Badge, Button, Text } from '@jensbouma123/acciva-ui';
+import { assistantKind } from '@/lib/assistants/catalog';
 import { useT } from '@/lib/i18n/useT';
+import { AssistantKindTag } from './AssistantKindTag';
 import { AssistantDetails } from './AssistantDetails';
 import { AssistantConfirm } from './AssistantConfirm';
 import { AssistantCopyButton } from './AssistantCopyButton';
@@ -12,6 +14,7 @@ import type { AssistantCardProps } from './Assistant.types';
 
 const BADGE = {
   connected: 'success',
+  installed: 'success',
   'needs-repair': 'warning',
   'not-connected': 'neutral',
   'not-found': 'warning',
@@ -39,7 +42,7 @@ export function AssistantCard({
       <Button variant="danger" onClick={onDisconnect} disabled={busy}>
         {t('disconnect')}
       </Button>
-    ) : status === 'not-found' ? null : canAutoConnect ? (
+    ) : status === 'not-found' || status === 'installed' ? null : canAutoConnect ? (
       <Button onClick={() => onConnect(false)} disabled={busy || !!confirm}>
         {t('connect')}
       </Button>
@@ -54,6 +57,7 @@ export function AssistantCard({
           <span className="flex items-center gap-3">
             <AssistantLogo id={id} />
             {ASSISTANT_NAMES[id]}
+            <AssistantKindTag kind={assistantKind(id)} />
             <Badge variant={BADGE[status]} size="sm">
               {t(`status.${status}`)}
             </Badge>

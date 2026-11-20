@@ -47,7 +47,13 @@ describe('buildAskPrompt', () => {
   });
 
   it('uses localized labels, falls back on an untitled name and drops an empty date', () => {
-    const prompt = buildAskPrompt({ instruction: 'Doe het.', title: ' ', dateLabel: '', turns, language: 'nl' });
+    const prompt = buildAskPrompt({
+      instruction: 'Doe het.',
+      title: ' ',
+      dateLabel: '',
+      turns,
+      language: 'nl',
+    });
     expect(prompt).toContain('Meeting: Naamloze meeting');
     expect(prompt).not.toContain('Datum');
   });
@@ -61,27 +67,40 @@ describe('buildAskPrompt', () => {
 });
 
 describe('resolveAskTarget', () => {
-  it('prefills the encoded prompt in Claude Desktop', () => {
+  it('prefills the encoded prompt in the Claude app and in its web fallback', () => {
     expect(resolveAskTarget(getAskAssistant('claude-desktop'), 'a & b?')).toEqual({
-      url: 'claude://claude.ai/new?q=a%20%26%20b%3F',
+      appUrl: 'claude://claude.ai/new?q=a%20%26%20b%3F',
+      webUrl: 'https://claude.ai/new?q=a%20%26%20b%3F',
       prefilled: true,
     });
   });
 
-  it('has no URL to open for the command-line assistants', () => {
-    expect(resolveAskTarget(getAskAssistant('claude-code'), 'hi')).toEqual({ url: null, prefilled: false });
-    expect(resolveAskTarget(getAskAssistant('codex'), 'hi')).toEqual({ url: null, prefilled: false });
+  it('has no link for the command-line assistants, so the prompt goes to the clipboard', () => {
+    expect(resolveAskTarget(getAskAssistant('claude-code'), 'hi')).toEqual({
+      appUrl: null,
+      webUrl: null,
+      prefilled: false,
+    });
+    expect(resolveAskTarget(getAskAssistant('codex'), 'hi')).toEqual({
+      appUrl: null,
+      webUrl: null,
+      prefilled: false,
+    });
   });
 
-  it('falls back to the new-chat URL once the encoded prompt exceeds the limit', () => {
+  it('opens a new chat without text once the encoded prompt exceeds the limit', () => {
     const claude = getAskAssistant('claude-desktop');
     expect(resolveAskTarget(claude, 'x'.repeat(6000)).prefilled).toBe(true);
-    expect(resolveAskTarget(claude, 'x'.repeat(6001))).toEqual({ url: 'claude://claude.ai/new', prefilled: false });
+    expect(resolveAskTarget(claude, 'x'.repeat(6001))).toEqual({
+      appUrl: 'claude://claude.ai/new',
+      webUrl: 'https://claude.ai/new',
+      prefilled: false,
+    });
     expect(resolveAskTarget(claude, ' '.repeat(2001)).prefilled).toBe(false);
   });
 
   it('only accepts the assistant ids Settings can connect', () => {
-    expect(Object.keys(ASK_ASSISTANTS)).toEqual(['claude-desktop', 'claude-code', 'codex']);
+    expect(Object.keys(ASK_ASSISTANTS)).toEqual(['claude-desktop', 'claude-code', 'codex-app', 'codex', 'gemini-app', 'agy']);
     expect(isAskAssistantId('chatgpt')).toBe(false);
   });
 });
