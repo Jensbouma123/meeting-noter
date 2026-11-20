@@ -1,24 +1,15 @@
 'use client';
 
-import { Text } from '@jensbouma123/acciva-ui';
-import { formatClock } from '@/lib/meeting/transcript-format';
 import { useT } from '@/lib/i18n/useT';
 import { TranscriptPendingSpeaker } from './TranscriptPendingSpeaker';
+import { TranscriptSpeakerHeader } from './TranscriptSpeakerHeader';
 import { TranscriptSpeakerName } from './TranscriptSpeakerName';
 import { TranscriptTurn } from './TranscriptTurn';
 import { buildTurnActions } from './buildTurnActions';
 import { useSpeakerStyle } from './useSpeakerStyle';
 import type { TranscriptLineRowProps } from './LiveTranscript.types';
 
-export function TranscriptLineRow({
-  item,
-  index,
-  isLast,
-  rowClass,
-  sessionId,
-  speakers,
-  flash,
-}: TranscriptLineRowProps) {
+export function TranscriptLineRow({ item, index, isLast, sessionId, speakers, flash }: TranscriptLineRowProps) {
   const t = useT('transcript');
   const speakerStyle = useSpeakerStyle(speakers);
   const { seg, turnStart, showTime } = item;
@@ -31,32 +22,35 @@ export function TranscriptLineRow({
       ref={flash?.ref}
       className={`mn-vrow px-4 md:px-8 ${index === 0 ? 'pt-6' : ''} ${isLast ? 'pb-40' : ''} ${flash?.className ?? ''}`}
     >
-      <div className="mx-auto w-full max-w-[calc(72ch+10rem)]">
+      <div className="mx-auto w-full max-w-[calc(72ch+1rem)]">
         <div
           data-speaker={seg.speaker}
           data-turn-start={turnStart ? '' : undefined}
-          className={`${rowClass} ${gap} pb-0.5`}
+          className={`flex flex-col gap-y-1 ${gap} pb-0.5`}
         >
-          <Text as="span" size="xs" variant="muted" font="mono" className="select-none text-right tabular-nums">
-            {showTime ? formatClock(seg.start) : ''}
-          </Text>
-          {!turnStart ? (
-            <span aria-hidden="true" />
-          ) : seg.unconfirmed ? (
-            <TranscriptPendingSpeaker />
-          ) : (
-            <span className="flex min-w-0 items-baseline select-none" title={`${style.label} · ${sourceLabel}`}>
-              <TranscriptSpeakerName
-                sessionId={sessionId}
-                speakerId={seg.speaker}
-                source={seg.source}
-                speakers={speakers}
-                style={style}
-              />
-              <span className="sr-only">({sourceLabel})</span>
-            </span>
+          {turnStart && (
+            <TranscriptSpeakerHeader
+              dotClass={seg.unconfirmed ? 'bg-text-muted' : style.color.dotClass}
+              start={seg.start}
+              title={seg.unconfirmed ? undefined : `${style.label} · ${sourceLabel}`}
+            >
+              {seg.unconfirmed ? (
+                <TranscriptPendingSpeaker />
+              ) : (
+                <>
+                  <TranscriptSpeakerName
+                    sessionId={sessionId}
+                    speakerId={seg.speaker}
+                    source={seg.source}
+                    speakers={speakers}
+                    style={style}
+                  />
+                  <span className="sr-only">({sourceLabel})</span>
+                </>
+              )}
+            </TranscriptSpeakerHeader>
           )}
-          <div data-seg-id={seg.id} className="min-w-0">
+          <div data-seg-id={seg.id} className="min-w-0 pl-3.5">
             <TranscriptTurn
               actions={buildTurnActions(sessionId, seg)}
               segment={seg}

@@ -52,13 +52,14 @@ export function timeline(container: HTMLElement): [string, string[][]][] {
   for (const line of container.querySelectorAll('[data-seg-id]')) {
     const row = line.parentElement!;
     if (row.hasAttribute('data-turn-start')) turns.push([speakerShown(row), []]);
-    turns[turns.length - 1][1].push([row.children[0].textContent ?? '', line.getAttribute('data-seg-id') ?? '']);
+    const time = row.querySelector(':scope > [data-speaker-header] [data-speaker-time]')?.textContent ?? '';
+    turns[turns.length - 1][1].push([time, line.getAttribute('data-seg-id') ?? '']);
   }
   return turns;
 }
 
 export function speakerShown(row: Element): string {
-  return row.children[1].querySelector('[data-speaker-name]')?.textContent ?? '';
+  return row.querySelector(':scope > [data-speaker-header] [data-speaker-name]')?.textContent ?? '';
 }
 
 export const rowOf = (container: HTMLElement, id: string) =>
