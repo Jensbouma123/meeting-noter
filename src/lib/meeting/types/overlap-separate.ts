@@ -1,4 +1,4 @@
-import type { SeparateClip } from './overlap-retranscribe';
+import type { SeparateClip, TimedWord } from './overlap-retranscribe';
 
 export type SeparatorBackend = 'unloaded' | 'webgpu' | 'wasm' | 'failed';
 
@@ -13,4 +13,15 @@ export interface OverlapSeparator {
 export interface TrackMapping {
   speakers: [string, string];
   margin: number;
+}
+
+export interface GateState {
+  running: boolean;
+  recent: readonly number[];
+}
+
+export interface TrackWords {
+  speaker: string;
+  track: Float32Array;
+  heard: TimedWord[];
 }

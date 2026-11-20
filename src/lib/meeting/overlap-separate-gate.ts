@@ -1,15 +1,10 @@
 import { MIN_RETRANSCRIBE_SECONDS } from './overlap-spans';
 import type { Source } from './types';
 import type { OverlapSpan } from './types/overlap-retranscribe';
-import type { SeparationSkip, SeparatorBackend } from './types/overlap-separate';
+import type { GateState, SeparationSkip, SeparatorBackend } from './types/overlap-separate';
 
 export const SEPARATION_RATE_WINDOW_MS = 60_000;
 export const SEPARATIONS_PER_WINDOW = 6;
-
-export interface GateState {
-  running: boolean;
-  recent: readonly number[];
-}
 
 export function separationGate(
   span: OverlapSpan,

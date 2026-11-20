@@ -1,6 +1,7 @@
 import { missedWords } from './overlap-missed-words';
 import { CAPTURE_SAMPLE_RATE } from './pcm';
 import type { AttributedWord, OverlapSpan, TimedWord } from './types/overlap-retranscribe';
+import type { TrackWords } from './types/overlap-separate';
 
 export const MAX_TRACK_DROP_DB = 20;
 
@@ -17,12 +18,6 @@ export function audibleOnTrack(word: TimedWord, track: Float32Array, mix: Float3
   const all = energy(mix, from, to);
   if (all <= 0) return own > 0;
   return 10 * Math.log10(Math.max(own, 1e-12) / all) >= -MAX_TRACK_DROP_DB;
-}
-
-export interface TrackWords {
-  speaker: string;
-  track: Float32Array;
-  heard: TimedWord[];
 }
 
 export function stampTrackWords(
