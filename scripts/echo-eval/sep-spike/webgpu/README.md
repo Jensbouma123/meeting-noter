@@ -14,6 +14,11 @@ venv/bin/python rewrite_model.py "$M/sep-model/mossformer2_ss_16k.onnx" "$M/sep-
 venv/bin/python verify_rewrite.py "$M/sep-model/mossformer2_ss_16k.onnx" "$M/sep-model/mossformer2_ss_16k.webgpu.onnx" "$M/corpus"
 ```
 
+Default WebGPU limits (Chrome and Safari): weights max 4 MiB; the largest activation
+(`to_hidden`, frames × 2048 × f32) is 126.0 MiB for the 8 s clip cap, under the 128 MiB
+default `maxStorageBufferBindingSize`. Clips past ~8.19 s exceed it
+(`src/lib/separation/browser/webgpu-limits.test.ts`).
+
 The app loads the rewrite (never committed) from `NEXT_PUBLIC_MOSSFORMER2_URL`, default
 `/models/mossformer2-ss-16k/mossformer2_ss_16k.webgpu.onnx` (gitignored `public/models/`):
 
