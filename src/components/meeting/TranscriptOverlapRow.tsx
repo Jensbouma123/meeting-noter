@@ -3,12 +3,10 @@
 import { Text } from '@jensbouma123/acciva-ui';
 import { formatClock } from '@/lib/meeting/transcript-format';
 import { useT } from '@/lib/i18n/useT';
-import { OverlapBracket } from './OverlapBracket';
 import { OverlapColumn } from './OverlapColumn';
+import { TranscriptSpeakerName } from './TranscriptSpeakerName';
 import { useSpeakerStyle } from './useSpeakerStyle';
 import type { TranscriptOverlapRowProps } from './LiveTranscript.types';
-
-const DIVIDER = 'before:absolute before:inset-x-0 before:top-0 before:border-t before:border-border-subtle/40';
 
 export function TranscriptOverlapRow({
   item,
@@ -22,8 +20,8 @@ export function TranscriptOverlapRow({
   const t = useT('transcript');
   const speakerStyle = useSpeakerStyle(speakers);
   const { start, columns } = item;
-  const names = columns.map((c) => speakerStyle(c.speaker, c.segs[0].source).label);
-  const groupLabel = t('overlap').replace('{names}', names.join(t('and')));
+  const styled = columns.map((c) => ({ ...c, style: speakerStyle(c.speaker, c.segs[0].source) }));
+  const groupLabel = t('overlap').replace('{names}', styled.map((c) => c.style.label).join(t('and')));
 
   return (
     <div
@@ -36,28 +34,36 @@ export function TranscriptOverlapRow({
           aria-label={groupLabel}
           data-overlap=""
           data-turn-start=""
-          className={`${rowClass} relative py-1.5 ${index > 0 ? DIVIDER : ''}`}
+          className={`${rowClass} ${index > 0 ? 'pt-5' : ''} pb-0.5`}
         >
           <Text as="span" size="xs" variant="muted" font="mono" className="select-none text-right tabular-nums">
             {formatClock(start)}
           </Text>
-          <div className="relative col-span-2 min-w-0 pl-3 sm:pl-0">
-            <OverlapBracket title={groupLabel} />
-            <div
-              className="flex flex-col gap-y-2 sm:grid sm:gap-x-4"
-              style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}
-            >
-              {columns.map(({ speaker, segs }) => (
-                <OverlapColumn
-                  key={speaker}
-                  speakerId={speaker}
-                  segs={segs}
-                  speakers={speakers}
+          <span data-overlap-names="" className="flex min-w-0 flex-col select-none">
+            {styled.map(({ speaker, segs, style }, i) => (
+              <span key={speaker} className="flex min-w-0 items-baseline gap-1">
+                {i > 0 && (
+                  <Text as="span" size="sm" variant="muted" aria-hidden="true">
+                    +
+                  </Text>
+                )}
+                <TranscriptSpeakerName
                   sessionId={sessionId}
-                  style={speakerStyle(speaker, segs[0].source)}
+                  speakerId={speaker}
+                  source={segs[0].source}
+                  speakers={speakers}
+                  style={style}
                 />
-              ))}
-            </div>
+              </span>
+            ))}
+            <Text as="span" size="xs" variant="muted">
+              ({t('together')})
+            </Text>
+          </span>
+          <div className="flex min-w-0 flex-col gap-y-1">
+            {styled.map(({ speaker, segs, style }) => (
+              <OverlapColumn key={speaker} speakerId={speaker} segs={segs} sessionId={sessionId} style={style} />
+            ))}
           </div>
         </div>
       </div>

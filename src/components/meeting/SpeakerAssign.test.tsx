@@ -20,9 +20,12 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('SpeakerAssign', () => {
-  it('shows "Who is this?" for an unnamed speaker and assigns a participant in one click', () => {
+  it('shows an unnamed speaker by label with a visible pencil and assigns a participant in one click', () => {
     view('Speaker 2');
-    expect(screen.getByTestId('speaker-assign')).toHaveTextContent('Who is this?');
+    const trigger = screen.getByTestId('speaker-assign');
+    expect(trigger).toHaveTextContent('Speaker 2');
+    expect(trigger).toHaveAccessibleName('Who is this? (Speaker 2)');
+    expect(trigger.querySelector('[data-speaker-edit]')!.getAttribute('class')).toContain('opacity-70');
     open();
     expect(screen.getByText('not yet assigned')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Jan'));

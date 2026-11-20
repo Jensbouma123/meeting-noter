@@ -23,6 +23,7 @@ export interface TranscriptLine {
   kind: 'line';
   seg: Segment;
   turnStart: boolean;
+  showTime: boolean;
 }
 
 export interface TranscriptOverlap {

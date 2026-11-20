@@ -1,5 +1,5 @@
 import { Button } from '@jensbouma123/acciva-ui';
-import { ChevronDown, UserPlus } from 'lucide-react';
+import { ChevronDown, Pencil, UserPlus } from 'lucide-react';
 import type { SpeakerAssignTriggerProps } from './renderSpeakerAssignTrigger.types';
 
 export function renderSpeakerAssignTrigger({
@@ -56,15 +56,24 @@ export function renderSpeakerAssignTrigger({
       size="xs"
       data-testid="speaker-assign"
       aria-label={unnamed ? `${t('whoIsThis')} (${label})` : `${t('change')}: ${label}`}
-      trailingIcon={<ChevronDown className="size-3 opacity-60" aria-hidden="true" />}
-      className={`min-w-0 max-w-full justify-start ${className ?? ''}`}
+      trailingIcon={
+        <Pencil
+          data-speaker-edit=""
+          className={`size-3 text-muted-foreground transition-opacity ${
+            unnamed ? 'opacity-70' : 'opacity-0 group-hover/assign:opacity-70 group-focus-visible/assign:opacity-70'
+          }`}
+          aria-hidden="true"
+        />
+      }
+      className={`group/assign -ml-1.5 min-w-0 max-w-full justify-start px-1.5 ${className ?? ''}`}
     >
       <span
         ref={nameRef}
+        data-speaker-name=""
         title={nameTruncated ? label : undefined}
         className={`min-w-0 truncate text-left ${textClassName ?? ''}`}
       >
-        {unnamed ? t('whoIsThis') : label}
+        {label}
       </span>
     </Button>
   );

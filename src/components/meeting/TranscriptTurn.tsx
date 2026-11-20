@@ -30,7 +30,7 @@ export const TranscriptTurn = React.memo(
           <TranscriptTurnHeader segment={segment} speakerLabel={speakerLabel} speakerColorIndex={speakerColorIndex} />
         )}
 
-        <div className="flex items-start gap-2 border-l-2 border-border-subtle/40 pl-4.5 transition-colors group-hover:border-border-subtle">
+        <div className="flex items-start gap-2">
           <Text
             as="p"
             size="md"
