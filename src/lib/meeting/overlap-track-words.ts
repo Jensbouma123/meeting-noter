@@ -4,7 +4,7 @@ import type { AttributedWord, OverlapSpan, TimedWord } from './types/overlap-ret
 import type { SeparatedWords, TrackWords } from './types/overlap-separate';
 
 export const MAX_TRACK_DROP_DB = 20;
-// A first-pass word moves to another speaker only when that speaker's track carries it this much louder than the other track.
+export const LEAK_DB = 12;
 export const RELABEL_MIN_DB = 6;
 
 function energy(pcm: Float32Array, from: number, to: number): number {
@@ -29,21 +29,30 @@ export function audibleOnTrack(word: TimedWord, track: Float32Array, mix: Float3
 function dominanceDb(word: TimedWord, own: TrackWords, tracks: readonly TrackWords[], clipStart: number): number {
   const mine = wordEnergy(word, own.track, clipStart);
   const others = tracks.filter((t) => t !== own).map((t) => wordEnergy(word, t.track, clipStart));
-  return others.length ? ratioDb(mine, Math.max(...others)) : Infinity;
+  return others.length ? ratioDb(mine, Math.max(...others)) : 0;
 }
 
 const inSpan = (w: TimedWord, span: OverlapSpan) => wordMidpoint(w) >= span.start && wordMidpoint(w) < span.end;
 
-const heardOn = (t: TrackWords, w: AttributedWord, span: OverlapSpan) => missedWords(t.heard, [w], span).length === 0;
+const heardOn = (t: TrackWords, w: TimedWord, span: OverlapSpan) => missedWords(t.heard, [w], span).length === 0;
 
-function relabels(tracks: readonly TrackWords[], first: readonly AttributedWord[], span: OverlapSpan, clipStart: number): [AttributedWord, string][] {
+function owns(t: TrackWords, w: TimedWord, tracks: readonly TrackWords[], span: OverlapSpan, clipStart: number, marginDb: number): boolean {
+  if (dominanceDb(w, t, tracks, clipStart) < -LEAK_DB) return false;
+  const own = wordEnergy(w, t.track, clipStart);
+  return tracks.every((o) => o === t || !heardOn(o, w, span) || ratioDb(own, wordEnergy(w, o.track, clipStart)) >= marginDb);
+}
+
+function relabels(
+  tracks: readonly TrackWords[],
+  first: readonly AttributedWord[],
+  span: OverlapSpan,
+  clipStart: number,
+): [AttributedWord, string][] {
   const moved: [AttributedWord, string][] = [];
   for (const w of first) {
     if (!inSpan(w, span)) continue;
-    const owner = tracks
-      .filter((t) => heardOn(t, w, span))
-      .sort((a, b) => wordEnergy(w, b.track, clipStart) - wordEnergy(w, a.track, clipStart))[0];
-    if (owner && owner.speaker !== w.speaker && dominanceDb(w, owner, tracks, clipStart) >= RELABEL_MIN_DB) moved.push([w, owner.speaker]);
+    const owner = tracks.find((t) => t.speaker !== w.speaker && heardOn(t, w, span) && owns(t, w, tracks, span, clipStart, RELABEL_MIN_DB));
+    if (owner) moved.push([w, owner.speaker]);
   }
   return moved;
 }
@@ -56,12 +65,25 @@ export function stampTrackWords(
   clipStart: number,
 ): SeparatedWords {
   const moves = relabels(tracks, first, span, clipStart);
-  const words: AttributedWord[] = moves.map(([w, speaker]) => ({ text: w.text, start: w.start, end: w.end, speaker }));
+  const words: AttributedWord[] = moves.map(([w, speaker]) => ({
+    text: w.text,
+    start: w.start,
+    end: w.end,
+    speaker,
+  }));
   for (const t of tracks) {
     for (const w of missedWords(first, t.heard, span)) {
-      // A word louder on another track is that speaker's leak, not this speaker's line.
-      if (audibleOnTrack(w, t.track, mix, clipStart) && dominanceDb(w, t, tracks, clipStart) >= 0) words.push({ text: w.text, start: w.start, end: w.end, speaker: t.speaker });
+      if (audibleOnTrack(w, t.track, mix, clipStart) && owns(t, w, tracks, span, clipStart, 0))
+        words.push({
+          text: w.text,
+          start: w.start,
+          end: w.end,
+          speaker: t.speaker,
+        });
     }
   }
-  return { words: words.sort((a, b) => a.start - b.start), moved: moves.map(([w]) => w) };
+  return {
+    words: words.sort((a, b) => a.start - b.start),
+    moved: moves.map(([w]) => w),
+  };
 }
