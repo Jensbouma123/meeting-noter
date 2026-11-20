@@ -20,7 +20,7 @@ function fakeStream(opts: { audio?: boolean; video?: boolean } = { audio: true }
   } as unknown as MediaStream;
 }
 
-class FakeAudioContext {
+class FakeAudioContext extends EventTarget {
   state: 'running' | 'suspended' = 'running';
   sampleRate = 16000;
   audioWorklet = { addModule: vi.fn().mockResolvedValue(undefined) };

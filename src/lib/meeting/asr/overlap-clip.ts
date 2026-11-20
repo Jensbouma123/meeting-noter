@@ -5,13 +5,11 @@ import { asrState } from './state';
 import { liveBusy } from './live-state';
 import { getRecordingTranscriptionMode } from './recording-mode';
 import { pumpLiveAudio } from './live-pump';
+import { waitForLiveIdle } from './live-idle';
 
 export async function recognizeOverlapClip(audio: Float32Array): Promise<TimedWord[]> {
   if (getRecordingTranscriptionMode() === 'post-stop') return [];
-  const deadline = Date.now() + OVERLAP_CLIP_WAIT_MS;
-  while (liveBusy() && Date.now() < deadline) {
-    await new Promise((resolve) => setTimeout(resolve, 25));
-  }
+  await waitForLiveIdle(OVERLAP_CLIP_WAIT_MS);
   const engine = asrState.engine?.isReady ? asrState.engine : null;
   if (!engine || liveBusy()) return [];
   const clip =
