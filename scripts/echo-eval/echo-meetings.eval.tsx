@@ -47,7 +47,7 @@ const done = new Set(
 );
 
 describe.skipIf(!enabled)(`meeting eval (${cases.length} meetings)`, () => {
-  afterAll(() => writeMeetingReport(path.resolve(OUT_DIR), file, utts));
+  afterAll(() => writeMeetingReport(path.resolve(OUT_DIR), file, buildMeetings(utts)));
   it.each(cases.filter((c) => !done.has(c.id)))('$id', { timeout: 0 }, async (c) => {
     const asr = await loadWebgpuAsr();
     await consentAndCache(PARAKEET_TDT_V3_WEBGPU);

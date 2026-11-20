@@ -1,19 +1,22 @@
 import fs from 'node:fs';
 
-export function readWav16kMono(file: string): Float32Array {
-  const buf = fs.readFileSync(file);
+export function wavDataChunk(buf: Buffer, label = 'wav'): { offset: number; size: number } {
   let offset = 12;
   while (offset + 8 <= buf.length) {
     const id = buf.toString('ascii', offset, offset + 4);
     const size = buf.readUInt32LE(offset + 4);
-    if (id === 'data') {
-      const out = new Float32Array(Math.floor(size / 2));
-      for (let i = 0; i < out.length; i += 1) out[i] = buf.readInt16LE(offset + 8 + 2 * i) / 32768;
-      return out;
-    }
+    if (id === 'data') return { offset: offset + 8, size: Math.min(size, buf.length - offset - 8) };
     offset += 8 + size + (size & 1);
   }
-  throw new Error(`no data chunk in ${file}`);
+  throw new Error(`no data chunk in ${label}`);
+}
+
+export function readWav16kMono(file: string): Float32Array {
+  const buf = fs.readFileSync(file);
+  const chunk = wavDataChunk(buf, file);
+  const out = new Float32Array(Math.floor(chunk.size / 2));
+  for (let i = 0; i < out.length; i += 1) out[i] = buf.readInt16LE(chunk.offset + 2 * i) / 32768;
+  return out;
 }
 
 export function writeWav16kMono(file: string, audio: Float32Array): void {
