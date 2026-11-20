@@ -1,6 +1,6 @@
 import { CAPTURE_SAMPLE_RATE } from './pcm';
 import type { OverlapTurn } from './types/overlap-retranscribe';
-import type { TrackMapping } from './types/overlap-separate';
+import type { TrackMapping, TrackScore } from './types/overlap-separate';
 
 export const MAP_FRAME_SECONDS = 0.08;
 export const MIN_MAP_MARGIN = 0.2;
@@ -52,20 +52,35 @@ function soloShare(env: readonly number[], own: readonly number[], other: readon
 const soloSeconds = (own: readonly number[], other: readonly number[]) =>
   own.filter((v, i) => v && !other[i]).length * MAP_FRAME_SECONDS;
 
+export function scoreTracks(
+  tracks: readonly [Float32Array, Float32Array],
+  speakers: readonly [string, string],
+  turns: readonly OverlapTurn[],
+  clipStart: number,
+): TrackScore {
+  const env = tracks.map((t) => frameEnvelope(t));
+  const frames = Math.min(env[0].length, env[1].length);
+  const [a, b] = speakers.map((s) => activity(s, turns, clipStart, frames));
+  const score = (e: readonly number[], own: number[], other: number[]) => correlation(e, own) + soloShare(e, own, other);
+  const straight = score(env[0], a, b) + score(env[1], b, a);
+  const swapped = score(env[0], b, a) + score(env[1], a, b);
+  return {
+    speakers: straight >= swapped ? [speakers[0], speakers[1]] : [speakers[1], speakers[0]],
+    margin: Math.abs(straight - swapped),
+    solo: [soloSeconds(a, b), soloSeconds(b, a)],
+  };
+}
+
 export function mapTracks(
   tracks: readonly [Float32Array, Float32Array],
   speakers: readonly [string, string],
   turns: readonly OverlapTurn[],
   clipStart: number,
 ): TrackMapping | null {
-  const env = tracks.map((t) => frameEnvelope(t));
-  const frames = Math.min(env[0].length, env[1].length);
-  const [a, b] = speakers.map((s) => activity(s, turns, clipStart, frames));
-  if (soloSeconds(a, b) < MIN_SOLO_SECONDS || soloSeconds(b, a) < MIN_SOLO_SECONDS) return null;
-  const score = (e: readonly number[], own: number[], other: number[]) => correlation(e, own) + soloShare(e, own, other);
-  const straight = score(env[0], a, b) + score(env[1], b, a);
-  const swapped = score(env[0], b, a) + score(env[1], a, b);
-  const margin = Math.abs(straight - swapped);
-  if (margin < MIN_MAP_MARGIN) return null;
-  return { speakers: straight >= swapped ? [speakers[0], speakers[1]] : [speakers[1], speakers[0]], margin };
+  return acceptedMapping(scoreTracks(tracks, speakers, turns, clipStart));
+}
+
+export function acceptedMapping({ speakers, margin, solo }: TrackScore): TrackMapping | null {
+  if (solo[0] < MIN_SOLO_SECONDS || solo[1] < MIN_SOLO_SECONDS || margin < MIN_MAP_MARGIN) return null;
+  return { speakers, margin };
 }
