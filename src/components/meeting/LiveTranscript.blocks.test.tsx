@@ -28,11 +28,11 @@ describe('LiveTranscript speaker blocks', () => {
     expect(container.innerHTML).not.toMatch(/before:border-t|border-l-2/);
   });
 
-  it('leaves the name cell of a continuation line empty', () => {
+  it('gives a continuation line no header, only its text', () => {
     const { container } = render(view(lines));
-    const name = rowOf(container, 'b').children[1];
-    expect(name.getAttribute('aria-hidden')).toBe('true');
-    expect(name.textContent).toBe('');
+    const row = rowOf(container, 'b');
+    expect(row.children).toHaveLength(1);
+    expect(row.querySelector('[data-speaker-header]')).toBeNull();
     expect(speakerShown(rowOf(container, 'c'))).toBe('');
     expect(speakerShown(rowOf(container, 'd'))).toBe('Speaker 2');
   });

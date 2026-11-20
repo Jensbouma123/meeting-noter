@@ -46,7 +46,6 @@ export interface SpeakerStyle {
 export interface TranscriptRowBaseProps {
   index: number;
   isLast: boolean;
-  rowClass: string;
   sessionId?: string;
   speakers: Record<string, Speaker>;
   flash?: FlashRowProps;
