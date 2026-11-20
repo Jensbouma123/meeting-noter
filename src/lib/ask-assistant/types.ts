@@ -6,10 +6,15 @@ export type AskPresetId = 'summary' | 'decisions' | 'actions' | 'all' | 'cleanup
 
 export type AskLanguage = 'en' | 'nl';
 
+export interface AskLink {
+  newChat: string;
+  prefill?: (encodedPrompt: string) => string;
+}
+
 export interface AskAssistant {
   id: AskAssistantId;
-  newChatUrl?: string;
-  prefillUrl?: (encodedPrompt: string) => string;
+  app?: AskLink;
+  web?: AskLink;
 }
 
 export interface AskTurn {
@@ -26,7 +31,8 @@ export interface AskPromptInput {
 }
 
 export interface AskTarget {
-  url: string | null;
+  appUrl: string | null;
+  webUrl: string | null;
   prefilled: boolean;
 }
 

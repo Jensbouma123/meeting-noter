@@ -3,7 +3,13 @@
 import { useSyncExternalStore } from 'react';
 import { useToast } from '@jensbouma123/acciva-ui';
 import { ASSISTANT_NAMES } from '@/components/settings/AssistantNames';
-import { buildAskPrompt, getAskAssistant, pickAskAssistant, resolveAskTarget } from '@/lib/ask-assistant';
+import {
+  buildAskPrompt,
+  getAskAssistant,
+  launchAppLink,
+  pickAskAssistant,
+  resolveAskTarget,
+} from '@/lib/ask-assistant';
 import {
   getConfiguredAssistants,
   getServerConfiguredAssistants,
@@ -37,16 +43,26 @@ export function useAskAssistant({ title, startedAt, segments, speakers }: UseAsk
 
   const ask = async (instruction: string) => {
     if (!assistant) return;
-    const turns = finals.map((seg) => ({ speaker: resolveSpeakerLabel(seg, speakers), text: seg.text }));
+    const turns = finals.map((seg) => ({
+      speaker: resolveSpeakerLabel(seg, speakers),
+      text: seg.text,
+    }));
     const dateLabel = startedAt ? new Intl.DateTimeFormat(language, { dateStyle: 'long' }).format(startedAt) : '';
-    const prompt = buildAskPrompt({ instruction, title, dateLabel, turns, language });
+    const prompt = buildAskPrompt({
+      instruction,
+      title,
+      dateLabel,
+      turns,
+      language,
+    });
     const target = resolveAskTarget(getAskAssistant(assistant.id), prompt);
-    const copied = copyToClipboard(prompt);
-    if (target.url) window.open(target.url, '_blank', 'noopener,noreferrer');
+    const copied = target.prefilled ? Promise.resolve(true) : copyToClipboard(prompt);
+    if (target.appUrl) launchAppLink(target.appUrl, target.webUrl);
+    else if (target.webUrl) window.open(target.webUrl, '_blank', 'noopener,noreferrer');
     const fill = (message: string) => message.replace('{name}', assistant.name);
-    if (!(await copied)) toast.danger(fill(t('copyFailed')));
-    else if (target.prefilled) toast.success(fill(t('copiedOpened')));
-    else toast.success(fill(t('copiedPaste')));
+    if (target.prefilled) toast.success(fill(t('opened')));
+    else if (await copied) toast.success(fill(t('copiedPaste')));
+    else toast.danger(fill(t('copyFailed')));
   };
 
   return { assistant, configured, language, hasTranscript, ask };

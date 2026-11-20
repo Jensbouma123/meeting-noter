@@ -1,23 +1,22 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { ToastProvider } from '@jensbouma123/acciva-ui';
-import { LanguageContext } from '@/lib/i18n/LanguageContext';
-import type { Segment } from '@/lib/meeting';
+import { act, cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { resetConfiguredAssistants } from '@/lib/ask-assistant/configuredAssistantsStore';
-import { AskAssistantButton } from './AskAssistantButton';
+import { launchAppLink } from '@/lib/ask-assistant/launchAppLink';
+import {
+  name,
+  openMenu,
+  renderButton,
+  stubAssistants,
+  stubClipboard,
+  visibleText,
+} from './AskAssistantButton.test-support';
 
-const SEGMENTS: Segment[] = [
-  { id: 's1', source: 'mic', speaker: 'a', text: 'We pakken de begroting op.', start: 0, end: 2, final: true },
-];
-const SPEAKERS = { a: { id: 'a', source: 'mic' as const, label: 'Anna', colorIndex: 0 } };
-
-function visibleText(node: Node): string {
-  if (node instanceof Element && node.getAttribute('aria-hidden') === 'true') return '';
-  if (node.nodeType === Node.TEXT_NODE) return node.textContent ?? '';
-  return [...node.childNodes].map(visibleText).join('');
-}
+vi.mock('@/lib/ask-assistant/launchAppLink', () => ({
+  APP_LAUNCH_WAIT_MS: 1500,
+  launchAppLink: vi.fn(),
+}));
 
 afterEach(() => {
   cleanup();
@@ -25,95 +24,85 @@ afterEach(() => {
   localStorage.clear();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+  vi.mocked(launchAppLink).mockReset();
 });
 
-function stubAssistants(connected: string[]) {
-  const assistants = ['claude-desktop', 'claude-code', 'codex'].map((id) => ({
-    id,
-    status: connected.includes(id) ? 'connected' : 'not-connected',
-  }));
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(async () => new Response(JSON.stringify({ assistants }))),
-  );
-}
-
-function renderButton(onOpenSettings = vi.fn()) {
-  render(
-    <LanguageContext.Provider value="nl">
-      <ToastProvider>
-        <AskAssistantButton
-          title="Weekoverleg"
-          startedAt={null}
-          segments={SEGMENTS}
-          speakers={SPEAKERS}
-          onOpenSettings={onOpenSettings}
-        />
-      </ToastProvider>
-    </LanguageContext.Provider>,
-  );
-  return onOpenSettings;
-}
-
-const name = (item: HTMLElement) => [...item.childNodes].reduce((text, node) => text + visibleText(node), '').trim();
-
 describe('AskAssistantButton', () => {
-  it('lists described presets and only the connected assistants, and asks Claude Desktop for action items', async () => {
+  it('shows one "Vraag assistent..." button with only the saved assistant logo', async () => {
     stubAssistants(['claude-desktop', 'codex']);
-    const writeText = vi.fn(async () => {});
-    vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } });
-    const open = vi.spyOn(window, 'open').mockReturnValue(null);
+    localStorage.setItem('meeting-noter.ask-assistant', 'codex');
     renderButton();
+    const trigger = await screen.findByRole('button', {
+      name: 'Vraag assistent...',
+    });
+    await waitFor(() => expect(trigger.querySelector('[data-testid="assistant-logo-codex"]')).not.toBeNull());
+    expect(visibleText(trigger).trim()).toBe('Vraag assistent...');
+    expect(screen.getAllByRole('button')).toHaveLength(1);
+  });
 
-    expect(await screen.findByRole('button', { name: 'Vraag Claude Desktop' })).toBeEnabled();
-    fireEvent.click(screen.getByRole('button', { name: 'Meer manieren om te vragen' }));
-    const items = await screen.findAllByRole('menuitem', { hidden: true });
-    expect(items.map(name)).toEqual([
+  it('switches assistant inside the menu, keeps it open and saves the choice', async () => {
+    stubAssistants(['claude-desktop', 'codex']);
+    renderButton();
+    const trigger = await openMenu();
+    const options = await screen.findAllByRole('menuitemradio', {
+      hidden: true,
+    });
+    expect(options.map(name)).toEqual(['Claude Desktop', 'Codex']);
+    expect(options[0]).toHaveAttribute('aria-checked', 'true');
+    fireEvent.click(options[1]);
+    expect(localStorage.getItem('meeting-noter.ask-assistant')).toBe('codex');
+    expect(screen.getAllByRole('menuitemradio', { hidden: true })[1]).toHaveAttribute('aria-checked', 'true');
+    expect(trigger.querySelector('[data-testid="assistant-logo-codex"]')).not.toBeNull();
+    expect(screen.getAllByRole('menuitem', { hidden: true }).map(name)).toEqual([
       'SamenvattenKorte samenvatting van wat er besproken is',
       'BesluitenAlle genomen besluiten op een rij',
       'ActiepuntenTaken met eigenaar en deadline',
       'Alle drieSamenvatting, besluiten en actiepunten in een keer',
       'Transcript opschonenLeesbaar transcript zonder ehs en herhalingen',
       'Eigen vraagStel zelf een vraag over deze meeting',
-      'Claude Desktop',
-      'Codex',
     ]);
-    expect(items[6]).toHaveAttribute('aria-current', 'true');
-
-    await act(async () => fireEvent.click(items[2]));
-    expect(open).toHaveBeenCalledWith(
-      expect.stringContaining('claude://claude.ai/new?q='),
-      '_blank',
-      'noopener,noreferrer',
-    );
-    expect(decodeURIComponent(String(open.mock.calls[0][0]))).toContain('actiepunten');
-    await waitFor(() =>
-      expect(writeText).toHaveBeenCalledWith(expect.stringContaining('Anna: We pakken de begroting op.')),
-    );
   });
 
-  it('copies without opening a URL for a command-line assistant', async () => {
-    stubAssistants(['codex']);
-    const writeText = vi.fn(async () => {});
-    vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } });
+  it('opens the Claude app with the prompt and transcript in the link, without touching the clipboard', async () => {
+    stubAssistants(['claude-desktop']);
+    const writeText = stubClipboard();
     const open = vi.spyOn(window, 'open').mockReturnValue(null);
     renderButton();
-
-    await act(async () => fireEvent.click(await screen.findByRole('button', { name: 'Vraag Codex' })));
-    await waitFor(() => expect(writeText).toHaveBeenCalled());
+    await openMenu();
+    const items = await screen.findAllByRole('menuitem', { hidden: true });
+    await act(async () => fireEvent.click(items[2]));
+    const [appUrl, webUrl] = vi.mocked(launchAppLink).mock.calls[0];
+    expect(appUrl).toMatch(/^claude:\/\/claude\.ai\/new\?q=/);
+    expect(decodeURIComponent(appUrl)).toContain('actiepunten');
+    expect(decodeURIComponent(appUrl)).toContain('Anna: We pakken de begroting op.');
+    expect(webUrl).toMatch(/^https:\/\/claude\.ai\/new\?q=/);
     expect(open).not.toHaveBeenCalled();
+    expect(writeText).not.toHaveBeenCalled();
+    expect(await screen.findByText('Geopend in Claude Desktop')).toBeInTheDocument();
+  });
+
+  it('copies the full prompt and says where to paste it when no link can carry the text', async () => {
+    stubAssistants(['codex']);
+    const writeText = stubClipboard();
+    renderButton();
+    await openMenu();
+    const items = await screen.findAllByRole('menuitem', { hidden: true });
+    await act(async () => fireEvent.click(items[0]));
+    await waitFor(() => expect(writeText).toHaveBeenCalled());
+    const prompt = writeText.mock.calls[0][0];
+    expect(prompt).toContain('Vat deze meeting samen');
+    expect(prompt).toContain('Anna: We pakken de begroting op.');
+    expect(launchAppLink).not.toHaveBeenCalled();
+    expect(await screen.findByText('Prompt gekopieerd, plak hem in Codex')).toBeInTheDocument();
   });
 
   it('leads to Settings when no assistant is connected', async () => {
     stubAssistants([]);
     const onOpenSettings = renderButton();
-
-    fireEvent.click(await screen.findByRole('button', { name: 'Meer manieren om te vragen' }));
+    await openMenu();
     const items = await screen.findAllByRole('menuitem', { hidden: true });
-    expect(name(items[items.length - 1])).toBe('Assistent koppelenKies er een in Instellingen, onder AI-assistent');
-    fireEvent.click(items[items.length - 1]);
+    expect(name(items[0])).toBe('Assistent koppelenGa naar Instellingen, AI-assistent');
+    fireEvent.click(items[0]);
     expect(onOpenSettings).toHaveBeenCalledTimes(1);
-    fireEvent.click(screen.getByRole('button', { name: 'Vraag een assistent' }));
-    expect(onOpenSettings).toHaveBeenCalledTimes(2);
   });
 });
