@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 export interface TranscriptSpeakerHeaderProps {
   dotClass: string;
-  start: number;
+  start?: number;
   title?: string;
   children: ReactNode;
 }

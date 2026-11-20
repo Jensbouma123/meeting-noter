@@ -4,6 +4,7 @@ import { TranscriptSpeakerHeader } from './TranscriptSpeakerHeader';
 import { TranscriptSpeakerName } from './TranscriptSpeakerName';
 import { TranscriptTurn } from './TranscriptTurn';
 import { buildTurnActions } from './buildTurnActions';
+import { NAME_INDENT_CLASS } from './transcriptGutter';
 import type { OverlapColumnProps } from './OverlapColumn.types';
 
 export function OverlapColumn({ speakerId, segs, sessionId, speakers, style }: OverlapColumnProps) {
@@ -11,7 +12,7 @@ export function OverlapColumn({ speakerId, segs, sessionId, speakers, style }: O
   const { label, colorIndex, color } = style;
   return (
     <div data-overlap-speaker={speakerId} className="flex min-w-0 flex-col gap-y-1">
-      <TranscriptSpeakerHeader dotClass={color.dotClass} start={segs[0].start}>
+      <TranscriptSpeakerHeader dotClass={color.dotClass}>
         <TranscriptSpeakerName
           sessionId={sessionId}
           speakerId={speakerId}
@@ -23,7 +24,7 @@ export function OverlapColumn({ speakerId, segs, sessionId, speakers, style }: O
           ({t('together')})
         </Text>
       </TranscriptSpeakerHeader>
-      <div className="min-w-0 pl-3.5">
+      <div className={`min-w-0 ${NAME_INDENT_CLASS}`}>
         {segs.map((seg) => (
           <div key={seg.id} data-seg-id={seg.id} className="min-w-0">
             <TranscriptTurn
