@@ -16,6 +16,15 @@ Options: `-- --limit=2` runs only the first N cases; `-- --fake` swaps in a stub
 
 `ECHO_EVAL_SET=meetings npm run eval:echo -- --shards=4` opens 4 tabs, one per shard, and prints their URLs (`/dev/echo-eval?autostart=1&set=meetings&shard=<i>&shards=4`). Tab `i` runs the plan items whose index (after `--limit`) satisfies `index % 4 == i`, so the tabs never overlap. Each tab writes its own `meetings.shard<i>.jsonl` and `finished.meetings.shard<i>.json`, and resumes from its own file. When every shard has finished, the script merges the shard files into `meetings.jsonl` (rows already there are kept; a shard row wins on the same id) and writes `meetings-report.md` as for a single tab. A tab that fails (for example a model load error) marks only its own shard failed: the script waits for the others, prints the failed shard's URL and exits 1; rerun the same command to resume. Without `--shards` (or `shard`/`shards` page params) nothing changes.
 
+### External recording
+
+`ECHO_EVAL_SET=external ECHO_EVAL_EXTERNAL=<dir> npm run eval:echo` (add `-- --shards=2` to run both variants in parallel) scores one real recording instead of the synthesized meetings. Without `ECHO_EVAL_EXTERNAL` the script exits 2. `<dir>` holds:
+
+- `audio16k.wav`: 16 kHz mono PCM16. Long files are fine; the bleed convolution switches to overlap-add blocks above 2^22 samples, because a single full-length FFT of a 99-minute recording needs about 4 GB.
+- `reference.json`: either `{ "id"?: string, "lang"?: "nl" | "en", "turns": [...] }` or a bare turns array, each turn `{ "start": sec, "end": sec, "spk": string, "text"?: string }`. `id` defaults to the folder name, `lang` to `en`.
+
+The plan has two cases, `<id>-ext-system` (the recording on the system channel, silent mic) and `<id>-ext-bleed` (the same plus a seeded speaker-to-mic bleed). Reference turns are sorted; a turn that starts inside another speaker's turn is an interrupt and pairs with the longest-overlapping earlier turn, and an overlapping turn shorter than 1 s is a backchannel. The page fetches the audio once (`GET op=wav&set=external`) and runs both cases through the meeting path. Output: `external.jsonl`, `finished.external.json`, `external-report.md` and `external-scores.json` (`.fake` and `.shard<i>` suffixes as above).
+
 ## Inputs and outputs
 
 - Audio: `ECHO_EVAL_AUDIO` (default `/Users/jensbouma/Desktop/Meeting Noter/test-audio`) holding the AMI wav, words and label files.
