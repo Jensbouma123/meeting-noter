@@ -1,7 +1,8 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { SHARD_PROGRESS_MESSAGE } from '../../../../scripts/echo-eval/lib/grid-url';
 import { parseShard } from '../../../../scripts/echo-eval/lib/shard';
 import { useEchoEval } from './useEchoEval';
 
@@ -16,6 +17,12 @@ function EchoEval() {
     params.get('set') === 'meetings',
     shard,
   );
+  const status = `${progress.phase}: ${progress.done}/${progress.total} ${progress.message}`;
+  const shardIndex = shard?.index;
+  useEffect(() => {
+    if (shardIndex === undefined || window.parent === window) return;
+    window.parent.postMessage({ type: SHARD_PROGRESS_MESSAGE, shard: shardIndex, text: status }, window.location.origin);
+  }, [shardIndex, status]);
   const busy = progress.phase === 'loading' || progress.phase === 'running';
   return (
     <main style={{ maxWidth: 720, margin: '2rem auto', padding: '0 1rem', fontFamily: 'system-ui' }}>
@@ -25,7 +32,7 @@ function EchoEval() {
         Start
       </button>
       <p id="echo-eval-status" data-phase={progress.phase}>
-        {progress.phase}: {progress.done}/{progress.total} {progress.message}
+        {status}
       </p>
     </main>
   );
