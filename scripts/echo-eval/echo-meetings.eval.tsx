@@ -11,6 +11,7 @@ import { buildMeetings } from './lib/meeting-plan';
 import { writeMeetingReport } from './lib/meeting-report';
 import { renderMeeting } from './lib/meeting-render';
 import { runMeeting } from './lib/run-meeting';
+import { withLiveSpeakers } from './lib/diar-live-host';
 import { loadUtterances } from './lib/utterances';
 import type { MeetingResult } from './types/meeting-result';
 
@@ -20,9 +21,22 @@ vi.mock('@/lib/asr/browser/parakeet', async () => ({
   BrowserASREngine: (await import('./lib/real-engine')).createRealEngine(engineState),
 }));
 
+vi.mock('@/lib/ort-paths', async () => (await import('./lib/diar-ort-mock')).nodeOrtPaths());
+vi.mock('@/lib/diarization/browser/shared-worker', async () => (await import('./lib/diar-fake-worker')).fakeSharedWorker());
+vi.mock('@/lib/diarization/browser/worker-model', async (orig) => {
+  const { loadSortformer } = await import('./lib/diar-model-loader');
+  let cached: ReturnType<typeof loadSortformer> | null = null;
+  return { ...(await orig<object>()), loadModel: () => (cached ??= loadSortformer()), releaseModel: async () => {} };
+});
+vi.mock('@/lib/diarization/browser/worker-core', async (orig) => {
+  const mod = await orig<typeof import('@/lib/diarization/browser/worker-core')>();
+  return { ...mod, createCore: (await import('./lib/diar-cores')).trackingCreateCore(mod.createCore) };
+});
+
 installAsrTestLifecycle(engineState);
 
 const enabled = process.env.ECHO_EVAL_SET === 'meetings';
+const diarize = process.env.ECHO_EVAL_DIAR !== '0';
 const utts = enabled ? loadUtterances(AUDIO_DIR) : [];
 const byId = new Map(utts.map((u) => [u.id, u]));
 const file = meetingResultsFile(false);
@@ -35,11 +49,11 @@ const done = new Set(
 
 describe.skipIf(!enabled)(`meeting eval (${cases.length} meetings)`, () => {
   afterAll(() => writeMeetingReport(path.resolve(OUT_DIR), file, utts));
-  it.each(cases.filter((c) => !done.has(c.id)))('$id', async (c) => {
+  it.each(cases.filter((c) => !done.has(c.id)))('$id', { timeout: 0 }, async (c) => {
     const asr = await loadWebgpuAsr();
     await consentAndCache(PARAKEET_TDT_V3_WEBGPU);
     await asr.ensureBrowserASRReady();
     const store = { ...(await import('@/lib/meeting/session-reset')), ...(await import('@/lib/meeting/store-core')) };
-    fs.appendFileSync(file, JSON.stringify(await runMeeting(c, renderMeeting(c, byId), asr, store)) + '\n');
+    fs.appendFileSync(file, JSON.stringify(await runMeeting(c, renderMeeting(c, byId), diarize ? withLiveSpeakers(asr) : asr, store)) + '\n');
   });
 });
