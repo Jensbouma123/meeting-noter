@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { Alert, Button, Text, VStack } from "@jensbouma123/acciva-ui";
-import { useState } from "react";
-import pkg from "../../../package.json";
-import { useT } from "@/lib/i18n/useT";
-import { useUpdate } from "@/components/update/useUpdate";
-import { UpdateDialog } from "@/components/update/UpdateDialog";
-import { restartOnboarding } from "@/lib/onboarding/store";
-import { SettingsGroup } from "./SettingsGroup";
-import { SettingsRow } from "./SettingsRow";
+import { Alert, Button, Text, VStack } from '@jensbouma123/acciva-ui';
+import { useState } from 'react';
+import pkg from '../../../package.json';
+import { useT } from '@/lib/i18n/useT';
+import { useUpdate } from '@/components/update/useUpdate';
+import { UpdateDialog } from '@/components/update/UpdateDialog';
+import { restartOnboarding } from '@/lib/onboarding/store';
+import { SettingsGroup } from './SettingsGroup';
+import { SettingsRow } from './SettingsRow';
 
 const APP_VERSION = pkg.version;
 
 export function AboutSection() {
-  const t = useT("update");
-  const tOnboarding = useT("onboarding");
+  const t = useT('update');
+  const tOnboarding = useT('onboarding');
   const update = useUpdate();
   const [open, setOpen] = useState(false);
   const info = update.info;
@@ -24,7 +24,7 @@ export function AboutSection() {
       <SettingsGroup>
         <SettingsRow
           label="Meeting Noter"
-          description={t("aboutDescription")}
+          description={t('aboutDescription')}
           control={
             <Text size="sm" variant="muted" font="mono">
               v{APP_VERSION}
@@ -33,35 +33,29 @@ export function AboutSection() {
         />
         <VStack spacing="xs" className="w-full p-4">
           <Text size="xs" variant="muted">
-            {t("privacy")}
+            {t('privacy')}
           </Text>
         </VStack>
       </SettingsGroup>
       <SettingsGroup>
         <SettingsRow
-          label={tOnboarding("reopen.title")}
-          description={tOnboarding("reopen.description")}
+          label={tOnboarding('reopen.title')}
+          description={tOnboarding('reopen.description')}
           control={
             <Button variant="outline" onClick={restartOnboarding}>
-              {tOnboarding("reopen.action")}
+              {tOnboarding('reopen.action')}
             </Button>
           }
         />
       </SettingsGroup>
       <SettingsGroup>
         <SettingsRow
-          label={t("updates")}
+          label={t('updates')}
           description={
             info?.notes ||
             (info?.available
-              ? ""
-              : t(
-                  update.status === "checking"
-                    ? "checking"
-                    : update.status === "error"
-                      ? "checkFailed"
-                      : "upToDate",
-                ))
+              ? ''
+              : t(update.status === 'checking' ? 'checking' : update.status === 'error' ? 'checkFailed' : 'upToDate'))
           }
           control={null}
         />
@@ -72,26 +66,21 @@ export function AboutSection() {
         )}
         {info?.available && !info.canApply && (
           <Alert variant="warning" layout="inline">
-            {t("manual")}
+            {t('manual')}
           </Alert>
         )}
         <div className="p-4 flex flex-wrap gap-2">
           <Button variant="primary" onClick={() => void update.refresh()}>
-            {t("checkAgain")}
+            {t('checkAgain')}
           </Button>
           {info?.available && info.pageUrl && (
-            <Button
-              variant="outline"
-              onClick={() =>
-                window.open(info.pageUrl, "_blank", "noopener,noreferrer")
-              }
-            >
-              {t("whatsNew")}
+            <Button variant="outline" onClick={() => window.open(info.pageUrl, '_blank', 'noopener,noreferrer')}>
+              {t('whatsNew')}
             </Button>
           )}
           {info?.available && (
             <Button onClick={() => setOpen(true)} disabled={!info.canApply}>
-              {t("updateNow")}
+              {t('updateNow')}
             </Button>
           )}
         </div>

@@ -1,23 +1,20 @@
-import fs from "node:fs";
-import path from "node:path";
-import type { McpLocation } from "./types";
+import fs from 'node:fs';
+import path from 'node:path';
+import type { McpLocation } from './types';
 
 export function packagedScriptPath(cwd: string): string {
-  return path.join(cwd, "..", "mcp", "meetings-mcp.mjs");
+  return path.join(cwd, '..', 'mcp', 'meetings-mcp.mjs');
 }
 
 export function devScriptPath(cwd: string): string {
-  return path.join(cwd, "build", "mcp", "meetings-mcp.mjs");
+  return path.join(cwd, 'build', 'mcp', 'meetings-mcp.mjs');
 }
 
 export function bundledNodePath(cwd: string): string {
-  return path.join(cwd, "..", "node", "bin", "node");
+  return path.join(cwd, '..', 'node', 'bin', 'node');
 }
 
-export function isPackagedApp({
-  cwd = process.cwd(),
-  exists = fs.existsSync,
-}: McpLocation = {}): boolean {
+export function isPackagedApp({ cwd = process.cwd(), exists = fs.existsSync }: McpLocation = {}): boolean {
   return exists(bundledNodePath(cwd));
 }
 
@@ -33,10 +30,7 @@ export function mcpScriptPath(
   return isPackagedApp({ cwd, exists }) ? packaged : dev;
 }
 
-export function mcpNodeCommand({
-  cwd = process.cwd(),
-  exists = fs.existsSync,
-}: McpLocation = {}): string {
+export function mcpNodeCommand({ cwd = process.cwd(), exists = fs.existsSync }: McpLocation = {}): string {
   const bundled = bundledNodePath(cwd);
-  return exists(bundled) ? path.resolve(bundled) : "node";
+  return exists(bundled) ? path.resolve(bundled) : 'node';
 }

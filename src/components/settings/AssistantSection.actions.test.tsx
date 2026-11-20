@@ -1,106 +1,89 @@
 // @vitest-environment jsdom
-import { fireEvent, screen, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  LIST,
-  mockFetch,
-  renderSection,
-  resetRenderedSection,
-} from "./AssistantSection.test-support";
+import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { LIST, mockFetch, renderSection, resetRenderedSection } from './AssistantSection.test-support';
 
-describe("AssistantSection actions", () => {
+describe('AssistantSection actions', () => {
   afterEach(resetRenderedSection);
 
-  it("desktop connect asks for confirmation with backup path, then connects", async () => {
+  it('desktop connect asks for confirmation with backup path, then connects', async () => {
     const fetchMock = mockFetch((url, init) => {
-      if (url === "/api/assistants") return LIST;
+      if (url === '/api/assistants') return LIST;
       const confirmed = JSON.parse(String(init?.body)).confirm;
       return confirmed
-        ? { ok: true, status: "connected" }
-        : {
-            needsConfirm: true,
-            configPath: "/cfg.json",
-            backupPath: "/cfg.bak",
-          };
+        ? { ok: true, status: 'connected' }
+        : { needsConfirm: true, configPath: '/cfg.json', backupPath: '/cfg.bak' };
     });
     renderSection();
-    fireEvent.click((await screen.findAllByText("Connect"))[0]);
-    expect(await screen.findByText("/cfg.bak")).toBeTruthy();
-    fireEvent.click(screen.getByText("Yes, connect"));
-    await waitFor(() =>
-      expect(screen.getAllByText("Connected")).toHaveLength(2),
-    );
+    fireEvent.click((await screen.findAllByText('Connect'))[0]);
+    expect(await screen.findByText('/cfg.bak')).toBeTruthy();
+    fireEvent.click(screen.getByText('Yes, connect'));
+    await waitFor(() => expect(screen.getAllByText('Connected')).toHaveLength(2));
     expect(fetchMock).toHaveBeenCalledWith(
-      "/api/assistants/claude-desktop/connect",
-      expect.objectContaining({ method: "POST" }),
+      '/api/assistants/claude-desktop/connect',
+      expect.objectContaining({ method: 'POST' }),
     );
   });
 
-  it("disconnects and renders Dutch", async () => {
-    mockFetch((url) =>
-      url === "/api/assistants" ? LIST : { ok: true, status: "not-connected" },
-    );
-    renderSection("nl");
-    fireEvent.click(await screen.findByText("Ontkoppelen"));
-    await waitFor(() => expect(screen.queryByText("Gekoppeld")).toBeNull());
+  it('disconnects and renders Dutch', async () => {
+    mockFetch((url) => (url === '/api/assistants' ? LIST : { ok: true, status: 'not-connected' }));
+    renderSection('nl');
+    fireEvent.click(await screen.findByText('Ontkoppelen'));
+    await waitFor(() => expect(screen.queryByText('Gekoppeld')).toBeNull());
   });
 
-  it("copies example questions", async () => {
+  it('copies example questions', async () => {
     mockFetch(() => LIST);
     const writeText = vi.fn(async () => undefined);
-    vi.stubGlobal("navigator", { clipboard: { writeText } });
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
     renderSection();
-    await screen.findByText("Connected");
-    expect(screen.queryByText("Copy")).toBeNull();
-    fireEvent.click(screen.getAllByRole("button", { name: "Copy" })[0]);
-    await waitFor(() =>
-      expect(writeText).toHaveBeenCalledWith(
-        "Summarize the meeting I have open",
-      ),
-    );
-    expect(await screen.findByTestId("copied-icon")).toBeTruthy();
+    await screen.findByText('Connected');
+    expect(screen.queryByText('Copy')).toBeNull();
+    fireEvent.click(screen.getAllByRole('button', { name: 'Copy' })[0]);
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith('Summarize the meeting I have open'));
+    expect(await screen.findByTestId('copied-icon')).toBeTruthy();
   });
 
-  it("shows Repair for an assistant whose MCP file is missing", async () => {
+  it('shows Repair for an assistant whose MCP file is missing', async () => {
     const fetchMock = mockFetch((url) =>
-      url === "/api/assistants"
+      url === '/api/assistants'
         ? {
             assistants: [
               {
-                id: "claude-code",
-                status: "needs-repair",
+                id: 'claude-code',
+                status: 'needs-repair',
                 canAutoConnect: true,
                 manualCommand: null,
                 configPath: null,
               },
             ],
           }
-        : { ok: true, status: "connected" },
+        : { ok: true, status: 'connected' },
     );
     renderSection();
-    expect(await screen.findByText("Needs repair")).toBeTruthy();
-    fireEvent.click(screen.getByText("Repair"));
-    await waitFor(() => expect(screen.getByText("Connected")).toBeTruthy());
+    expect(await screen.findByText('Needs repair')).toBeTruthy();
+    fireEvent.click(screen.getByText('Repair'));
+    await waitFor(() => expect(screen.getByText('Connected')).toBeTruthy());
     expect(fetchMock).toHaveBeenCalledWith(
-      "/api/assistants/claude-code/connect",
-      expect.objectContaining({ method: "POST" }),
+      '/api/assistants/claude-code/connect',
+      expect.objectContaining({ method: 'POST' }),
     );
   });
 
-  it("puts Advanced details inside the assistant row and toggles it", async () => {
+  it('puts Advanced details inside the assistant row and toggles it', async () => {
     mockFetch(() => LIST);
     const { container } = renderSection();
-    await screen.findByText("Connected");
-    const details = container.querySelectorAll("details");
+    await screen.findByText('Connected');
+    const details = container.querySelectorAll('details');
     expect(details).toHaveLength(2);
     const row = details[0].parentElement as HTMLElement;
-    expect(row.textContent).toContain("Claude Desktop");
-    expect(details[0].closest("div.p-4")).toBeTruthy();
-    const summary = details[0].querySelector("summary") as HTMLElement;
-    expect(summary.textContent).toBe("Advanced details");
+    expect(row.textContent).toContain('Claude Desktop');
+    expect(details[0].closest('div.p-4')).toBeTruthy();
+    const summary = details[0].querySelector('summary') as HTMLElement;
+    expect(summary.textContent).toBe('Advanced details');
     expect(details[0].open).toBe(false);
     details[0].open = true;
-    expect(screen.getByText("/cfg.json")).toBeTruthy();
+    expect(screen.getByText('/cfg.json')).toBeTruthy();
     expect(details[0].open).toBe(true);
   });
 });

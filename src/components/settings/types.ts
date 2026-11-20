@@ -1,15 +1,8 @@
-import type { ComponentType, ReactNode } from "react";
-import type { AppSettings } from "@/components/meeting/types";
-import type { VocabularyEntry } from "@/lib/vocabulary/types";
+import type { ComponentType, ReactNode } from 'react';
+import type { AppSettings } from '@/components/meeting/types';
+import type { VocabularyEntry } from '@/lib/vocabulary/types';
 
-export type SettingsSectionId =
-  | "general"
-  | "theme"
-  | "vocabulary"
-  | "storage"
-  | "about"
-  | "assistant"
-  | "advanced";
+export type SettingsSectionId = 'general' | 'theme' | 'vocabulary' | 'storage' | 'about' | 'assistant' | 'advanced';
 
 export interface SettingsSectionMeta {
   id: SettingsSectionId;

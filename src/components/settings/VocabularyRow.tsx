@@ -1,19 +1,16 @@
-"use client";
+'use client';
 
-import { useState, type KeyboardEvent } from "react";
-import { Button, Input, Text, VStack } from "@jensbouma123/acciva-ui";
-import { Check, Pencil, X } from "lucide-react";
-import { useT } from "@/lib/i18n/useT";
-import {
-  removeVocabularyEntry,
-  renameVocabularyEntry,
-} from "@/lib/vocabulary/store";
-import { vocabularyFill as fill } from "./vocabularyText";
-import { VariantEditor } from "./VariantEditor";
-import type { VocabularyRowProps } from "./types";
+import { useState, type KeyboardEvent } from 'react';
+import { Button, Input, Text, VStack } from '@jensbouma123/acciva-ui';
+import { Check, Pencil, X } from 'lucide-react';
+import { useT } from '@/lib/i18n/useT';
+import { removeVocabularyEntry, renameVocabularyEntry } from '@/lib/vocabulary/store';
+import { vocabularyFill as fill } from './vocabularyText';
+import { VariantEditor } from './VariantEditor';
+import type { VocabularyRowProps } from './types';
 
 export function VocabularyRow({ entry }: VocabularyRowProps) {
-  const t = useT("settings");
+  const t = useT('settings');
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(entry.word);
   const [error, setError] = useState<string | null>(null);
@@ -28,17 +25,14 @@ export function VocabularyRow({ entry }: VocabularyRowProps) {
   };
   const save = () => {
     const result = renameVocabularyEntry(entry.word, draft);
-    if (result === "ok") cancel();
-    else
-      setError(
-        t(result === "empty" ? "vocab.editEmpty" : "vocab.editDuplicate"),
-      );
+    if (result === 'ok') cancel();
+    else setError(t(result === 'empty' ? 'vocab.editEmpty' : 'vocab.editDuplicate'));
   };
   const onEditKey = (e: KeyboardEvent) => {
-    if (e.key === "Enter") {
+    if (e.key === 'Enter') {
       e.preventDefault();
       save();
-    } else if (e.key === "Escape") {
+    } else if (e.key === 'Escape') {
       e.preventDefault();
       cancel();
     }
@@ -58,14 +52,14 @@ export function VocabularyRow({ entry }: VocabularyRowProps) {
                 setError(null);
               }}
               onKeyDown={onEditKey}
-              aria-label={t("vocab.editLabel")}
+              aria-label={t('vocab.editLabel')}
               aria-invalid={error ? true : undefined}
             />
             <Button
               variant="ghost"
               size="sm"
               iconOnly
-              tooltip={t("vocab.save")}
+              tooltip={t('vocab.save')}
               leadingIcon={<Check className="size-4" />}
               onClick={save}
               className="touch-target-44 shrink-0"
@@ -74,7 +68,7 @@ export function VocabularyRow({ entry }: VocabularyRowProps) {
               variant="ghost"
               size="sm"
               iconOnly
-              tooltip={t("vocab.cancel")}
+              tooltip={t('vocab.cancel')}
               leadingIcon={<X className="size-4" />}
               onClick={cancel}
               className="touch-target-44 shrink-0"
@@ -93,7 +87,7 @@ export function VocabularyRow({ entry }: VocabularyRowProps) {
               variant="ghost"
               size="sm"
               iconOnly
-              tooltip={fill(t("vocab.edit"), { word: entry.word })}
+              tooltip={fill(t('vocab.edit'), { word: entry.word })}
               leadingIcon={<Pencil className="size-3.5" />}
               onClick={startEdit}
               className="shrink-0"
@@ -105,9 +99,9 @@ export function VocabularyRow({ entry }: VocabularyRowProps) {
             {error}
           </Text>
         )}
-        {entry.source === "meeting" && (
+        {entry.source === 'meeting' && (
           <Text size="xs" variant="muted" className="truncate text-text-muted">
-            {t("vocab.fromMeeting")}
+            {t('vocab.fromMeeting')}
           </Text>
         )}
         <VariantEditor entry={entry} />
@@ -116,7 +110,7 @@ export function VocabularyRow({ entry }: VocabularyRowProps) {
         variant="ghost"
         size="sm"
         iconOnly
-        tooltip={fill(t("vocab.remove"), { word: entry.word })}
+        tooltip={fill(t('vocab.remove'), { word: entry.word })}
         leadingIcon={<X className="size-4" />}
         onClick={() => removeVocabularyEntry(entry.word)}
         className="touch-target-44 shrink-0"

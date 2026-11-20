@@ -1,17 +1,14 @@
-"use client";
+'use client';
 
-import { AssistantCard } from "./AssistantCard";
-import { SettingsGroup } from "./SettingsGroup";
-import type { AssistantListProps } from "./Assistant.types";
+import { AssistantCard } from './AssistantCard';
+import { SettingsGroup } from './SettingsGroup';
+import type { AssistantListProps } from './Assistant.types';
 
 export function AssistantList({ assistants, state }: AssistantListProps) {
   return (
     <SettingsGroup>
       {assistants.map((a) => (
-        <div
-          key={a.id}
-          className={a.status === "not-found" ? "opacity-60" : undefined}
-        >
+        <div key={a.id} className={a.status === 'not-found' ? 'opacity-60' : undefined}>
           <AssistantCard
             assistant={a}
             busy={state.busyId === a.id}

@@ -1,23 +1,23 @@
-"use client";
+'use client';
 
-import { Alert, Badge, Button, Text } from "@jensbouma123/acciva-ui";
-import { assistantKind } from "@/lib/assistants/catalog";
-import { useT } from "@/lib/i18n/useT";
-import { AssistantKindTag } from "./AssistantKindTag";
-import { AssistantDetails } from "./AssistantDetails";
-import { AssistantConfirm } from "./AssistantConfirm";
-import { AssistantCopyButton } from "./AssistantCopyButton";
-import { ASSISTANT_NAMES } from "./AssistantNames";
-import { AssistantLogo } from "./AssistantLogo";
-import { SettingsRow } from "./SettingsRow";
-import type { AssistantCardProps } from "./Assistant.types";
+import { Alert, Badge, Button, Text } from '@jensbouma123/acciva-ui';
+import { assistantKind } from '@/lib/assistants/catalog';
+import { useT } from '@/lib/i18n/useT';
+import { AssistantKindTag } from './AssistantKindTag';
+import { AssistantDetails } from './AssistantDetails';
+import { AssistantConfirm } from './AssistantConfirm';
+import { AssistantCopyButton } from './AssistantCopyButton';
+import { ASSISTANT_NAMES } from './AssistantNames';
+import { AssistantLogo } from './AssistantLogo';
+import { SettingsRow } from './SettingsRow';
+import type { AssistantCardProps } from './Assistant.types';
 
 const BADGE = {
-  connected: "success",
-  installed: "success",
-  "needs-repair": "warning",
-  "not-connected": "neutral",
-  "not-found": "warning",
+  connected: 'success',
+  installed: 'success',
+  'needs-repair': 'warning',
+  'not-connected': 'neutral',
+  'not-found': 'warning',
 } as const;
 
 export function AssistantCard({
@@ -30,25 +30,24 @@ export function AssistantCard({
   onDisconnect,
   onCancelConfirm,
 }: AssistantCardProps) {
-  const t = useT("assistant");
+  const t = useT('assistant');
   const { id, status, canAutoConnect, manualCommand, configPath } = assistant;
-  const isDesktop = id === "claude-desktop";
+  const isDesktop = id === 'claude-desktop';
   const control =
-    status === "needs-repair" ? (
+    status === 'needs-repair' ? (
       <Button onClick={() => onConnect(false)} disabled={busy || !!confirm}>
-        {t("repair")}
+        {t('repair')}
       </Button>
-    ) : status === "connected" ? (
+    ) : status === 'connected' ? (
       <Button variant="danger" onClick={onDisconnect} disabled={busy}>
-        {t("disconnect")}
+        {t('disconnect')}
       </Button>
-    ) : status === "not-found" ||
-      status === "installed" ? null : canAutoConnect ? (
+    ) : status === 'not-found' || status === 'installed' ? null : canAutoConnect ? (
       <Button onClick={() => onConnect(false)} disabled={busy || !!confirm}>
-        {t("connect")}
+        {t('connect')}
       </Button>
     ) : manualCommand ? (
-      <AssistantCopyButton text={manualCommand} label={t("copyCommand")} />
+      <AssistantCopyButton text={manualCommand} label={t('copyCommand')} />
     ) : null;
 
   return (
@@ -64,15 +63,10 @@ export function AssistantCard({
             </Badge>
           </span>
         }
-        description={t(status === "not-found" ? "notFoundHint" : `hint.${id}`)}
+        description={t(status === 'not-found' ? 'notFoundHint' : `hint.${id}`)}
         control={control}
         footer={
-          (configPath || manualCommand) && (
-            <AssistantDetails
-              configPath={configPath}
-              manualCommand={manualCommand}
-            />
-          )
+          (configPath || manualCommand) && <AssistantDetails configPath={configPath} manualCommand={manualCommand} />
         }
       />
       {isDesktop && confirm && (
@@ -90,7 +84,7 @@ export function AssistantCard({
       )}
       {error && (
         <Alert variant="danger" layout="inline">
-          {t("error")}
+          {t('error')}
         </Alert>
       )}
     </div>

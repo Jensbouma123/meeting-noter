@@ -1,20 +1,10 @@
-"use client";
+'use client';
 
-import {
-  Badge,
-  Heading,
-  Modal,
-  ScrollView,
-  Tab,
-  TabList,
-  TabPanel,
-  Tabs,
-  VStack,
-} from "@jensbouma123/acciva-ui";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { useT } from "@/lib/i18n/useT";
-import { SETTINGS_SECTIONS } from "./sections";
-import type { SettingsDialogProps, SettingsSectionId } from "./types";
+import { Badge, Heading, Modal, ScrollView, Tab, TabList, TabPanel, Tabs, VStack } from '@jensbouma123/acciva-ui';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { useT } from '@/lib/i18n/useT';
+import { SETTINGS_SECTIONS } from './sections';
+import type { SettingsDialogProps, SettingsSectionId } from './types';
 
 export function SettingsDialog({
   open,
@@ -24,8 +14,8 @@ export function SettingsDialog({
   alertSections = [],
   children,
 }: SettingsDialogProps) {
-  const t = useT("settings");
-  const isSmUp = useMediaQuery("(min-width: 640px)");
+  const t = useT('settings');
+  const isSmUp = useMediaQuery('(min-width: 640px)');
   const activeMeta = SETTINGS_SECTIONS.find((s) => s.id === activeSection);
 
   const tabs = SETTINGS_SECTIONS.map((section) => {
@@ -41,7 +31,7 @@ export function SettingsDialog({
         <span className="whitespace-nowrap">{t(`section.${section.id}`)}</span>
         {hasAlert && (
           <Badge variant="danger" dot size="xxs" className="sm:ml-auto">
-            <span className="sr-only">{t("needsAttention")}</span>
+            <span className="sr-only">{t('needsAttention')}</span>
           </Badge>
         )}
       </Tab>
@@ -52,21 +42,21 @@ export function SettingsDialog({
     <Modal
       open={open}
       onClose={onClose}
-      title={t("title")}
+      title={t('title')}
       size="lg"
       className="w-full !max-w-[calc(100vw-2rem)] max-sm:p-4 sm:!max-w-[860px]"
     >
       <Tabs
         value={activeSection}
         onValueChange={(v) => onSectionChange(v as SettingsSectionId)}
-        orientation={isSmUp ? "vertical" : "horizontal"}
+        orientation={isSmUp ? 'vertical' : 'horizontal'}
         variant="pill"
         size="sm"
         className="flex h-[calc(100dvh-9rem)] w-full flex-col overflow-hidden sm:h-[min(520px,calc(100dvh-10rem))] sm:flex-row"
       >
         {isSmUp ? (
           <TabList
-            aria-label={t("sectionsLabel")}
+            aria-label={t('sectionsLabel')}
             className="h-full w-52 shrink-0 gap-0.5 overflow-y-auto !rounded-none border-r border-border-subtle !bg-transparent p-1 pr-3"
           >
             {tabs}
@@ -76,13 +66,10 @@ export function SettingsDialog({
             orientation="horizontal"
             fadeEdges
             showArrows="auto"
-            aria-label={t("sectionsLabel")}
+            aria-label={t('sectionsLabel')}
             className="shrink-0 border-b border-border-subtle"
           >
-            <TabList
-              aria-label={t("sectionsLabel")}
-              className="gap-0.5 !rounded-none !bg-transparent p-2"
-            >
+            <TabList aria-label={t('sectionsLabel')} className="gap-0.5 !rounded-none !bg-transparent p-2">
               {tabs}
             </TabList>
           </ScrollView>
@@ -92,7 +79,7 @@ export function SettingsDialog({
           <TabPanel value={activeSection}>
             <VStack spacing="lg" className="w-full max-w-2xl">
               <Heading as="h3" level={3} size="md" weight="semibold">
-                {activeMeta ? t(`section.${activeMeta.id}`) : ""}
+                {activeMeta ? t(`section.${activeMeta.id}`) : ''}
               </Heading>
               {children}
             </VStack>

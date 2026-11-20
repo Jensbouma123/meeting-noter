@@ -1,4 +1,4 @@
-import type { AskPresetId } from "@/lib/ask-assistant";
+import type { AskPresetId } from '@/lib/ask-assistant';
 
 export interface AskPresetRowsProps {
   hasTranscript: boolean;

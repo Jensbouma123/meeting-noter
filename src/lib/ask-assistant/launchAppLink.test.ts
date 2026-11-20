@@ -1,11 +1,11 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { APP_LAUNCH_WAIT_MS, launchAppLink } from "./launchAppLink";
-import type { LaunchDeps } from "./launchAppLink.types";
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { APP_LAUNCH_WAIT_MS, launchAppLink } from './launchAppLink';
+import type { LaunchDeps } from './launchAppLink.types';
 
 function fakeDeps() {
   const win = new EventTarget();
   const doc = Object.assign(new EventTarget(), {
-    visibilityState: "visible" as DocumentVisibilityState,
+    visibilityState: 'visible' as DocumentVisibilityState,
   });
   const deps = {
     navigate: vi.fn(),
@@ -23,30 +23,22 @@ function fakeDeps() {
 
 afterEach(() => vi.useRealTimers());
 
-describe("launchAppLink", () => {
-  it("opens the app link and stays out of the browser when the app takes focus", () => {
+describe('launchAppLink', () => {
+  it('opens the app link and stays out of the browser when the app takes focus', () => {
     vi.useFakeTimers();
     const { deps, win } = fakeDeps();
-    launchAppLink(
-      "claude://claude.ai/new?q=hi",
-      "https://claude.ai/new?q=hi",
-      deps,
-    );
-    expect(deps.navigate).toHaveBeenCalledWith("claude://claude.ai/new?q=hi");
-    win.dispatchEvent(new Event("blur"));
+    launchAppLink('claude://claude.ai/new?q=hi', 'https://claude.ai/new?q=hi', deps);
+    expect(deps.navigate).toHaveBeenCalledWith('claude://claude.ai/new?q=hi');
+    win.dispatchEvent(new Event('blur'));
     vi.advanceTimersByTime(APP_LAUNCH_WAIT_MS);
     expect(deps.openWeb).not.toHaveBeenCalled();
   });
 
-  it("falls back to the web URL when no app answers the link", () => {
+  it('falls back to the web URL when no app answers the link', () => {
     vi.useFakeTimers();
     const { deps } = fakeDeps();
-    launchAppLink(
-      "claude://claude.ai/new?q=hi",
-      "https://claude.ai/new?q=hi",
-      deps,
-    );
+    launchAppLink('claude://claude.ai/new?q=hi', 'https://claude.ai/new?q=hi', deps);
     vi.advanceTimersByTime(APP_LAUNCH_WAIT_MS);
-    expect(deps.openWeb).toHaveBeenCalledWith("https://claude.ai/new?q=hi");
+    expect(deps.openWeb).toHaveBeenCalledWith('https://claude.ai/new?q=hi');
   });
 });

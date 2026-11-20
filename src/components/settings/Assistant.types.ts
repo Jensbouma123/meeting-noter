@@ -1,8 +1,4 @@
-import type {
-  AssistantId,
-  AssistantInfo,
-  AssistantStatus,
-} from "@/lib/assistants/types";
+import type { AssistantId, AssistantInfo, AssistantStatus } from '@/lib/assistants/types';
 
 export type { AssistantId, AssistantInfo, AssistantStatus };
 
@@ -48,9 +44,7 @@ export interface AssistantLogoProps {
   size?: number;
 }
 
-export type AssistantState = ReturnType<
-  typeof import("./AssistantState").useAssistantState
->;
+export type AssistantState = ReturnType<typeof import('./AssistantState').useAssistantState>;
 
 export interface AssistantListProps {
   assistants: AssistantInfo[];
@@ -58,5 +52,5 @@ export interface AssistantListProps {
 }
 
 export interface AssistantKindTagProps {
-  kind: import("@/lib/assistants/types").AssistantKind;
+  kind: import('@/lib/assistants/types').AssistantKind;
 }

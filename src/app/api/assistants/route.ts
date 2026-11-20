@@ -1,9 +1,9 @@
-import { defaultDeps } from "@/lib/assistants/deps";
-import { listAssistants } from "@/lib/assistants";
-import { refuseForeign } from "@/lib/lifecycle/request-guard";
+import { defaultDeps } from '@/lib/assistants/deps';
+import { listAssistants } from '@/lib/assistants';
+import { refuseForeign } from '@/lib/lifecycle/request-guard';
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request): Promise<Response> {
   const refused = refuseForeign(request);
