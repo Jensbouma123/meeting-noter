@@ -1,3 +1,4 @@
+import { withoutBleedSpeakers } from './bleed-speakers';
 import { missedWords, wordMidpoint } from './overlap-missed-words';
 import type { AttributedWord, AudioAt, OverlapSpan, OverlapTurn, TranscribeClip } from './types/overlap-retranscribe';
 
@@ -33,11 +34,11 @@ export function activeSpeakerAt(
   first: readonly AttributedWord[],
   turns: readonly OverlapTurn[],
 ): string | null {
-  const active = span.speakers.filter((s) => turns.some((t) => t.speaker === s && t.start <= at && at < t.end));
+  const active = withoutBleedSpeakers(span.speakers.filter((s) => turns.some((t) => t.speaker === s && t.start <= at && at < t.end)));
   if (active.length <= 1) return active[0] ?? null;
   const near = (s: string) =>
     first.filter((w) => w.speaker === s && Math.abs(wordMidpoint(w) - at) <= LOCAL_WORD_SECONDS).length;
-  return quieterSpeaker({ ...span, speakers: active }, first, turns, near);
+  return quieterSpeaker({ ...span, speakers: [...active] }, first, turns, near);
 }
 
 export async function retranscribeOverlap(
