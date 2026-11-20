@@ -79,8 +79,8 @@ Claude Desktop:
 {
   "mcpServers": {
     "meeting-noter": {
-      "command": "/Users/YOU/Library/Application Support/Meeting Noter/app/node/bin/node",
-      "args": ["/Users/YOU/Library/Application Support/Meeting Noter/app/mcp/meetings-mcp.mjs"]
+      "command": "/path/to/home/Library/Application Support/Meeting Noter/app/node/bin/node",
+      "args": ["/path/to/home/Library/Application Support/Meeting Noter/app/mcp/meetings-mcp.mjs"]
     }
   }
 }

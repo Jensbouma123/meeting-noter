@@ -4,7 +4,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const CORPUS = process.env.ECHO_EVAL_CORPUS ?? '/Users/jensbouma/Library/Application Support/OrchestratorAI/exchange/echo-eval/corpus';
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const EVAL_DIR = path.resolve(root, process.env.ECHO_EVAL_DIR ?? '.echo-eval');
+const CORPUS = process.env.ECHO_EVAL_CORPUS ?? path.join(EVAL_DIR, 'corpus');
 const TMP = path.join(CORPUS, '_tmp');
 const MLS = 'facebook/multilingual_librispeech';
 const HF = 'https://huggingface.co';

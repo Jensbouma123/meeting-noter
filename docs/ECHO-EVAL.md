@@ -27,8 +27,9 @@ The plan has two cases, `<id>-ext-system` (the recording on the system channel, 
 
 ## Inputs and outputs
 
-- Audio: `ECHO_EVAL_AUDIO` (default `/Users/jensbouma/Desktop/Meeting Noter/test-audio`) holding the AMI wav, words and label files.
-- Output: `ECHO_EVAL_OUT` (default `~/Library/Application Support/OrchestratorAI/exchange/echo-eval/`): `results.jsonl` (or `results.fake.jsonl` for `--fake`), `meta.json` (recorded backend and user agent), `report.md`, `failures.json`.
+- Audio: `ECHO_EVAL_AUDIO` (default `../test-audio`, next to the repo) holding the AMI wav, words and label files.
+- Base dir: `ECHO_EVAL_DIR` (default `<repo>/.echo-eval`, git-ignored; e.g. `ECHO_EVAL_DIR=~/echo-eval`). Output, corpus (`corpus/`), ASR model (`model/`), diarization model (`diar-model/`) and separation model (`sep-model/`) live under it unless `ECHO_EVAL_OUT`, `ECHO_EVAL_CORPUS`, `ECHO_EVAL_MODELS` or `ECHO_EVAL_DIAR_MODEL` override them.
+- Output: `ECHO_EVAL_OUT` (default `$ECHO_EVAL_DIR`): `results.jsonl` (or `results.fake.jsonl` for `--fake`), `meta.json` (recorded backend and user agent), `report.md`, `failures.json`.
 - Sharded runs add `meetings.shard<i>.jsonl` and `finished.meetings.shard<i>.json` per tab (`.fake` before `.shard<i>` for `--fake`).
 - Resume: cases already in `results.jsonl` (or `results.fake.jsonl`) are skipped on the next run. Delete the file for a fresh run.
 

@@ -71,3 +71,6 @@ server/native/bin/
 # caches
 node_modules/
 .vite
+
+# Echo-eval data (ECHO_EVAL_DIR default)
+.echo-eval/

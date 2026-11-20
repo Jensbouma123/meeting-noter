@@ -13,7 +13,7 @@ describe('meetings MCP server errors', () => {
   });
 
   it('returns a generic error without the DB path, and logs the detail to stderr', async () => {
-    const secretPath = '/Users/someone/Library/Application Support/Meeting Noter/meetings.db';
+    const secretPath = '/home/someone/Library/Application Support/Meeting Noter/meetings.db';
     const server = createMeetingsMcpServer(() => {
       throw new Error(`unable to open database file: ${secretPath}`);
     });
