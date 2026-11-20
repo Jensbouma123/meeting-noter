@@ -20,13 +20,15 @@ export interface AskAssistant {
   serverLaunch?: AskServerLaunch;
 }
 
-export type AskOutcome = 'opened' | 'copied' | 'copy-failed';
+export type AskOutcome = 'opened' | 'accessibility' | 'copied' | 'copy-failed';
+
+export type AskLaunchResponse = { ok: true; prefilled: boolean; reason?: 'accessibility' } | { ok: false };
 
 export interface AskDeliveryIo {
   copy: (text: string) => Promise<boolean>;
   launchApp: (appUrl: string, webUrl: string | null) => void;
   openWeb: (url: string) => void;
-  requestLaunch: (id: AskAssistantId, prompt: string) => Promise<boolean>;
+  requestLaunch: (id: AskAssistantId, prompt: string) => Promise<AskLaunchResponse>;
 }
 
 export interface AskTurn {
