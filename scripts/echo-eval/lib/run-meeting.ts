@@ -1,9 +1,9 @@
-import { splitTranscript } from '@/lib/meeting/split-transcript';
 import { toFrames } from '@/lib/meeting/two-source-bleed.testSupport';
 import type { MeetingAsr, MeetingStore } from '../types/meeting-engine';
 import type { MeetingCase } from '../types/meeting-case';
 import type { MeetingResult } from '../types/meeting-result';
 import type { RenderedCase } from '../types/rendered-case';
+import { meetingSegments } from './meeting-segments';
 
 const STEP_FRAMES = 10;
 const IDLE_POLLS = 3;
@@ -21,22 +21,17 @@ async function settle(): Promise<void> {
 
 export async function runMeeting(c: MeetingCase, audio: RenderedCase, asr: MeetingAsr, store: MeetingStore): Promise<MeetingResult> {
   store.resetSession('both');
+  await asr.startSpeakers?.();
+  const push = asr.route ?? asr.pushLiveAudio;
   const system = toFrames(audio.system);
   const mic = toFrames(audio.mic);
   for (let at = 0; at < system.length; at += STEP_FRAMES) {
-    for (const frame of system.slice(at, at + STEP_FRAMES)) asr.pushLiveAudio('system', frame);
-    for (const frame of mic.slice(at, at + STEP_FRAMES)) asr.pushLiveAudio('mic', frame);
+    for (const frame of system.slice(at, at + STEP_FRAMES)) push('system', frame);
+    for (const frame of mic.slice(at, at + STEP_FRAMES)) push('mic', frame);
+    await asr.settleSpeakers?.();
     await settle();
   }
-  await asr.flushLiveAudio();
-  const all = store.getState().segments;
-  const kept = new Set(splitTranscript(all).flatMap((b) => b.segments.map((s) => s.id)));
-  const segments = all.map((s) => ({
-    source: s.source,
-    text: s.text,
-    start: +s.start.toFixed(2),
-    end: +s.end.toFixed(2),
-    kept: kept.has(s.id),
-  }));
-  return { id: c.id, split: c.split, segments };
+  await (asr.flushSpeakers ? asr.flushSpeakers() : asr.flushLiveAudio());
+  const diarized = !!asr.route;
+  return { id: c.id, split: c.split, diarized, segments: meetingSegments(store.getState().segments, diarized) };
 }
