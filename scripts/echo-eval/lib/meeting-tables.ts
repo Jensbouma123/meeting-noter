@@ -1,7 +1,6 @@
-import type { MeetingScore, PairScore, TurnScore } from '../types/meeting-score';
 import type { Hit } from '../types/hit';
+import type { MeetingScore, PairScore, SpeakerScore, TurnScore } from '../types/meeting-score';
 import { pct, wilson } from './stats';
-
 
 const cell = (k: number, n: number): string => `${k}/${n} = ${n ? pct(wilson(k, n)) : 'n/a'}`;
 
@@ -26,10 +25,25 @@ export const LANGS: [string, Hit<{ lang: string }>][] = [
   ['mixed', (x) => x.lang === 'mixed'],
 ];
 
+export const TURN_LANGS: [string, Hit<{ lang: string }>][] = [
+  ['all', () => true],
+  ['nl', (x) => x.lang === 'nl'],
+  ['en', (x) => x.lang === 'en'],
+];
+
 const real = (t: TurnScore) => t.event !== 'backchannel';
 
 export const turnMetrics: [string, Hit<TurnScore>, Hit<TurnScore>][] = [
   ['lost lines (heard, dropped)', (t) => real(t) && t.heard, (t) => t.lost],
+  ['duplicate lines (remote, echo twin survived)', (t) => real(t) && t.role === 'remote' && t.heard, (t) => t.dups > 0],
+  ['unheard by ASR', real, (t) => !t.heard],
+];
+
+export const diarTurnMetrics: [string, Hit<TurnScore>, Hit<TurnScore>][] = [
+  ['speaker attributed (kept)', (t) => real(t) && t.kept && t.attributed !== null, (t) => t.attributed === true],
+  ['speaker attributed (all)', (t) => real(t) && t.attributed !== null, (t) => t.attributed === true],
+  ['lost lines (heard, dropped)', (t) => real(t) && t.heard, (t) => t.lost],
+  ['merged lines', (t) => real(t) && t.kept, (t) => t.merged],
   ['duplicate lines (remote, echo twin survived)', (t) => real(t) && t.role === 'remote' && t.heard, (t) => t.dups > 0],
   ['unheard by ASR', real, (t) => !t.heard],
 ];
@@ -42,8 +56,30 @@ export const meetingMetrics: [string, Hit<MeetingScore>, Hit<MeetingScore>][] = 
   ['has junk mic line', () => true, (m) => m.junkMicLines > 0],
 ];
 
+export const diarMeetingMetrics: [string, Hit<MeetingScore>, Hit<MeetingScore>][] = [
+  ['speaker count exact', () => true, (m) => m.shownSpeakers === m.truthSpeakers],
+  ['shown > truth', () => true, (m) => m.shownSpeakers > m.truthSpeakers],
+  ['shown < truth', () => true, (m) => m.shownSpeakers < m.truthSpeakers],
+  ['has phantom speaker', () => true, (m) => m.phantomSpeakers > 0],
+  ['has lost speaker', () => true, (m) => m.lostSpeakers > 0],
+  ['has merged line', () => true, (m) => m.mergedLines > 0],
+  ['has junk mic line', () => true, (m) => m.junkMicLines > 0],
+];
+
+export const speakerMetrics: [string, Hit<SpeakerScore>, Hit<SpeakerScore>][] = [
+  ['matched to label', () => true, (s) => s.label !== null],
+  ['all kept turns attributed', (s) => s.kept > 0, (s) => s.attributed === s.kept],
+];
+
 export const pairMetrics: [string, Hit<PairScore>, Hit<PairScore>][] = [
   ['both kept', () => true, (p) => p.bothKept],
+  ['merged', () => true, (p) => p.merged],
+  ['echo-marked / lost', () => true, (p) => p.echoMarked],
+];
+
+export const diarPairMetrics: [string, Hit<PairScore>, Hit<PairScore>][] = [
+  ['both kept', () => true, (p) => p.bothKept],
+  ['both attributed', (p) => p.bothAttributed !== null, (p) => p.bothAttributed === true],
   ['merged', () => true, (p) => p.merged],
   ['echo-marked / lost', () => true, (p) => p.echoMarked],
 ];
@@ -52,11 +88,34 @@ export const PAIRINGS: [string, Hit<PairScore>][] = ['remote+remote', 'local+loc
   (n): [string, Hit<PairScore>] => [n, (p) => p.pairing === n],
 );
 
+export const TURN_PAIRINGS: [string, Hit<TurnScore>][] = [
+  ['all', () => true],
+  ['non-overlap', (t) => t.pairing === null],
+  ['remote+remote', (t) => t.pairing === 'remote+remote'],
+  ['local+local', (t) => t.pairing === 'local+local'],
+  ['local+remote', (t) => t.pairing === 'local+remote'],
+];
+
 export const OVERLAPS: [string, Hit<PairScore>][] = [
   ['10-40%', (p) => p.overlapFrac < 0.4],
   ['40-70%', (p) => p.overlapFrac >= 0.4 && p.overlapFrac < 0.7],
   ['70-100%', (p) => p.overlapFrac >= 0.7],
 ];
 
+export const TURN_OVERLAPS: [string, Hit<TurnScore>][] = [
+  ['10-40%', (t) => t.overlapFrac !== null && t.overlapFrac < 0.4],
+  ['40-70%', (t) => t.overlapFrac !== null && t.overlapFrac >= 0.4 && t.overlapFrac < 0.7],
+  ['70-100%', (t) => t.overlapFrac !== null && t.overlapFrac >= 0.7],
+];
+
 export const meanShown = (ms: MeetingScore[]): string =>
   ms.length ? `${(ms.reduce((s, m) => s + m.shownSpeakers - m.truthSpeakers, 0) / ms.length).toFixed(2)}` : 'n/a';
+
+export function speakerTotals(ms: MeetingScore[]): string {
+  const shown = ms.reduce((s, m) => s + m.shownSpeakers, 0);
+  const truth = ms.reduce((s, m) => s + m.truthSpeakers, 0);
+  const phantoms = ms.reduce((s, m) => s + m.phantomSpeakers, 0);
+  const merged = ms.reduce((s, m) => s + m.mergedLines, 0);
+  const junk = ms.reduce((s, m) => s + m.junkMicLines, 0);
+  return `shown/truth speakers ${shown}/${truth}; phantom speakers ${cell(phantoms, shown)}; merged lines total ${merged}; junk mic lines total ${junk}`;
+}
