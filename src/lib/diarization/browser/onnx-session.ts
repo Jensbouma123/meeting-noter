@@ -1,4 +1,4 @@
-import * as ort from 'onnxruntime-web';
+import * as ort from 'onnxruntime-web/webgpu';
 import { applyOrtWasmPaths } from '@/lib/ort-paths';
 import type { ExternalDataFile } from './types';
 import type { CreateSessionFn as CreateFn, CreatedSession } from './types/session';
@@ -55,5 +55,5 @@ export async function createSession(
   return { session, backend: 'wasm', webGpuUnavailable: webGpu };
 }
 
-export type { InferenceSession } from 'onnxruntime-web';
-export { Tensor } from 'onnxruntime-web';
+export type { InferenceSession } from 'onnxruntime-web/webgpu';
+export { Tensor } from 'onnxruntime-web/webgpu';
