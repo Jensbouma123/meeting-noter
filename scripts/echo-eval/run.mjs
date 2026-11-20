@@ -7,8 +7,9 @@ import { evalPort, portBusyMessage } from './lib/eval-port.ts';
 import { MAX_GRID_SHARDS, gridUrl } from './lib/grid-url.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const OUT = process.env.ECHO_EVAL_OUT ?? '/Users/jensbouma/Library/Application Support/OrchestratorAI/exchange/echo-eval';
-const AUDIO = process.env.ECHO_EVAL_AUDIO ?? '/Users/jensbouma/Desktop/Meeting Noter/test-audio';
+const EVAL_DIR = path.resolve(root, process.env.ECHO_EVAL_DIR ?? '.echo-eval');
+const OUT = process.env.ECHO_EVAL_OUT ?? EVAL_DIR;
+const AUDIO = process.env.ECHO_EVAL_AUDIO ?? path.resolve(root, '..', 'test-audio');
 const limitArg = process.argv.find((a) => a.startsWith('--limit='));
 const limit = limitArg ? Number(limitArg.split('=')[1]) : 0;
 const shardsArg = process.argv.find((a) => a.startsWith('--shards='));

@@ -1,5 +1,6 @@
 import { Worker } from 'node:worker_threads';
 import path from 'node:path';
+import { EVAL_DIR } from './eval-dir';
 import type { Pending } from '../types/asr-pending';
 import type { Slot } from '../types/asr-slot';
 
@@ -7,7 +8,7 @@ const G = globalThis as unknown as { __echoEvalPool?: Slot[]; __echoEvalNext?: n
 
 const repoRoot = path.resolve(__dirname, '../../..');
 export const MODEL_DIR =
-  process.env.ECHO_EVAL_MODELS ?? '/Users/jensbouma/Library/Application Support/OrchestratorAI/exchange/echo-eval/model';
+  process.env.ECHO_EVAL_MODELS ?? path.join(EVAL_DIR, 'model');
 
 function spawn(): Slot {
   const worker = new Worker(path.join(__dirname, 'asr-worker.mjs'), { workerData: { modelsDir: MODEL_DIR, repoRoot } });

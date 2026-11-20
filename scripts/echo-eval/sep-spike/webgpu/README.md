@@ -9,7 +9,7 @@ every PRelu (73) with Less/Mul/Where. `verify_rewrite.py` checks parity on ORT C
 
 ```sh
 uv venv venv && uv pip install -p venv/bin/python onnx onnxruntime numpy
-M="$HOME/Library/Application Support/OrchestratorAI/exchange/echo-eval"
+M="${ECHO_EVAL_DIR:-../../../../.echo-eval}"
 venv/bin/python rewrite_model.py "$M/sep-model/mossformer2_ss_16k.onnx" "$M/sep-model/mossformer2_ss_16k.webgpu.onnx"
 venv/bin/python verify_rewrite.py "$M/sep-model/mossformer2_ss_16k.onnx" "$M/sep-model/mossformer2_ss_16k.webgpu.onnx" "$M/corpus"
 ```

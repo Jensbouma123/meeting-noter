@@ -2,8 +2,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
+import { fileURLToPath } from 'node:url';
 
-const DIR = process.env.ECHO_EVAL_DIAR_MODEL ?? '/Users/jensbouma/Library/Application Support/OrchestratorAI/exchange/echo-eval/diar-model';
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const EVAL_DIR = path.resolve(root, process.env.ECHO_EVAL_DIR ?? '.echo-eval');
+const DIR = process.env.ECHO_EVAL_DIAR_MODEL ?? path.join(EVAL_DIR, 'diar-model');
 const REPO = 'https://huggingface.co/onnx-community/Nemotron-3-Diarization-ONNX/resolve/main';
 const FILES = [
   ['onnx/model_q4f16.onnx', 408_120],

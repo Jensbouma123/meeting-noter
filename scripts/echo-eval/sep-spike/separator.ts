@@ -1,8 +1,10 @@
+import path from 'node:path';
 import * as ort from 'onnxruntime-node';
+import { EVAL_DIR } from '../lib/eval-dir';
 
 export const SEP_MODEL =
   process.env.SEP_MODEL ??
-  '/Users/jensbouma/Library/Application Support/OrchestratorAI/exchange/echo-eval/sep-model/mossformer2_ss_16k.onnx';
+  path.join(EVAL_DIR, 'sep-model/mossformer2_ss_16k.onnx');
 
 let session: Promise<ort.InferenceSession> | undefined;
 

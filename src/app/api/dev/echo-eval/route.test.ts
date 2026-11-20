@@ -5,7 +5,7 @@ import path from 'node:path';
 import { afterAll, describe, expect, it, vi } from 'vitest';
 
 const out = fs.mkdtempSync(path.join(os.tmpdir(), 'echo-eval-'));
-const audio = process.env.ECHO_EVAL_AUDIO ?? '/Users/jensbouma/Desktop/Meeting Noter/test-audio';
+const audio = process.env.ECHO_EVAL_AUDIO ?? path.resolve('..', 'test-audio');
 const hasAudio = fs.existsSync(path.join(audio, 'ami-EN2002b-5min.wav'));
 
 const call = (route: typeof import('./route'), method: 'GET' | 'POST', query: string, body?: unknown) =>
