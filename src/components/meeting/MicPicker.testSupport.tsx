@@ -41,7 +41,6 @@ export const ui = (value: string, onChange = vi.fn(), locked = false) => (
   </LanguageContext.Provider>
 );
 
-/** Waits for the device list to load and returns the Microphone select. */
 export async function loaded() {
   await waitFor(() => expect(navigator.mediaDevices.enumerateDevices).toHaveBeenCalled());
   await act(async () => {});

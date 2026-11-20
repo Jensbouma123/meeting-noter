@@ -5,7 +5,6 @@ import { CaptureModePicker } from './CaptureModePicker';
 import { MicPicker } from './MicPicker';
 import type { AudioSettingsDrawerProps } from './AudioSettingsDrawer.types';
 
-/** Audio settings panel that slides up above the dock; stays mounted while `closing` so the exit transition plays. */
 export function AudioSettingsDrawer({
   drawer,
   mode,

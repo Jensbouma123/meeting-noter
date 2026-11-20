@@ -7,7 +7,6 @@ import { meeting } from './store';
 import { LevelMeter } from './LevelMeter';
 import type { MicPickerProps } from './MicPicker.types';
 
-/** "Microphone": a native device select (no portal, so the drawer's outside-click stays correct) beside the live levels. */
 export function MicPicker({ value, onChange, locked, mode, active, callMissing = false }: MicPickerProps) {
   const t = useT('dock');
   const selectId = useId();

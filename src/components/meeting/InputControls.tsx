@@ -14,18 +14,19 @@ export function InputControls({
   onOpenAdvanced,
 }: InputControlsProps) {
   const t = useT('dock');
+  const { triggerRef, open, id, toggle } = drawer;
 
   return (
     <div className="flex shrink-0 items-center gap-1.5">
       <Tooltip content={t('audioSettings')} side="top">
         <button
-          ref={drawer.triggerRef}
+          ref={triggerRef}
           type="button"
           aria-label={t('audioSettings')}
           aria-haspopup="dialog"
-          aria-expanded={drawer.open}
-          aria-controls={drawer.open ? drawer.id : undefined}
-          onClick={drawer.toggle}
+          aria-expanded={open}
+          aria-controls={open ? id : undefined}
+          onClick={toggle}
           className="focus-ring touch-target-44 inline-flex h-10 min-w-10 shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-full px-3 text-foreground transition-colors hover:bg-elevation-2 active:bg-elevation-3 aria-expanded:bg-elevation-2 dark:hover:bg-elevation-3 dark:active:bg-elevation-4 dark:aria-expanded:bg-elevation-3"
         >
           <Settings className="size-4" aria-hidden="true" />

@@ -7,7 +7,6 @@ import type { MicLevelPipProps } from './MicLevelPip.types';
 const ATTACK = 0.5;
 const RELEASE = 0.08;
 
-/** Tiny decorative mic bar on the audio-settings cog, so incoming audio stays visible with the drawer closed. */
 export function MicLevelPip({ active }: MicLevelPipProps) {
   const barRef = useRef<HTMLSpanElement>(null);
 

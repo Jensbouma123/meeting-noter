@@ -4,7 +4,6 @@ import { useCallback, useEffect, useId, useRef, useState, type RefObject, type T
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import type { AudioDrawerPhase, AudioDrawerState } from './useAudioDrawer.types';
 
-/** Open/close state of the dock's audio drawer; `closing` keeps it mounted until its exit transition ends. */
 export function useAudioDrawer(rootRef: RefObject<HTMLElement | null>): AudioDrawerState {
   const [phase, setPhase] = useState<AudioDrawerPhase>('closed');
   const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)');

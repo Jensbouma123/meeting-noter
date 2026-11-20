@@ -10,7 +10,6 @@ const OPTIONS = [
   { value: 'both', Icon: PhoneCall, title: 'micCallTitle', desc: 'micCallDesc' },
 ] as const;
 
-/** "What to record": one card per capture mode; the legacy `system` mode shows as Mic + call. */
 export function CaptureModePicker({ mode, locked, onChange }: CaptureModePickerProps) {
   const t = useT('dock');
   const headingId = useId();
