@@ -102,6 +102,41 @@ describe('retranscribeOverlap', () => {
   });
 });
 
+describe('retranscribeOverlap attribution by activity', () => {
+  const span = { start: 10, end: 12, speakers: ['a', 'b'] };
+  const run = (turns: OverlapTurn[], first: AttributedWord[]) =>
+    retranscribeOverlap(
+      span,
+      first,
+      turns,
+      (start, end) => ({ audio: new Float32Array(Math.round((end - start) * SR)), start }),
+      async () => [
+        { text: 'early', start: 0.5, end: 0.7 },
+        { text: 'late', start: 1.5, end: 1.7 },
+      ],
+    );
+
+  it('gives each recovered word to the speaker active at its time, not the one with fewer words', async () => {
+    const turns: OverlapTurn[] = [
+      { speaker: 'a', start: 5, end: 10.8 },
+      { speaker: 'b', start: 10, end: 15 },
+    ];
+    // 'a' has fewer pass-1 words, so the old rule gave everything to 'a'.
+    const first = [word('x', 10.1, 10.2, 'b'), word('y', 11.9, 12, 'b')];
+    const added = await run(turns, first);
+    // 'early' (10.3): both active, 'b' already talks nearby, so 'a'. 'late' (11.3): only 'b' is active.
+    expect(added.map((w) => [w.text, w.speaker])).toEqual([
+      ['early', 'a'],
+      ['late', 'b'],
+    ]);
+  });
+
+  it('falls back to the quieter speaker when no turn covers the word', async () => {
+    const added = await run([], [word('x', 10.2, 10.4, 'b')]);
+    expect(added.map((w) => w.speaker)).toEqual(['a', 'a']);
+  });
+});
+
 describe('isOverlapPassSegment', () => {
   it('knows the pass segments, also under an appended recording prefix', () => {
     expect(isOverlapPassSegment('ovl-3')).toBe(true);
