@@ -1,6 +1,7 @@
 import type { CaseResult } from '../../../../scripts/echo-eval/types/case-result';
 import type { EvalCase } from '../../../../scripts/echo-eval/types/eval-case';
 import type { MeetingCase } from '../../../../scripts/echo-eval/types/meeting-case';
+import type { MeetingAsr } from '../../../../scripts/echo-eval/types/meeting-engine';
 import type { Segment } from '@/lib/meeting/types';
 
 export interface PlanUtterance {
@@ -19,10 +20,7 @@ export interface EvalPlan {
 export interface EvalEngine {
   backend: string;
   ensureReady: () => Promise<void>;
-  asr: {
-    pushLiveAudio: (source: 'mic' | 'system', frame: ArrayBuffer) => void;
-    flushLiveAudio: () => Promise<unknown>;
-  };
+  asr: MeetingAsr;
   store: {
     resetSession: (mode: 'both') => void;
     getState: () => { segments: Segment[] };

@@ -12,7 +12,7 @@ export function useEchoEval(autostart: boolean, fake: boolean, limit: number | n
   const start = useCallback(async () => {
     if (started.current) return;
     started.current = true;
-    const engine = fake ? createFakeEngine() : await createLiveEngine();
+    const engine = fake ? createFakeEngine() : await createLiveEngine(meetings);
     await runEval(engine, limit, setProgress, meetings);
     started.current = false;
   }, [fake, limit, meetings]);
