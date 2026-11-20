@@ -1,10 +1,12 @@
 import type { SpeakerTurn } from '@/lib/diarization/browser';
+import { getTranscriptSessionId } from './transcript-session';
 import type { Source } from './types';
 
 const turns = new Map<Source, SpeakerTurn[]>();
 const maxTurnLength = new Map<Source, number>();
 let generation = 0;
 let revision = 0;
+let owner: string | null = null;
 
 export function turnsGeneration(): number {
   return generation;
@@ -12,6 +14,10 @@ export function turnsGeneration(): number {
 
 export function turnsRevision(): number {
   return revision;
+}
+
+export function turnsSessionId(): string | null {
+  return owner;
 }
 
 export function turnsOf(source: Source): SpeakerTurn[] {
@@ -50,6 +56,7 @@ export function insertTurn(turn: SpeakerTurn): void {
   list.splice(i, 0, turn);
   maxTurnLength.set(turn.source, Math.max(longestTurnOf(turn.source), turn.end - turn.start));
   turns.set(turn.source, list);
+  owner = getTranscriptSessionId();
   revision += 1;
 }
 
@@ -60,6 +67,7 @@ export function replaceTurns(source: Source, next: readonly SpeakerTurn[]): void
     source,
     list.reduce((max, t) => Math.max(max, t.end - t.start), 0),
   );
+  owner = getTranscriptSessionId();
   revision += 1;
 }
 
