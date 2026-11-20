@@ -6,10 +6,14 @@ import { pushLiveAudio } from '@/lib/meeting/asr/live-push';
 import { asrState } from '@/lib/meeting/asr/state';
 import { resetSession } from '@/lib/meeting/session-reset';
 import { getState } from '@/lib/meeting/store-core';
+import { withBrowserSpeakers } from './browserSpeakers';
 import type { EvalEngine } from './types';
 
-export async function createLiveEngine(): Promise<EvalEngine> {
+const logBackend = (backend: string) => console.info(`[echo-eval] diarizer backend: ${backend}`);
+
+export async function createLiveEngine(meetings = false): Promise<EvalEngine> {
   const backend = await detectAsrBackend();
+  const asr = { pushLiveAudio, flushLiveAudio };
   return {
     backend,
     ensureReady: async () => {
@@ -17,7 +21,7 @@ export async function createLiveEngine(): Promise<EvalEngine> {
       if (await ensureBrowserASRReady()) return;
       throw new Error(asrState.blockedReason ?? asrState.error ?? 'speech model failed to load');
     },
-    asr: { pushLiveAudio, flushLiveAudio },
+    asr: meetings ? withBrowserSpeakers(asr, logBackend) : asr,
     store: { resetSession, getState },
   };
 }
