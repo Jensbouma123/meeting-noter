@@ -1,3 +1,4 @@
+import type { SeparationStats } from '@/lib/meeting/types/overlap-separate';
 import type { SegmentView } from './case-result';
 
 export interface MeetingSegment extends SegmentView {
@@ -13,4 +14,5 @@ export interface MeetingResult {
   split: 'dev' | 'heldout';
   diarized?: boolean;
   segments: MeetingSegment[];
+  separation?: SeparationStats;
 }

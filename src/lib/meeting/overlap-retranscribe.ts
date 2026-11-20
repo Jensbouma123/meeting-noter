@@ -3,7 +3,7 @@ import { clearHeldAudio, heldAudio, holdFrame } from './overlap-held-audio';
 import { missedWords } from './overlap-missed-words';
 import { firstPassWords, pruneDuplicatedPassWords } from './overlap-pass-segments';
 import { upsertPassSegment, upsertSpeakerSegments } from './overlap-pass-upsert';
-import { resetSeparation, separateOverlap } from './overlap-separate';
+import { separateOverlap } from './overlap-separate';
 import { overlapSpans } from './overlap-spans';
 import { CAPTURE_SAMPLE_RATE } from './pcm';
 import type { Source } from './types';
@@ -93,5 +93,4 @@ export function resetOverlapRetranscribe(): void {
   closedTurns.clear();
   handled.clear();
   heardUntil.clear();
-  resetSeparation();
 }

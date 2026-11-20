@@ -5,12 +5,14 @@ export async function resetLiveSession(): Promise<void> {
   const { session } = await import('@/lib/meeting/session-state');
   const { resetDiarization } = await import('@/lib/meeting/diarization-bridge');
   const { resetOverlapRetranscribe } = await import('@/lib/meeting/overlap-retranscribe');
+  const { resetSeparation } = await import('@/lib/meeting/overlap-separate');
   const { beginSpeakerSession } = await import('@/lib/meeting/speaker-session');
   const { captureClock, frameFeed } = await import('@/lib/meeting/diagnostics');
   session.sessionOver = false;
   session.paused = false;
   resetDiarization();
   resetOverlapRetranscribe();
+  resetSeparation();
   beginSpeakerSession();
   captureClock.clear();
   frameFeed.clear();

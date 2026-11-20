@@ -20,6 +20,7 @@ function EchoEval() {
     limit,
     setOf(params.get('set')),
     shard,
+    params.get('sep') === 'mossformer2',
   );
   const status = `${progress.phase}: ${progress.done}/${progress.total} ${progress.message}`;
   const shardIndex = shard?.index;
