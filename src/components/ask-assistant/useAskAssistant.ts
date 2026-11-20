@@ -64,6 +64,7 @@ export function useAskAssistant({ title, startedAt, segments, speakers }: UseAsk
     });
     const fill = (message: string) => message.replace('{name}', assistant.name);
     if (outcome === 'opened') toast.success(fill(t('opened')));
+    else if (outcome === 'accessibility') toast.warning(fill(t('accessibility')));
     else if (outcome === 'copied') toast.success(fill(t('copiedPaste')));
     else toast.danger(fill(t('copyFailed')));
   };

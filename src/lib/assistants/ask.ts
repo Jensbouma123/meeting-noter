@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { APP_NAME } from './app-assistant';
+import { launchPasteApp } from './app-paste';
 import { findCli } from './cli';
 import { isCliAssistant } from './catalog';
 import { launchInTerminal } from './terminal-launch';
@@ -14,15 +14,23 @@ export function defaultAskDeps(env: NodeJS.ProcessEnv = process.env): AskLaunchD
       new Promise((resolve) => {
         execFile('open', args, { timeout: 10_000 }, (err) => resolve(!err));
       }),
+    copy: (text) =>
+      new Promise((resolve) => {
+        const child = execFile('pbcopy', { timeout: 10_000, env: { ...env, LANG: 'en_US.UTF-8' } }, (err) =>
+          resolve(!err),
+        );
+        child.stdin?.end(text, 'utf8');
+      }),
+    osascript: (args) =>
+      new Promise((resolve) => {
+        execFile('osascript', args, { timeout: 20_000 }, (err, _stdout, stderr) =>
+          resolve({ ok: !err, stderr: String(stderr ?? '') }),
+        );
+      }),
   };
 }
 
 export async function launchAsk(id: AssistantId, prompt: string, deps: AskLaunchDeps): Promise<AskLaunchResult> {
   if (isCliAssistant(id)) return launchInTerminal(id, prompt, deps);
-  if (id === 'codex-app') {
-    return (await deps.open(['-a', APP_NAME[id]]))
-      ? { ok: true, prefilled: false }
-      : { ok: false, error: 'open-failed' };
-  }
-  return { ok: false, error: 'not-supported' };
+  return launchPasteApp(id, prompt, deps);
 }

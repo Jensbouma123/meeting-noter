@@ -27,6 +27,8 @@ export const ask = {
     cancel: 'Cancel',
     opened: 'Opened in {name}',
     copiedPaste: 'Prompt copied, paste it in {name}',
+    accessibility:
+      '{name} is open and the prompt is on your clipboard: press ⌘V. To paste automatically, allow Terminal (the app running Meeting Noter) in System Settings > Privacy & Security > Accessibility, and allow it to control System Events under Automation.',
     copyFailed: 'Could not copy the prompt. Copy the transcript via “Share” and paste it in {name}.',
     noTranscript: 'Nothing to ask yet. Record something first.',
   },
@@ -58,6 +60,8 @@ export const ask = {
     cancel: 'Annuleren',
     opened: 'Geopend in {name}',
     copiedPaste: 'Prompt gekopieerd, plak hem in {name}',
+    accessibility:
+      '{name} is open en de prompt staat op je klembord: druk op ⌘V. Om automatisch te plakken, sta Terminal (de app waarin Meeting Noter draait) toe in Systeeminstellingen > Privacy en beveiliging > Toegankelijkheid, en sta onder Automatisering toe dat het System Events mag besturen.',
     copyFailed: 'Kopiëren lukte niet. Kopieer het transcript via “Delen” en plak het in {name}.',
     noTranscript: 'Nog niets om te vragen. Neem eerst iets op.',
   },

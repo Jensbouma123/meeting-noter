@@ -8,6 +8,7 @@ import {
   name,
   openMenu,
   renderButton,
+  stubAppLaunch,
   stubAssistants,
   stubClipboard,
   visibleText,
@@ -63,22 +64,29 @@ describe('AskAssistantButton', () => {
     ]);
   });
 
-  it('opens the Claude app with the prompt and transcript in the link, without touching the clipboard', async () => {
-    stubAssistants(['claude-desktop']);
-    const writeText = stubClipboard();
+  it('sends the prompt and transcript to the server, which opens Claude Desktop prefilled', async () => {
+    const launches = stubAppLaunch({ ok: true, prefilled: true });
+    stubClipboard();
     const open = vi.spyOn(window, 'open').mockReturnValue(null);
     renderButton();
     await openMenu();
     const items = await screen.findAllByRole('menuitem', { hidden: true });
     await act(async () => fireEvent.click(items[2]));
-    const [appUrl, webUrl] = vi.mocked(launchAppLink).mock.calls[0];
-    expect(appUrl).toMatch(/^claude:\/\/claude\.ai\/new\?q=/);
-    expect(decodeURIComponent(appUrl)).toContain('actiepunten');
-    expect(decodeURIComponent(appUrl)).toContain('Anna: We pakken de begroting op.');
-    expect(webUrl).toMatch(/^https:\/\/claude\.ai\/new\?q=/);
+    await waitFor(() => expect(launches.map((l) => l.url)).toEqual(['/api/assistants/claude-desktop/ask']));
+    expect(launches[0].prompt).toContain('actiepunten');
+    expect(launches[0].prompt).toContain('Anna: We pakken de begroting op.');
+    expect(launchAppLink).not.toHaveBeenCalled();
     expect(open).not.toHaveBeenCalled();
-    expect(writeText).not.toHaveBeenCalled();
     expect(await screen.findByText('Geopend in Claude Desktop')).toBeInTheDocument();
+  });
+
+  it('explains how to grant Accessibility when the server could not paste into the app', async () => {
+    stubAppLaunch({ ok: true, prefilled: false, reason: 'accessibility' });
+    renderButton();
+    await openMenu();
+    const items = await screen.findAllByRole('menuitem', { hidden: true });
+    await act(async () => fireEvent.click(items[0]));
+    expect(await screen.findByText(/Claude Desktop is open en de prompt staat op je klembord/)).toBeInTheDocument();
   });
 
   it('copies the full prompt and says where to paste it when no link can carry the text', async () => {

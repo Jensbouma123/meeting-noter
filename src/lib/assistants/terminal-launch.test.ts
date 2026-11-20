@@ -3,7 +3,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { launchAsk } from './ask';
-import { buildRunScript, shellQuote } from './terminal-script';
+import { MAX_INLINE_PROMPT_BYTES } from './terminal-launch';
+import { buildRunScript, filePointerPrompt, shellQuote } from './terminal-script';
 import type { AskLaunchDeps } from './ask.types';
 
 const NASTY = `it's $(rm -rf ~) \`whoami\` "q"\nline2 $HOME`;
@@ -17,6 +18,8 @@ function deps(opened: string[][], ok = true): AskLaunchDeps {
       opened.push(args);
       return ok;
     },
+    copy: async () => true,
+    osascript: async () => ({ ok: true, stderr: '' }),
   };
 }
 
@@ -26,8 +29,11 @@ describe('buildRunScript', () => {
       bin: "/b/it's/agy",
       flag: ['--prompt-interactive'],
       promptPath: '/d/p.txt',
-      dir: '/d',
+      cwd: '/r',
+      remove: ['/d'],
     });
+    expect(script).toContain(`cd '/r' || exit 1`);
+    expect(script).toContain(`rm -rf '/d'`);
     expect(script).toContain(`exec ${shellQuote("/b/it's/agy")} '--prompt-interactive' "$prompt"`);
     expect(script).toContain(`prompt="$(cat '/d/p.txt')"`);
   });
@@ -51,6 +57,38 @@ describe('launchAsk (cli)', () => {
     expect(fs.readFileSync(path.join(path.dirname(scriptPath), 'prompt.txt'), 'utf8')).toBe(NASTY);
     expect(fs.statSync(path.dirname(scriptPath)).mode & 0o777).toBe(0o700);
     expect(fs.statSync(scriptPath).mode & 0o777).toBe(0o755);
+    expect(script).toContain(`cd ${shellQuote(path.dirname(path.dirname(scriptPath)))} || exit 1`);
+    expect(script).toContain(`rm -rf ${shellQuote(path.dirname(scriptPath))}`);
+  });
+
+  it('hands a prompt over the inline byte limit to the CLI as a file it is told to read', async () => {
+    const opened: string[][] = [];
+    const big = `${'é'.repeat(MAX_INLINE_PROMPT_BYTES / 2)}x`;
+    expect(await launchAsk('claude-code', big, deps(opened))).toEqual({ ok: true, prefilled: true });
+    const scriptPath = opened[0][2];
+    const dir = path.dirname(scriptPath);
+    const transcript = path.join(dir, 'transcript.md');
+    expect(fs.readFileSync(transcript, 'utf8')).toBe(big);
+    expect(fs.readFileSync(path.join(dir, 'prompt.txt'), 'utf8')).toBe(filePointerPrompt(transcript));
+    const script = fs.readFileSync(scriptPath, 'utf8');
+    expect(script).toContain(`rm -rf ${shellQuote(path.join(dir, 'prompt.txt'))} ${shellQuote(scriptPath)}\n`);
+    expect(script).not.toContain('é');
+  });
+
+  it('purges launch folders older than a day and keeps fresh ones', async () => {
+    const opened: string[][] = [];
+    const d = deps(opened);
+    await launchAsk('codex', 'one', d);
+    const root = path.dirname(path.dirname(opened[0][2]));
+    const old = path.join(root, 'codex-old');
+    const fresh = path.join(root, 'codex-fresh');
+    fs.mkdirSync(old);
+    fs.mkdirSync(fresh);
+    const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    fs.utimesSync(old, twoDaysAgo, twoDaysAgo);
+    await launchAsk('codex', 'two', d);
+    expect(fs.existsSync(old)).toBe(false);
+    expect(fs.existsSync(fresh)).toBe(true);
   });
 
   it('prefixes a leading dash so the CLI cannot read the prompt as an option', async () => {
@@ -71,20 +109,5 @@ describe('launchAsk (cli)', () => {
       error: 'open-failed',
     });
     expect(fs.existsSync(path.dirname(opened[0][2]))).toBe(false);
-  });
-});
-
-describe('launchAsk (apps)', () => {
-  it('opens the Codex app without the prompt and refuses others', async () => {
-    const opened: string[][] = [];
-    expect(await launchAsk('codex-app', 'x', deps(opened))).toEqual({
-      ok: true,
-      prefilled: false,
-    });
-    expect(opened).toEqual([['-a', 'Codex']]);
-    expect(await launchAsk('gemini-app', 'x', deps(opened))).toEqual({
-      ok: false,
-      error: 'not-supported',
-    });
   });
 });
