@@ -30,47 +30,34 @@ describe('recording clock', () => {
   });
 });
 
-describe('capture mode toggle', () => {
-  it('offers exactly Mic and Mic + gesprek as radio options', () => {
+describe('capture mode dropdown', () => {
+  it('shows the current mode and offers exactly Mic and Mic + gesprek', async () => {
     renderDock('both');
-    const options = screen.getAllByRole('radio');
-    expect(options.map((option) => option.textContent)).toEqual(['Mic', 'Mic + gesprek']);
-    expect(options.map((option) => option.getAttribute('aria-checked'))).toEqual(['false', 'true']);
+    fireEvent.click(screen.getByRole('button', { name: 'Audiobron: Mic + gesprek' }));
+    const items = await screen.findAllByRole('menuitem', { hidden: true });
+    expect(items.map((i) => i.textContent)).toEqual(['Mic', 'Mic + gesprek']);
   });
 
-  it('shows a tooltip on hover and on keyboard focus', async () => {
-    renderDock('both');
-    const [mic, both] = screen.getAllByRole('radio');
-    fireEvent.mouseEnter(mic);
-    expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent('Neemt alleen je microfoon op.');
-    fireEvent.mouseLeave(mic);
-    await waitFor(() => expect(screen.queryByRole('tooltip', { hidden: true })).toBeNull());
-    fireEvent.focus(both);
-    expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent(
-      'Neemt je microfoon en het geluid van je gesprek op (Teams, Zoom, Meet).',
-    );
-  });
-
-  it('shows exactly one tooltip per option on hover, also while recording', () => {
-    const { rerender } = renderDockWithStatus('idle', 'both');
-    const [mic] = screen.getAllByRole('radio');
-    fireEvent.mouseEnter(mic);
+  it('shows exactly one tooltip on hover, also while recording', () => {
+    const { rerender } = renderDockWithStatus('idle', 'mic');
+    fireEvent.mouseEnter(screen.getByRole('button', { name: 'Audiobron: Mic' }));
     expect(screen.getAllByRole('tooltip', { hidden: true })).toHaveLength(1);
-    fireEvent.mouseLeave(mic);
+    expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent('Neemt alleen je microfoon op.');
 
-    rerender(dockElement('live', 'both'));
-    const [liveMic] = screen.getAllByRole('radio');
-    fireEvent.mouseEnter(liveMic);
+    rerender(dockElement('live', 'mic'));
+    const live = screen.getByRole('button', { name: 'Audiobron: Mic' });
+    fireEvent.mouseEnter(live.parentElement!);
     const tooltips = screen.getAllByRole('tooltip', { hidden: true });
     expect(tooltips).toHaveLength(1);
     expect(tooltips[0]).toHaveTextContent('Neemt alleen je microfoon op. Stop de opname om de audiobron te wijzigen.');
   });
 
-  it('still reports the selection', () => {
+  it('still reports the selection', async () => {
     const onModeChange = vi.fn();
     renderDock('both', onModeChange);
-    fireEvent.click(screen.getAllByRole('radio')[0]);
-    expect(onModeChange).toHaveBeenCalledWith('mic');
+    fireEvent.click(screen.getByRole('button', { name: 'Audiobron: Mic + gesprek' }));
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Mic', hidden: true }));
+    await waitFor(() => expect(onModeChange).toHaveBeenCalledWith('mic'));
   });
 });
 
