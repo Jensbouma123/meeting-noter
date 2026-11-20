@@ -9,12 +9,14 @@ export const LIVE_EDGE_PX = 80;
 export const cssEscape = (value: string): string =>
   typeof CSS !== 'undefined' && typeof CSS.escape === 'function' ? CSS.escape(value) : value;
 
-const lineHeight = (text: string, charsPerLine = 60) => Math.max(1, Math.ceil(text.length / charsPerLine)) * 26;
+const lineHeight = (text: string, charsPerLine = 70) => Math.max(1, Math.ceil(text.length / charsPerLine)) * 26;
+
+const HEADER_HEIGHT = 28;
 
 function estimateRowHeight(item: TranscriptItem): number {
-  if (item.kind === 'line') return lineHeight(item.seg.text) + (item.turnStart ? 20 : 4);
+  if (item.kind === 'line') return lineHeight(item.seg.text) + (item.turnStart ? HEADER_HEIGHT + 20 : 4);
   const text = item.columns.reduce((h, c) => c.segs.reduce((sum, seg) => sum + lineHeight(seg.text), h), 0);
-  return Math.max(text, 26 * (item.columns.length + 1)) + 20;
+  return text + item.columns.length * (HEADER_HEIGHT + 12) + 20;
 }
 
 export const estimateItemHeight = (_index: number, item: TranscriptItem) => estimateRowHeight(item);
@@ -50,12 +52,4 @@ export function buildTranscriptItems(segments: Segment[]): TranscriptItem[] {
     });
   }
   return items;
-}
-
-export function turnGridClass(pastHour: boolean): string {
-  return `grid items-baseline gap-x-2 sm:gap-x-3 ${
-    pastHour
-      ? 'grid-cols-[3.75rem_6rem_minmax(0,1fr)] sm:grid-cols-[4.5rem_7rem_minmax(0,1fr)]'
-      : 'grid-cols-[2.5rem_6rem_minmax(0,1fr)] sm:grid-cols-[3.5rem_7rem_minmax(0,1fr)]'
-  }`;
 }

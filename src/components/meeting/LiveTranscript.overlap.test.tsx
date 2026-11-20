@@ -19,9 +19,8 @@ afterEach(cleanup);
 describe('LiveTranscript overlapping speech', () => {
 
   const columns = (row: Element) => {
-    const names = [...row.querySelectorAll('[data-overlap-names] [data-speaker-name]')].map((n) => n.textContent);
-    return [...row.querySelectorAll('[data-overlap-speaker]')].map((col, i) => [
-      names[i],
+    return [...row.querySelectorAll('[data-overlap-speaker]')].map((col) => [
+      col.querySelector('[data-speaker-header] [data-speaker-name]')!.textContent,
       [...col.querySelectorAll('[data-seg-id]')].map((l) => l.getAttribute('data-seg-id')),
     ]);
   };
@@ -33,7 +32,7 @@ describe('LiveTranscript overlapping speech', () => {
 
     const split = rows[1].querySelector('[data-overlap]')!;
     expect(split.getAttribute('aria-label')).toBe('Speaking at the same time: Speaker 1 and Speaker 2');
-    expect(split.children[0].textContent).toBe('00:04');
+    expect(split.querySelector('[data-speaker-time]')!.textContent).toBe('00:04');
     expect(columns(split)).toEqual([
       ['Speaker 1', ['b']],
       ['Speaker 2', ['c']],
