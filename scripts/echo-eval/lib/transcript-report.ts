@@ -12,11 +12,6 @@ const sourceOf = (role: 'local' | 'remote'): 'mic' | 'system' => (role === 'remo
 
 export const hasReference = (c: MeetingCase): boolean => c.turns.some((t) => typeof t.refText === 'string');
 
-/**
- * Reference turns and kept app lines of the sources the reference speaks on. Labels are
- * qualified by source (`system:A`), and `labelMap` maps them to a reference speaker only
- * when scoreMeeting matched that label to a speaker of that source's role.
- */
 export function transcriptInputs(c: MeetingCase, r: ScoredMeetingResult, s: MeetingScore) {
   const turns: RefTurn[] = c.turns.map((t) => ({ start: t.startSec, end: t.endSec, speaker: t.speaker, text: t.refText, event: t.event }));
   const sources = new Set(c.turns.map((t) => sourceOf(t.role)));
@@ -52,7 +47,6 @@ function caseRows(c: MeetingCase, r: ScoredMeetingResult, s: MeetingScore): { ma
   };
 }
 
-/** Markdown section with WER, DER and over-split for every case that carries reference text. */
 export function transcriptSection(cases: Map<string, MeetingCase>, results: ScoredMeetingResult[], scores: MeetingScore[]): string[] {
   const rows = results.flatMap((r) => {
     const c = cases.get(r.id);

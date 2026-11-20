@@ -12,7 +12,6 @@ function under1000(n: number): string[] {
   return out;
 }
 
-/** English words for a non-negative integer; digits are read one by one past a trillion. */
 export function intWords(n: number): string[] {
   if (!Number.isSafeInteger(n) || n >= 1e12) return [...String(n)].map((d) => ONES[Number(d)]);
   if (n < 1000) return under1000(n);
@@ -25,7 +24,6 @@ export function intWords(n: number): string[] {
   return out;
 }
 
-/** Spells a digit token like `42`, `1,000` or `3.5` as words. */
 export function numberWords(token: string): string[] {
   const [int, frac] = token.replace(/,/g, '').split('.');
   const words = intWords(Number(int));

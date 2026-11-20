@@ -8,7 +8,6 @@ const UNLABELED = '\u0000unlabeled';
 
 const frame = (sec: number): number => Math.max(0, Math.round(sec / FRAME_SEC));
 
-/** Per-key activity masks over `n` frames; a frame is active when its index lies in [start, end). */
 function masks(spans: { start: number; end: number; key: string }[], n: number): Map<string, Uint8Array> {
   const out = new Map<string, Uint8Array>();
   for (const { start, end, key } of spans) {
@@ -19,13 +18,6 @@ function masks(spans: { start: number; end: number; key: string }[], n: number):
   return out;
 }
 
-/**
- * Frame-level diarization error as in pyannote.metrics with overlap scored: per 10 ms frame,
- * miss = max(0, Nref - Nhyp), false alarm = max(0, Nhyp - Nref), confusion = min(Nref, Nhyp) - correct,
- * where correct counts reference speakers active together with a hyp label mapped to them.
- * Frames within `collar` seconds of any reference turn boundary are not scored.
- * Hyp lines without a label count as one unknown speaker. Null when no hyp line is labelled.
- */
 export function diarizationError(turns: RefTurn[], segs: HypSegment[], labelMap: Record<string, string>, collar = COLLAR_SEC): DerScore | null {
   if (!segs.some((s) => s.label)) return null;
   const n = frame(Math.max(0, ...turns.map((t) => t.end), ...segs.map((s) => s.end)));
