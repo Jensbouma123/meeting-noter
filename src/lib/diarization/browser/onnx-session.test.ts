@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const create = vi.fn();
 
-vi.mock('onnxruntime-web', () => ({
+vi.mock('onnxruntime-web/webgpu', () => ({
   env: { wasm: {} },
   InferenceSession: { create: (...args: unknown[]) => create(...args) },
   Tensor: class {},
