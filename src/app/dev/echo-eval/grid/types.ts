@@ -1,7 +1,7 @@
 export interface ShardCellProps {
   index: number;
   count: number;
-  src: string | null;
+  src: string;
   text: string | undefined;
 }
 
