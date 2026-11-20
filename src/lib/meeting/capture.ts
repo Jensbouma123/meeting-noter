@@ -1,11 +1,5 @@
-import {
-  closeAudioContext,
-  createAudioContext,
-  prepareAudioContext,
-  resumeAudioContext,
-  suspendAudioContext,
-} from './audio-context';
-import { keepAudioContextRunning } from './audio-context-keepalive';
+import { closeAudioContext, createAudioContext, prepareAudioContext } from './audio-context';
+import { AudioContextKeepAlive } from './audio-context-keepalive';
 import { readSources } from './capture-diagnostics';
 import { reopenMicWithoutEchoCancellation } from './mic-reopen';
 import { requestSources } from './request-sources';
@@ -30,8 +24,7 @@ export class Capture {
   private shareError: string | null = null;
   private systemVia: 'share' | 'helper' | null = null;
   private micReopens = 0;
-  private wantRunning = true;
-  private unwatchContext: (() => void) | null = null;
+  private keepAlive = new AudioContextKeepAlive();
   warning: string | null = null;
 
   constructor(private handler: FrameHandler) {
@@ -82,8 +75,7 @@ export class Capture {
       });
       await prepareAudioContext(ctx);
       if (this.acquirer.isStale(run)) return;
-      this.wantRunning = true;
-      this.unwatchContext = keepAudioContextRunning(ctx, () => this.wantRunning);
+      this.keepAlive.watch(ctx);
       const outcome = attachRequestedSources(this.attachHost, ctx, mic, system);
       if (outcome.warning !== null) this.warning = outcome.warning;
       if (outcome.systemVia) this.systemVia = outcome.systemVia;
@@ -134,18 +126,15 @@ export class Capture {
   }
 
   suspend(): Promise<void> {
-    this.wantRunning = false;
-    return suspendAudioContext(this.ctx);
+    return this.keepAlive.suspend(this.ctx);
   }
 
   resume(): Promise<void> {
-    this.wantRunning = true;
-    return resumeAudioContext(this.ctx);
+    return this.keepAlive.resume(this.ctx);
   }
 
   async dispose(): Promise<void> {
-    this.unwatchContext?.();
-    this.unwatchContext = null;
+    this.keepAlive.release();
     this.acquirer.releaseAll();
     this.shareWatch.disarm();
     for (const source of [...this.sources.keys()]) this.dropSource(source);

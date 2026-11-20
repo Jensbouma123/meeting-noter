@@ -13,8 +13,6 @@ function notifyListeners(): void {
   for (const fn of listeners) fn();
 }
 
-// Hidden tabs never run requestAnimationFrame, so a frame-batched emit would
-// stall autosave and every store subscriber until the tab is shown again.
 function pageHidden(): boolean {
   return typeof document !== 'undefined' && document.visibilityState === 'hidden';
 }

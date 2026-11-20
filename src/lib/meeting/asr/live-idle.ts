@@ -2,8 +2,6 @@ import { liveBusy } from './live-state';
 
 const idleWaiters = new Set<() => void>();
 
-// Resolved from the live pump (driven by worklet frames and engine replies), not
-// by polling: hidden tabs clamp timers to >= 1 s, so a 25 ms poll never saw idle.
 export function notifyLiveIdle(): void {
   if (idleWaiters.size === 0 || liveBusy()) return;
   const waiters = [...idleWaiters];

@@ -1,6 +1,5 @@
-// Safari can suspend or 'interrupt' an AudioContext when the tab or window loses
-// focus; the worklet then stops posting frames and ASR/diarization starve.
-// Resume it whenever that happens while the session still wants audio.
+import { resumeAudioContext, suspendAudioContext } from './audio-context';
+
 export function keepAudioContextRunning(ctx: AudioContext, wanted: () => boolean): () => void {
   const onStateChange = () => {
     const state = ctx.state as string;
@@ -9,4 +8,30 @@ export function keepAudioContextRunning(ctx: AudioContext, wanted: () => boolean
   };
   ctx.addEventListener('statechange', onStateChange);
   return () => ctx.removeEventListener('statechange', onStateChange);
+}
+
+export class AudioContextKeepAlive {
+  private wanted = true;
+  private unwatch: (() => void) | null = null;
+
+  watch(ctx: AudioContext): void {
+    this.release();
+    this.wanted = true;
+    this.unwatch = keepAudioContextRunning(ctx, () => this.wanted);
+  }
+
+  suspend(ctx: AudioContext | null): Promise<void> {
+    this.wanted = false;
+    return suspendAudioContext(ctx);
+  }
+
+  resume(ctx: AudioContext | null): Promise<void> {
+    this.wanted = true;
+    return resumeAudioContext(ctx);
+  }
+
+  release(): void {
+    this.unwatch?.();
+    this.unwatch = null;
+  }
 }
