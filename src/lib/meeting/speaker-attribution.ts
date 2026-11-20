@@ -7,15 +7,28 @@ import { installedOverlaps } from './speaker-overlap-timeline';
 import { splitBySpeaker } from './speaker-split';
 import { replaceSegmentFamily, upsertSegment } from './segment-store';
 import type { Segment, Source } from './types';
-import type { OverlapAt, SpeakerAt } from './types/speaker-attribution';
+import type { EchoAt, OverlapAt, SpeakerAt } from './types/speaker-attribution';
+
+function withPieceEcho(seg: Segment, parts: Segment[], echoAt: EchoAt): Segment[] {
+  if (parts.length < 2 || seg.source !== 'mic' || !seg.final) return parts;
+  return parts.map((part) => {
+    const echo = echoAt(part.start, part.end) ?? seg.echo;
+    if (part.echo === echo) return part;
+    const rest = { ...part };
+    delete rest.echo;
+    return echo ? { ...rest, echo } : rest;
+  });
+}
 
 export function attributeSpeakers(
   seg: Segment,
   near: SpeakerAt,
   covered: SpeakerAt,
   overlaps: OverlapAt | undefined = installedOverlaps(seg.source),
+  echoAt: EchoAt = micEchoVerdict,
 ): Segment[] {
-  return withConfirmation(splitBySpeaker(seg, near, covered, overlaps), covered);
+  const parts = withPieceEcho(seg, splitBySpeaker(seg, near, covered, overlaps), echoAt);
+  return withConfirmation(parts, covered);
 }
 
 export function publishLiveUpdate(
