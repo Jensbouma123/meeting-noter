@@ -1,3 +1,4 @@
+import { micEchoVerdict } from './echo/segment-echo';
 import { retranscribeOverlap } from './overlap-clip-pass';
 import { clearHeldAudio, heldAudio, holdFrame } from './overlap-held-audio';
 import { missedWords } from './overlap-missed-words';
@@ -65,16 +66,20 @@ function schedule(source: Source, all: boolean): void {
         );
         const added = missedWords(firstPassWords(source, span), heard, span);
         if (run !== epoch || added.length === 0) return;
+        const start = added[0].start;
+        const end = added[added.length - 1].end;
+        const echo = source === 'mic' ? micEchoVerdict(start, end) : undefined;
         upsertSegment({
           id: `${OVERLAP_SEGMENT_PREFIX}${++segmentCounter}`,
           source,
           speaker: added[0].speaker,
           text: added.map((w) => w.text).join(' '),
-          start: added[0].start,
-          end: added[added.length - 1].end,
+          start,
+          end,
           final: true,
           words: added.map(({ text, start, end }) => ({ text, start, end })),
           overlap: span,
+          ...(echo ? { echo } : {}),
         });
       } catch (err) {
         console.warn('[overlap] Second pass failed', err);
