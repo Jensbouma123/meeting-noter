@@ -22,6 +22,7 @@ import {
   speakerTotals,
   turnMetrics,
 } from './meeting-tables';
+import { transcriptSection } from './transcript-report';
 
 const readResults = (file: string): ScoredMeetingResult[] =>
   fs.readFileSync(file, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l) as ScoredMeetingResult);
@@ -54,7 +55,7 @@ function section(split: string, scores: MeetingScore[], labeled: boolean): strin
   return out;
 }
 
-export function formatMeetingReport(scores: MeetingScore[], now = new Date().toISOString()): string {
+export function formatMeetingReport(scores: MeetingScore[], now = new Date().toISOString(), transcript: string[] = []): string {
   const labeled = scores.some((m) => m.labeled);
   const allLabeled = labeled && scores.every((m) => m.labeled);
   const mode = allLabeled
@@ -66,13 +67,15 @@ export function formatMeetingReport(scores: MeetingScore[], now = new Date().toI
   for (const split of ['all', 'dev', 'heldout'] as const) {
     md.push(...section(split, scores.filter((m) => split === 'all' || m.split === split), labeled));
   }
+  md.push(...transcript);
   return md.join('\n') + '\n';
 }
 
 export function writeMeetingReport(outDir: string, resultsFile: string, utts: Utterance[]): void {
   if (!fs.existsSync(resultsFile)) return;
   const cases = new Map(buildMeetings(utts).map((c) => [c.id, c]));
-  const scores = readResults(resultsFile).flatMap((r) => (cases.has(r.id) ? [scoreMeeting(cases.get(r.id)!, r)] : []));
-  fs.writeFileSync(path.join(outDir, 'meetings-report.md'), formatMeetingReport(scores));
+  const results = readResults(resultsFile);
+  const scores = results.flatMap((r) => (cases.has(r.id) ? [scoreMeeting(cases.get(r.id)!, r)] : []));
+  fs.writeFileSync(path.join(outDir, 'meetings-report.md'), formatMeetingReport(scores, undefined, transcriptSection(cases, results, scores)));
   fs.writeFileSync(path.join(outDir, 'meetings-scores.json'), JSON.stringify(scores, null, 2));
 }
