@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import { gridShape, gridUrl, parseGridShards, shardFrameUrls } from './grid-url';
+import { cellSources, gridShape, gridUrl, isWarmPhase, parseGridShards, shardFrameUrls } from './grid-url';
 
 describe('shardFrameUrls', () => {
   it('builds one autostarting URL per shard and passes the other params through', () => {
@@ -52,5 +52,24 @@ describe('gridShape', () => {
     expect(gridShape(4)).toEqual({ cols: 2, rows: 2 });
     expect(gridShape(6)).toEqual({ cols: 3, rows: 2 });
     expect(gridShape(2)).toEqual({ cols: 2, rows: 1 });
+  });
+});
+
+describe('cellSources', () => {
+  const urls = ['/a', '/b', '/c'];
+
+  it('starts only the warm shard while the model cache is cold', () => {
+    expect(cellSources(urls, false)).toEqual(['/a', null, null]);
+  });
+
+  it('starts every shard once the warm shard has loaded the models', () => {
+    expect(cellSources(urls, true)).toEqual(urls);
+  });
+});
+
+describe('isWarmPhase', () => {
+  it('is warm once the frame is past loading, including a failed load', () => {
+    expect(['idle', 'loading'].map(isWarmPhase)).toEqual([false, false]);
+    expect(['running', 'done', 'error'].map(isWarmPhase)).toEqual([true, true, true]);
   });
 });

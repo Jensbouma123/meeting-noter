@@ -25,8 +25,11 @@ function EchoEval() {
   const shardIndex = shard?.index;
   useEffect(() => {
     if (shardIndex === undefined || window.parent === window) return;
-    window.parent.postMessage({ type: SHARD_PROGRESS_MESSAGE, shard: shardIndex, text: status }, window.location.origin);
-  }, [shardIndex, status]);
+    window.parent.postMessage(
+      { type: SHARD_PROGRESS_MESSAGE, shard: shardIndex, text: status, phase: progress.phase },
+      window.location.origin,
+    );
+  }, [shardIndex, status, progress.phase]);
   const busy = progress.phase === 'loading' || progress.phase === 'running';
   return (
     <main style={{ maxWidth: 720, margin: '2rem auto', padding: '0 1rem', fontFamily: 'system-ui' }}>

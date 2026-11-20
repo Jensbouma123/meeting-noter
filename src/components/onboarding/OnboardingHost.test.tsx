@@ -10,6 +10,8 @@ import { OnboardingHost } from './OnboardingHost';
 
 const registerModelsOnce = vi.hoisted(() => vi.fn(() => Promise.resolve()));
 vi.mock('@/components/models/registerModelsOnce', () => ({ registerModelsOnce }));
+const nav = vi.hoisted(() => ({ pathname: '/' }));
+vi.mock('next/navigation', () => ({ usePathname: () => nav.pathname }));
 
 registerOnboardingTestEnv();
 
@@ -20,6 +22,16 @@ describe('OnboardingHost', () => {
     render(<OnboardingHost />);
     expect(screen.getByText('Step 1 of 9')).toBeInTheDocument();
     expect(registerModelsOnce).toHaveBeenCalled();
+  });
+
+  it('never shows on /dev routes, whose fresh eval origins have no onboarding state', () => {
+    for (const path of ['/dev/echo-eval', '/dev/echo-eval/grid']) {
+      nav.pathname = path;
+      const { unmount } = render(<OnboardingHost />);
+      expect(screen.queryByText('Step 1 of 9')).not.toBeInTheDocument();
+      unmount();
+    }
+    nav.pathname = '/';
   });
 
   it('stays closed once onboarding was finished', () => {

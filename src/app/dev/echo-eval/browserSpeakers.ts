@@ -1,8 +1,8 @@
-import { recordConsent } from '@/lib/asr/browser';
 import { startDiarization } from '@/lib/meeting/diarization-bridge';
 import { DIARIZATION_REGISTRY_KEY } from '@/lib/meeting/diarization-registry';
 import { routeCapturedFrame } from '@/lib/meeting/frame-router';
 import { getState } from '@/lib/meeting/store-core';
+import { acceptEvalModels } from './acceptEvalModels';
 import type { MeetingAsr } from '../../../../scripts/echo-eval/types/meeting-engine';
 import { assertLiveMode, flushLiveSpeakers, resetLiveSession, waitActive } from '../../../../scripts/echo-eval/lib/diar-session';
 
@@ -20,7 +20,7 @@ export function withBrowserSpeakers(asr: MeetingAsr, onBackend: (backend: string
     },
     startSpeakers: async () => {
       await resetLiveSession();
-      recordConsent('accepted', [DIARIZATION_REGISTRY_KEY]);
+      acceptEvalModels([DIARIZATION_REGISTRY_KEY]);
       startDiarization(['mic', 'system']);
       await waitActive(ACTIVE_TIMEOUT_MS);
       await assertLiveMode();
