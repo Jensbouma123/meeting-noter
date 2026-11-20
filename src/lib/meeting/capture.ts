@@ -1,10 +1,5 @@
-import {
-  closeAudioContext,
-  createAudioContext,
-  prepareAudioContext,
-  resumeAudioContext,
-  suspendAudioContext,
-} from './audio-context';
+import { closeAudioContext, createAudioContext, prepareAudioContext } from './audio-context';
+import { AudioContextKeepAlive } from './audio-context-keepalive';
 import { readSources } from './capture-diagnostics';
 import { reopenMicWithoutEchoCancellation } from './mic-reopen';
 import { requestSources } from './request-sources';
@@ -29,6 +24,7 @@ export class Capture {
   private shareError: string | null = null;
   private systemVia: 'share' | 'helper' | null = null;
   private micReopens = 0;
+  private keepAlive = new AudioContextKeepAlive();
   warning: string | null = null;
 
   constructor(private handler: FrameHandler) {
@@ -79,6 +75,7 @@ export class Capture {
       });
       await prepareAudioContext(ctx);
       if (this.acquirer.isStale(run)) return;
+      this.keepAlive.watch(ctx);
       const outcome = attachRequestedSources(this.attachHost, ctx, mic, system);
       if (outcome.warning !== null) this.warning = outcome.warning;
       if (outcome.systemVia) this.systemVia = outcome.systemVia;
@@ -129,14 +126,15 @@ export class Capture {
   }
 
   suspend(): Promise<void> {
-    return suspendAudioContext(this.ctx);
+    return this.keepAlive.suspend(this.ctx);
   }
 
   resume(): Promise<void> {
-    return resumeAudioContext(this.ctx);
+    return this.keepAlive.resume(this.ctx);
   }
 
   async dispose(): Promise<void> {
+    this.keepAlive.release();
     this.acquirer.releaseAll();
     this.shareWatch.disarm();
     for (const source of [...this.sources.keys()]) this.dropSource(source);

@@ -14,7 +14,7 @@ export function memoryStorage(): Storage {
   };
 }
 
-class FakeAudioContext {
+class FakeAudioContext extends EventTarget {
   state = 'running';
   sampleRate = 16000;
   audioWorklet = { addModule: vi.fn().mockResolvedValue(undefined) };

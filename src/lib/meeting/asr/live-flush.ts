@@ -5,6 +5,7 @@ import { LIVE_FLUSH_MAX_WINDOWS, LIVE_FLUSH_POLL_MS, LIVE_FLUSH_WAIT_MS } from '
 import { asrState } from './state';
 import { clearLiveAudio, liveBufferedSamples, liveChunkers, liveCounters } from './live-state';
 import { recognizeLiveWindow } from './live-window';
+import { notifyLiveIdle } from './live-idle';
 
 const FLUSH_SOURCES: readonly Source[] = ['mic', 'system'];
 
@@ -39,5 +40,6 @@ export async function flushLiveAudio(): Promise<void> {
     liveCounters.flushing = false;
     endLiveFlush();
     clearLiveAudio();
+    notifyLiveIdle();
   }
 }

@@ -15,7 +15,7 @@ function fakeStream(video = false) {
   } as unknown as MediaStream;
 }
 
-class FakeAudioContext {
+class FakeAudioContext extends EventTarget {
   state = 'running';
   sampleRate = 48000;
   audioWorklet = { addModule: vi.fn().mockResolvedValue(undefined) };

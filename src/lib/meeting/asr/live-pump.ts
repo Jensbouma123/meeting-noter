@@ -5,6 +5,7 @@ import type { Source } from '../types/basics';
 import { asrState } from './state';
 import { liveChunker, liveChunkers, liveCounters, liveGateOpenAt, liveServedAt, liveShowing } from './live-state';
 import { recognizeLiveWindow } from './live-window';
+import { notifyLiveIdle } from './live-idle';
 
 function nextDueSource(): Source | null {
   let next: Source | null = null;
@@ -38,11 +39,12 @@ function traceTake(source: Source, req: LiveWindowRequest): void {
 export function pumpLiveAudio(): void {
   if (asrState.transcribeInFlight || liveCounters.flushing) return;
   const engine = asrState.engine?.isReady ? asrState.engine : null;
-  if (!engine) return;
-  const next = nextDueSource();
-  if (next === null) return;
-  const req = liveChunker(next).take();
-  if (!req) return;
+  const next = engine ? nextDueSource() : null;
+  const req = engine && next !== null ? liveChunker(next).take() : null;
+  if (!engine || next === null || !req) {
+    notifyLiveIdle();
+    return;
+  }
   liveServedAt.set(next, ++liveCounters.served);
   traceTake(next, req);
   void recognizeLiveWindow(engine, next, req).then(() => pumpLiveAudio());

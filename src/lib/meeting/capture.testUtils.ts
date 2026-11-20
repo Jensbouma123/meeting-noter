@@ -28,7 +28,7 @@ export function fakeStream(track = fakeTrack(), video = false) {
   };
 }
 
-export class FakeAudioContext {
+export class FakeAudioContext extends EventTarget {
   state = 'running';
   sampleRate = 48000;
   audioWorklet = { addModule: vi.fn().mockResolvedValue(undefined) };

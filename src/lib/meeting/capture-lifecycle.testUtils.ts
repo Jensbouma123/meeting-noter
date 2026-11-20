@@ -32,7 +32,7 @@ export function fakeStream(opts: { audio?: boolean; video?: boolean } = {}): Med
   } as unknown as MediaStream;
 }
 
-export class FakeAudioContext {
+export class FakeAudioContext extends EventTarget {
   state: 'running' | 'suspended' | 'closed' = 'running';
   sampleRate = 48000;
   audioWorklet = { addModule: vi.fn().mockResolvedValue(undefined) };
@@ -42,6 +42,7 @@ export class FakeAudioContext {
     this.state = 'closed';
   });
   constructor() {
+    super();
     contexts.push(this);
   }
   createMediaStreamSource() {
