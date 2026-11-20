@@ -31,3 +31,12 @@ export function fakeDeps(
     ...extra,
   };
 }
+
+export function tempHome(files: Record<string, string> = {}): string {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'assistants-home-'));
+  for (const [rel, text] of Object.entries(files)) {
+    fs.mkdirSync(path.dirname(path.join(home, rel)), { recursive: true });
+    fs.writeFileSync(path.join(home, rel), text);
+  }
+  return home;
+}

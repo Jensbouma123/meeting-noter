@@ -1,11 +1,14 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { connectAssistant, disconnectAssistant, listAssistants } from './index';
-import { fakeDeps } from './test-deps';
+import { fakeDeps, tempHome } from './test-deps';
 
 const env = {
   NODE_ENV: 'test' as const,
   MEETING_NOTER_MCP_PATH: '/app/mcp.mjs',
   MEETING_NOTER_CLAUDE_DESKTOP_CONFIG: '/nonexistent/c.json',
+  HOME: tempHome(),
 };
 
 describe('CLI assistants', () => {
@@ -25,9 +28,11 @@ describe('CLI assistants', () => {
     });
   });
 
-  it('runs mcp add and mcp remove through the CLI', async () => {
+  it('runs mcp add and mcp remove through the CLI, and falls back to mcp list on an unreadable config', async () => {
     const calls: string[][] = [];
-    const deps = fakeDeps(env, ['claude', 'codex'], async (bin, args) => {
+    const home = tempHome();
+    fs.mkdirSync(path.join(home, '.codex', 'config.toml'), { recursive: true });
+    const deps = fakeDeps({ ...env, HOME: home }, ['claude', 'codex'], async (bin, args) => {
       calls.push([bin, ...args]);
       return { ok: true, stdout: 'meeting-noter: node /app/mcp.mjs\n' };
     });
