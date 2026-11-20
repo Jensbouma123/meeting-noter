@@ -11,5 +11,5 @@ export function resolveAskTarget(
   if (assistant.prefillUrl && encoded.length <= maxEncodedChars) {
     return { url: assistant.prefillUrl(encoded), prefilled: true };
   }
-  return { url: assistant.newChatUrl, prefilled: false };
+  return { url: assistant.newChatUrl ?? null, prefilled: false };
 }

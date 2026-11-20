@@ -5,7 +5,18 @@ import { CaptureDiagnostics } from '@/components/meeting/CaptureDiagnostics';
 import type { MeetingWorkspaceProps } from './MeetingWorkspace.types';
 
 export function MeetingWorkspace(props: MeetingWorkspaceProps) {
-  const { sessionId, title, startedAt, segments, speakers, status, settings, modelReady, modelReadiness, modelProgress } = props;
+  const {
+    sessionId,
+    title,
+    startedAt,
+    segments,
+    speakers,
+    status,
+    settings,
+    modelReady,
+    modelReadiness,
+    modelProgress,
+  } = props;
   const { onStart, onStop, onPause, onResume, onOpenSettings, onModeChange, onSettingsChange } = props;
   return (
     <HStack as="div" spacing="none" align="stretch" fill className="w-full max-w-full overflow-hidden">
@@ -35,7 +46,15 @@ export function MeetingWorkspace(props: MeetingWorkspaceProps) {
           onOpenAdvanced={() => onOpenSettings('advanced')}
           micDeviceId={settings.micDeviceId}
           onMicDeviceChange={(micDeviceId) => onSettingsChange({ ...settings, micDeviceId })}
-          trailing={<AskAssistantButton title={title} startedAt={startedAt} segments={segments} speakers={speakers} />}
+          trailing={
+            <AskAssistantButton
+              title={title}
+              startedAt={startedAt}
+              segments={segments}
+              speakers={speakers}
+              onOpenSettings={() => onOpenSettings('assistant')}
+            />
+          }
         />
         <CaptureDiagnostics />
       </VStack>

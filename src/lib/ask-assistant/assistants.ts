@@ -1,40 +1,28 @@
+import { isAssistantId } from '@/lib/assistants/ids';
 import type { AskAssistant, AskAssistantId } from './types';
 
-export const DEFAULT_ASK_ASSISTANT: AskAssistantId = 'claude';
+const CLAUDE_DESKTOP_NEW_CHAT = 'claude://claude.ai/new';
 
-export const ASK_ASSISTANTS: readonly AskAssistant[] = [
-  {
-    id: 'claude',
-    name: 'Claude',
-    newChatUrl: 'https://claude.ai/new',
-    prefillUrl: (q) => `https://claude.ai/new?q=${q}`,
+export const ASK_ASSISTANTS: Readonly<Record<AskAssistantId, AskAssistant>> = {
+  'claude-desktop': {
+    id: 'claude-desktop',
+    newChatUrl: CLAUDE_DESKTOP_NEW_CHAT,
+    prefillUrl: (q) => `${CLAUDE_DESKTOP_NEW_CHAT}?q=${q}`,
   },
-  {
-    id: 'chatgpt',
-    name: 'ChatGPT',
-    newChatUrl: 'https://chatgpt.com/',
-    prefillUrl: (q) => `https://chatgpt.com/?q=${q}`,
-  },
-  { id: 'gemini', name: 'Gemini', newChatUrl: 'https://gemini.google.com/app' },
-  {
-    id: 'copilot',
-    name: 'Copilot',
-    newChatUrl: 'https://copilot.microsoft.com/',
-    prefillUrl: (q) => `https://copilot.microsoft.com/?q=${q}`,
-  },
-  {
-    id: 'perplexity',
-    name: 'Perplexity',
-    newChatUrl: 'https://www.perplexity.ai/',
-    prefillUrl: (q) => `https://www.perplexity.ai/search?q=${q}`,
-  },
-  { id: 'mistral', name: 'Le Chat', newChatUrl: 'https://chat.mistral.ai/chat' },
-];
+  'claude-code': { id: 'claude-code' },
+  codex: { id: 'codex' },
+};
 
-export function isAskAssistantId(value: unknown): value is AskAssistantId {
-  return typeof value === 'string' && ASK_ASSISTANTS.some((a) => a.id === value);
-}
+export const isAskAssistantId = isAssistantId;
 
 export function getAskAssistant(id: AskAssistantId): AskAssistant {
-  return ASK_ASSISTANTS.find((a) => a.id === id) ?? ASK_ASSISTANTS[0];
+  return ASK_ASSISTANTS[id];
+}
+
+export function pickAskAssistant(
+  stored: AskAssistantId | null,
+  configured: readonly AskAssistantId[],
+): AskAssistantId | null {
+  if (stored && configured.includes(stored)) return stored;
+  return configured[0] ?? null;
 }
