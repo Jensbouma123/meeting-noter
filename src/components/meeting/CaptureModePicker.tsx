@@ -1,72 +1,68 @@
 'use client';
 
-import { Check, ChevronUp, Mic, PhoneCall } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  Tooltip,
-} from '@jensbouma123/acciva-ui';
+import { useId } from 'react';
+import { Lock, Mic, PhoneCall } from 'lucide-react';
 import { useT } from '@/lib/i18n/useT';
 import type { CaptureModePickerProps } from './CaptureModePicker.types';
 
-const MENU_GAP_PX = 8;
-
 const OPTIONS = [
-  { value: 'mic', Icon: Mic, label: 'mic', tip: 'micTip', lockedTip: 'micTipLocked' },
-  { value: 'both', Icon: PhoneCall, label: 'micCall', tip: 'micCallTip', lockedTip: 'micCallTipLocked' },
+  { value: 'mic', Icon: Mic, title: 'micOnlyTitle', desc: 'micOnlyDesc' },
+  { value: 'both', Icon: PhoneCall, title: 'micCallTitle', desc: 'micCallDesc' },
 ] as const;
 
+/** "What to record": one card per capture mode; the legacy `system` mode shows as Mic + call. */
 export function CaptureModePicker({ mode, locked, onChange }: CaptureModePickerProps) {
   const t = useT('dock');
-  const current = OPTIONS.find((o) => o.value === (mode === 'system' ? 'both' : mode)) ?? OPTIONS[1];
-  const trigger = (
-    <button
-      type="button"
-      disabled={locked}
-      aria-label={`${t('audioSource')}: ${t(current.label)}`}
-      className="focus-ring touch-target-44 inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-sm font-medium text-foreground transition-colors enabled:cursor-pointer enabled:hover:bg-elevation-2 enabled:active:bg-elevation-3 aria-expanded:bg-elevation-2 disabled:cursor-default disabled:text-muted-foreground dark:enabled:hover:bg-elevation-3 dark:enabled:active:bg-elevation-4 dark:aria-expanded:bg-elevation-3"
-    >
-      <current.Icon className="size-4" aria-hidden="true" />
-      <span className="sr-only md:not-sr-only">{t(current.label)}</span>
-      {!locked && <ChevronUp className="hidden size-4 text-muted-foreground sm:block" aria-hidden="true" />}
-    </button>
-  );
-
-  if (locked) {
-    return (
-      <Tooltip content={t(current.lockedTip)}>
-        <span className="inline-flex">{trigger}</span>
-      </Tooltip>
-    );
-  }
+  const headingId = useId();
+  const noteId = useId();
+  const current = mode === 'mic' ? 'mic' : 'both';
 
   return (
-    <DropdownMenu>
-      <Tooltip content={t(current.tip)}>
-        <span className="inline-flex">
-          <DropdownMenuTrigger>{trigger}</DropdownMenuTrigger>
-        </span>
-      </Tooltip>
-      <DropdownMenuContent align="end" sideOffset={MENU_GAP_PX} className="mic-menu max-w-72">
-        {OPTIONS.map(({ value, Icon, label }) => {
-          const selected = value === current.value;
+    <section className="flex flex-col gap-2">
+      <h3 id={headingId} className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {t('whatToRecord')}
+      </h3>
+      <div
+        role="radiogroup"
+        aria-labelledby={headingId}
+        aria-describedby={locked ? noteId : undefined}
+        aria-disabled={locked || undefined}
+        className="grid gap-2 sm:grid-cols-2"
+      >
+        {OPTIONS.map(({ value, Icon, title, desc }) => {
+          const selected = value === current;
           return (
-            <DropdownMenuItem
+            <button
               key={value}
-              icon={selected ? <Check className="size-4" /> : <span className="size-4" />}
-              aria-current={selected ? 'true' : undefined}
-              onClick={() => onChange(value)}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              disabled={locked}
+              onClick={() => !selected && onChange(value)}
+              className={`focus-ring flex items-start gap-3 rounded-2xl border p-3 text-left transition-colors enabled:cursor-pointer disabled:cursor-default ${
+                selected
+                  ? 'border-primary-500 bg-primary-500/10 dark:border-primary-400'
+                  : 'border-border-subtle enabled:hover:bg-elevation-2 dark:enabled:hover:bg-elevation-3'
+              } ${locked && !selected ? 'opacity-60' : ''}`}
             >
-              <span className="inline-flex items-center gap-2">
-                <Icon className="size-4" aria-hidden="true" />
-                {t(label)}
+              <Icon
+                className={`mt-0.5 size-5 shrink-0 ${selected ? 'text-primary-600 dark:text-primary-400' : 'text-muted-foreground'}`}
+                aria-hidden="true"
+              />
+              <span className="flex flex-col gap-0.5">
+                <span className="text-sm font-semibold text-foreground">{t(title)}</span>
+                <span className="text-xs text-muted-foreground">{t(desc)}</span>
               </span>
-            </DropdownMenuItem>
+            </button>
           );
         })}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </div>
+      {locked && (
+        <p id={noteId} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Lock className="size-3.5 shrink-0" aria-hidden="true" />
+          {t('modeLocked')}
+        </p>
+      )}
+    </section>
   );
 }
