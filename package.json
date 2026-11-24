@@ -1,6 +1,6 @@
 {
   "name": "meeting-noter",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "private": true,
   "scripts": {
     "predev": "node src/lib/ort-paths/copy-ort-wasm.mjs",
