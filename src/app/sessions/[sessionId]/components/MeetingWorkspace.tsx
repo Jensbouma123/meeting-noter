@@ -11,6 +11,7 @@ export function MeetingWorkspace(props: MeetingWorkspaceProps) {
     startedAt,
     segments,
     speakers,
+    language,
     status,
     settings,
     modelReady,
@@ -52,6 +53,7 @@ export function MeetingWorkspace(props: MeetingWorkspaceProps) {
               startedAt={startedAt}
               segments={segments}
               speakers={speakers}
+              transcriptLanguage={language?.name}
               onOpenSettings={() => onOpenSettings('assistant')}
             />
           }

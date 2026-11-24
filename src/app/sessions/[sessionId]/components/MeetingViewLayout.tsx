@@ -44,6 +44,7 @@ export function MeetingViewLayout({ state }: MeetingViewLayoutProps) {
           startedAt={state.startedAt}
           segments={state.segments}
           speakers={state.speakers}
+          language={state.language}
           status={state.status}
           settings={state.settings}
           modelReady={state.modelReady}

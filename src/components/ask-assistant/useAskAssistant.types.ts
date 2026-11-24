@@ -5,4 +5,5 @@ export interface UseAskAssistantInput {
   startedAt: number | null;
   segments: Segment[];
   speakers: Record<string, Speaker>;
+  transcriptLanguage?: string | null;
 }

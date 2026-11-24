@@ -1,9 +1,29 @@
+import type { AskLabels } from './buildAskPrompt.types';
 import type { AskLanguage, AskPromptInput, AskTurn } from './types';
 
-const LABELS: Record<AskLanguage, { meeting: string; date: string; transcript: string; untitled: string }> = {
-  en: { meeting: 'Meeting', date: 'Date', transcript: 'Transcript', untitled: 'Untitled meeting' },
-  nl: { meeting: 'Meeting', date: 'Datum', transcript: 'Transcript', untitled: 'Naamloze meeting' },
+const LABELS: Record<AskLanguage, AskLabels> = {
+  en: {
+    meeting: 'Meeting',
+    date: 'Date',
+    transcript: 'Transcript',
+    untitled: 'Untitled meeting',
+    replyIn: 'Answer in {name}, the language of the transcript.',
+    replySame: 'Answer in the same language as the transcript.',
+  },
+  nl: {
+    meeting: 'Meeting',
+    date: 'Datum',
+    transcript: 'Transcript',
+    untitled: 'Naamloze meeting',
+    replyIn: 'Antwoord in het {name}, de taal van het transcript.',
+    replySame: 'Antwoord in dezelfde taal als het transcript.',
+  },
 };
+
+function replyLanguageLine(labels: AskLabels, transcriptLanguage: string | null | undefined): string {
+  const name = transcriptLanguage?.trim();
+  return name ? labels.replyIn.replace('{name}', name) : labels.replySame;
+}
 
 export function mergeTurns(turns: AskTurn[]): AskTurn[] {
   const merged: AskTurn[] = [];
@@ -17,10 +37,18 @@ export function mergeTurns(turns: AskTurn[]): AskTurn[] {
   return merged;
 }
 
-export function buildAskPrompt({ instruction, title, dateLabel, turns, language }: AskPromptInput): string {
+export function buildAskPrompt({
+  instruction,
+  title,
+  dateLabel,
+  turns,
+  language,
+  transcriptLanguage,
+}: AskPromptInput): string {
   const labels = LABELS[language];
   const header = [`${labels.meeting}: ${title.trim() || labels.untitled}`];
   if (dateLabel) header.push(`${labels.date}: ${dateLabel}`);
   const body = mergeTurns(turns).map((turn) => `${turn.speaker}: ${turn.text}`);
-  return [instruction.trim(), '', ...header, '', `${labels.transcript}:`, ...body].join('\n');
+  const reply = replyLanguageLine(labels, transcriptLanguage);
+  return [instruction.trim(), reply, '', ...header, '', `${labels.transcript}:`, ...body].join('\n');
 }

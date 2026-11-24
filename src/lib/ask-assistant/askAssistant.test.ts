@@ -35,6 +35,7 @@ describe('buildAskPrompt', () => {
     expect(prompt).toBe(
       [
         'Do it.',
+        'Answer in the same language as the transcript.',
         '',
         'Meeting: Weekly',
         'Date: 20 Nov 2026',
@@ -56,6 +57,19 @@ describe('buildAskPrompt', () => {
     });
     expect(prompt).toContain('Meeting: Naamloze meeting');
     expect(prompt).not.toContain('Datum');
+  });
+
+  it('tells the assistant to answer in the detected transcript language', () => {
+    const base = { instruction: 'Do it.', title: 'Weekly', dateLabel: '', turns };
+    expect(buildAskPrompt({ ...base, language: 'en', transcriptLanguage: 'German' })).toContain(
+      'Do it.\nAnswer in German, the language of the transcript.\n',
+    );
+    expect(buildAskPrompt({ ...base, language: 'nl', transcriptLanguage: 'Engels' })).toContain(
+      'Antwoord in het Engels, de taal van het transcript.',
+    );
+    expect(buildAskPrompt({ ...base, language: 'nl', transcriptLanguage: null })).toContain(
+      'Antwoord in dezelfde taal als het transcript.',
+    );
   });
 
   it('merges consecutive turns of one speaker and skips empty text', () => {

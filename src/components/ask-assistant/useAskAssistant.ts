@@ -27,7 +27,7 @@ import { copyToClipboard } from '@/lib/meeting/export-browser';
 import { finalSegments, resolveSpeakerLabel } from '@/lib/meeting/transcript-format';
 import type { UseAskAssistantInput } from './useAskAssistant.types';
 
-export function useAskAssistant({ title, startedAt, segments, speakers }: UseAskAssistantInput) {
+export function useAskAssistant({ title, startedAt, segments, speakers, transcriptLanguage }: UseAskAssistantInput) {
   const t = useT('ask');
   const language = useLanguage();
   const { toast } = useToast();
@@ -55,6 +55,7 @@ export function useAskAssistant({ title, startedAt, segments, speakers }: UseAsk
       dateLabel,
       turns,
       language,
+      transcriptLanguage,
     });
     const outcome = await deliverPrompt(getAskAssistant(assistant.id), prompt, {
       copy: copyToClipboard,
