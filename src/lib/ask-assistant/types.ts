@@ -42,6 +42,7 @@ export interface AskPromptInput {
   dateLabel: string;
   turns: AskTurn[];
   language: AskLanguage;
+  transcriptLanguage?: string | null;
 }
 
 export interface AskTarget {

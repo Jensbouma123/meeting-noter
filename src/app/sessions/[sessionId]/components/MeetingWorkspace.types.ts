@@ -1,7 +1,7 @@
 import type { AppSettings } from '@/components/meeting';
 import type { deriveModelProgress } from '@/components/meeting/modelProgress';
 import type { SettingsSectionId } from '@/components/settings/types';
-import type { CaptureMode, Segment, Speaker } from '@/lib/meeting';
+import type { CaptureMode, LanguageInfo, Segment, Speaker } from '@/lib/meeting';
 import type { MeetingStatus, ModelReadiness } from '../types';
 
 export interface MeetingWorkspaceProps {
@@ -10,6 +10,7 @@ export interface MeetingWorkspaceProps {
   startedAt: number | null;
   segments: Segment[];
   speakers: Record<string, Speaker>;
+  language: LanguageInfo | null;
   status: MeetingStatus;
   settings: AppSettings;
   modelReady: boolean;
