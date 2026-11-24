@@ -1,13 +1,5 @@
+import type { AskLabels } from './buildAskPrompt.types';
 import type { AskLanguage, AskPromptInput, AskTurn } from './types';
-
-interface AskLabels {
-  meeting: string;
-  date: string;
-  transcript: string;
-  untitled: string;
-  replyIn: string;
-  replySame: string;
-}
 
 const LABELS: Record<AskLanguage, AskLabels> = {
   en: {
